@@ -1,0 +1,50 @@
+/**
+ * Basic Auth für Admin-Bereich (Middleware + API Defense in Depth).
+ */
+
+export function parseBasicAuthHeader(authHeader: string | null): {
+  username: string;
+  password: string;
+} | null {
+  if (!authHeader || !authHeader.startsWith('Basic ')) {
+    return null;
+  }
+
+  const base64Credentials = authHeader.slice(6).trim();
+
+  try {
+    const decoded = Buffer.from(base64Credentials, 'base64').toString('utf-8');
+    const separatorIndex = decoded.indexOf(':');
+
+    if (separatorIndex === -1) {
+      return null;
+    }
+
+    const username = decoded.slice(0, separatorIndex);
+    const password = decoded.slice(separatorIndex + 1);
+
+    return { username, password };
+  } catch {
+    return null;
+  }
+}
+
+export function isValidBasicAuth(authHeader: string | null): boolean {
+  const credentials = parseBasicAuthHeader(authHeader);
+
+  if (!credentials) {
+    return false;
+  }
+
+  const expectedUser = process.env.ADMIN_BASIC_USER;
+  const expectedPass = process.env.ADMIN_BASIC_PASS;
+
+  if (!expectedUser || !expectedPass) {
+    return false;
+  }
+
+  return (
+    credentials.username === expectedUser &&
+    credentials.password === expectedPass
+  );
+}
