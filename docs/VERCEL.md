@@ -22,7 +22,7 @@ Die App kann auf Vercel deployed werden, damit du den Zugangslink (z. B. für 
 4. **Links teilen**  
    - Zugangslink für Empfänger: `https://dein-projekt.vercel.app/access/DEIN_TOKEN`
    - Admin-Direktzugang (nur mit Secret):  
-     `https://dein-projekt.vercel.app/api/admin/enter-demo?secret=DEIN_ADMIN_DEMO_SECRET&demo_id=buerger-app-v1`
+     `https://dein-projekt.vercel.app/api/admin/enter-demo?secret=DEIN_ADMIN_DEMO_SECRET&demo_id=eidconnect-v1`
 
 ## Hinweis
 

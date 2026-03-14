@@ -7,7 +7,7 @@ import type { DemoAuditLogInsert } from '@/types/security';
 
 export async function insertAuditLog(entry: DemoAuditLogInsert): Promise<void> {
   const { error } = await supabaseAdmin.from('audit_logs').insert({
-    demo_id: entry.demo_id ?? 'buerger-app',
+    demo_id: entry.demo_id ?? 'eidconnect',
     token_id: entry.token_id ?? null,
     session_id: entry.session_id ?? null,
     event_type: entry.event_type,

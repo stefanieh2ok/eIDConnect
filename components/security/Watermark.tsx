@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 
-const DEMO_ID = 'buerger-app';
+const DEMO_ID = 'eidconnect';
 
 export type WatermarkProps = {
   fullName: string;

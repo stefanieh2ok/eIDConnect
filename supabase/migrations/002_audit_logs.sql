@@ -3,7 +3,7 @@
 
 create table if not exists audit_logs (
   id uuid default gen_random_uuid() primary key,
-  demo_id text not null default 'buerger-app',
+  demo_id text not null default 'eidconnect',
   token_id uuid references demo_tokens(id) on delete restrict,
   session_id uuid references demo_sessions(id) on delete restrict,
   event_type text not null,

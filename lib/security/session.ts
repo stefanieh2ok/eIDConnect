@@ -77,7 +77,7 @@ export async function getActiveDemoSession(
   return {
     sessionId: row.id,
     tokenId: row.token_id ?? row.access_token_id ?? row.id,
-    demoId: row.demo_id ?? 'buerger-app',
+    demoId: row.demo_id ?? 'eidconnect',
     fullName: row.full_name ?? 'Autorisierter Empfänger',
     company: row.company ?? '',
     email: row.email ?? '',

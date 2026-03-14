@@ -4,7 +4,7 @@ import {
   createAdminDemoCookieValue,
 } from '@/lib/security/admin-demo';
 
-const DEFAULT_DEMO_ID = process.env.DEMO_ACCESS_DEFAULT_ID ?? 'buerger-app-v1';
+const DEFAULT_DEMO_ID = process.env.DEMO_ACCESS_DEFAULT_ID ?? 'eidconnect-v1';
 
 /**
  * GET /api/admin/enter-demo?secret=...&demo_id=...
