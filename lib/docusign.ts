@@ -1,8 +1,13 @@
-import docusign from 'docusign-esign';
 import { buildNdaPdfBuffer } from '@/lib/nda-pdf';
 
 const DOCUMENT_ID = '1';
 const SIGNER_CLIENT_ID = 'nda-signer-1';
+
+/** Lazy-load docusign-esign (CommonJS) so the build does not fail on Vercel. */
+function getDocusign() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  return require('docusign-esign') as typeof import('docusign-esign');
+}
 
 function getConfig() {
   const integrationKey = process.env.DOCUSIGN_INTEGRATION_KEY;
@@ -31,6 +36,7 @@ function getConfig() {
  * Holt einen Access Token per JWT (User Token für Senden/Embedded Signing).
  */
 async function getAccessToken(): Promise<string> {
+  const docusign = getDocusign();
   const { integrationKey, userId, privateKey, basePath } = getConfig();
   const apiClient = new docusign.ApiClient();
   apiClient.setBasePath(basePath);
@@ -67,6 +73,7 @@ export type SendNdaEnvelopeOptions = {
 export async function sendNdaEnvelopeAndGetSigningUrl(
   options: SendNdaEnvelopeOptions
 ): Promise<{ envelopeId: string; signingUrl: string }> {
+  const docusign = getDocusign();
   const { signerEmail, signerName, returnUrl } = options;
   const { accountId, basePath } = getConfig();
 
@@ -151,6 +158,7 @@ export async function sendNdaEnvelopeAndGetSigningUrl(
  * Prüft den Status eines Envelopes. Gibt den Status (z. B. "completed") zurück.
  */
 export async function getEnvelopeStatus(envelopeId: string): Promise<string> {
+  const docusign = getDocusign();
   const { accountId, basePath } = getConfig();
   const accessToken = await getAccessToken();
   const apiClient = new docusign.ApiClient();
