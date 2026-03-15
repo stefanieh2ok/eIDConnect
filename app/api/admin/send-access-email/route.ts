@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const data = (await res.json()) as { id?: string };
   return NextResponse.json({
     success: true,
     id: data?.id,
