@@ -50,15 +50,15 @@ function getConfig() {
       `DocuSign config missing: ${missing.join(', ')}`
     );
   }
-  const key = normalizePrivateKey(privateKey);
+  const key = normalizePrivateKey(privateKey!);
   const isDemo = process.env.DOCUSIGN_USE_DEMO === 'true';
   const basePath = isDemo
     ? 'https://demo.docusign.net/restapi'
     : 'https://www.docusign.net/restapi';
   return {
-    integrationKey,
-    userId,
-    accountId,
+    integrationKey: integrationKey!,
+    userId: userId!,
+    accountId: accountId!,
     privateKey: key,
     basePath,
   };
