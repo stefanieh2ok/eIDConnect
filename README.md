@@ -46,7 +46,9 @@ npm run dev
 ```
 
 4. **App öffnen:**
-Öffne [http://localhost:3000](http://localhost:3000) in deinem Browser.
+Öffne [http://localhost:3002](http://localhost:3002) in deinem Browser.
+
+**Port 3002:** Die App läuft lokal immer auf Port **3002** (`next dev -p 3002` in `package.json`). DocuSign Redirect URI, `NEXT_PUBLIC_APP_URL` und alle Docs verwenden deshalb `http://localhost:3002`. Bei künftigen Änderungen nur diese Adresse nutzen, damit nichts durcheinandergerät.
 
 **Tipp:** Den Projektordner am besten **eIDConnect** oder **eidconnect** nennen (ohne Umlaute). So vermeidest du Pfadprobleme in einigen Terminals und Tools (z. B. bei `cd` oder CI).
 
@@ -143,7 +145,7 @@ COPY package*.json ./
 RUN npm ci --only=production
 COPY . .
 RUN npm run build
-EXPOSE 3000
+EXPOSE 3002
 CMD ["npm", "start"]
 ```
 

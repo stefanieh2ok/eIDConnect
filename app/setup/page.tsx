@@ -77,7 +77,7 @@ export default function SetupPage() {
     } catch {
       setCheckResult({
         ok: false,
-        nextStep: 'Server nicht erreichbar. Bitte npm run dev starten und diese Seite unter der gleichen Adresse öffnen (z.B. localhost:3000).',
+        nextStep: 'Server nicht erreichbar. Bitte npm run dev starten und diese Seite unter der gleichen Adresse öffnen (z.B. localhost:3002).',
       });
     } finally {
       setCheckLoading(false);

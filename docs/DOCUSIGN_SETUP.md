@@ -38,6 +38,8 @@ Beim ersten Einsatz mit JWT muss einmal die Einwilligung erteilt werden:
 
 ### Lokal (.env.local)
 
+Die App läuft lokal immer auf **Port 3002** (siehe `package.json` → `dev`). Für DocuSign und alle lokalen URLs also stets `http://localhost:3002` verwenden.
+
 ```env
 DOCUSIGN_INTEGRATION_KEY=dein-integration-key
 DOCUSIGN_USER_ID=deine-user-id-guid
@@ -47,8 +49,8 @@ MIIE...
 -----END RSA PRIVATE KEY-----"
 # Pflicht bei Development/Sandbox (apps-d.docusign.com, Environment: Development). Bei Production später false oder weglassen.
 DOCUSIGN_USE_DEMO=true
-# Basis-URL der App (für Return-URL nach dem Signieren)
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+# Basis-URL der App (für Return-URL nach dem Signieren) – Port 3002 ist Projektstandard
+NEXT_PUBLIC_APP_URL=http://localhost:3002
 ```
 
 Bei `DOCUSIGN_PRIVATE_KEY`: Entweder den kompletten PEM-Text mit echten Zeilenumbrüchen einfügen, oder alles in einer Zeile mit `\n` für Umbrüche.
@@ -70,7 +72,7 @@ Ohne Anführungszeichen um den gesamten Wert. Die App stellt fehlende Zeilenumbr
 Wenn du „Embedded Signing“ nutzt, kann DocuSign verlangen, dass Redirect-URLs erlaubt sind. Im DocuSign Dashboard unter der App ggf. **Redirect URIs** prüfen und z. B. hinzufügen:
 
 - `https://e-id-connect-lr65.vercel.app/api/docusign/return`
-- `http://localhost:3000/api/docusign/return`
+- `http://localhost:3002/api/docusign/return`
 
 ---
 
