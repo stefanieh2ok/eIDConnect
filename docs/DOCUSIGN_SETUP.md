@@ -45,7 +45,7 @@ DOCUSIGN_ACCOUNT_ID=deine-account-id-guid
 DOCUSIGN_PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----
 MIIE...
 -----END RSA PRIVATE KEY-----"
-# Optional: Sandbox nutzen
+# Pflicht bei Development/Sandbox (apps-d.docusign.com, Environment: Development). Bei Production später false oder weglassen.
 DOCUSIGN_USE_DEMO=true
 # Basis-URL der App (für Return-URL nach dem Signieren)
 NEXT_PUBLIC_APP_URL=http://localhost:3000
@@ -55,7 +55,7 @@ Bei `DOCUSIGN_PRIVATE_KEY`: Entweder den kompletten PEM-Text mit echten Zeilenum
 
 ### Vercel (Live-App)
 
-Unter **Settings** → **Environment Variables** dieselben Variablen anlegen (gleiche Namen, gleiche Werte). Nach dem Anlegen oder Ändern einen **Redeploy** ausführen.
+Unter **Settings** → **Environment Variables** dieselben Variablen anlegen (gleiche Namen, gleiche Werte). **DOCUSIGN_USE_DEMO** dort ebenfalls setzen: `true` bei DocuSign Development/Sandbox, `false` oder weglassen bei Production. Nach dem Anlegen oder Ändern einen **Redeploy** ausführen.
 
 **DOCUSIGN_PRIVATE_KEY auf Vercel:** Vercel speichert Umgebungsvariablen oft ohne echte Zeilenumbrüche. Damit der Key für RS256/JWT funktioniert, **eine Zeile** verwenden und Zeilenumbrüche als `\n` (Backslash + n) eintragen, z. B.:
 

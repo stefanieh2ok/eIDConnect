@@ -6,7 +6,7 @@ import {
   isTokenExpired,
 } from '@/lib/security/token';
 import { deactivateOtherSessionsForToken } from '@/lib/security/session-create';
-import { sendNdaEnvelopeAndGetSigningUrl } from '@/lib/docusign';
+import { getDocuSignConsentUrl, sendNdaEnvelopeAndGetSigningUrl } from '@/lib/docusign';
 
 /**
  * POST /api/docusign/send-nda
@@ -113,8 +113,11 @@ export async function POST(request: NextRequest) {
     }
 
     const status = err?.response?.status ?? 500;
+    const isConsentRequired =
+      /consent_required|consent|grant|authorize|invalid_request/i.test(message);
+    const consentUrl = isConsentRequired ? getDocuSignConsentUrl() : undefined;
     return NextResponse.json(
-      { success: false, error: message },
+      { success: false, error: message, ...(consentUrl && { consentUrl }) },
       { status: status >= 400 && status < 600 ? status : 500 }
     );
   }

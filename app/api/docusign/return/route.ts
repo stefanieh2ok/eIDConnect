@@ -21,6 +21,15 @@ export async function GET(request: NextRequest) {
     const token = request.nextUrl.searchParams.get('token');
     const envelopeId = request.nextUrl.searchParams.get('envelopeId');
     const event = request.nextUrl.searchParams.get('event');
+    const code = request.nextUrl.searchParams.get('code');
+
+    // Consent-Callback: DocuSign leitet nach JWT-Consent mit ?code=... hierher (ohne token).
+    if (!token && code) {
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>DocuSign Consent</title></head><body style="font-family:sans-serif;max-width:480px;margin:2rem auto;padding:1rem;"><p style="color:#166534;">Consent erteilt.</p><p>Sie können dieses Fenster schließen und auf der Zugangsseite erneut auf „Unterzeichnen Sie mit DocuSign und öffnen Sie die Demo“ klicken.</p></body></html>`;
+      return new NextResponse(html, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
 
     if (!token) {
       return NextResponse.redirect(

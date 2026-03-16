@@ -61,7 +61,30 @@ function getConfig() {
     accountId: accountId!,
     privateKey: key,
     basePath,
+    isDemo,
   };
+}
+
+const JWT_SCOPES = ['signature', 'impersonation'];
+
+/**
+ * Erzeugt die DocuSign-Consent-URL. Einmal im Browser öffnen und zustimmen, danach funktioniert JWT.
+ * Gibt null zurück, wenn Integration Key oder App-URL fehlen.
+ */
+export function getDocuSignConsentUrl(): string | null {
+  const integrationKey = process.env.DOCUSIGN_INTEGRATION_KEY?.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || '';
+  if (!integrationKey || !baseUrl) return null;
+  const isDemo = process.env.DOCUSIGN_USE_DEMO === 'true';
+  const host = isDemo ? 'https://account-d.docusign.com' : 'https://account.docusign.com';
+  const redirectUri = `${baseUrl.replace(/\/$/, '')}/api/docusign/return`;
+  const params = new URLSearchParams({
+    response_type: 'code',
+    scope: JWT_SCOPES.join(' '),
+    client_id: integrationKey,
+    redirect_uri: redirectUri,
+  });
+  return `${host}/oauth/auth?${params.toString()}`;
 }
 
 /**
@@ -72,17 +95,16 @@ async function getAccessToken(): Promise<string> {
   const { integrationKey, userId, privateKey, basePath } = getConfig();
   const apiClient = new docusign.ApiClient();
   apiClient.setBasePath(basePath);
-  // Vollständige OAuth-URL (mit https://), damit JWT aud/issuer zur Token-URL passt – behebt Invalid_grant: Issuer_not_found
+  // Nur Hostname (ohne https://), sonst entsteht getaddrinfo ENOTFOUND https
   const oauthBasePath = basePath.includes('demo.')
-    ? 'https://account-d.docusign.com'
-    : 'https://account.docusign.com';
+    ? 'account-d.docusign.com'
+    : 'account.docusign.com';
   apiClient.setOAuthBasePath(oauthBasePath);
 
-  const scopes = ['signature', 'impersonation'];
   const results = await apiClient.requestJWTUserToken(
     integrationKey,
     userId,
-    scopes,
+    JWT_SCOPES,
     privateKey,
     600
   );

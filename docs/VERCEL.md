@@ -12,9 +12,12 @@ Die App kann auf Vercel deployed werden, damit du den Zugangslink (z. B. für 
    - `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
    - DocuSign: `DOCUSIGN_INTEGRATION_KEY`, `DOCUSIGN_USER_ID`, `DOCUSIGN_ACCOUNT_ID`, **`DOCUSIGN_PRIVATE_KEY`**
      - **Wichtig:** `DOCUSIGN_PRIVATE_KEY` in **einer Zeile** eintragen, Zeilenumbrüche als `\n` (Backslash + n), z. B. `"-----BEGIN RSA PRIVATE KEY-----\nMIIE...\n-----END RSA PRIVATE KEY-----"`. Sonst kommt „Request failed with status code 400“ oder „secretOrPrivateKey must be an asymmetric key“.
+   - **`DOCUSIGN_USE_DEMO`** (nicht in DocuSign, nur in Vercel bzw. `.env.local` setzen):
+     - **`DOCUSIGN_USE_DEMO=true`**, wenn dein Integration Key in DocuSign unter **Environment: Development** (apps-d.docusign.com) läuft – sonst z. B. „Invalid_grant: Issuer_not_found“.
+     - **`DOCUSIGN_USE_DEMO=false`** (oder weglassen), wenn du später auf DocuSign **Production** („Promote to production“) umgestellt hast.
    - **`NEXT_PUBLIC_APP_URL`** = deine Vercel-URL, z. B. `https://dein-projekt.vercel.app`  
      (wichtig für DocuSign-Rückkehr-URL und Admin-Links)
-   - Optional: `ADMIN_DEMO_SECRET` (für Admin-Direktzugang), `RESEND_API_KEY`, `DOCUSIGN_USE_DEMO=true` (Sandbox).
+   - Optional: `ADMIN_DEMO_SECRET` (für Admin-Direktzugang), `RESEND_API_KEY`.
 
 3. **Deploy**  
    Nach dem ersten Deploy erhältst du eine URL wie `https://dein-projekt.vercel.app`.  

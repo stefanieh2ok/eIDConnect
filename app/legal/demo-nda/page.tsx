@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Script from 'next/script';
 import { ndaConfig } from '@/config/nda';
-import { NdaPrintButton } from './NdaPrintButton';
-
 export const metadata: Metadata = {
   title: 'Vertraulichkeitsvereinbarung (NDA) – Demo-Zugang',
   description:
@@ -34,7 +33,16 @@ export default async function DemoNdaPage({ searchParams }: Props) {
             </p>
           </div>
           {isPrintView ? (
-            <NdaPrintButton />
+            <>
+              <button
+                type="button"
+                id="nda-print-btn"
+                className="rounded-lg bg-neutral-800 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 print:hidden"
+              >
+                Drucken / Als PDF speichern
+              </button>
+              <Script src="/print-nda.js" strategy="afterInteractive" />
+            </>
           ) : (
             <Link
               href="/"

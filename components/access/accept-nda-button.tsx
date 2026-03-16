@@ -8,6 +8,7 @@ export function AcceptNdaButton({ token }: { token: string }) {
   const searchParams = useSearchParams();
   const [docusignLoading, setDocusignLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [consentUrl, setConsentUrl] = useState<string | null>(null);
 
   const docusignMessage = searchParams.get('docusign');
   const showDocusignError =
@@ -21,6 +22,7 @@ export function AcceptNdaButton({ token }: { token: string }) {
   const handleDocuSign = async () => {
     setDocusignLoading(true);
     setError(null);
+    setConsentUrl(null);
     try {
       const response = await fetch('/api/docusign/send-nda', {
         method: 'POST',
@@ -31,13 +33,11 @@ export function AcceptNdaButton({ token }: { token: string }) {
       const result = await response.json();
       if (!response.ok || !result.success) {
         const msg = result.error ?? 'DocuSign konnte nicht gestartet werden.';
-        const hint =
-          response.status === 400 || /consent|grant|authorize|invalid_request/i.test(msg)
-            ? ' Tipp: In DocuSign Apps and Keys die Consent-URL einmal im Browser öffnen und zustimmen; Redirect URI hinzufügen; DOCUSIGN_USE_DEMO=true setzen (Sandbox).'
-            : '';
-        setError(msg + hint);
+        setError(msg);
+        setConsentUrl(result.consentUrl ?? null);
         return;
       }
+      setConsentUrl(null);
       if (result.signingUrl) {
         window.location.href = result.signingUrl;
       } else {
@@ -88,7 +88,23 @@ export function AcceptNdaButton({ token }: { token: string }) {
       ) : null}
 
       {(error || showDocusignError) ? (
-        <p className="text-sm text-red-600">{error ?? showDocusignError}</p>
+        <div className="space-y-2">
+          <p className="text-sm text-red-600">{error ?? showDocusignError}</p>
+          {consentUrl ? (
+            <p className="text-sm text-neutral-600">
+              Einmalige Einwilligung für JWT:{' '}
+              <a
+                href={consentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-blue-600 underline hover:text-blue-700"
+              >
+                Consent-URL in DocuSign öffnen und zustimmen
+              </a>
+              . Danach erneut auf „Unterzeichnen Sie mit DocuSign …“ klicken. Redirect URI in Apps and Keys prüfen; DOCUSIGN_USE_DEMO=true für Sandbox.
+            </p>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
