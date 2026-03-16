@@ -1,16 +1,46 @@
-# Vercel – Variablen zum Kopieren
+# Vercel – Umgebungsvariablen: Pro Zeile eintragen
 
-In Vercel: **Settings** → **Environment Variables** → **Add New**.  
-Für jede Zeile: **Name** aus Spalte 1, **Value** aus deiner `.env.local` (oder aus Spalte 2), Environment **Production** wählen, **Save**.
+Vercel öffnen → dein Projekt **e-id-connect-lr65** → **Settings** → **Environment Variables**.
 
-| Name | Was eintragen |
-|------|----------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Aus .env.local (z. B. `https://vtauafbbzdvhrxoyfnpe.supabase.co`) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Aus .env.local (langer Key von Supabase → API → Service role) |
-| `NEXT_PUBLIC_APP_URL` | **Genau deine Vercel-URL**, z. B. `https://e-id-connect-lr65.vercel.app` (ohne / am Ende) |
-| `ADMIN_BASIC_USER` | Aus .env.local, z. B. `admin` |
-| `ADMIN_BASIC_PASS` | Aus .env.local (dein Admin-Passwort) |
-| `ADMIN_DEMO_SECRET` | Aus .env.local oder neu erfinden (langer geheimer String) |
-| `RESEND_API_KEY` | Aus .env.local, falls du E-Mails senden willst (z. B. `re_...`) |
+Für **jede** der folgenden Zeilen: Auf **Add New** klicken, **Name** und **Value** wie angegeben eintragen, bei **Environment** **Production** auswählen, **Save** klicken. Dann zur nächsten Zeile.
 
-**Danach:** Deployments → ⋯ beim letzten Deployment → **Redeploy**.
+---
+
+**Zeile 1**
+- **Name:** `NEXT_PUBLIC_SUPABASE_URL`
+- **Value:** aus deiner `.env.local` kopieren (steht in der Zeile `NEXT_PUBLIC_SUPABASE_URL=...`, z. B. `https://vtauafbbzdvhrxoyfnpe.supabase.co`)
+- Environment: **Production** → **Save**
+
+**Zeile 2**
+- **Name:** `SUPABASE_SERVICE_ROLE_KEY`
+- **Value:** aus deiner `.env.local` kopieren (langer Key, Zeile `SUPABASE_SERVICE_ROLE_KEY=...`)
+- Environment: **Production** → **Save**
+
+**Zeile 3**
+- **Name:** `NEXT_PUBLIC_APP_URL`
+- **Value:** deine Vercel-URL, **ohne** Slash am Ende, z. B. `https://e-id-connect-lr65.vercel.app`
+- Environment: **Production** → **Save**
+
+**Zeile 4**
+- **Name:** `ADMIN_BASIC_USER`
+- **Value:** aus `.env.local` (z. B. `admin`) oder z. B. `admin`
+- Environment: **Production** → **Save**
+
+**Zeile 5**
+- **Name:** `ADMIN_BASIC_PASS`
+- **Value:** aus `.env.local` (Zeile `ADMIN_BASIC_PASS=...`) – dein Admin-Passwort
+- Environment: **Production** → **Save**
+
+**Zeile 6**
+- **Name:** `ADMIN_DEMO_SECRET`
+- **Value:** aus `.env.local` (Zeile `ADMIN_DEMO_SECRET=...`) oder ein neuer langer geheimer Text (nur für dich)
+- Environment: **Production** → **Save**
+
+**Zeile 7** (optional, nur wenn „Zugang anfordern“ E-Mails senden soll)
+- **Name:** `RESEND_API_KEY`
+- **Value:** aus `.env.local` (Zeile `RESEND_API_KEY=...`, z. B. `re_...`)
+- Environment: **Production** → **Save**
+
+---
+
+**Danach:** Oben auf **Deployments** gehen → beim letzten Deployment auf die **drei Punkte (⋯)** klicken → **Redeploy** wählen und warten, bis der Build durch ist.

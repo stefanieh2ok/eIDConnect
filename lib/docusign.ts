@@ -1,3 +1,4 @@
+import { createPrivateKey } from 'crypto';
 import { buildNdaPdfBuffer } from '@/lib/nda-pdf';
 
 const DOCUMENT_ID = '1';
@@ -9,16 +10,47 @@ function getDocusign() {
   return require('docusign-esign') as typeof import('docusign-esign');
 }
 
+/**
+ * Normalisiert den RSA-Privatkey aus der Umgebung zu gültigem PEM (RS256).
+ * Behebt u. a. "secretOrPrivateKey must be an asymmetric key when using RS256".
+ */
+function normalizePrivateKey(raw: string): string {
+  let key = raw.replace(/\\n/g, '\n').trim();
+  // Wenn der Key in einer Zeile steht (z. B. nach Vercel-Env), PEM-Zeilenumbrüche wiederherstellen
+  if (!key.includes('\n') && key.includes('-----BEGIN')) {
+    key = key
+      .replace(/-----BEGIN RSA PRIVATE KEY-----/, '-----BEGIN RSA PRIVATE KEY-----\n')
+      .replace(/-----BEGIN PRIVATE KEY-----/, '-----BEGIN PRIVATE KEY-----\n')
+      .replace(/-----END RSA PRIVATE KEY-----/, '\n-----END RSA PRIVATE KEY-----')
+      .replace(/-----END PRIVATE KEY-----/, '\n-----END PRIVATE KEY-----');
+  }
+  try {
+    const keyObj = createPrivateKey(key);
+    return keyObj.export({ format: 'pem', type: 'pkcs1' }) as string;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    throw new Error(
+        `DocuSign: Ungültiger DOCUSIGN_PRIVATE_KEY (RSA-PEM). ${msg} Prüfen Sie, dass der Key mit "-----BEGIN RSA PRIVATE KEY-----" oder "-----BEGIN PRIVATE KEY-----" beginnt und Zeilenumbrüche enthält (in .env als \\n).`
+      );
+  }
+}
+
 function getConfig() {
   const integrationKey = process.env.DOCUSIGN_INTEGRATION_KEY;
   const userId = process.env.DOCUSIGN_USER_ID;
   const accountId = process.env.DOCUSIGN_ACCOUNT_ID;
   const privateKey = process.env.DOCUSIGN_PRIVATE_KEY;
-  if (!integrationKey || !userId || !accountId || !privateKey) {
+  const missing: string[] = [];
+  if (!integrationKey?.trim()) missing.push('DOCUSIGN_INTEGRATION_KEY');
+  if (!userId?.trim()) missing.push('DOCUSIGN_USER_ID');
+  if (!accountId?.trim()) missing.push('DOCUSIGN_ACCOUNT_ID');
+  if (!privateKey?.trim()) missing.push('DOCUSIGN_PRIVATE_KEY');
+  if (missing.length > 0) {
     throw new Error(
-      'DocuSign config missing: DOCUSIGN_INTEGRATION_KEY, DOCUSIGN_USER_ID, DOCUSIGN_ACCOUNT_ID, DOCUSIGN_PRIVATE_KEY'
+      `DocuSign config missing: ${missing.join(', ')}`
     );
   }
+  const key = normalizePrivateKey(privateKey);
   const isDemo = process.env.DOCUSIGN_USE_DEMO === 'true';
   const basePath = isDemo
     ? 'https://demo.docusign.net/restapi'
@@ -27,7 +59,7 @@ function getConfig() {
     integrationKey,
     userId,
     accountId,
-    privateKey: privateKey.replace(/\\n/g, '\n'),
+    privateKey: key,
     basePath,
   };
 }
@@ -40,9 +72,10 @@ async function getAccessToken(): Promise<string> {
   const { integrationKey, userId, privateKey, basePath } = getConfig();
   const apiClient = new docusign.ApiClient();
   apiClient.setBasePath(basePath);
+  // Vollständige OAuth-URL (mit https://), damit JWT aud/issuer zur Token-URL passt – behebt Invalid_grant: Issuer_not_found
   const oauthBasePath = basePath.includes('demo.')
-    ? 'account-d.docusign.com'
-    : 'account.docusign.com';
+    ? 'https://account-d.docusign.com'
+    : 'https://account.docusign.com';
   apiClient.setOAuthBasePath(oauthBasePath);
 
   const scopes = ['signature', 'impersonation'];
@@ -77,8 +110,8 @@ export async function sendNdaEnvelopeAndGetSigningUrl(
   const { signerEmail, signerName, returnUrl } = options;
   const { accountId, basePath } = getConfig();
 
-  const pdfBuffer = await buildNdaPdfBuffer();
-  const documentBase64 = pdfBuffer.toString('base64');
+  const result = await buildNdaPdfBuffer({ withSignatureBlock: true });
+  const documentBase64 = result.buffer.toString('base64');
 
   const document = docusign.Document.constructFromObject({
     documentBase64,
@@ -89,10 +122,10 @@ export async function sendNdaEnvelopeAndGetSigningUrl(
 
   const signHere = docusign.SignHere.constructFromObject({
     documentId: DOCUMENT_ID,
-    pageNumber: '1',
+    pageNumber: String(result.lastPageNumber),
     recipientId: '1',
-    xPosition: '100',
-    yPosition: '700',
+    xPosition: String(result.signHerePosition.x),
+    yPosition: String(result.signHerePosition.y),
     tabLabel: 'SignHereTab',
   });
 

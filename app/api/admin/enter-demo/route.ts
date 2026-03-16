@@ -15,7 +15,7 @@ const DEFAULT_DEMO_ID = process.env.DEMO_ACCESS_DEFAULT_ID ?? 'eidconnect-v1';
 export async function GET(request: NextRequest) {
   const secret = process.env.ADMIN_DEMO_SECRET;
   if (!secret) {
-    return NextResponse.redirect(new URL('/access/denied', request.url));
+    return NextResponse.redirect(new URL('/access/denied?reason=no_secret', request.url));
   }
 
   const token = request.nextUrl.searchParams.get('secret');
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     request.nextUrl.searchParams.get('demo_id')?.trim() || DEFAULT_DEMO_ID;
 
   if (token !== secret) {
-    return NextResponse.redirect(new URL('/access/denied', request.url));
+    return NextResponse.redirect(new URL('/access/denied?reason=invalid_secret', request.url));
   }
 
   const cookieValue = createAdminDemoCookieValue(secret, demoId);

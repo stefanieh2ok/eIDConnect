@@ -73,7 +73,7 @@ export default async function DemoNdaPage({ searchParams }: Props) {
                   <img
                     src={ndaConfig.signatureImagePath}
                     alt="Unterschrift Offenlegende Partei"
-                    className="max-h-14 object-contain object-left print:max-h-12"
+                    className="max-h-16 max-w-[220px] object-contain object-left print:max-h-12 print:max-w-[180px]"
                   />
                 ) : (
                   <div className="h-12 border-b border-gray-400 print:h-10" aria-hidden />

@@ -1,0 +1,4 @@
+Bild mit deiner Signatur hier ablegen als:
+  unterschrift.png
+
+(Vollständiger Pfad: public/unterschrift/unterschrift.png)

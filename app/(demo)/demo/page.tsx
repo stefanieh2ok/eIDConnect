@@ -9,7 +9,7 @@ export default function DemoEntryPage() {
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-neutral-100 text-neutral-900">
       <h1 className="text-xl font-semibold">eIDConnect Demo</h1>
       <p className="mt-2 text-sm text-neutral-600 text-center max-w-md">
-        Für den Zugang zur Demo benötigst du einen personalisierten Link aus der Zugangsanfrage.
+        Für den Zugang zur Demo benötigen Sie einen personalisierten Link aus der Zugangsanfrage.
       </p>
       <Link
         href="/"

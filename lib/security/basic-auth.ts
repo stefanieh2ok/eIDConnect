@@ -13,7 +13,16 @@ export function parseBasicAuthHeader(authHeader: string | null): {
   const base64Credentials = authHeader.slice(6).trim();
 
   try {
-    const decoded = Buffer.from(base64Credentials, 'base64').toString('utf-8');
+    // Edge-kompatibel (Middleware): atob statt Buffer, da Buffer in Edge Runtime ggf. fehlt
+    const decoded =
+      typeof Buffer !== 'undefined'
+        ? Buffer.from(base64Credentials, 'base64').toString('utf-8')
+        : (() => {
+            const binary = atob(base64Credentials.replace(/-/g, '+').replace(/_/g, '/'));
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            return new TextDecoder().decode(bytes);
+          })();
     const separatorIndex = decoded.indexOf(':');
 
     if (separatorIndex === -1) {

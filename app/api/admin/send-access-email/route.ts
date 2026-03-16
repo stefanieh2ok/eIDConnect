@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
   const email = to.trim();
   const url = accessUrl.trim();
-  const name = (recipientName && typeof recipientName === 'string' ? recipientName.trim() : '') || 'Sie';
+  const name = (recipientName && typeof recipientName === 'string' ? recipientName.trim() : '') || 'du';
 
   if (!process.env.RESEND_API_KEY) {
     return NextResponse.json(
@@ -59,13 +59,13 @@ export async function POST(request: NextRequest) {
     body: JSON.stringify({
       from: DEFAULT_FROM,
       to: [email],
-      subject: 'Ihr personalisierter Demo-Zugang – HookAI',
+      subject: 'Dein personalisierter Demo-Zugang – HookAI',
       html: `
       <p>Hallo ${escapeHtml(name)},</p>
-      <p>Sie erhalten Ihren personalisierten Zugang zur Demo:</p>
+      <p>Du erhältst deinen personalisierten Zugang zur Demo:</p>
       <p><a href="${escapeHtml(url)}" style="word-break: break-all;">${escapeHtml(url)}</a></p>
-      <p>Bitte öffnen Sie den Link in Ihrem Browser. Sie werden zu einer Vertraulichkeitsvereinbarung geführt. Nach Ihrer Zustimmung gelangen Sie in die Demo.</p>
-      <p>Mit freundlichen Grüßen<br />Ihr HookAI-Team</p>
+      <p>Bitte öffne den Link in deinem Browser. Du wirst zu einer Vertraulichkeitsvereinbarung geführt. Nach deiner Zustimmung gelangst du in die Demo.</p>
+      <p>Mit freundlichen Grüßen<br />Dein HookAI-Team</p>
     `,
     }),
   });

@@ -24,7 +24,7 @@ export const NDA_BUTTON_TEXT =
 
 /** Fehlermeldung bei Speicherfehler */
 export const NDA_ERROR_SAVE =
-  'Die Zustimmung konnte gerade nicht gespeichert werden. Bitte versuche es erneut.';
+  'Die Zustimmung konnte gerade nicht gespeichert werden. Bitte versuchen Sie es erneut.';
 
 /** Checkbox-Text */
 export const NDA_CHECKBOX_TEXT =
@@ -34,16 +34,15 @@ export const NDA_CHECKBOX_TEXT =
 export const NDA_HINT_ABOVE_CHECKBOX =
   'Der bereitgestellte Zugang ist personalisiert und ausschließlich für den benannten Empfänger bestimmt.';
 
-/** Satz unter dem Button */
-export const NDA_SENTENCE_BELOW_BUTTON =
-  'Mit der Zustimmung bestätigst du die vertrauliche Nutzung dieser Demo ausschließlich zum Prüfungszweck.';
+/** Satz unter dem Button – leer lassen (entfernt, um keine überflüssige Formulierung anzuzeigen) */
+export const NDA_SENTENCE_BELOW_BUTTON = '';
 
 /**
- * Optional: Pfad zu deiner Unterschrift (PNG) für die Druck-/PDF-Version.
- * Datei in public/ ablegen, z. B. public/signature-stefanie-hook.png → '/signature-stefanie-hook.png'.
- * Leer lassen, wenn nur Unterschriftslinien angezeigt werden sollen.
+ * Pfad zur Unterschrift (PNG) für NDA-PDF und DocuSign.
+ * Datei: public/unterschrift/unterschrift.png
+ * Leer lassen ('') für nur Unterschriftslinie ohne Bild.
  */
-export const NDA_SIGNATURE_IMAGE_PATH = '';
+export const NDA_SIGNATURE_IMAGE_PATH = '/unterschrift/unterschrift.png';
 
 /** Bezeichnung Unterschrift Offenlegende Partei (Druck/PDF) */
 export const NDA_SIGNATURE_LABEL_DISCLOSING = 'Stefanie Hook (Offenlegende Partei)';
@@ -51,6 +50,13 @@ export const NDA_SIGNATURE_LABEL_DISCLOSING = 'Stefanie Hook (Offenlegende Parte
 /** Bezeichnung Unterschrift Empfangende Partei (Druck/PDF) */
 export const NDA_SIGNATURE_LABEL_RECEIVING =
   'Governikus GmbH & Co. KG, z. Hd. der Geschäftsführung (Empfangende Partei)';
+
+/**
+ * E-Mail-Adressen für Rücksendung der unterzeichneten NDA (wenn nicht per DocuSign unterzeichnet wird).
+ * Erste Adresse wirkt professioneller (z. B. Projekt/Domain), zweite als Alternative (z. B. Gmail).
+ */
+export const NDA_RETURN_EMAIL_PRIMARY = 'stefanie.hook@hookai.eu';
+export const NDA_RETURN_EMAIL_SECONDARY = 'stefanie.h2ok@gmail.com';
 
 /** Vollständiger NDA-Volltext (Governikus / DeinDeutschland / Bürger App) */
 export const NDA_FULL_TEXT = `GEHEIMHALTUNGSVEREINBARUNG / NDA
@@ -229,6 +235,8 @@ Die Parteien können vereinbaren, dass diese Geheimhaltungsvereinbarung für Dem
 
 Eine solche elektronische Zustimmung ist ausreichend, wenn Zeitpunkt, Version des Zustimmungstextes und die zustimmende Person bzw. der zugeordnete Empfänger technisch nachvollziehbar dokumentiert werden.
 
+Alternativ kann die Empfangende Partei diese Vereinbarung unterzeichnen und die unterzeichnete PDF per E-Mail an die Offenlegende Partei zurücksenden: stefanie.hook@hookai.eu oder stefanie.h2ok@gmail.com.
+
 17. Anwendbares Recht und Gerichtsstand
 
 Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des UN-Kaufrechts.
@@ -257,6 +265,8 @@ export const ndaConfig = {
   signatureImagePath: NDA_SIGNATURE_IMAGE_PATH,
   signatureLabelDisclosing: NDA_SIGNATURE_LABEL_DISCLOSING,
   signatureLabelReceiving: NDA_SIGNATURE_LABEL_RECEIVING,
+  returnEmailPrimary: NDA_RETURN_EMAIL_PRIMARY,
+  returnEmailSecondary: NDA_RETURN_EMAIL_SECONDARY,
 };
 
 export function getNdaDocumentHash(): string {

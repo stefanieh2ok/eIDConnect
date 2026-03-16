@@ -82,12 +82,40 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('DocuSign send-nda failed:', error);
 
-    const message =
+    let message =
       error instanceof Error ? error.message : 'DocuSign-Versand fehlgeschlagen.';
 
+    const err = error as {
+      response?: { body?: unknown; data?: unknown; text?: string; status?: number };
+      body?: unknown;
+    };
+    const body =
+      err?.response?.body ?? err?.response?.data ?? err?.body;
+    let parsed: { errorCode?: string; message?: string } | null = null;
+    if (body && typeof body === 'object') {
+      parsed = body as { errorCode?: string; message?: string };
+    } else if (typeof err?.response?.text === 'string') {
+      try {
+        parsed = JSON.parse(err.response.text) as { errorCode?: string; message?: string };
+      } catch {
+        if (err.response.text.length < 200) message = err.response.text;
+      }
+    }
+    if (parsed && (parsed.errorCode || parsed.message)) {
+      message = [parsed.errorCode, parsed.message].filter(Boolean).join(': ') || message;
+    }
+    const oauth = body && typeof body === 'object' ? body as { error?: string; error_description?: string } : null;
+    if (oauth?.error || oauth?.error_description) {
+      message = [oauth.error, oauth.error_description].filter(Boolean).join(': ') || message;
+    }
+    if (message === 'Request failed with status code 400' && body && typeof body === 'object') {
+      message = (parsed?.message || oauth?.error_description || JSON.stringify(body).slice(0, 300)) || message;
+    }
+
+    const status = err?.response?.status ?? 500;
     return NextResponse.json(
       { success: false, error: message },
-      { status: 500 }
+      { status: status >= 400 && status < 600 ? status : 500 }
     );
   }
 }

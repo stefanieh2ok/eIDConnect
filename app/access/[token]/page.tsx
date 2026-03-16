@@ -3,6 +3,10 @@ import { findAccessTokenByRawToken, isTokenExpired } from '@/lib/security/token'
 import { ndaConfig } from '@/config/nda';
 import { AcceptNdaButton } from '@/components/access/accept-nda-button';
 
+export const metadata = {
+  title: 'Vertraulicher Demo-Zugang – HookAI',
+};
+
 type AccessPageProps = {
   params: Promise<{ token: string }>;
 };
@@ -12,7 +16,7 @@ export default async function AccessPage({ params }: AccessPageProps) {
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center bg-neutral-100 px-4 py-12 text-neutral-900">
+      <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 py-12 text-neutral-900">
         <div className="max-w-md text-center space-y-4">
           <h1 className="text-xl font-semibold">Demo-Zugang derzeit nicht verfügbar</h1>
           <p className="text-sm text-neutral-600">
@@ -45,7 +49,7 @@ export default async function AccessPage({ params }: AccessPageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-neutral-100 px-4 sm:px-6 py-8 sm:py-12 text-neutral-950">
+    <main className="min-h-screen bg-gray-50 px-4 sm:px-6 py-8 sm:py-12 text-neutral-950">
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">

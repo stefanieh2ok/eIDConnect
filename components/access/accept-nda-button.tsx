@@ -30,7 +30,12 @@ export function AcceptNdaButton({ token }: { token: string }) {
       });
       const result = await response.json();
       if (!response.ok || !result.success) {
-        setError(result.error ?? 'DocuSign konnte nicht gestartet werden.');
+        const msg = result.error ?? 'DocuSign konnte nicht gestartet werden.';
+        const hint =
+          response.status === 400 || /consent|grant|authorize|invalid_request/i.test(msg)
+            ? ' Tipp: In DocuSign Apps and Keys die Consent-URL einmal im Browser öffnen und zustimmen; Redirect URI hinzufügen; DOCUSIGN_USE_DEMO=true setzen (Sandbox).'
+            : '';
+        setError(msg + hint);
         return;
       }
       if (result.signingUrl) {
@@ -45,22 +50,37 @@ export function AcceptNdaButton({ token }: { token: string }) {
     }
   };
 
+  const returnEmails =
+    ndaConfig.returnEmailPrimary && ndaConfig.returnEmailSecondary
+      ? `${ndaConfig.returnEmailPrimary} oder ${ndaConfig.returnEmailSecondary}`
+      : ndaConfig.returnEmailPrimary ?? '';
+
   return (
     <div className="space-y-4">
       <p className="text-sm text-neutral-600">
-        Der Zugang erfolgt ausschließlich nach rechtsverbindlicher Unterzeichnung
-        der Vertraulichkeitsvereinbarung über DocuSign.
+        Sie können die Vertraulichkeitsvereinbarung digital über DocuSign unterzeichnen oder die{' '}
+        <strong>Druckversion</strong> ausdrucken, unterschreiben und die unterzeichnete PDF an{' '}
+        {returnEmails ? (
+          <>
+            <a href={`mailto:${ndaConfig.returnEmailPrimary}`} className="text-blue-600 underline">{ndaConfig.returnEmailPrimary}</a>
+            {' oder '}
+            <a href={`mailto:${ndaConfig.returnEmailSecondary}`} className="text-blue-600 underline">{ndaConfig.returnEmailSecondary}</a>
+          </>
+        ) : (
+          'die angegebene E-Mail-Adresse'
+        )}{' '}
+        zurücksenden.
       </p>
 
       <button
         type="button"
         onClick={handleDocuSign}
         disabled={docusignLoading}
-        className="w-full rounded-xl bg-neutral-900 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {docusignLoading
           ? 'DocuSign wird vorbereitet …'
-          : 'Mit DocuSign unterzeichnen und Demo öffnen'}
+          : 'Unterzeichnen Sie mit DocuSign und öffnen Sie die Demo'}
       </button>
 
       {ndaConfig.sentenceBelowButton ? (

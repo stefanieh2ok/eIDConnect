@@ -33,6 +33,6 @@ export async function insertNdaAcceptanceLog(
 
   if (error) {
     console.error('nda_acceptance_logs insert failed:', error);
-    throw new Error('Die Zustimmung konnte gerade nicht gespeichert werden. Bitte versuche es erneut.');
+    throw new Error('Die Zustimmung konnte gerade nicht gespeichert werden. Bitte versuchen Sie es erneut.');
   }
 }

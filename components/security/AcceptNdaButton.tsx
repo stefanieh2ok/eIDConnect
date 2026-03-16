@@ -22,7 +22,7 @@ export function AcceptNdaButton({ token, children }: AcceptNdaButtonProps) {
 
   const handleAccept = async () => {
     if (!accepted) {
-      setError('Bitte akzeptieren Sie zuerst die Vertraulichkeitsvereinbarung.');
+      setError('Bitte akzeptiere zuerst die Vertraulichkeitsvereinbarung.');
       return;
     }
 

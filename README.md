@@ -64,6 +64,9 @@ OPENAI_API_KEY=sk-your-api-key-here
 - **Aleph Alpha**: Für erweiterte KI-Funktionen
 - **Stackit**: Für zusätzliche Services
 
+### DocuSign (NDA-Signatur)
+Für die Funktion **„Mit DocuSign unterzeichnen und Demo öffnen“** wird ein **DocuSign-Account** benötigt. Ohne Account und Konfiguration erscheint „DocuSign config missing …“. Anleitung: [docs/DOCUSIGN_SETUP.md](docs/DOCUSIGN_SETUP.md).
+
 Detaillierte Anweisungen finden Sie in [docs/ENVIRONMENT_SETUP.md](docs/ENVIRONMENT_SETUP.md).
 
 ## Projektstruktur

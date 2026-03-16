@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isValidBasicAuth } from '@/lib/security/basic-auth';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { createAccessToken } from '@/lib/access-request-approve';
+
 const DEFAULT_FROM =
   process.env.SEND_ACCESS_EMAIL_FROM || 'HookAI Demo <onboarding@resend.dev>';
 
@@ -13,6 +14,11 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
+/**
+ * POST /api/admin/access-requests/[id]/resend-email
+ * Sendet die Zugangs-E-Mail für eine bereits freigegebene Anfrage erneut
+ * (erstellt dabei einen neuen Token/Link).
+ */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -48,9 +54,9 @@ export async function POST(
     );
   }
 
-  if (req.status !== 'pending') {
+  if (req.status !== 'approved') {
     return NextResponse.json(
-      { success: false, error: 'Diese Anfrage wurde bereits bearbeitet.' },
+      { success: false, error: 'Nur bei freigegebenen Anfragen kann die E-Mail erneut gesendet werden.' },
       { status: 400 }
     );
   }
@@ -77,32 +83,14 @@ export async function POST(
     );
   }
 
-  const now = new Date().toISOString();
   const { error: updateError } = await supabaseAdmin
     .from('access_requests')
-    .update({
-      status: 'approved',
-      reviewed_at: now,
-      demo_access_token_id: tokenResult.tokenId,
-    })
+    .update({ demo_access_token_id: tokenResult.tokenId })
     .eq('id', id);
 
   if (updateError) {
-    console.error('Access-request approve update failed:', updateError);
-    return NextResponse.json(
-      { success: false, error: 'Anfrage konnte nicht aktualisiert werden.' },
-      { status: 500 }
-    );
+    console.error('Resend-email: update access_requests failed', updateError);
   }
-
-  // Alle anderen offenen Anfragen derselben E-Mail schließen, damit der Nutzer nicht
-  // weiter „Sie haben bereits eine offene Anfrage“ sieht und den Zugang nutzen kann.
-  await supabaseAdmin
-    .from('access_requests')
-    .update({ status: 'rejected', reviewed_at: now })
-    .eq('email', req.email)
-    .eq('status', 'pending')
-    .neq('id', id);
 
   let emailSent = false;
   let emailError: string | null = null;
@@ -118,10 +106,10 @@ export async function POST(
         body: JSON.stringify({
           from: DEFAULT_FROM,
           to: [req.email],
-          subject: 'Dein HookAI Demo-Zugang wurde freigegeben',
+          subject: 'Dein HookAI Demo-Zugang (Link erneut gesendet)',
           html: `
           <p>Hallo ${escapeHtml(req.full_name)},</p>
-          <p>Dein Zugang wurde freigegeben. Hier ist dein personalisierter Link:</p>
+          <p>wie gewünscht senden wir dir deinen Zugangslink erneut:</p>
           <p><a href="${escapeHtml(tokenResult.accessUrl)}" style="word-break: break-all;">${escapeHtml(
             tokenResult.accessUrl
           )}</a></p>
@@ -135,11 +123,11 @@ export async function POST(
         emailSent = true;
       } else {
         emailError = text || `HTTP ${res.status}`;
-        console.error('Approve email failed:', res.status, text);
+        console.error('Resend-email failed:', res.status, text);
       }
     } catch (mailErr) {
       emailError = mailErr instanceof Error ? mailErr.message : String(mailErr);
-      console.error('Approve email failed:', mailErr);
+      console.error('Resend-email failed:', mailErr);
     }
   } else {
     emailError = 'RESEND_API_KEY fehlt in .env.local';
@@ -148,7 +136,6 @@ export async function POST(
   return NextResponse.json({
     success: true,
     accessUrl: tokenResult.accessUrl,
-    rawToken: tokenResult.rawToken,
     emailSent,
     emailError: emailError || undefined,
   });

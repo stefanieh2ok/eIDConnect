@@ -1,5 +1,9 @@
 import Link from 'next/link';
 
+export const metadata = {
+  title: 'Zugang verweigert – HookAI',
+};
+
 type AccessDeniedPageProps = {
   searchParams: Promise<{ reason?: string }>;
 };
@@ -23,7 +27,7 @@ export default async function AccessDeniedPage({
   const { reason } = await searchParams;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-100 px-4 sm:px-6 py-12">
+    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 sm:px-6 py-12">
       <div className="w-full max-w-xl rounded-3xl border border-neutral-200 bg-white p-8 sm:p-10 shadow-sm">
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">
           Zugriff verweigert

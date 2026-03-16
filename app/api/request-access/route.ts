@@ -37,7 +37,7 @@ function jsonError(
     {
       success: false,
       error,
-      setupLink: opts?.setupLink ?? SETUP_LINK,
+      ...(opts?.setupLink && { setupLink: opts.setupLink }),
       ...(opts?.detail && { detail: opts.detail }),
     },
     { status }
@@ -66,10 +66,10 @@ export async function POST(request: NextRequest) {
     const company = typeof body.company === 'string' ? body.company.trim() : null;
 
     if (!fullName || fullName.length < 2) {
-      return jsonError('Bitte einen gültigen Namen angeben.', 400);
+      return jsonError('Bitte gib einen gültigen Namen an.', 400);
     }
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return jsonError('Bitte eine gültige E-Mail-Adresse angeben.', 400);
+      return jsonError('Bitte gib eine gültige E-Mail-Adresse an.', 400);
     }
 
     let count = 0;
@@ -165,9 +165,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (process.env.ADMIN_NOTIFY_EMAIL && process.env.RESEND_API_KEY) {
+      const notifyEmails = process.env.ADMIN_NOTIFY_EMAIL.split(',').map((e) => e.trim()).filter(Boolean);
+      const from = process.env.SEND_ACCESS_EMAIL_FROM || 'HookAI Demo <onboarding@resend.dev>';
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+      const adminLink = `${appUrl.replace(/\/$/, '')}/admin/access-requests`;
+      try {
+        const notifyRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          },
+          body: JSON.stringify({
+            from,
+            to: notifyEmails,
+            subject: `Neue Zugangsanfrage: ${fullName}`,
+            html: `<p>Neue Zugangsanfrage von <strong>${fullName}</strong> (${email})${company ? `, Firma: ${company}` : ''}.</p><p><a href="${adminLink}">Anfragen im Admin prüfen</a></p>`,
+          }),
+        });
+        const errText = await notifyRes.text();
+        if (notifyRes.ok) {
+          console.log('[Admin-Benachrichtigung] E-Mail an', notifyEmails.join(', '), 'gesendet.');
+        } else {
+          console.error('[Admin-Benachrichtigung] Fehler:', notifyRes.status, errText);
+        }
+      } catch (e) {
+        console.error('[Admin-Benachrichtigung] Ausnahme:', e);
+      }
+    } else if (!process.env.ADMIN_NOTIFY_EMAIL) {
+      console.warn('[Admin-Benachrichtigung] ADMIN_NOTIFY_EMAIL ist nicht gesetzt – keine E-Mail an Admin.');
+    } else if (!process.env.RESEND_API_KEY) {
+      console.warn('[Admin-Benachrichtigung] RESEND_API_KEY ist nicht gesetzt – keine E-Mail an Admin.');
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Ihre Anfrage wurde gesendet. Sie erhalten eine E-Mail, sobald Ihr Zugang freigegeben wurde.',
+      message: 'Ihre Anfrage wurde gespeichert. Sie erhalten eine E-Mail mit Ihrem Zugangslink, sobald wir Ihre Anfrage freigegeben haben.',
     });
   } catch (error) {
     const err = error as { message?: string };
@@ -180,7 +214,7 @@ export async function POST(request: NextRequest) {
       );
     }
     return jsonError(
-      'Ein unerwarteter Fehler ist aufgetreten. Bitte später erneut versuchen oder /setup prüfen.',
+      'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später erneut oder prüfe /setup.',
       500,
       { setupLink: SETUP_LINK, detail: err?.message }
     );

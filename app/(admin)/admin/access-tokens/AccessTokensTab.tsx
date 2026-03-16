@@ -60,7 +60,7 @@ export default function AccessTokensTab() {
   }, []);
 
   const handleRevoke = async (id: string) => {
-    if (!window.confirm('Möchtest du diesen Demo-Zugang wirklich widerrufen?')) return;
+    if (!window.confirm('Möchten Sie diesen Demo-Zugang wirklich widerrufen?')) return;
     try {
       const response = await fetch(`/api/tokens/${id}/revoke`, {
         method: 'POST',

@@ -19,6 +19,8 @@
 # misc
 .DS_Store
 *.pem
+# DocuSign RSA Keys (niemals committen)
+/RSA/
 
 # debug
 npm-debug.log*
@@ -28,6 +30,8 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
+# Env-Kopien mit echten Secrets (niemals committen)
+docs/vercel-import-env.txt
 
 # vercel
 .vercel
