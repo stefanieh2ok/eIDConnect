@@ -7,6 +7,7 @@ import {
 } from '@/lib/security/token';
 import { deactivateOtherSessionsForToken } from '@/lib/security/session-create';
 import { getDocuSignConsentUrl, sendNdaEnvelopeAndGetSigningUrl } from '@/lib/docusign';
+import { saveEnvelopeForToken } from '@/lib/security/docusign-envelope';
 
 /**
  * POST /api/docusign/send-nda
@@ -67,12 +68,14 @@ export async function POST(request: NextRequest) {
     // Immer aktuelle Domain nutzen, damit DocuSign genau hierher zurückleitet (Vercel oder localhost)
     const baseUrl = request.nextUrl.origin;
 
-    const { signingUrl } = await sendNdaEnvelopeAndGetSigningUrl({
+    const { envelopeId, signingUrl } = await sendNdaEnvelopeAndGetSigningUrl({
       signerEmail: tokenRecord.email,
       signerName: tokenRecord.full_name,
       baseUrl,
       token: body.token,
     });
+
+    await saveEnvelopeForToken(body.token, envelopeId);
 
     return NextResponse.json({
       success: true,

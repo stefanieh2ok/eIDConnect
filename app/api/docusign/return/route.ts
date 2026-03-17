@@ -9,6 +9,11 @@ import { deactivateOtherSessionsForToken } from '@/lib/security/session-create';
 import { performAcceptAndCreateSession } from '@/lib/security/accept-and-session';
 import { DEMO_SESSION_COOKIE } from '@/lib/security/session';
 import { getEnvelopeStatus } from '@/lib/docusign';
+import { createOneTimeEntry } from '@/lib/security/one-time-entry';
+import { getEnvelopeIdForToken } from '@/lib/security/docusign-envelope';
+
+const DEFAULT_FROM =
+  process.env.SEND_ACCESS_EMAIL_FROM || 'HookAI Demo <onboarding@resend.dev>';
 
 /**
  * GET /api/docusign/return?token=...&envelopeId=...&event=...
@@ -57,7 +62,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (!envelopeId) {
+    let resolvedEnvelopeId = envelopeId;
+    if (!resolvedEnvelopeId) {
+      resolvedEnvelopeId = await getEnvelopeIdForToken(token);
+    }
+    if (!resolvedEnvelopeId) {
       const baseUrl =
         process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
       return NextResponse.redirect(
@@ -68,29 +77,28 @@ export async function GET(request: NextRequest) {
     // Retry envelope status (DocuSign may not mark "completed" immediately; API kann "Completed" zurückgeben)
     const maxAttempts = 5;
     const delayMs = 2000;
-    let status = await getEnvelopeStatus(envelopeId);
+    let status = await getEnvelopeStatus(resolvedEnvelopeId);
     for (let attempt = 1; attempt < maxAttempts && status.toLowerCase() !== 'completed'; attempt++) {
       await new Promise((r) => setTimeout(r, delayMs));
-      status = await getEnvelopeStatus(envelopeId);
+      status = await getEnvelopeStatus(resolvedEnvelopeId);
     }
-    // DocuSign sendet oft event=signing_complete – wenn API noch nicht "completed", einmal länger warten
     const eventComplete = event && /signing_complete|complete/i.test(event);
     if (status.toLowerCase() !== 'completed' && eventComplete) {
       await new Promise((r) => setTimeout(r, 3000));
-      status = await getEnvelopeStatus(envelopeId);
+      status = await getEnvelopeStatus(resolvedEnvelopeId);
+    }
+    // Wenn API noch nicht "completed": einmal 5s warten (DocuSign-Verzögerung), dann ggf. trotzdem durchlassen
+    if (status.toLowerCase() !== 'completed' && !eventComplete) {
+      await new Promise((r) => setTimeout(r, 5000));
+      status = await getEnvelopeStatus(resolvedEnvelopeId);
     }
     if (status.toLowerCase() !== 'completed') {
-      // Bei signing_complete trotzdem durchlassen (Vercel/API-Verzögerung), um Weiterleitung nicht zu blockieren
       if (eventComplete) {
-        // Vertraue DocuSign-Event und leite in die App weiter
+        // Vertraue DocuSign-Event, leite in die App weiter
       } else {
-        const baseUrl = request.nextUrl.origin;
-        return NextResponse.redirect(
-          new URL(
-            `/access/${token}?docusign=not_completed&event=${event ?? ''}`,
-            baseUrl
-          )
-        );
+        // User kam von DocuSign-Redirect (token + envelopeId) – Weiterleitung in Demo trotzdem durchführen,
+        // damit die App automatisch startet (DocuSign-API kann stark verzögert sein).
+        // Envelope wurde von uns erstellt, Redirect-URL nur nach "Finish" erreichbar.
       }
     }
 
@@ -111,10 +119,68 @@ export async function GET(request: NextRequest) {
         source: 'docusign',
       });
 
-    // Immer zur gleichen Domain weiterleiten (Vercel oder localhost) → Nutzer landet in der Demo-App
     const baseUrl = request.nextUrl.origin;
-    const response = NextResponse.redirect(new URL(redirectTo, baseUrl));
 
+    // E-Mail an User: Unterzeichnung bestätigen + Link zur Demo (immer senden, wenn Resend konfiguriert)
+    if (process.env.RESEND_API_KEY && tokenRecord.email) {
+      let enterUrl: string | null = null;
+      try {
+        const { oneTimeToken } = await createOneTimeEntry({
+          rawSessionToken,
+          demoId: tokenRecord.demo_id,
+          sessionExpiresAt,
+        });
+        enterUrl = `${baseUrl}/api/access/enter-demo?t=${oneTimeToken}`;
+      } catch (e) {
+        console.error('createOneTimeEntry failed (E-Mail mit Zugangs-Link wird trotzdem gesendet):', e);
+      }
+
+      const accessLink = `${baseUrl}/access/${token}`;
+      const html = enterUrl
+        ? `
+          <p>Hallo ${tokenRecord.full_name},</p>
+          <p><strong>Sie haben die Vertraulichkeitsvereinbarung unterzeichnet.</strong> Vielen Dank.</p>
+          <p>Falls Sie nicht automatisch in die Demo weitergeleitet wurden, klicken Sie bitte auf einen der folgenden Links:</p>
+          <p><strong>Direkt in die Demo (1 Stunde gültig, einmal nutzbar):</strong><br />
+          <a href="${enterUrl}" style="word-break: break-all;">${enterUrl}</a></p>
+          <p><strong>Oder Zugangsseite öffnen</strong> und erneut auf „Unterzeichnen mit DocuSign“ klicken – Sie werden dann in die Demo weitergeleitet:<br />
+          <a href="${accessLink}" style="word-break: break-all;">${accessLink}</a></p>
+          <p>Mit freundlichen Grüßen<br />Stefanie Hook</p>
+        `
+        : `
+          <p>Hallo ${tokenRecord.full_name},</p>
+          <p><strong>Sie haben die Vertraulichkeitsvereinbarung unterzeichnet.</strong> Vielen Dank.</p>
+          <p>Bitte öffnen Sie den folgenden Link und klicken Sie auf „Unterzeichnen mit DocuSign“ – Sie werden dann in die Demo weitergeleitet:</p>
+          <p><a href="${accessLink}" style="word-break: break-all;">${accessLink}</a></p>
+          <p>Mit freundlichen Grüßen<br />Stefanie Hook</p>
+        `;
+
+      try {
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          },
+          body: JSON.stringify({
+            from: DEFAULT_FROM,
+            to: [tokenRecord.email],
+            subject: 'Unterzeichnung abgeschlossen – so gelangen Sie in die Demo',
+            html,
+          }),
+        });
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error('Post-sign email Resend error:', res.status, errText);
+        }
+      } catch (e) {
+        console.error('Post-sign email failed:', e);
+      }
+    } else if (tokenRecord.email && !process.env.RESEND_API_KEY) {
+      console.warn('DocuSign return: E-Mail nicht versendet – RESEND_API_KEY fehlt (z. B. auf Vercel setzen).');
+    }
+
+    const response = NextResponse.redirect(new URL(redirectTo, baseUrl));
     response.cookies.set(DEMO_SESSION_COOKIE, rawSessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

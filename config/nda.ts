@@ -239,8 +239,6 @@ Die Parteien können vereinbaren, dass diese Geheimhaltungsvereinbarung für Dem
 
 Eine solche elektronische Zustimmung ist ausreichend, wenn Zeitpunkt, Version des Zustimmungstextes und die zustimmende Person bzw. der zugeordnete Empfänger technisch nachvollziehbar dokumentiert werden.
 
-Alternativ kann die Empfangende Partei diese Vereinbarung unterzeichnen und die unterzeichnete PDF per E-Mail an die Offenlegende Partei zurücksenden: stefanie.hook@hookai.eu oder stefanie.h2ok@gmail.com.
-
 17. Anwendbares Recht und Gerichtsstand
 
 Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des UN-Kaufrechts.

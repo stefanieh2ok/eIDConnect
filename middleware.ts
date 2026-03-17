@@ -37,10 +37,26 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (isAdminRoute(pathname)) {
+    const user = (process.env.ADMIN_BASIC_USER ?? '').trim();
+    const pass = (process.env.ADMIN_BASIC_PASS ?? '').trim();
+    const credsConfigured = user.length > 0 && pass.length > 0;
+
+    if (!credsConfigured) {
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Admin nicht konfiguriert</title></head><body style="font-family:sans-serif;max-width:520px;margin:2rem auto;padding:1rem;"><h1 style="color:#b91c1c;">Admin-Login nicht konfiguriert</h1><p>Bitte in Vercel unter <strong>Settings → Environment Variables</strong> setzen:</p><ul><li><code>ADMIN_BASIC_USER</code> (z.&nbsp;B. admin)</li><li><code>ADMIN_BASIC_PASS</code> (starkes Passwort)</li></ul><p>Danach Projekt neu deployen.</p></body></html>`;
+      if (pathname.startsWith('/api/')) {
+        return new NextResponse(JSON.stringify({ success: false, error: 'ADMIN_BASIC_USER/ADMIN_BASIC_PASS nicht gesetzt.' }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new NextResponse(html, {
+        status: 503,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
+
     const creds = decodeBasicAuth(request.headers.get('authorization'));
-    const user = process.env.ADMIN_BASIC_USER;
-    const pass = process.env.ADMIN_BASIC_PASS;
-    if (!user || !pass || !creds || creds.user !== user || creds.pass !== pass) {
+    if (!creds || creds.user !== user || creds.pass !== pass) {
       if (pathname.startsWith('/api/')) {
         return NextResponse.json(
           { success: false, error: 'Nicht autorisiert.' },
@@ -52,6 +68,9 @@ export function middleware(request: NextRequest) {
         headers: { 'WWW-Authenticate': 'Basic realm="Admin Area"' },
       });
     }
+    const response = NextResponse.next();
+    response.headers.set('Cache-Control', 'no-store, private, max-age=0');
+    return response;
   }
 
   const response = NextResponse.next();
@@ -83,14 +102,9 @@ export const config = {
     '/demo/:path*',
     '/access/:path*',
     '/admin',
+    '/admin/',
     '/admin/:path*',
-    '/Admin',
-    '/Admin/:path*',
-    '/ADMIN',
-    '/ADMIN/:path*',
     '/api/admin/:path*',
-    '/api/Admin/:path*',
-    '/api/ADMIN/:path*',
     '/api/tokens',
     '/api/tokens/:path*',
   ],

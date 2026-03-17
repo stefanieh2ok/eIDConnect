@@ -13,17 +13,17 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'),
-  title: 'eIDConnect - Swipe. Vote. Change.',
+  title: 'eIDConnect',
   description: 'Moderne Bürgerbeteiligung mit KI-Unterstützung. Mitreden. Mitentscheiden. Mitgestalten.',
   openGraph: {
-    title: 'eIDConnect - Swipe. Vote. Change.',
+    title: 'eIDConnect',
     description: 'Moderne Bürgerbeteiligung mit KI-Unterstützung. Mitreden. Mitentscheiden. Mitgestalten.',
     type: 'website',
     locale: 'de_DE',
   },
   twitter: {
     card: 'summary',
-    title: 'eIDConnect - Swipe. Vote. Change.',
+    title: 'eIDConnect',
     description: 'Moderne Bürgerbeteiligung mit KI-Unterstützung.',
   },
 };

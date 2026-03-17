@@ -209,8 +209,9 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-        <h2 className="font-semibold mb-3">Neuer Zugangs-Link (mit NDA / DocuSign)</h2>
+      <div className="bg-white rounded-xl border-2 border-blue-200 p-4 mb-6 shadow-sm">
+        <h2 className="font-semibold mb-1 text-gray-900">Neuer Zugangs-Link (mit NDA / DocuSign)</h2>
+        <p className="text-xs text-blue-600 font-medium mb-2">Empfohlen: Link mit DocuSign-Unterzeichnung – Empfänger erhält nach Unterschrift E-Mail mit Demo-Zugang.</p>
         <p className="text-sm text-gray-600 mb-3">
           Vorname, Nachname und E-Mail des Empfängers – danach Link generieren und z. B. per E-Mail senden. Der Empfänger öffnet den Link, unterzeichnet die Vertraulichkeitsvereinbarung per DocuSign und kommt in die Demo.
         </p>

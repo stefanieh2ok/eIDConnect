@@ -72,6 +72,16 @@ export function AcceptNdaButton({ token }: { token: string }) {
         zurücksenden.
       </p>
 
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+        <p className="font-medium">Nach der Unterzeichnung:</p>
+        <p className="mt-1 text-blue-800">
+          DocuSign leitet Sie automatisch zurück. <strong>Die Seite wechselt dann von selbst in die Demo</strong> – Sie landen in der Anwendung und können starten.
+        </p>
+        <p className="mt-1 text-blue-800">
+          Zusätzlich erhalten Sie eine E-Mail von uns mit einem <strong>direkten Link in die Demo</strong>. Falls die Weiterleitung im Browser einmal nicht klappt, einfach auf den Link in der E-Mail klicken.
+        </p>
+      </div>
+
       <button
         type="button"
         onClick={handleDocuSign}
@@ -90,6 +100,11 @@ export function AcceptNdaButton({ token }: { token: string }) {
       {(error || showDocusignError) ? (
         <div className="space-y-2">
           <p className="text-sm text-red-600">{error ?? showDocusignError}</p>
+          {(showDocusignError && (docusignMessage === 'not_completed' || docusignMessage === 'return_no_envelope')) ? (
+            <p className="text-sm text-neutral-600">
+              Wenn Sie bereits unterschrieben haben und die Bestätigungs-E-Mail von DocuSign erhalten haben, ist die Rückleitung oft an der <strong>Redirect-URL</strong> gescheitert. In DocuSign (Apps and Keys) unter <strong>Redirect URIs</strong> muss exakt stehen: <code className="text-xs bg-neutral-100 px-1 rounded break-all">https://e-id-connect-lr65.vercel.app/api/docusign/return</code>. Danach Zugangs-Link aus der E-Mail in diesem Browser erneut öffnen.
+            </p>
+          ) : null}
           {/issuer_not_found/i.test(error ?? '') ? (
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
               <p className="font-medium">Vercel / Sandbox:</p>

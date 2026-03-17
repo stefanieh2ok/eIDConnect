@@ -45,15 +45,15 @@ export function isValidBasicAuth(authHeader: string | null): boolean {
     return false;
   }
 
-  const expectedUser = process.env.ADMIN_BASIC_USER;
-  const expectedPass = process.env.ADMIN_BASIC_PASS;
+  const expectedUser = (process.env.ADMIN_BASIC_USER ?? '').trim();
+  const expectedPass = (process.env.ADMIN_BASIC_PASS ?? '').trim();
 
-  if (!expectedUser || !expectedPass) {
+  if (expectedUser.length === 0 || expectedPass.length === 0) {
     return false;
   }
 
   return (
-    credentials.username === expectedUser &&
+    credentials.username.trim() === expectedUser &&
     credentials.password === expectedPass
   );
 }

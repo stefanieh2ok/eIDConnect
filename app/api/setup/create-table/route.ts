@@ -57,7 +57,21 @@ alter table access_requests enable row level security;
 do $$ begin
   create policy "Admin read access_requests" on access_requests for select to authenticated using (true);
 exception when duplicate_object then null;
-end $$;`;
+end $$;
+
+-- 3) Einmal-Links für Demo-Einstieg nach DocuSign-Signatur (E-Mail-Fallback)
+create table if not exists demo_one_time_entry (
+  id uuid primary key default gen_random_uuid(),
+  token_hash text not null unique,
+  raw_session_token text not null,
+  demo_id text not null,
+  session_expires_at timestamptz not null,
+  expires_at timestamptz not null default (now() + interval '1 hour'),
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_demo_one_time_entry_token_hash on demo_one_time_entry (token_hash);
+create index if not exists idx_demo_one_time_entry_expires_at on demo_one_time_entry (expires_at);
+alter table demo_one_time_entry enable row level security;`;
 
 export async function GET(request: NextRequest) {
   const secret = process.env.SETUP_MIGRATE_SECRET
