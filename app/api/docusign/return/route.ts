@@ -91,12 +91,15 @@ export async function GET(request: NextRequest) {
     // unabhängig davon ob der Envelope-Status schon "completed" ist.
 
     const activeSessions = await countTokenSessions(tokenRecord.id);
+    console.log('[DocuSign Return] activeSessions:', activeSessions, '/ max_devices:', tokenRecord.max_devices);
     if (activeSessions >= tokenRecord.max_devices) {
       await deactivateOtherSessionsForToken(tokenRecord.id);
     }
 
     const acceptanceCount = await countAcceptanceEvents(tokenRecord.id);
+    console.log('[DocuSign Return] acceptanceCount:', acceptanceCount, '/ max_views:', tokenRecord.max_views);
     if (acceptanceCount >= tokenRecord.max_views) {
+      console.warn('[DocuSign Return] max_views erreicht! Redirect zu /access/denied');
       return NextResponse.redirect(
         new URL('/access/denied?reason=max_views', request.url)
       );
