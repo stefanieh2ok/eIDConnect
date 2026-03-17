@@ -2562,10 +2562,11 @@ const BuergerApp = () => {
   };
 
   return (
-    <div className="w-full h-full flex justify-center items-start sm:items-center p-2 sm:p-4 bg-white overflow-hidden" style={{
-      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif'
+    <div className="w-full flex justify-center items-start sm:items-center p-2 sm:p-4 bg-white" style={{
+      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif',
+      minHeight: 0,
     }}>
-      <div className="relative w-full max-w-[393px]" style={{height: 'min(852px, calc(100vh - 5rem)', aspectRatio: '393/852'}}>
+      <div className="relative" style={{width: '393px', height: '852px'}}>
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-8 bg-black rounded-b-3xl z-50" />
 
         <div className="w-full h-full bg-white rounded-[3rem] shadow-2xl overflow-hidden border-[14px] border-black relative flex flex-col">
