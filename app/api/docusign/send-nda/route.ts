@@ -113,9 +113,9 @@ export async function POST(request: NextRequest) {
     }
 
     const status = err?.response?.status ?? 500;
-    const isConsentRequired =
-      /consent_required|consent|grant|authorize|invalid_request/i.test(message);
-    const consentUrl = isConsentRequired ? getDocuSignConsentUrl() : undefined;
+    const isConsentOrIssuer =
+      /consent_required|consent|grant|authorize|invalid_request|issuer_not_found/i.test(message);
+    const consentUrl = isConsentOrIssuer ? getDocuSignConsentUrl() : undefined;
     return NextResponse.json(
       { success: false, error: message, ...(consentUrl && { consentUrl }) },
       { status: status >= 400 && status < 600 ? status : 500 }

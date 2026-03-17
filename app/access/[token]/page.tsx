@@ -78,7 +78,7 @@ export default async function AccessPage({ params }: AccessPageProps) {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
+        <div className="grid gap-6 md:grid-cols-[1fr_1.2fr]">
           <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 shadow-sm">
             <h2 className="text-lg font-semibold text-neutral-900">Kurzfassung</h2>
             <ul className="mt-4 space-y-3 text-sm leading-6 text-neutral-700">

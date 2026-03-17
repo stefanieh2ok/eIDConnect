@@ -90,7 +90,16 @@ export function AcceptNdaButton({ token }: { token: string }) {
       {(error || showDocusignError) ? (
         <div className="space-y-2">
           <p className="text-sm text-red-600">{error ?? showDocusignError}</p>
-          {consentUrl ? (
+          {/issuer_not_found/i.test(error ?? '') ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+              <p className="font-medium">Vercel / Sandbox:</p>
+              <ul className="mt-1 list-inside list-disc space-y-0.5 text-amber-800">
+                <li>In Vercel → Projekt → Settings → Environment Variables: <strong>DOCUSIGN_USE_DEMO=true</strong> setzen.</li>
+                <li>In DocuSign (Apps and Keys) unter Redirect URIs eintragen: <strong>https://[deine-vercel-app].vercel.app/api/docusign/return</strong> (exakt die Vercel-URL dieser App).</li>
+                <li>Danach in Vercel einen Redeploy auslösen.</li>
+              </ul>
+            </div>
+          ) : consentUrl ? (
             <p className="text-sm text-neutral-600">
               Einmalige Einwilligung für JWT:{' '}
               <a
