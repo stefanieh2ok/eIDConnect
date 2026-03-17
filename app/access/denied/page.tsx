@@ -16,6 +16,10 @@ function getReasonText(reason?: string) {
       return 'Dieser personalisierte Zugangslink wurde widerrufen.';
     case 'invalid':
       return 'Der Zugangslink ist ungültig oder konnte nicht verifiziert werden.';
+    case 'max_views':
+      return 'Die maximale Anzahl an Zugriffen für diesen Link wurde erreicht.';
+    case 'error':
+      return 'Ein technischer Fehler ist aufgetreten. Bitte versuchen Sie es erneut oder kontaktieren Sie den Absender.';
     default:
       return 'Der Zugriff auf diese Demo wurde verweigert.';
   }
@@ -43,6 +47,12 @@ export default async function AccessDeniedPage({
           Dieser Bereich ist ausschließlich für autorisierte Empfänger mit
           gültigem personalisiertem Demo-Zugang bestimmt.
         </div>
+
+        {reason && (
+          <p className="mt-4 text-xs text-neutral-400 text-center">
+            Grund: {reason}
+          </p>
+        )}
 
         <p className="mt-6 text-center">
           <Link href="/demo" className="text-sm text-blue-600 hover:underline">
