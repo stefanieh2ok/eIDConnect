@@ -56,6 +56,7 @@ export async function POST(
   }
 
   const baseUrl =
+    process.env.ACCESS_LINK_BASE_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
     (request.headers.get('x-forwarded-proto') && request.headers.get('host')
       ? `${request.headers.get('x-forwarded-proto')}://${request.headers.get('host')}`
@@ -126,7 +127,7 @@ export async function POST(
             tokenResult.accessUrl
           )}</a></p>
           <p>Bitte öffne den Link in deinem Browser. Nach deiner Zustimmung zur Vertraulichkeitsvereinbarung gelangst du in die Demo.</p>
-          <p>Mit freundlichen Grüßen<br />Dein HookAI-Team</p>
+          <p>Mit freundlichen Grüßen<br />Stefanie Hook</p>
         `,
         }),
       });
@@ -142,7 +143,7 @@ export async function POST(
       console.error('Approve email failed:', mailErr);
     }
   } else {
-    emailError = 'RESEND_API_KEY fehlt in .env.local';
+    emailError = 'RESEND_API_KEY ist nicht gesetzt (Environment Variables prüfen).';
   }
 
   return NextResponse.json({

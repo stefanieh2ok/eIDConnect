@@ -291,6 +291,11 @@ body {
   }
 }
 
+/* Safe area for iPhone notch / home indicator (e.g. access page) */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Hide scrollbar but keep scroll (Footer-Nav) */
 .scrollbar-hide {
   -ms-overflow-style: none;

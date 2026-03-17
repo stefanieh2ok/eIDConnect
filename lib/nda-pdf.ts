@@ -203,6 +203,16 @@ export async function buildNdaPdfBuffer(
       font,
       color: rgb(0.4, 0.4, 0.4),
     });
+    const hintReceiving = ndaConfig.signatureHintReceiving;
+    if (hintReceiving) {
+      page.drawText(hintReceiving, {
+        x: col2X,
+        y: lineY - 26,
+        size: 7,
+        font,
+        color: rgb(0.45, 0.45, 0.45),
+      });
+    }
 
     // Hinweis: Unterzeichnete NDA per E-Mail zurücksenden (wenn kein DocuSign genutzt wird)
     const returnHint =

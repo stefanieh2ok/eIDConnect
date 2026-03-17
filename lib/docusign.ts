@@ -118,7 +118,10 @@ async function getAccessToken(): Promise<string> {
 export type SendNdaEnvelopeOptions = {
   signerEmail: string;
   signerName: string;
-  returnUrl: string;
+  /** Basis-URL der App (z. B. https://e-id-connect-lr65.vercel.app oder http://localhost:3002) */
+  baseUrl: string;
+  /** Access-Token (roh), wird in der Return-URL mitgeschickt */
+  token: string;
 };
 
 /**
@@ -129,7 +132,7 @@ export async function sendNdaEnvelopeAndGetSigningUrl(
   options: SendNdaEnvelopeOptions
 ): Promise<{ envelopeId: string; signingUrl: string }> {
   const docusign = getDocusign();
-  const { signerEmail, signerName, returnUrl } = options;
+  const { signerEmail, signerName, baseUrl, token } = options;
   const { accountId, basePath } = getConfig();
 
   const result = await buildNdaPdfBuffer({ withSignatureBlock: true });
@@ -188,6 +191,9 @@ export async function sendNdaEnvelopeAndGetSigningUrl(
   if (!envelopeId) {
     throw new Error('DocuSign: no envelopeId in createEnvelope response');
   }
+
+  const base = baseUrl.replace(/\/$/, '');
+  const returnUrl = `${base}/api/docusign/return?token=${encodeURIComponent(token)}&envelopeId=${encodeURIComponent(envelopeId)}`;
 
   const recipientViewRequest = docusign.RecipientViewRequest.constructFromObject({
     returnUrl,

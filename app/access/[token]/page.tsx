@@ -49,8 +49,8 @@ export default async function AccessPage({ params }: AccessPageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 sm:px-6 py-8 sm:py-12 text-neutral-950">
-      <div className="mx-auto max-w-4xl">
+    <main className="min-h-screen bg-gray-50 px-4 sm:px-6 py-8 sm:py-12 text-neutral-950 pb-safe max-w-screen-xl mx-auto">
+      <div className="mx-auto max-w-xl">
         <div className="mb-8 rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">
             Vertraulicher Zugriff
@@ -112,7 +112,7 @@ export default async function AccessPage({ params }: AccessPageProps) {
                 </a>
               </div>
             </div>
-            <div className="mt-4 max-h-[50vh] overflow-y-auto rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-5">
+            <div className="mt-4 max-h-[min(50vh,28rem)] overflow-y-auto rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-5">
               <pre className="whitespace-pre-wrap text-sm leading-6 text-neutral-700 font-sans">
                 {ndaConfig.fullText}
               </pre>

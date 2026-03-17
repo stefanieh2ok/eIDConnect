@@ -59,7 +59,7 @@ export default async function DemoNdaPage({ searchParams }: Props) {
           className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden print:border-0 print:shadow-none print:rounded-none"
           id="nda-print-content"
         >
-          <div className="p-6 sm:p-8 text-[13px] leading-relaxed space-y-4 print:p-0 print:text-[11pt] print:leading-snug nda-print-content">
+          <div className="p-6 sm:p-8 text-[13px] leading-relaxed space-y-4 print:p-0 print:text-[11pt] print:leading-snug nda-print-content max-h-[70vh] overflow-y-auto print:max-h-none print:overflow-visible">
             <pre className="whitespace-pre-wrap font-sans text-gray-700 print:whitespace-pre-wrap">
               {ndaConfig.fullText}
             </pre>
@@ -94,6 +94,7 @@ export default async function DemoNdaPage({ searchParams }: Props) {
                 </p>
                 <div className="h-12 border-b border-gray-400 print:h-10" aria-hidden />
                 <p className="mt-1 text-xs text-gray-500">Ort, Datum</p>
+                <p className="mt-1 text-xs text-gray-500 italic">{ndaConfig.signatureHintReceiving}</p>
               </div>
             </div>
           </div>

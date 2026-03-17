@@ -35,6 +35,17 @@ export default function DemoLinksTab() {
   const [exportingId, setExportingId] = useState<string | null>(null);
   const [emailSnippetCopied, setEmailSnippetCopied] = useState(false);
 
+  // Zugangs-Link (NDA / DocuSign): Vorname, Nachname, E-Mail
+  const [vorname, setVorname] = useState('');
+  const [nachname, setNachname] = useState('');
+  const [email, setEmail] = useState('');
+  const [organisation, setOrganisation] = useState('');
+  const [accessLinkExpiresDays, setAccessLinkExpiresDays] = useState(30);
+  const [creatingAccessLink, setCreatingAccessLink] = useState(false);
+  const [createdAccessUrl, setCreatedAccessUrl] = useState<string | null>(null);
+  const [accessLinkError, setAccessLinkError] = useState<string | null>(null);
+  const [accessLinkCopied, setAccessLinkCopied] = useState(false);
+
   const supabase = createClient();
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const ndaUrl = `${baseUrl}/legal/demo-nda`;
@@ -104,6 +115,55 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
     setTimeout(() => setEmailSnippetCopied(false), 2500);
   }
 
+  async function createAccessLink() {
+    const fullName = `${(vorname ?? '').trim()} ${(nachname ?? '').trim()}`.trim();
+    if (!fullName || !(email ?? '').trim()) {
+      setAccessLinkError('Vorname, Nachname und E-Mail sind Pflichtfelder.');
+      return;
+    }
+    setAccessLinkError(null);
+    setCreatedAccessUrl(null);
+    setCreatingAccessLink(true);
+    try {
+      const res = await fetch('/api/admin/create-access-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          fullName,
+          email: (email ?? '').trim(),
+          company: (organisation ?? '').trim() || undefined,
+          demoId: 'eidconnect-v1',
+          expiresInDays: accessLinkExpiresDays,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAccessLinkError(data?.error ?? 'Link konnte nicht erstellt werden.');
+        return;
+      }
+      if (data.accessUrl) {
+        setCreatedAccessUrl(data.accessUrl);
+        setVorname('');
+        setNachname('');
+        setEmail('');
+        setOrganisation('');
+      }
+    } catch {
+      setAccessLinkError('Netzwerkfehler. Bitte erneut versuchen.');
+    } finally {
+      setCreatingAccessLink(false);
+    }
+  }
+
+  function copyAccessLink() {
+    if (createdAccessUrl) {
+      navigator.clipboard.writeText(createdAccessUrl);
+      setAccessLinkCopied(true);
+      setTimeout(() => setAccessLinkCopied(false), 2000);
+    }
+  }
+
   async function exportProof(tokenId: string) {
     setExportingId(tokenId);
     try {
@@ -150,7 +210,80 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-        <h2 className="font-semibold mb-3">Neuer Demo-Link</h2>
+        <h2 className="font-semibold mb-3">Neuer Zugangs-Link (mit NDA / DocuSign)</h2>
+        <p className="text-sm text-gray-600 mb-3">
+          Vorname, Nachname und E-Mail des Empfängers – danach Link generieren und z. B. per E-Mail senden. Der Empfänger öffnet den Link, unterzeichnet die Vertraulichkeitsvereinbarung per DocuSign und kommt in die Demo.
+        </p>
+        <div className="grid gap-3 max-w-md">
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="text"
+              placeholder="Vorname"
+              value={vorname}
+              onChange={(e) => { setVorname(e.target.value); setAccessLinkError(null); }}
+              className="border border-gray-300 rounded-lg px-3 py-2"
+            />
+            <input
+              type="text"
+              placeholder="Nachname"
+              value={nachname}
+              onChange={(e) => { setNachname(e.target.value); setAccessLinkError(null); }}
+              className="border border-gray-300 rounded-lg px-3 py-2"
+            />
+          </div>
+          <input
+            type="email"
+            placeholder="E-Mail-Adresse"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setAccessLinkError(null); }}
+            className="border border-gray-300 rounded-lg px-3 py-2"
+          />
+          <input
+            type="text"
+            placeholder="Organisation (optional)"
+            value={organisation}
+            onChange={(e) => setOrganisation(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2"
+          />
+          <label className="flex items-center gap-2">
+            <span className="text-sm">Ablauf (Tage):</span>
+            <input
+              type="number"
+              min={1}
+              value={accessLinkExpiresDays}
+              onChange={(e) => setAccessLinkExpiresDays(Number(e.target.value))}
+              className="border border-gray-300 rounded px-2 py-1 w-20"
+            />
+          </label>
+          {accessLinkError && (
+            <p className="text-sm text-red-600">{accessLinkError}</p>
+          )}
+          <button
+            type="button"
+            onClick={createAccessLink}
+            disabled={creatingAccessLink}
+            className="bg-blue-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+          >
+            {creatingAccessLink ? 'Erstelle…' : 'Link erstellen'}
+          </button>
+          {createdAccessUrl && (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+              <p className="text-sm font-medium text-green-800 mb-1">Zugangs-Link erstellt:</p>
+              <p className="text-xs text-green-700 break-all mb-2">{createdAccessUrl}</p>
+              <button
+                type="button"
+                onClick={copyAccessLink}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                {accessLinkCopied ? 'Kopiert!' : 'Link kopieren'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+        <h2 className="font-semibold mb-3">Neuer Demo-Link (ohne NDA)</h2>
         <div className="grid gap-3 max-w-md">
           <input
             type="text"

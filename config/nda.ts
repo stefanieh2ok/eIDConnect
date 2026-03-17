@@ -47,9 +47,13 @@ export const NDA_SIGNATURE_IMAGE_PATH = '/unterschrift/unterschrift.png';
 /** Bezeichnung Unterschrift Offenlegende Partei (Druck/PDF) */
 export const NDA_SIGNATURE_LABEL_DISCLOSING = 'Stefanie Hook (Offenlegende Partei)';
 
-/** Bezeichnung Unterschrift Empfangende Partei (Druck/PDF) */
+/** Bezeichnung Unterschrift Empfangende Partei (Druck/PDF) – eine Zeile, ein GF reicht */
 export const NDA_SIGNATURE_LABEL_RECEIVING =
-  'Governikus GmbH & Co. KG, z. Hd. der Geschäftsführung (Empfangende Partei)';
+  'Governikus GmbH & Co. KG (Empfangende Partei) – Name / Funktion / Unterschrift';
+
+/** Hinweis unter der Unterschriftszeile Empfangende Partei */
+export const NDA_SIGNATURE_HINT_RECEIVING =
+  'Unterschrift durch einen vertretungsberechtigten Geschäftsführer genügt.';
 
 /**
  * E-Mail-Adressen für Rücksendung der unterzeichneten NDA (wenn nicht per DocuSign unterzeichnet wird).
@@ -265,6 +269,7 @@ export const ndaConfig = {
   signatureImagePath: NDA_SIGNATURE_IMAGE_PATH,
   signatureLabelDisclosing: NDA_SIGNATURE_LABEL_DISCLOSING,
   signatureLabelReceiving: NDA_SIGNATURE_LABEL_RECEIVING,
+  signatureHintReceiving: NDA_SIGNATURE_HINT_RECEIVING,
   returnEmailPrimary: NDA_RETURN_EMAIL_PRIMARY,
   returnEmailSecondary: NDA_RETURN_EMAIL_SECONDARY,
 };

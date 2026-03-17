@@ -65,16 +65,33 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const status = await getEnvelopeStatus(envelopeId);
-    if (status !== 'completed') {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
-      return NextResponse.redirect(
-        new URL(
-          `/access/${token}?docusign=not_completed&event=${event ?? ''}`,
-          baseUrl
-        )
-      );
+    // Retry envelope status (DocuSign may not mark "completed" immediately; API kann "Completed" zurückgeben)
+    const maxAttempts = 5;
+    const delayMs = 2000;
+    let status = await getEnvelopeStatus(envelopeId);
+    for (let attempt = 1; attempt < maxAttempts && status.toLowerCase() !== 'completed'; attempt++) {
+      await new Promise((r) => setTimeout(r, delayMs));
+      status = await getEnvelopeStatus(envelopeId);
+    }
+    // DocuSign sendet oft event=signing_complete – wenn API noch nicht "completed", einmal länger warten
+    const eventComplete = event && /signing_complete|complete/i.test(event);
+    if (status.toLowerCase() !== 'completed' && eventComplete) {
+      await new Promise((r) => setTimeout(r, 3000));
+      status = await getEnvelopeStatus(envelopeId);
+    }
+    if (status.toLowerCase() !== 'completed') {
+      // Bei signing_complete trotzdem durchlassen (Vercel/API-Verzögerung), um Weiterleitung nicht zu blockieren
+      if (eventComplete) {
+        // Vertraue DocuSign-Event und leite in die App weiter
+      } else {
+        const baseUrl = request.nextUrl.origin;
+        return NextResponse.redirect(
+          new URL(
+            `/access/${token}?docusign=not_completed&event=${event ?? ''}`,
+            baseUrl
+          )
+        );
+      }
     }
 
     const activeSessions = await countTokenSessions(tokenRecord.id);
@@ -94,8 +111,8 @@ export async function GET(request: NextRequest) {
         source: 'docusign',
       });
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+    // Immer zur gleichen Domain weiterleiten (Vercel oder localhost) → Nutzer landet in der Demo-App
+    const baseUrl = request.nextUrl.origin;
     const response = NextResponse.redirect(new URL(redirectTo, baseUrl));
 
     response.cookies.set(DEMO_SESSION_COOKIE, rawSessionToken, {

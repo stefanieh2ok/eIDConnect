@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       <p>Du erhältst deinen personalisierten Zugang zur Demo:</p>
       <p><a href="${escapeHtml(url)}" style="word-break: break-all;">${escapeHtml(url)}</a></p>
       <p>Bitte öffne den Link in deinem Browser. Du wirst zu einer Vertraulichkeitsvereinbarung geführt. Nach deiner Zustimmung gelangst du in die Demo.</p>
-      <p>Mit freundlichen Grüßen<br />Dein HookAI-Team</p>
+      <p>Mit freundlichen Grüßen<br />Stefanie Hook</p>
     `,
     }),
   });

@@ -50,6 +50,8 @@ npm run dev
 
 **Port 3002:** Die App läuft lokal immer auf Port **3002** (`next dev -p 3002` in `package.json`). DocuSign Redirect URI, `NEXT_PUBLIC_APP_URL` und alle Docs verwenden deshalb `http://localhost:3002`. Bei künftigen Änderungen nur diese Adresse nutzen, damit nichts durcheinandergerät.
 
+**Server beenden:** Im Terminal **Strg+C** drücken (nicht nur Fenster schließen). Sonst bleibt der Prozess aktiv und beim nächsten Start erscheint „address already in use“. Dann in PowerShell: `netstat -ano | findstr :3002` → letzte Spalte ist die PID → `taskkill /PID <PID> /F`.
+
 **Tipp:** Den Projektordner am besten **eIDConnect** oder **eidconnect** nennen (ohne Umlaute). So vermeidest du Pfadprobleme in einigen Terminals und Tools (z. B. bei `cd` oder CI).
 
 ## API-Schlüssel konfigurieren

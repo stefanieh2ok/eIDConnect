@@ -64,15 +64,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      request.nextUrl.origin;
-    const returnUrl = `${baseUrl}/api/docusign/return?token=${encodeURIComponent(body.token)}`;
+    // Immer aktuelle Domain nutzen, damit DocuSign genau hierher zurückleitet (Vercel oder localhost)
+    const baseUrl = request.nextUrl.origin;
 
     const { signingUrl } = await sendNdaEnvelopeAndGetSigningUrl({
       signerEmail: tokenRecord.email,
       signerName: tokenRecord.full_name,
-      returnUrl,
+      baseUrl,
+      token: body.token,
     });
 
     return NextResponse.json({

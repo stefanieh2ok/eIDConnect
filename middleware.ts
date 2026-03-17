@@ -20,11 +20,12 @@ function decodeBasicAuth(authHeader: string | null): { user: string; pass: strin
 }
 
 function isAdminRoute(pathname: string): boolean {
+  const p = pathname.toLowerCase();
   return (
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/api/admin') ||
-    pathname === '/api/tokens' ||
-    pathname.startsWith('/api/tokens/')
+    p.startsWith('/admin') ||
+    p.startsWith('/api/admin') ||
+    p === '/api/tokens' ||
+    p.startsWith('/api/tokens/')
   );
 }
 
@@ -81,8 +82,15 @@ export const config = {
   matcher: [
     '/demo/:path*',
     '/access/:path*',
+    '/admin',
     '/admin/:path*',
+    '/Admin',
+    '/Admin/:path*',
+    '/ADMIN',
+    '/ADMIN/:path*',
     '/api/admin/:path*',
+    '/api/Admin/:path*',
+    '/api/ADMIN/:path*',
     '/api/tokens',
     '/api/tokens/:path*',
   ],
