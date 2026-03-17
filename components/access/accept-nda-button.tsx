@@ -12,12 +12,14 @@ export function AcceptNdaButton({ token }: { token: string }) {
 
   const docusignMessage = searchParams.get('docusign');
   const showDocusignError =
-    docusignMessage === 'not_completed' ||
-    docusignMessage === 'return_no_envelope'
-      ? 'Die Unterzeichnung wurde nicht abgeschlossen.'
-      : docusignMessage
-        ? 'Bei der DocuSign-Rückkehr ist etwas schiefgelaufen.'
-        : null;
+    docusignMessage === 'not_completed'
+      ? 'Die Unterzeichnung wurde nicht abgeschlossen. Bitte erneut auf den Button klicken.'
+      : docusignMessage === 'return_no_envelope'
+        ? null
+        : docusignMessage
+          ? 'Bei der DocuSign-Rückkehr ist etwas schiefgelaufen.'
+          : null;
+  const showSignedInfo = docusignMessage === 'return_no_envelope';
 
   const handleDocuSign = async () => {
     setDocusignLoading(true);
@@ -82,6 +84,18 @@ export function AcceptNdaButton({ token }: { token: string }) {
         </p>
       </div>
 
+      {showSignedInfo && (
+        <div className="rounded-lg border-2 border-green-300 bg-green-50 p-4 text-sm text-green-900">
+          <p className="font-semibold text-base">Ihre Unterschrift wird geprüft.</p>
+          <p className="mt-2">
+            Wenn Sie die Vertraulichkeitsvereinbarung bereits in DocuSign unterzeichnet haben, klicken Sie bitte <strong>erneut auf den Button unten</strong> – Sie werden dann direkt in die Demo weitergeleitet.
+          </p>
+          <p className="mt-1 text-green-800">
+            Zusätzlich erhalten Sie in Kürze eine E-Mail mit einem direkten Link zur Demo.
+          </p>
+        </div>
+      )}
+
       <button
         type="button"
         onClick={handleDocuSign}
@@ -90,7 +104,9 @@ export function AcceptNdaButton({ token }: { token: string }) {
       >
         {docusignLoading
           ? 'DocuSign wird vorbereitet …'
-          : 'Unterzeichnen Sie mit DocuSign und öffnen Sie die Demo'}
+          : showSignedInfo
+            ? 'Demo jetzt öffnen (erneut mit DocuSign verbinden)'
+            : 'Unterzeichnen Sie mit DocuSign und öffnen Sie die Demo'}
       </button>
 
       {ndaConfig.sentenceBelowButton ? (

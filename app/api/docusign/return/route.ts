@@ -22,11 +22,13 @@ const DEFAULT_FROM =
  * und leiten zur Demo weiter.
  */
 export async function GET(request: NextRequest) {
+  console.log('[DocuSign Return] URL:', request.nextUrl.toString());
   try {
     const token = request.nextUrl.searchParams.get('token');
     const envelopeId = request.nextUrl.searchParams.get('envelopeId');
     const event = request.nextUrl.searchParams.get('event');
     const code = request.nextUrl.searchParams.get('code');
+    console.log('[DocuSign Return] token:', token ? `${token.slice(0, 20)}...` : 'null', '| envelopeId:', envelopeId ?? 'null', '| event:', event ?? 'null');
 
     // Consent-Callback: DocuSign leitet nach JWT-Consent mit ?code=... hierher (ohne token).
     if (!token && code) {
@@ -62,45 +64,31 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Envelope-Status prüfen (optional – wenn kein envelopeId, trotzdem durchlassen)
     let resolvedEnvelopeId = envelopeId;
     if (!resolvedEnvelopeId) {
-      resolvedEnvelopeId = await getEnvelopeIdForToken(token);
-    }
-    if (!resolvedEnvelopeId) {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
-      return NextResponse.redirect(
-        new URL(`/access/${token}?docusign=return_no_envelope`, baseUrl)
-      );
-    }
-
-    // Retry envelope status (DocuSign may not mark "completed" immediately; API kann "Completed" zurückgeben)
-    const maxAttempts = 5;
-    const delayMs = 2000;
-    let status = await getEnvelopeStatus(resolvedEnvelopeId);
-    for (let attempt = 1; attempt < maxAttempts && status.toLowerCase() !== 'completed'; attempt++) {
-      await new Promise((r) => setTimeout(r, delayMs));
-      status = await getEnvelopeStatus(resolvedEnvelopeId);
-    }
-    const eventComplete = event && /signing_complete|complete/i.test(event);
-    if (status.toLowerCase() !== 'completed' && eventComplete) {
-      await new Promise((r) => setTimeout(r, 3000));
-      status = await getEnvelopeStatus(resolvedEnvelopeId);
-    }
-    // Wenn API noch nicht "completed": einmal 5s warten (DocuSign-Verzögerung), dann ggf. trotzdem durchlassen
-    if (status.toLowerCase() !== 'completed' && !eventComplete) {
-      await new Promise((r) => setTimeout(r, 5000));
-      status = await getEnvelopeStatus(resolvedEnvelopeId);
-    }
-    if (status.toLowerCase() !== 'completed') {
-      if (eventComplete) {
-        // Vertraue DocuSign-Event, leite in die App weiter
-      } else {
-        // User kam von DocuSign-Redirect (token + envelopeId) – Weiterleitung in Demo trotzdem durchführen,
-        // damit die App automatisch startet (DocuSign-API kann stark verzögert sein).
-        // Envelope wurde von uns erstellt, Redirect-URL nur nach "Finish" erreichbar.
+      try {
+        resolvedEnvelopeId = await getEnvelopeIdForToken(token);
+      } catch (e) {
+        console.warn('getEnvelopeIdForToken failed:', e);
       }
     }
+
+    if (resolvedEnvelopeId) {
+      try {
+        const maxAttempts = 3;
+        const delayMs = 2000;
+        let status = await getEnvelopeStatus(resolvedEnvelopeId);
+        for (let attempt = 1; attempt < maxAttempts && status.toLowerCase() !== 'completed'; attempt++) {
+          await new Promise((r) => setTimeout(r, delayMs));
+          status = await getEnvelopeStatus(resolvedEnvelopeId);
+        }
+      } catch (e) {
+        console.warn('Envelope status check failed (proceeding anyway):', e);
+      }
+    }
+    // User kam von DocuSign-Redirect → Session anlegen und in die Demo weiterleiten,
+    // unabhängig davon ob der Envelope-Status schon "completed" ist.
 
     const activeSessions = await countTokenSessions(tokenRecord.id);
     if (activeSessions >= tokenRecord.max_devices) {
@@ -114,10 +102,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log('[DocuSign Return] Creating session for token:', tokenRecord.id);
     const { redirectTo, rawSessionToken, sessionExpiresAt } =
       await performAcceptAndCreateSession(tokenRecord, token, request, {
         source: 'docusign',
       });
+    console.log('[DocuSign Return] Session created. Redirecting to:', redirectTo);
 
     const baseUrl = request.nextUrl.origin;
 
@@ -191,7 +181,8 @@ export async function GET(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('DocuSign return failed:', error);
+    console.error('[DocuSign Return] FAILED:', error instanceof Error ? error.message : error);
+    console.error('[DocuSign Return] Stack:', error instanceof Error ? error.stack : '');
     return NextResponse.redirect(
       new URL('/access/denied?reason=error', request.url)
     );
