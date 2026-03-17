@@ -13,13 +13,16 @@ export default async function DemoLayout({
   params,
 }: DemoLayoutProps) {
   const { demoId } = await params;
+  console.log('[DemoLayout] checking session for demoId:', demoId);
   const session = await getActiveDemoSession(demoId);
 
   if (!session) {
+    console.log('[DemoLayout] no session → redirect /access/denied');
     redirect('/access/denied');
   }
 
   if (session.demoId !== demoId) {
+    console.log('[DemoLayout] demoId mismatch session.demoId:', session.demoId, '!= requested:', demoId, '→ redirect /access/denied');
     redirect('/access/denied');
   }
 

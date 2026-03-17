@@ -30,59 +30,66 @@ export async function getActiveDemoSession(
   const cookieStore = await cookies();
   const rawSessionToken = cookieStore.get(DEMO_SESSION_COOKIE)?.value;
 
+  console.log('[Session] getActiveDemoSession called. cookie present:', !!rawSessionToken, 'demoIdForAdmin:', demoIdForAdmin ?? 'none');
+
   if (rawSessionToken) {
+    const sessionTokenHash = sha256(rawSessionToken);
 
-  const sessionTokenHash = sha256(rawSessionToken);
+    const { data, error } = await supabaseAdmin
+      .from('demo_sessions')
+      .select(
+        `
+          id,
+          token_id,
+          access_token_id,
+          demo_id,
+          session_token_hash,
+          started_at,
+          session_expires_at,
+          is_active,
+          full_name,
+          company,
+          email
+        `
+      )
+      .eq('session_token_hash', sessionTokenHash)
+      .eq('is_active', true)
+      .maybeSingle();
 
-  const { data, error } = await supabaseAdmin
-    .from('demo_sessions')
-    .select(
-      `
-        id,
-        token_id,
-        access_token_id,
-        demo_id,
-        session_token_hash,
-        started_at,
-        session_expires_at,
-        is_active,
-        full_name,
-        company,
-        email
-      `
-    )
-    .eq('session_token_hash', sessionTokenHash)
-    .eq('is_active', true)
-    .maybeSingle();
+    if (error) {
+      console.log('[Session] DB lookup error:', error.message);
+      return null;
+    }
 
-  if (error) {
-    console.error('Session lookup failed:', error);
-    return null;
-  }
+    const row = data as DemoSessionRecord | null;
+    if (!row || !row.session_token_hash) {
+      console.log('[Session] No active session row found for hash');
+      return null;
+    }
 
-  const row = data as DemoSessionRecord | null;
-  if (!row || !row.session_token_hash) {
-    return null;
-  }
+    const now = Date.now();
+    const expiresAt = row.session_expires_at;
+    if (!expiresAt) {
+      console.log('[Session] session_expires_at is null');
+      return null;
+    }
+    const expiresAtMs = new Date(expiresAt).getTime();
+    if (Number.isNaN(expiresAtMs) || expiresAtMs <= now) {
+      console.log('[Session] session expired (expiresAt:', expiresAt, ')');
+      await invalidateDemoSession(row.id);
+      return null;
+    }
 
-  const now = Date.now();
-  const expiresAt = row.session_expires_at;
-  if (!expiresAt) return null;
-  const expiresAtMs = new Date(expiresAt).getTime();
-  if (Number.isNaN(expiresAtMs) || expiresAtMs <= now) {
-    await invalidateDemoSession(row.id);
-    return null;
-  }
-
-  return {
-    sessionId: row.id,
-    tokenId: row.token_id ?? row.access_token_id ?? row.id,
-    demoId: row.demo_id ?? 'eidconnect',
-    fullName: row.full_name ?? 'Autorisierter Empfänger',
-    company: row.company ?? '',
-    email: row.email ?? '',
-    expiresAt,
-  };
+    console.log('[Session] valid session found for demo_id:', row.demo_id);
+    return {
+      sessionId: row.id,
+      tokenId: row.token_id ?? row.access_token_id ?? row.id,
+      demoId: row.demo_id ?? 'eidconnect',
+      fullName: row.full_name ?? 'Autorisierter Empfänger',
+      company: row.company ?? '',
+      email: row.email ?? '',
+      expiresAt,
+    };
   }
 
   // Admin-Direktzugang (ohne NDA/DocuSign)
