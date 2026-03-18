@@ -35,14 +35,13 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
   const filteredWahlen = WAHLEN_DATA.filter(wahl => {
     if (currentLevel) return wahl.level === currentLevel;
     const locationMap: Record<string, string[]> = {
-      'deutschland': ['deutschland', 'bund'],
-      'saarland': ['saarland', 'land'],
-      'saarpfalz': ['saarpfalz', 'kreis'],
-      'kirkel': ['kirkel', 'kommune']
+      'deutschland': ['deutschland'],
+      'saarland': ['saarland'],
+      'saarpfalz': ['saarpfalz'],
+      'kirkel': ['kirkel'],
     };
-    const locations = locationMap[currentLocation] ?? ['deutschland', 'bund', currentLocation];
-    return (wahl.location && locations.includes(wahl.location)) ||
-           (wahl.level && locations.includes(wahl.level));
+    const locations = locationMap[currentLocation] ?? [currentLocation];
+    return wahl.location && locations.includes(wahl.location);
   });
 
   const getLevelBadge = (level?: string) => {
@@ -62,8 +61,9 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
       <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--gov-heading)' }}>Kommende Wahlen</h2>
       
       {filteredWahlen.length === 0 ? (
-        <div className="bg-gray-50 rounded-xl p-4 text-center">
-          <p className="text-sm text-gray-600">Keine Wahlen für diese Ebene verfügbar</p>
+        <div className="bg-slate-50 rounded-xl p-4 text-center space-y-1">
+          <p className="text-sm font-medium text-slate-700">Noch keine Wahldaten für diese Ebene</p>
+          <p className="text-xs text-slate-500">Für diesen Ort liegen noch keine lokalen Wahl- und Politikerdaten vor. Bundesweite Informationen sind immer verfügbar.</p>
         </div>
       ) : (
         filteredWahlen.map(wahl => {

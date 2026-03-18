@@ -1,4 +1,5 @@
 import { UserPreferences, VotingData, NewsItem, CalendarEvent, LeaderboardItem, Wahl } from '@/types';
+import { WAHLEN_DEUTSCHLAND } from './wahlen-deutschland';
 
 export const PORTFOLIO_COMPANIES = [
   'FinTech Pro AG',
@@ -1127,245 +1128,9 @@ export const LEADERBOARD_DATA: LeaderboardItem[] = [
 ];
 
 /**
- * Politikerbilder (kandidaten[].image): Nur freiverfügbare Quellen nutzen.
- * Erlaubt: Wikimedia Commons (CC), offizielle Presse/Behörden mit Nutzungsrecht.
- * Nicht verwenden: LinkedIn, Xing, Partei-/Kommune-Webseiten ohne ausdrückliche
- * Lizenz/Freigabe – keine nicht freiverfügbaren Bilder crawlen oder einbinden.
+ * WAHLEN_DATA: Alle Wahlen aus wahlen-deutschland.ts + lokale Kirkel-Demo-Daten.
  */
-export const WAHLEN_DATA: Wahl[] = [
-  {
-    id: 'btw25',
-    name: 'Bundestagswahl 2025',
-    datum: '28.09.2025',
-    wahlkreis: '296 - Saarbrücken',
-    level: 'bund',
-    location: 'deutschland',
-    kandidaten: [
-      {
-        name: 'Anke Rehlinger',
-        partei: 'SPD',
-        emoji: '👩‍💼',
-        alter: 48,
-        beruf: 'Ministerpräsidentin Saarland',
-        positionen: ['Mindestlohn 15€', 'Klimaschutz'],
-        claraInfo: 'Setzt sich für soziale Gerechtigkeit und Klimaschutz ein. Schwerpunkte: Mindestlohn, Energiewende.',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Anke_Rehlinger_2022.jpg/220px-Anke_Rehlinger_2022.jpg',
-        quelle: 'Wikipedia/Wikimedia Commons (CC BY 4.0)',
-        confirmedByCandidate: true
-      },
-      {
-        name: 'Friedrich Merz',
-        partei: 'CDU',
-        emoji: '👨‍💼',
-        alter: 69,
-        beruf: 'Bundestagsabgeordneter, CDU-Vorsitzender',
-        positionen: ['Marktwirtschaft', 'Europa'],
-        claraInfo: 'CDU-Vorsitzender, wirtschaftsliberale Positionen. Schwerpunkte: Wirtschaft, EU, Steuern.',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Friedrich_Merz_2021.jpg/220px-Friedrich_Merz_2021.jpg',
-        quelle: 'Wikipedia/Wikimedia Commons (CC BY 4.0)'
-      }
-    ],
-    parteien: [
-      { 
-        name: 'CDU', 
-        programm: `Soziale Marktwirtschaft
-Die CDU steht für eine starke soziale Marktwirtschaft, die Wohlstand für alle schafft. Wir setzen auf Steuerentlastungen für Familien und den Mittelstand, Investitionen in Innovation und Digitalisierung, sowie eine verantwortungsvolle Finanzpolitik.
-
-Wirtschaft & Digitalisierung
-Bürokratieabbau und Förderung von Start-ups stehen im Mittelpunkt. Wir wollen Deutschlands Wettbewerbsfähigkeit stärken durch Investitionen in Bildung, Forschung und eine moderne digitale Infrastruktur.
-
-Europa & Sicherheit
-Wir bekennen uns zu einem starken Europa und einer verlässlichen Sicherheits- und Verteidigungspolitik. Innere Sicherheit durch konsequente Kriminalitätsbekämpfung und Schutz der Bürger.
-
-Klima & Umwelt
-Klimaneutralität bis 2045 mit technologieoffenem Ansatz. Förderung erneuerbarer Energien, Wasserstoff-Technologie und Innovation statt Verbote. Soziale Verträglichkeit der Klimamaßnahmen sicherstellen.` 
-      },
-      { 
-        name: 'SPD', 
-        programm: `Soziale Gerechtigkeit
-Die SPD setzt sich für eine gerechte Gesellschaft ein, in der alle Menschen die gleichen Chancen haben. Unser Ziel ist eine gerechte Verteilung von Wohlstand und die Bekämpfung von Armut.
-
-Arbeit & Soziales
-Wir fordern einen Mindestlohn von 15 Euro, bessere Arbeitsbedingungen und einen starken Sozialstaat. Gerechte Rente, bezahlbares Wohnen und kostenlose Bildung sind zentrale Forderungen.
-
-Klima & Umwelt
-Klimaneutralität bis 2045 mit sozialverträglicher Energiewende. Investitionen in erneuerbare Energien, CO2-Bepreisung mit sozialem Ausgleich, und die Schaffung von 400.000 neuen Wohnungen pro Jahr.
-
-Europa & Frieden
-Wir setzen auf ein starkes, soziales Europa und eine Friedenspolitik. Internationale Zusammenarbeit und Multilateralismus stehen im Vordergrund.` 
-      },
-      { 
-        name: 'GRÜNE', 
-        programm: `Klimaschutz & Umwelt
-Die GRÜNEN fordern Klimaneutralität bis 2035 - 10 Jahre früher als geplant. Massiver Ausbau erneuerbarer Energien, Kohleausstieg und eine ambitionierte Verkehrswende hin zu nachhaltiger Mobilität.
-
-Soziale Gerechtigkeit
-Klimaschutz muss sozial gerecht sein. Wir fordern mehr Investitionen in Bildung, bezahlbares Wohnen und eine gerechte Verteilung der Klimakosten. Starke Sozialpolitik für alle.
-
-Innovation & Digitalisierung
-Grüner Wandel durch Innovation. Förderung nachhaltiger Technologien, Digitalisierung mit Datenschutz, und eine digitale Infrastruktur, die allen zugutekommt.
-
-Demokratie & Bürgerrechte
-Mehr Demokratie und Bürgerbeteiligung. Schutz von Grundrechten, Transparenz in der Politik und eine lebendige Zivilgesellschaft.` 
-      },
-      { 
-        name: 'FDP', 
-        programm: `Wirtschaftsfreiheit
-Die FDP steht für unternehmerische Freiheit und eine starke Marktwirtschaft. Steuerentlastungen, Bürokratieabbau und Förderung von Innovationen und Start-ups sind zentral.
-
-Bildung & Digitalisierung
-Exzellente Bildung für alle durch Investitionen in Schulen und Universitäten. Digitale Infrastruktur ausbauen, Wirtschaft digitalisieren und Deutschland zum führenden Digitalstandort machen.
-
-Bürgerrechte & Freiheit
-Stärkung der individuellen Freiheit und Grundrechte. Weniger Staat, mehr Eigenverantwortung. Datenschutz und digitale Selbstbestimmung.
-
-Forschung & Innovation
-Investitionen in Zukunftstechnologien wie KI, Quantencomputing und Biotechnologie. Deutschland als Innovationsstandort stärken.` 
-      },
-      { 
-        name: 'DIE LINKE', 
-        programm: `Soziale Gerechtigkeit & Umverteilung
-DIE LINKE kämpft für eine solidarische Gesellschaft ohne Armut. Wir fordern eine Millionärssteuer, Vermögenssteuer und höhere Löhne für alle. Gerechte Verteilung des gesellschaftlichen Reichtums.
-
-Arbeit & Rente
-Mindestlohn von 15 Euro, Arbeitszeitverkürzung bei vollem Lohnausgleich, und eine existenzsichernde Rente. Recht auf Wohnen durch Mietpreisbremse und Sozialwohnungen.
-
-Klima & Umwelt
-Sozial-ökologische Transformation. Klimaneutralität durch staatliche Investitionen in erneuerbare Energien und klimafreundliche Mobilität. Kosten nicht auf die Bevölkerung abwälzen.
-
-Frieden & Abrüstung
-Entspannungspolitik statt Aufrüstung. Austritt aus der NATO, Abzug der Atomwaffen aus Deutschland und friedliche Konfliktlösung.` 
-      },
-      { 
-        name: 'AfD', 
-        programm: `Nationale Souveränität
-Die AfD fordert die Wiederherstellung der vollen nationalen Souveränität Deutschlands. Kritik an der EU und Forderung nach Reformen oder Austritt.
-
-Migration & Integration
-Strenge Einwanderungspolitik, Begrenzung der Zuwanderung und konsequente Abschiebung von abgelehnten Asylbewerbern. Fokus auf Integration der bereits hier lebenden Menschen.
-
-Konservative Werte
-Bewahrung traditioneller Werte, Familie und Heimat. Ablehnung von Gender-Mainstreaming und Fokus auf nationale Identität.
-
-Wirtschaft & Steuern
-Steuerentlastungen, weniger Staatseingriffe und eine stärkere Förderung des Mittelstands. Kritik an EU-Regulierung und Bürokratie.` 
-      }
-    ]
-  },
-  {
-    id: 'sl25',
-    name: 'Landtagswahl Saarland 2025',
-    datum: '15.03.2025',
-    wahlkreis: 'Saarland',
-    level: 'land',
-    location: 'saarland',
-    kandidaten: [
-      {
-        name: 'Anke Rehlinger',
-        partei: 'SPD',
-        emoji: '👩‍💼',
-        alter: 48,
-        beruf: 'Ministerpräsidentin',
-        positionen: ['Soziale Gerechtigkeit', 'Klimaschutz'],
-        claraInfo: 'Ministerpräsidentin des Saarlandes seit 2022. Schwerpunkte: Soziale Gerechtigkeit, Klimaschutz, faire Arbeitsbedingungen.',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Anke_Rehlinger_2022.jpg/220px-Anke_Rehlinger_2022.jpg',
-        quelle: 'Wikipedia/Wikimedia Commons (CC BY 4.0)'
-      },
-      {
-        name: 'Tobias Hans',
-        partei: 'CDU',
-        emoji: '👨‍💼',
-        alter: 45,
-        beruf: 'Oppositionsführer',
-        positionen: ['Wirtschaftsförderung', 'Familie'],
-        claraInfo: 'Oppositionsführer im Saarländischen Landtag. Fokus auf Wirtschaftsförderung und Familienpolitik.',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Tobias_Hans_2018.jpg/220px-Tobias_Hans_2018.jpg',
-        quelle: 'Wikipedia/Wikimedia Commons (CC BY 4.0)'
-      },
-      {
-        name: 'Lisa Becker',
-        partei: 'GRÜNE',
-        emoji: '👩‍💼',
-        alter: 35,
-        beruf: 'Landtagsabgeordnete',
-        positionen: ['Klimaschutz', 'Nachhaltigkeit'],
-        claraInfo: 'Landtagsabgeordnete der GRÜNEN. Engagiert für Klimaschutz und nachhaltige Entwicklung im Saarland.'
-      }
-    ],
-    parteien: [
-      { 
-        name: 'SPD', 
-        programm: `Soziale Gerechtigkeit & Klimaschutz
-Die Saarland-SPD setzt auf soziale Gerechtigkeit, faire Arbeitsbedingungen und ambitionierten Klimaschutz. Ministerpräsidentin Anke Rehlinger führt die Partei mit Fokus auf Digitalisierung, Bildung und Wirtschaftsförderung.
-
-Arbeit & Soziales
-Starke Tarifbindung, gute Arbeitsplätze und soziale Sicherheit für alle. Investitionen in Bildung und Gesundheitsversorgung, die allen zugutekommt.
-
-Klima & Umwelt
-Klimaneutralität im Saarland bis 2045. Ausbau erneuerbarer Energien, nachhaltige Mobilität und sozialverträgliche Klimapolitik.
-
-Wirtschaft & Innovation
-Digitale Transformation des Saarlandes, Förderung von Innovation und Mittelstand, sowie Stärkung der regionalen Wirtschaft.` 
-      },
-      { 
-        name: 'CDU', 
-        programm: `Wirtschaftsförderung & Familie
-Die Saarland-CDU setzt auf Wirtschaftswachstum, Familienpolitik und traditionelle Werte. Fokus auf Steuerentlastungen und eine starke Wirtschaft im Saarland.
-
-Wirtschaft & Innovation
-Förderung des Mittelstands, Digitalisierung der Wirtschaft und Investitionen in Infrastruktur. Stärkung der saarländischen Industrie.
-
-Familie & Tradition
-Kinderbetreuung ausbauen, Familien finanziell entlasten und traditionelle Werte bewahren. Unterstützung für Familien mit Kindern.
-
-Sicherheit & Ordnung
-Starke Polizei, konsequente Kriminalitätsbekämpfung und Schutz der Bürger. Innere Sicherheit als Priorität.` 
-      },
-      { 
-        name: 'GRÜNE', 
-        programm: `Klimaschutz & Nachhaltigkeit
-Die Saarland-GRÜNEN setzen auf ambitionierten Klimaschutz und nachhaltige Entwicklung. Klimaneutralität schnellstmöglich, Ausbau erneuerbarer Energien und klimafreundliche Mobilität.
-
-Umwelt & Natur
-Schutz der Natur im Saarland, Erhalt der Biodiversität und nachhaltige Landwirtschaft. Naturschutzgebiete stärken.
-
-Soziale Gerechtigkeit
-Klimaschutz sozial gerecht gestalten. Investitionen in Bildung, bezahlbares Wohnen und gerechte Verteilung der Klimakosten.
-
-Demokratie & Bürgerbeteiligung
-Mehr Bürgerbeteiligung, Transparenz und Demokratie im Saarland. Starke Zivilgesellschaft und lebendige Demokratie.` 
-      },
-      { 
-        name: 'FDP', 
-        programm: `Wirtschaftsliberalismus & Digitalisierung
-Die Saarland-FDP steht für unternehmerische Freiheit, Digitalisierung und Innovation. Weniger Staat, mehr Eigenverantwortung und eine starke Wirtschaft.
-
-Wirtschaft & Innovation
-Steuerentlastungen, Bürokratieabbau und Förderung von Start-ups. Digitalisierung der Wirtschaft und Förderung von Innovationen.
-
-Bildung & Forschung
-Exzellente Bildung, Investitionen in Schulen und Universitäten. Forschung und Entwicklung stärken.
-
-Bürgerrechte & Freiheit
-Stärkung der individuellen Freiheit, weniger Staatseingriffe und mehr Eigenverantwortung. Datenschutz und digitale Selbstbestimmung.` 
-      },
-      { 
-        name: 'DIE LINKE', 
-        programm: `Soziale Umverteilung & Friedenspolitik
-Die Saarland-LINKE kämpft für soziale Gerechtigkeit und eine solidarische Gesellschaft. Millionärssteuer, Vermögenssteuer und höhere Löhne für alle.
-
-Arbeit & Soziales
-Mindestlohn von 15 Euro, Arbeitszeitverkürzung und existenzsichernde Rente. Recht auf Wohnen durch Mietpreisbremse.
-
-Klima & Umwelt
-Sozial-ökologische Transformation im Saarland. Klimaneutralität durch staatliche Investitionen in erneuerbare Energien.
-
-Frieden & Abrüstung
-Entspannungspolitik statt Aufrüstung. Friedliche Konfliktlösung und Abrüstung.` 
-      }
-    ]
-  },
-  {
+const KIRKEL_WAHL: Wahl = {
     id: 'kk25',
     name: 'Gemeinderatswahl Kirkel 2025',
     datum: '09.11.2025',
@@ -1508,8 +1273,10 @@ Bürgerfreundliche Verwaltung, digitale Dienstleistungen und schnellere Genehmig
       }
     ]
   }
-];
 
+};
+
+export const WAHLEN_DATA: Wahl[] = [...WAHLEN_DEUTSCHLAND, KIRKEL_WAHL];
 export const NEWS_DATA: NewsItem[] = [
   {
     id: 1,

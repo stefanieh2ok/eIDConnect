@@ -70,6 +70,23 @@ export interface VotingData {
   vergangen?: PastVotingResult[];
 }
 
+export interface SocialMedia {
+  website?: string;
+  twitter?: string;
+  instagram?: string;
+  facebook?: string;
+  linkedin?: string;
+  mastodon?: string;
+  youtube?: string;
+}
+
+export interface PolitikerZitat {
+  text: string;
+  quelle: string;
+  datum: string;
+  url?: string;
+}
+
 export interface Candidate {
   name: string;
   partei: string;
@@ -77,14 +94,27 @@ export interface Candidate {
   alter: number;
   beruf: string;
   positionen: string[];
+  claraInfo?: string;
+  /** Quellenverweise für claraInfo im Perplexity-Stil [1], [2] */
+  quellen?: string[];
   /**
-   * Nur freiverfügbare Bilder verwenden (z. B. Wikimedia Commons mit CC-Lizenz,
-   * offizielle Pressebilder mit Nutzungsrecht). Keine Bilder von LinkedIn, Xing,
-   * Partei- oder Kommunen-Webseiten ohne ausdrückliche Freigabe.
+   * Nur freiverfügbare Bilder (Wikimedia Commons CC-Lizenz, offizielle Pressebilder).
+   * Keine Bilder von LinkedIn, Xing, Partei-Webseiten ohne Freigabe.
    */
   image?: string;
-  /** Quelle des Bildes (z. B. „Wikipedia/Wikimedia Commons (CC BY 4.0)“). */
+  /** Bildquelle + Lizenz */
   quelle?: string;
+  quelleUrl?: string;
+  confirmedByCandidate?: boolean;
+  /** Offizielle Social-Media-Accounts des Politikers */
+  socialMedia?: SocialMedia;
+  wikipediaUrl?: string;
+  parlamentUrl?: string;
+  abgeordnetenwatchUrl?: string;
+  /** Zitate nur mit Quellennachweis renommierter Medien */
+  zitate?: PolitikerZitat[];
+  /** Datum der letzten Verifizierung */
+  standDatum?: string;
 }
 
 export interface Election {
@@ -106,6 +136,36 @@ export interface ElectionResult {
   nein: number;
   enthaltung: number;
   stimmen: number;
+}
+
+export interface ParteiErgebnis {
+  partei: string;
+  prozent: number;
+  sitze?: number;
+}
+
+export interface WahlErgebnis {
+  wahlbeteiligung: number;
+  parteien: ParteiErgebnis[];
+  koalition?: string;
+  status: 'abgeschlossen' | 'vorläufig';
+}
+
+export interface Partei {
+  name: string;
+  programm: string;
+}
+
+export interface Wahl {
+  id: string;
+  name: string;
+  datum: string;
+  wahlkreis: string;
+  level?: 'bund' | 'land' | 'kreis' | 'kommune';
+  location?: string;
+  kandidaten: Candidate[];
+  parteien: Partei[];
+  ergebnis?: WahlErgebnis;
 }
 
 export interface NewsItem {
@@ -137,38 +197,6 @@ export interface LeaderboardItem {
   participation: number;
   medal?: 'gold' | 'silver' | 'bronze';
   isUser?: boolean;
-}
-
-export interface Candidate {
-  name: string;
-  partei: string;
-  emoji?: string;
-  alter: number;
-  beruf: string;
-  positionen: string[];
-  claraInfo?: string;
-  image?: string;
-  quelle?: string;
-  /** Link zur offiziellen Quelle (z. B. kirkel.de) */
-  quelleUrl?: string;
-  /** Vom Kandidaten/Team bestätigte Darstellung */
-  confirmedByCandidate?: boolean;
-}
-
-export interface Partei {
-  name: string;
-  programm: string;
-}
-
-export interface Wahl {
-  id: string;
-  name: string;
-  datum: string;
-  wahlkreis: string;
-  level?: 'bund' | 'land' | 'kreis' | 'kommune';
-  location?: string;
-  kandidaten: Candidate[];
-  parteien: Partei[];
 }
 
 export type Location = 'bundesweit' | 'saarland' | 'kirkel';
