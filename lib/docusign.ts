@@ -6,7 +6,6 @@ const SIGNER_CLIENT_ID = 'nda-signer-1';
 
 /** Lazy-load docusign-esign (CommonJS) so the build does not fail on Vercel. */
 function getDocusign() {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   return require('docusign-esign') as typeof import('docusign-esign');
 }
 

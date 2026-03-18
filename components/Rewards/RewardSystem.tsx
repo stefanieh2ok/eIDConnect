@@ -127,7 +127,7 @@ const RewardSystem: React.FC<RewardSystemProps> = ({ user, onLevelUp }) => {
             </div>
             {nextLevel && (
               <div className="text-sm text-gray-600 mt-2">
-                Noch {nextLevel.min - user.points} Punkte bis "{nextLevel.name}"
+                Noch {nextLevel.min - user.points} Punkte bis &quot;{nextLevel.name}&quot;
               </div>
             )}
           </div>
