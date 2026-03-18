@@ -2663,13 +2663,13 @@ const BuergerApp = () => {
             <button
               type="button"
               onClick={() => setCurrentTab('rewards')}
-              className="flex flex-col items-center justify-center gap-0 py-1.5 px-2.5 rounded-lg border-0 cursor-pointer hover:opacity-90 transition-opacity flex-shrink-0"
+              className="flex flex-col items-center justify-center gap-0 py-1 px-2 rounded-md border-0 cursor-pointer hover:opacity-90 transition-opacity flex-shrink-0"
               style={{ backgroundColor: getPunkteBadge(currentPoints).color }}
               title="Zum Punktestand (Punkte-Tab)"
               aria-label={`${currentPoints.toLocaleString()} Punkte, ${totalVotes} mal abgestimmt. Zum Punktestand wechseln`}
             >
-              <span className="text-sm font-bold tabular-nums text-white leading-tight">{currentPoints.toLocaleString()} Punkte</span>
-              <span className="text-[10px] sm:text-xs text-white/90 leading-tight">{totalVotes}× abgestimmt</span>
+              <span className="text-[11px] font-bold tabular-nums text-white leading-tight">{currentPoints.toLocaleString()} Punkte</span>
+              <span className="text-[9px] text-white/90 leading-tight">{totalVotes}× abgestimmt</span>
             </button>
             <div className="flex-shrink-0 flex justify-end">
               <button onClick={() => setShowSettings(true)} className="p-2 rounded-xl transition-colors text-white hover:opacity-90 gov-btn-bg" style={{ background: 'var(--gov-btn, #0066cc)' }} aria-label="Einstellungen" title="Einstellungen">
