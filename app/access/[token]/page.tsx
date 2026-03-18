@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { findAccessTokenByRawToken, isTokenExpired } from '@/lib/security/token';
 import { ndaConfig } from '@/config/nda';
 import { AcceptNdaButton } from '@/components/access/accept-nda-button';
+import { CheckboxAcceptButton } from '@/components/access/checkbox-accept-button';
 
 export const metadata = {
   title: 'Vertraulicher Demo-Zugang – HookAI',
@@ -121,7 +122,11 @@ export default async function AccessPage({ params }: AccessPageProps) {
               {ndaConfig.footer}
             </p>
             <div className="mt-8 border-t border-neutral-200 pt-6">
-              <AcceptNdaButton token={token} />
+              {tokenRecord.require_docusign === false ? (
+                <CheckboxAcceptButton token={token} />
+              ) : (
+                <AcceptNdaButton token={token} />
+              )}
             </div>
           </section>
         </div>

@@ -14,6 +14,7 @@ export type DemoAccessTokenRecord = {
   max_views: number;
   max_devices: number;
   is_revoked: boolean;
+  require_docusign: boolean;
 };
 
 export async function findAccessTokenByRawToken(
@@ -35,7 +36,8 @@ export async function findAccessTokenByRawToken(
         expires_at,
         max_views,
         max_devices,
-        is_revoked
+        is_revoked,
+        require_docusign
       `
     )
     .eq('token_hash', tokenHash)

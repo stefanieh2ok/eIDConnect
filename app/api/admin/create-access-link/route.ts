@@ -11,6 +11,7 @@ type Body = {
   company?: string;
   demoId?: string;
   expiresInDays?: number;
+  requireDocusign?: boolean;
 };
 
 function generateRawAccessToken(): string {
@@ -49,6 +50,8 @@ export async function POST(request: NextRequest) {
       Date.now() + expiresInDays * 24 * 60 * 60 * 1000
     ).toISOString();
 
+    const requireDocusign = body.requireDocusign !== false;
+
     const { error } = await supabaseAdmin.from('demo_access_tokens').insert({
       token_hash: tokenHash,
       demo_id: demoId,
@@ -58,9 +61,10 @@ export async function POST(request: NextRequest) {
       nda_version: ndaConfig.version,
       nda_document_hash: getNdaDocumentHash(),
       expires_at: expiresAt,
-      max_views: 10,
+      max_views: requireDocusign ? 10 : 50,
       max_devices: 1,
       is_revoked: false,
+      require_docusign: requireDocusign,
     });
 
     if (error) {

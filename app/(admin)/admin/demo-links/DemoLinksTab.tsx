@@ -46,6 +46,15 @@ export default function DemoLinksTab() {
   const [accessLinkError, setAccessLinkError] = useState<string | null>(null);
   const [accessLinkCopied, setAccessLinkCopied] = useState(false);
 
+  // Test-Link (Checkbox, ohne DocuSign)
+  const [testVorname, setTestVorname] = useState('');
+  const [testNachname, setTestNachname] = useState('');
+  const [testEmail, setTestEmail] = useState('');
+  const [creatingTestLink, setCreatingTestLink] = useState(false);
+  const [createdTestUrl, setCreatedTestUrl] = useState<string | null>(null);
+  const [testLinkError, setTestLinkError] = useState<string | null>(null);
+  const [testLinkCopied, setTestLinkCopied] = useState(false);
+
   const supabase = createClient();
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const ndaUrl = `${baseUrl}/legal/demo-nda`;
@@ -164,6 +173,54 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
     }
   }
 
+  async function createTestLink() {
+    const fullName = `${(testVorname ?? '').trim()} ${(testNachname ?? '').trim()}`.trim();
+    if (!fullName || !(testEmail ?? '').trim()) {
+      setTestLinkError('Vorname, Nachname und E-Mail sind Pflichtfelder.');
+      return;
+    }
+    setTestLinkError(null);
+    setCreatedTestUrl(null);
+    setCreatingTestLink(true);
+    try {
+      const res = await fetch('/api/admin/create-access-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          fullName,
+          email: (testEmail ?? '').trim(),
+          demoId: 'eidconnect-v1',
+          expiresInDays: 14,
+          requireDocusign: false,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setTestLinkError(data?.error ?? 'Link konnte nicht erstellt werden.');
+        return;
+      }
+      if (data.accessUrl) {
+        setCreatedTestUrl(data.accessUrl);
+        setTestVorname('');
+        setTestNachname('');
+        setTestEmail('');
+      }
+    } catch {
+      setTestLinkError('Netzwerkfehler.');
+    } finally {
+      setCreatingTestLink(false);
+    }
+  }
+
+  function copyTestLink() {
+    if (createdTestUrl) {
+      navigator.clipboard.writeText(createdTestUrl);
+      setTestLinkCopied(true);
+      setTimeout(() => setTestLinkCopied(false), 2000);
+    }
+  }
+
   async function exportProof(tokenId: string) {
     setExportingId(tokenId);
     try {
@@ -277,6 +334,34 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
                 className="text-sm text-blue-600 hover:underline"
               >
                 {accessLinkCopied ? 'Kopiert!' : 'Link kopieren'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border-2 border-emerald-200 p-4 mb-6 shadow-sm">
+        <h2 className="font-semibold mb-1 text-gray-900">Test-Link (Checkbox-NDA, ohne DocuSign)</h2>
+        <p className="text-xs text-emerald-600 font-medium mb-2">Für Freunde &amp; Tester – schneller Zugang mit Checkbox statt DocuSign.</p>
+        <p className="text-sm text-gray-600 mb-3">
+          Empfänger sieht das NDA, setzt ein Häkchen und kommt direkt in die Demo. Kein DocuSign nötig. 50 Zugriffe, 14 Tage gültig.
+        </p>
+        <div className="grid gap-3 max-w-md">
+          <div className="grid grid-cols-2 gap-2">
+            <input type="text" placeholder="Vorname" value={testVorname} onChange={(e) => { setTestVorname(e.target.value); setTestLinkError(null); }} className="border border-gray-300 rounded-lg px-3 py-2" />
+            <input type="text" placeholder="Nachname" value={testNachname} onChange={(e) => { setTestNachname(e.target.value); setTestLinkError(null); }} className="border border-gray-300 rounded-lg px-3 py-2" />
+          </div>
+          <input type="email" placeholder="E-Mail-Adresse" value={testEmail} onChange={(e) => { setTestEmail(e.target.value); setTestLinkError(null); }} className="border border-gray-300 rounded-lg px-3 py-2" />
+          {testLinkError && <p className="text-sm text-red-600">{testLinkError}</p>}
+          <button type="button" onClick={createTestLink} disabled={creatingTestLink} className="bg-emerald-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">
+            {creatingTestLink ? 'Erstelle…' : 'Test-Link erstellen'}
+          </button>
+          {createdTestUrl && (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+              <p className="text-sm font-medium text-green-800 mb-1">Test-Link erstellt:</p>
+              <p className="text-xs text-green-700 break-all mb-2">{createdTestUrl}</p>
+              <button type="button" onClick={copyTestLink} className="text-sm text-blue-600 hover:underline">
+                {testLinkCopied ? 'Kopiert!' : 'Link kopieren'}
               </button>
             </div>
           )}
