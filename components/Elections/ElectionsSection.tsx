@@ -44,15 +44,31 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
   };
 
   const filteredWahlen = allWahlen.filter(wahl => {
-    if (currentLevel) return wahl.level === currentLevel;
-    const locationMap: Record<string, string[]> = {
-      'deutschland': ['deutschland'],
-      'saarland': ['saarland'],
-      'saarpfalz': ['saarpfalz'],
-      'kirkel': ['kirkel'],
-    };
-    const locations = locationMap[currentLocation] ?? [currentLocation];
-    return wahl.location && locations.includes(wahl.location);
+    if (!currentLevel) {
+      const locationMap: Record<string, string[]> = {
+        'deutschland': ['deutschland'],
+        'saarland': ['saarland'],
+        'saarpfalz': ['saarpfalz'],
+        'kirkel': ['kirkel'],
+      };
+      const locations = locationMap[currentLocation] ?? [currentLocation];
+      return wahl.location && locations.includes(wahl.location);
+    }
+    if (wahl.level !== currentLevel) return false;
+    if (currentLevel === 'land' && currentLocation && currentLocation !== 'deutschland') {
+      return wahl.location === currentLocation;
+    }
+    if (currentLevel === 'kreis' && userWahlkreisByLevel?.kreis) {
+      const userKreis = userWahlkreisByLevel.kreis.toLowerCase().replace(/^(kreis|landkreis)\s+/, '').trim();
+      const wahlKreis = wahl.wahlkreis.toLowerCase().replace(/^(kreis|landkreis)\s+/, '').trim();
+      return userKreis === wahlKreis || userKreis.includes(wahlKreis) || wahlKreis.includes(userKreis);
+    }
+    if (currentLevel === 'kommune' && userWahlkreisByLevel?.kommune) {
+      const userKommune = userWahlkreisByLevel.kommune.toLowerCase().trim();
+      const wahlKreis = wahl.wahlkreis.toLowerCase().trim();
+      return userKommune === wahlKreis || userKommune.includes(wahlKreis) || wahlKreis.includes(userKommune);
+    }
+    return true;
   });
 
   const getLevelBadge = (level?: string) => {
@@ -72,9 +88,38 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
       <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--gov-heading)' }}>Kommende Wahlen</h2>
       
       {filteredWahlen.length === 0 ? (
-        <div className="bg-slate-50 rounded-xl p-4 text-center space-y-1">
-          <p className="text-sm font-medium text-slate-700">Noch keine Wahldaten für diese Ebene</p>
-          <p className="text-xs text-slate-500">Für diesen Ort liegen noch keine lokalen Wahl- und Politikerdaten vor. Bundesweite Informationen sind immer verfügbar.</p>
+        <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+          <p className="text-sm font-medium text-slate-700">
+            Noch keine Wahldaten für diese Ebene
+            {userWahlkreisByLevel && (currentLevel === 'kreis' ? userWahlkreisByLevel.kreis : currentLevel === 'kommune' ? userWahlkreisByLevel.kommune : '') && (
+              <span className="font-normal"> – {currentLevel === 'kreis' ? userWahlkreisByLevel.kreis : currentLevel === 'kommune' ? userWahlkreisByLevel.kommune : ''}</span>
+            )}
+          </p>
+          <p className="text-xs text-slate-500">
+            Für diesen Ort liegen noch keine lokalen Wahl- und Politikerdaten vor. Bundesweite Informationen sind im Tab „Deutschland“ verfügbar.
+          </p>
+          {userWahlkreisByLevel && (userWahlkreisByLevel.kreis || userWahlkreisByLevel.kommune) && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              <a
+                href={`https://de.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(currentLevel === 'kreis' ? userWahlkreisByLevel.kreis : userWahlkreisByLevel.kommune)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-600 hover:underline"
+              >
+                Wikipedia durchsuchen →
+              </a>
+              {currentLevel === 'kreis' && (
+                <a
+                  href="https://de.wikipedia.org/wiki/Liste_der_Landr%C3%A4te_in_Deutschland"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  Landräte-Übersicht →
+                </a>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         filteredWahlen.map(wahl => {

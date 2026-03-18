@@ -1,0 +1,48 @@
+# Läuft monatlich und aktualisiert die Bürgermeister/Landräte-Daten aus Wikidata.
+# Nach dem Lauf: manuell prüfen und committen falls sinnvolle Änderungen.
+
+name: Wikidata Politiker aktualisieren
+
+on:
+  schedule:
+    - cron: '0 3 1 * *'  # 1. des Monats, 03:00 UTC
+  workflow_dispatch:      # Manuell auslösbar
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Fetch Wikidata
+        run: node scripts/fetch-wikidata-politiker.mjs
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet data/kommunalpolitiker-auto.ts; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            git diff --stat data/kommunalpolitiker-auto.ts
+          fi
+
+      - name: Create PR on changes
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: Wikidata Politiker-Daten aktualisiert'
+          branch: wikidata-update
+          delete-branch: true
+          title: 'Wikidata: Politiker-Daten aktualisieren'
+          body: |
+            Automatische Aktualisierung der Bürgermeister/Landräte-Daten aus Wikidata.
+            Bitte prüfen und mergen.
+          labels: dependencies,automated

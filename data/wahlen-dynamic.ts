@@ -22,6 +22,7 @@ const SHORT_PARTY: Record<string, string> = {
   'Bündnis Sahra Wagenknecht': 'BSW',
   'Freie Wähler': 'Freie Wähler',
   'parteilos': 'parteilos',
+  'Parteiloser': 'parteilos',
 };
 
 function shortParty(full: string): string {

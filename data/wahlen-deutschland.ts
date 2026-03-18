@@ -1177,6 +1177,325 @@ const KT_SAARPFALZ: Wahl = {
   ],
 };
 
+const KT_RHEIN_SIEG: Wahl = {
+  id: 'kt-rhein-sieg-2020',
+  name: 'Kreistag Rhein-Sieg-Kreis',
+  datum: '13.09.2020',
+  wahlkreis: 'Rhein-Sieg-Kreis',
+  level: 'kreis',
+  location: 'kreis',
+  kandidaten: [
+    {
+      name: 'Sebastian Schuster',
+      partei: 'CDU',
+      emoji: '👨‍💼',
+      alter: 48,
+      beruf: 'Landrat',
+      positionen: ['Wirtschaft', 'Mobilität', 'Digitalisierung', 'Bildung'],
+      claraInfo: 'Landrat des Rhein-Sieg-Kreises seit 2014 [1]. Wiedergewählt 2020.',
+      quellen: ['[1] rhein-sieg-kreis.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Sebastian_Schuster',
+      socialMedia: { website: 'https://www.rhein-sieg-kreis.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Wirtschaftsförderung, Infrastruktur, Bildung, Digitalisierung.' },
+    { name: 'SPD', programm: 'Soziale Gerechtigkeit, bezahlbares Wohnen, ÖPNV.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Verkehrswende, Nachhaltigkeit.' },
+  ],
+};
+
+const KT_METTMANN: Wahl = {
+  id: 'kt-mettmann-2025',
+  name: 'Kreistag Kreis Mettmann',
+  datum: '14.09.2025',
+  wahlkreis: 'Mettmann',
+  level: 'kreis',
+  location: 'kreis',
+  kandidaten: [
+    {
+      name: 'Bettina Warnecke',
+      partei: 'CDU',
+      emoji: '👩‍💼',
+      alter: 54,
+      beruf: 'Landrätin',
+      positionen: ['Wirtschaft', 'Bildung', 'Familie', 'Digitalisierung'],
+      claraInfo: 'Landrätin des Kreises Mettmann seit November 2025 [1].',
+      quellen: ['[1] kreis-mettmann.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Bettina_Warnecke',
+      socialMedia: { website: 'https://www.kreis-mettmann.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Wirtschaftsstandort, Bildung, Familienpolitik, Infrastruktur.' },
+    { name: 'SPD', programm: 'Soziale Gerechtigkeit, Bildung, bezahlbares Wohnen.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Verkehrswende, ökologische Kreispolitik.' },
+  ],
+};
+
+const KT_REGION_HANNOVER: Wahl = {
+  id: 'kt-region-hannover-2021',
+  name: 'Region Hannover',
+  datum: '12.09.2021',
+  wahlkreis: 'Region Hannover',
+  level: 'kreis',
+  location: 'kreis',
+  kandidaten: [
+    {
+      name: 'Steffen Krach',
+      partei: 'SPD',
+      emoji: '👨‍💼',
+      alter: 46,
+      beruf: 'Regionspräsident',
+      positionen: ['ÖPNV', 'Wirtschaft', 'Bildung', 'Klimaschutz'],
+      claraInfo: 'Regionspräsident der Region Hannover seit 2021 [1]. Zuvor Staatssekretär in Berlin.',
+      quellen: ['[1] hannover.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Steffen_Krach',
+      socialMedia: { website: 'https://www.hannover.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'SPD', programm: 'ÖPNV-Ausbau, soziale Infrastruktur, Wirtschaftsförderung.' },
+    { name: 'CDU', programm: 'Wirtschaft, Sicherheit, Haushalt, Bildung.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Verkehrswende, nachhaltige Region.' },
+  ],
+};
+
+const KT_RECKLINGHAUSEN: Wahl = {
+  id: 'kt-recklinghausen-2025',
+  name: 'Kreistag Recklinghausen',
+  datum: '14.09.2025',
+  wahlkreis: 'Recklinghausen',
+  level: 'kreis',
+  location: 'kreis',
+  kandidaten: [
+    {
+      name: 'Bodo Klimpel',
+      partei: 'CDU',
+      emoji: '👨‍💼',
+      alter: 62,
+      beruf: 'Landrat',
+      positionen: ['Wirtschaft', 'Strukturwandel', 'Bildung', 'Energie'],
+      claraInfo: 'Landrat des Kreises Recklinghausen. Wiedergewählt 2025 [1].',
+      quellen: ['[1] kreis-re.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Bodo_Klimpel',
+      socialMedia: { website: 'https://www.kreis-re.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Wirtschaft, Strukturwandel, Bildung, Energie.' },
+    { name: 'SPD', programm: 'Soziale Gerechtigkeit, Arbeitsplätze, Infrastruktur.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, nachhaltige Wirtschaft, Mobilität.' },
+  ],
+};
+
+const KT_MUENCHEN: Wahl = {
+  id: 'kt-muenchen-2020',
+  name: 'Kreistag Landkreis München',
+  datum: '15.03.2020',
+  wahlkreis: 'München',
+  level: 'kreis',
+  location: 'kreis',
+  kandidaten: [
+    {
+      name: 'Christoph Böck',
+      partei: 'CSU',
+      emoji: '👨‍💼',
+      alter: 52,
+      beruf: 'Landrat',
+      positionen: ['Wohnen', 'Mobilität', 'Digitalisierung', 'Wirtschaft'],
+      claraInfo: 'Landrat des Landkreises München seit 2020 [1].',
+      quellen: ['[1] landkreis-muenchen.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Christoph_B%C3%B6ck',
+      socialMedia: { website: 'https://www.landkreis-muenchen.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CSU', programm: 'Wohnungsbau, Verkehr, Wirtschaft, Digitalisierung.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Verkehrswende, bezahlbares Wohnen.' },
+    { name: 'SPD', programm: 'Soziale Gerechtigkeit, ÖPNV, Bildung.' },
+  ],
+};
+
+const KT_ESSLINGEN: Wahl = {
+  id: 'kt-esslingen-2024',
+  name: 'Kreistag Esslingen',
+  datum: '09.06.2024',
+  wahlkreis: 'Esslingen',
+  level: 'kreis',
+  location: 'kreis',
+  kandidaten: [
+    {
+      name: 'Matthias Klopfer',
+      partei: 'SPD',
+      emoji: '👨‍💼',
+      alter: 57,
+      beruf: 'Landrat',
+      positionen: ['Bildung', 'Verkehr', 'Wirtschaft', 'Klimaschutz'],
+      claraInfo: 'Landrat des Landkreises Esslingen seit 2006 [1].',
+      quellen: ['[1] landkreis-esslingen.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Matthias_Klopfer',
+      socialMedia: { website: 'https://www.landkreis-esslingen.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'SPD', programm: 'Bildung, Soziales, Verkehr, bezahlbares Wohnen.' },
+    { name: 'CDU', programm: 'Wirtschaft, Infrastruktur, Sicherheit.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Verkehrswende, Nachhaltigkeit.' },
+  ],
+};
+
+const KT_LUDWIGSBURG: Wahl = {
+  id: 'kt-ludwigsburg-2024',
+  name: 'Kreistag Ludwigsburg',
+  datum: '09.06.2024',
+  wahlkreis: 'Ludwigsburg',
+  level: 'kreis',
+  location: 'kreis',
+  kandidaten: [
+    {
+      name: 'Dietmar Allgaier',
+      partei: 'CDU',
+      emoji: '👨‍💼',
+      alter: 60,
+      beruf: 'Landrat',
+      positionen: ['Wirtschaft', 'Bildung', 'Verkehr', 'Digitalisierung'],
+      claraInfo: 'Landrat des Landkreises Ludwigsburg seit 2004 [1].',
+      quellen: ['[1] landkreis-ludwigsburg.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Dietmar_Allgaier',
+      socialMedia: { website: 'https://www.landkreis-ludwigsburg.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Wirtschaftsförderung, Bildung, Infrastruktur, Digitalisierung.' },
+    { name: 'SPD', programm: 'Soziale Gerechtigkeit, bezahlbares Wohnen, ÖPNV.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, nachhaltige Mobilität, Energiewende.' },
+  ],
+};
+
+const KT_RHEIN_ERFT: Wahl = {
+  id: 'kt-rhein-erft-2020',
+  name: 'Kreistag Rhein-Erft-Kreis',
+  datum: '13.09.2020',
+  wahlkreis: 'Rhein-Erft-Kreis',
+  level: 'kreis',
+  location: 'kreis',
+  kandidaten: [
+    {
+      name: 'Frank Rock',
+      partei: 'CDU',
+      emoji: '👨‍💼',
+      alter: 58,
+      beruf: 'Landrat',
+      positionen: ['Strukturwandel', 'Wirtschaft', 'Bildung', 'Mobilität'],
+      claraInfo: 'Landrat des Rhein-Erft-Kreises seit 2015 [1].',
+      quellen: ['[1] rhein-erft-kreis.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Frank_Rock_(Politiker)',
+      socialMedia: { website: 'https://www.rhein-erft-kreis.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Strukturwandel, Wirtschaft, Bildung, Infrastruktur.' },
+    { name: 'SPD', programm: 'Soziale Gerechtigkeit, Arbeitsplätze, bezahlbares Wohnen.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Braunkohle-Ausstieg, nachhaltige Wirtschaft.' },
+  ],
+};
+
+const KT_RHEIN_NEUSS: Wahl = {
+  id: 'kt-rhein-neuss-2020',
+  name: 'Kreistag Rhein-Kreis Neuss',
+  datum: '13.09.2020',
+  wahlkreis: 'Rhein-Kreis Neuss',
+  level: 'kreis',
+  location: 'kreis',
+  kandidaten: [
+    {
+      name: 'Hans-Jürgen Petrauschke',
+      partei: 'CDU',
+      emoji: '👨‍💼',
+      alter: 68,
+      beruf: 'Landrat',
+      positionen: ['Wirtschaft', 'Verkehr', 'Bildung', 'Strukturwandel'],
+      claraInfo: 'Landrat des Rhein-Kreises Neuss seit 1999 [1].',
+      quellen: ['[1] rhein-kreis-neuss.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Hans-J%C3%BCrgen_Petrauschke',
+      socialMedia: { website: 'https://www.rhein-kreis-neuss.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Wirtschaftsstandort, Verkehr, Bildung, Strukturwandel.' },
+    { name: 'SPD', programm: 'Soziale Infrastruktur, Arbeitsplätze, bezahlbares Wohnen.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Verkehrswende, nachhaltige Kreispolitik.' },
+  ],
+};
+
+const KT_MAIN_TAUNUS: Wahl = {
+  id: 'kt-main-taunus-2021',
+  name: 'Kreistag Main-Taunus-Kreis',
+  datum: '14.03.2021',
+  wahlkreis: 'Main-Taunus-Kreis',
+  level: 'kreis',
+  location: 'kreis',
+  kandidaten: [
+    {
+      name: 'Michael Cyriax',
+      partei: 'CDU',
+      emoji: '👨‍💼',
+      alter: 54,
+      beruf: 'Landrat',
+      positionen: ['Wirtschaft', 'Verkehr', 'Bildung', 'Digitalisierung'],
+      claraInfo: 'Landrat des Main-Taunus-Kreises seit 2018 [1].',
+      quellen: ['[1] mtk.org'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Michael_Cyriax',
+      socialMedia: { website: 'https://www.mtk.org' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Wirtschaftsförderung, Verkehr, Bildung, Digitalisierung.' },
+    { name: 'SPD', programm: 'Soziale Gerechtigkeit, bezahlbares Wohnen, ÖPNV.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Verkehrswende, Nachhaltigkeit.' },
+  ],
+};
+
+const KT_PINNEBERG: Wahl = {
+  id: 'kt-pinneberg-2023',
+  name: 'Kreistag Pinneberg',
+  datum: '14.05.2023',
+  wahlkreis: 'Pinneberg',
+  level: 'kreis',
+  location: 'kreis',
+  kandidaten: [
+    {
+      name: 'Elfi Heesch',
+      partei: 'CDU',
+      emoji: '👩‍💼',
+      alter: 58,
+      beruf: 'Landrätin',
+      positionen: ['Wirtschaft', 'Bildung', 'Verkehr', 'Klimaschutz'],
+      claraInfo: 'Landrätin des Kreises Pinneberg seit 2013 [1].',
+      quellen: ['[1] kreis-pinneberg.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Elfi_Heesch',
+      socialMedia: { website: 'https://www.kreis-pinneberg.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Wirtschaftsstandort, Bildung, Infrastruktur, Klimaschutz.' },
+    { name: 'SPD', programm: 'Soziale Gerechtigkeit, bezahlbares Wohnen, ÖPNV.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Verkehrswende, nachhaltige Kreispolitik.' },
+  ],
+};
+
 // ─── EXPORT ───────────────────────────────────────────────────────────────────
 
 export const WAHLEN_DEUTSCHLAND: Wahl[] = [
@@ -1198,10 +1517,21 @@ export const WAHLEN_DEUTSCHLAND: Wahl[] = [
   LTW_SACHSEN_ANHALT,
   LTW_SH,
   LTW_THUERINGEN,
-  // Kreistage (Test-Kreise)
+  // Kreistage
   KT_RHEIN_NECKAR,
   KT_BERGSTRASSE,
   KT_SAARPFALZ,
+  KT_RHEIN_SIEG,
+  KT_METTMANN,
+  KT_REGION_HANNOVER,
+  KT_RECKLINGHAUSEN,
+  KT_MUENCHEN,
+  KT_ESSLINGEN,
+  KT_LUDWIGSBURG,
+  KT_RHEIN_ERFT,
+  KT_RHEIN_NEUSS,
+  KT_MAIN_TAUNUS,
+  KT_PINNEBERG,
   // Kommunalwahlen Teststädte
   KW_MANNHEIM,
   KW_HEIDELBERG,
