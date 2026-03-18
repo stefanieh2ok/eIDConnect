@@ -1,20 +1,22 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { WAHLEN_DATA } from '@/data/constants';
-import { ChevronRight } from 'lucide-react';
+import { Wahl } from '@/types';
 
 interface ElectionsSectionProps {
   currentLocation?: string;
   /** Gewählte Ebene: nur Wahlen dieser Ebene anzeigen (Bund → Bundestag, Land → Landtag, Kreis → Kreistag, Kommune → Kommunalwahl) */
   currentLevel?: string;
   userWahlkreisByLevel?: { bund: string; land: string; kreis: string; kommune: string };
+  /** Dynamische Wahlen (aus Wikidata), ergänzen die statischen Daten */
+  dynamicWahlen?: Wahl[];
 }
 
 const LEVEL_NORMALIZE: Record<string, string> = { bund: 'bund', land: 'land', kreis: 'kreis', kommune: 'kommune' };
 
-const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: propLocation, currentLevel: propLevel, userWahlkreisByLevel }) => {
+const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: propLocation, currentLevel: propLevel, userWahlkreisByLevel, dynamicWahlen }) => {
   const { state, dispatch } = useApp();
   const votedIds = state.votedElectionIds || [];
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
@@ -25,14 +27,23 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
   const currentLocation = propLocation || state.activeLocation || 'deutschland';
   const currentLevel = propLevel ? LEVEL_NORMALIZE[propLevel.toLowerCase()] || propLevel.toLowerCase() : null;
 
-  const handleStimmzettelClick = (wahl: any) => {
+  const allWahlen = useMemo(() => {
+    const base = [...WAHLEN_DATA];
+    if (dynamicWahlen) {
+      for (const dw of dynamicWahlen) {
+        if (!base.some(w => w.id === dw.id)) base.push(dw);
+      }
+    }
+    return base;
+  }, [dynamicWahlen]);
+
+  const handleStimmzettelClick = (wahl: Wahl) => {
     const displayWahlkreis = userWahlkreisByLevel && wahl.level ? (userWahlkreisByLevel[wahl.level as keyof typeof userWahlkreisByLevel] || wahl.wahlkreis) : wahl.wahlkreis;
     dispatch({ type: 'SET_SELECTED_WAHL', payload: { ...wahl, wahlkreis: displayWahlkreis } });
     dispatch({ type: 'TOGGLE_STIMMZETTEL' });
   };
 
-  // Nur Wahlen der ausgewählten Ebene anzeigen: Bund → Bundestagswahlen (+ Kandidaten/Programm), Land → Landtag, Kreis → Kreistag, Kommune → Kommunalwahl
-  const filteredWahlen = WAHLEN_DATA.filter(wahl => {
+  const filteredWahlen = allWahlen.filter(wahl => {
     if (currentLevel) return wahl.level === currentLevel;
     const locationMap: Record<string, string[]> = {
       'deutschland': ['deutschland'],
@@ -74,7 +85,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h3 className="text-lg font-bold" style={{ color: 'var(--gov-heading)' }}>{wahl.name}</h3>
-                  <div className="text-sm text-gray-600 mt-1">{wahl.datum}</div>
+                  {wahl.datum !== 'aktuell' && <div className="text-sm text-gray-600 mt-1">{wahl.datum}</div>}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {hasVoted && (
@@ -98,9 +109,9 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                 {hasVoted ? 'Stimmzettel erneut ansehen' : 'Stimmzettel ansehen'}
               </button>
 
-              {wahl.kandidaten && (
+              {wahl.kandidaten && wahl.kandidaten.length > 0 ? (
                 <div className="mt-4">
-                  <h4 className="text-sm font-semibold mb-2">Kandidaten (Auszug):</h4>
+                  <h4 className="text-sm font-semibold mb-2">Amtsträger / Kandidaten:</h4>
                   {wahl.kandidaten.map((k, i) => {
                     const imgKey = `${wahl.id}-${i}`;
                     const avatarKey = `${wahl.id}-${i}-avatar`;
@@ -126,7 +137,9 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-sm">{k.name}</div>
-                        <div className="text-xs text-gray-600">{k.partei} • {k.alter} Jahre</div>
+                        <div className="text-xs text-gray-600">
+                          {k.partei}{k.alter ? ` • ${k.alter} Jahre` : ''}{k.beruf ? ` • ${k.beruf}` : ''}
+                        </div>
                         <div className="flex gap-1 mt-1 flex-wrap">
                           {k.positionen.map((pos, j) => (
                             <span key={j} className="bg-blue-100 text-blue-900 px-2 py-0.5 rounded text-xs">
@@ -134,8 +147,13 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                             </span>
                           ))}
                         </div>
+                        {k.wikipediaUrl && (
+                          <a href={k.wikipediaUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-600 hover:underline mt-1 inline-block">
+                            Wikipedia-Profil
+                          </a>
+                        )}
                         {(k.quelle || k.quelleUrl) && (
-                          <p className="text-[10px] text-gray-500 mt-1">
+                          <p className="text-[10px] text-gray-500 mt-0.5">
                             {k.quelleUrl ? (
                               <a
                                 href={k.quelleUrl}
@@ -143,7 +161,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                                 rel="noopener noreferrer"
                                 className="text-blue-600 hover:underline"
                               >
-                                Quelle: {k.quelle || 'kirkel.de'}
+                                Quelle: {k.quelle || 'Offizielle Seite'}
                               </a>
                             ) : (
                               <>Quelle: {k.quelle}</>
@@ -157,7 +175,11 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                     </div>
                   ); })}
                 </div>
-              )}
+              ) : wahl.id.startsWith('kt-auto-') || wahl.id.startsWith('kw-auto-') ? (
+                <p className="text-xs text-gray-500 mt-3 italic">
+                  Daten aus Wikidata (CC0). Detaillierte Informationen werden laufend ergänzt.
+                </p>
+              ) : null}
             </div>
           );
         })

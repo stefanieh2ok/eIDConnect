@@ -1272,8 +1272,6 @@ Bürgerfreundlichkeit
 Bürgerfreundliche Verwaltung, digitale Dienstleistungen und schnellere Genehmigungsverfahren.` 
       }
     ]
-  }
-
 };
 
 export const WAHLEN_DATA: Wahl[] = [...WAHLEN_DEUTSCHLAND, KIRKEL_WAHL];

@@ -1087,6 +1087,96 @@ const KW_BERLIN_STADT: Wahl = {
   ],
 };
 
+// ─── KREISTAGE (Test-Kreise) ─────────────────────────────────────────────────
+
+const KT_RHEIN_NECKAR: Wahl = {
+  id: 'kt-rnk-2024',
+  name: 'Kreistag Rhein-Neckar-Kreis',
+  datum: '09.06.2024',
+  wahlkreis: 'Rhein-Neckar-Kreis',
+  level: 'kreis',
+  location: 'kreis',
+  kandidaten: [
+    {
+      name: 'Stefan Dallinger',
+      partei: 'parteilos',
+      emoji: '👨‍💼',
+      alter: 59,
+      beruf: 'Landrat',
+      positionen: ['Regionalentwicklung', 'Mobilität', 'Digitalisierung', 'Wirtschaft'],
+      claraInfo: 'Landrat des Rhein-Neckar-Kreises seit 2013 [1]. Zuvor Bürgermeister von Ilvesheim.',
+      quellen: ['[1] rhein-neckar-kreis.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Stefan_Dallinger',
+      socialMedia: { website: 'https://www.rhein-neckar-kreis.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Wirtschaftsstandort stärken, Mobilität verbessern, Verwaltung modernisieren.' },
+    { name: 'SPD', programm: 'Soziale Infrastruktur, ÖPNV-Ausbau, bezahlbares Wohnen.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Radverkehr, nachhaltige Kreispolitik.' },
+    { name: 'Freie Wähler', programm: 'Bürgernähe, regionale Wirtschaft, pragmatische Lösungen.' },
+  ],
+};
+
+const KT_BERGSTRASSE: Wahl = {
+  id: 'kt-bergstrasse-2021',
+  name: 'Kreistag Bergstraße',
+  datum: '14.03.2021',
+  wahlkreis: 'Kreis Bergstraße',
+  level: 'kreis',
+  location: 'kreis',
+  kandidaten: [
+    {
+      name: 'Christian Engelhardt',
+      partei: 'CDU',
+      emoji: '👨‍💼',
+      alter: 50,
+      beruf: 'Landrat',
+      positionen: ['Wirtschaft', 'Digitalisierung', 'Bildung', 'Infrastruktur'],
+      claraInfo: 'Landrat des Kreises Bergstraße seit 2015 [1].',
+      quellen: ['[1] kreis-bergstrasse.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Christian_Engelhardt_(Politiker)',
+      socialMedia: { website: 'https://www.kreis-bergstrasse.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Wirtschaftsförderung, Infrastruktur, Digitalisierung, Bildung.' },
+    { name: 'SPD', programm: 'Soziale Gerechtigkeit, ÖPNV, bezahlbares Wohnen.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Energiewende, nachhaltige Mobilität.' },
+  ],
+};
+
+const KT_SAARPFALZ: Wahl = {
+  id: 'kt-saarpfalz-2024',
+  name: 'Kreistag Saarpfalz-Kreis',
+  datum: '09.06.2024',
+  wahlkreis: 'Saarpfalz-Kreis',
+  level: 'kreis',
+  location: 'saarpfalz',
+  kandidaten: [
+    {
+      name: 'Theophil Gallo',
+      partei: 'SPD',
+      emoji: '👨‍💼',
+      alter: 63,
+      beruf: 'Landrat',
+      positionen: ['Soziale Infrastruktur', 'Wirtschaft', 'Tourismus', 'Bildung'],
+      claraInfo: 'Landrat des Saarpfalz-Kreises seit 2012 [1]. Engagiert im Bereich Tourismus und Biosphäre Bliesgau.',
+      quellen: ['[1] saarpfalz-kreis.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Theophil_Gallo',
+      socialMedia: { website: 'https://www.saarpfalz-kreis.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'SPD', programm: 'Soziale Infrastruktur, Bildung, Tourismus Biosphäre Bliesgau.' },
+    { name: 'CDU', programm: 'Wirtschaftsstandort, Sicherheit, Familienpolitik.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Biosphärenreservat, nachhaltige Mobilität.' },
+  ],
+};
+
 // ─── EXPORT ───────────────────────────────────────────────────────────────────
 
 export const WAHLEN_DEUTSCHLAND: Wahl[] = [
@@ -1108,6 +1198,10 @@ export const WAHLEN_DEUTSCHLAND: Wahl[] = [
   LTW_SACHSEN_ANHALT,
   LTW_SH,
   LTW_THUERINGEN,
+  // Kreistage (Test-Kreise)
+  KT_RHEIN_NECKAR,
+  KT_BERGSTRASSE,
+  KT_SAARPFALZ,
   // Kommunalwahlen Teststädte
   KW_MANNHEIM,
   KW_HEIDELBERG,

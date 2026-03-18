@@ -8,6 +8,7 @@ import ClaraFloatingButton from '@/components/Clara/ClaraFloatingButton';
 import { WAHLPROGRAMME_2026 } from '@/data/wahlprogramme2026';
 import kreiseData from '@/data/kreise.json';
 import { findKreisByCounty, getKreisDisplayName } from '@/data/kreiseLookup';
+import { getDynamicKommunalwahl, getDynamicKreiswahl } from '@/data/wahlen-dynamic';
 
 const KREISE = kreiseData as Array<{ name: string; ags: string; landKey: string }>;
 const ANZAHL_KREISE = KREISE.length;
@@ -1153,6 +1154,21 @@ const BuergerApp = () => {
     kommune: getWahlkreisForUser('kommune')
   }), [resolvedRegion, userState, currentLocation, viewerCity]);
 
+  const dynamicWahlen = useMemo(() => {
+    const wahlen: import('@/types').Wahl[] = [];
+    const kreisName = (resolvedRegion?.county || '').trim();
+    const cityName = (resolvedRegion?.city || resolvedRegion?.municipality || viewerCity || '').trim();
+    if (kreisName) {
+      const kw = getDynamicKreiswahl(kreisName);
+      if (kw) wahlen.push(kw);
+    }
+    if (cityName) {
+      const kw = getDynamicKommunalwahl(cityName);
+      if (kw) wahlen.push(kw);
+    }
+    return wahlen;
+  }, [resolvedRegion?.county, resolvedRegion?.city, resolvedRegion?.municipality, viewerCity]);
+
   const claraLevel = useMemo(() => {
     const loc = currentLocation;
     if (loc === 'deutschland') return 'bund';
@@ -1953,7 +1969,7 @@ const BuergerApp = () => {
     const currentLevel = menuItems.find(m => m.id === mappedLocation)?.level?.toLowerCase() ?? 'bund';
     return (
       <div className="px-4 py-4 pb-24">
-        <ElectionsSection currentLocation={mappedLocation} currentLevel={currentLevel} userWahlkreisByLevel={userWahlkreisByLevel} />
+        <ElectionsSection currentLocation={mappedLocation} currentLevel={currentLevel} userWahlkreisByLevel={userWahlkreisByLevel} dynamicWahlen={dynamicWahlen} />
 
         <h3 className="text-xl font-bold mt-8 mb-3" style={{ color: 'var(--gov-heading)' }}>Wahlprogramme</h3>
         <p className="text-sm text-gray-600 mb-3">Programme und Quellen zu Wahlen in Ihrer Region.</p>
