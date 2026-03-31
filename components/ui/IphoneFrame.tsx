@@ -21,8 +21,6 @@ export function IphoneFrame({
   outerStyle,
   fillContainer = false,
 }: IphoneFrameProps) {
-  const deviceScale = 0.82;
-
   return (
     <div
       className={`flex w-full flex-col items-center justify-center px-4 py-4 ${
@@ -42,7 +40,8 @@ export function IphoneFrame({
           // Viewport-fitted iPhone-Proportion:
           // passt gleichzeitig in verfügbare Höhe UND Breite, damit das Gerät auf Desktop
           // vollständig sichtbar bleibt (ohne abgeschnittene Unterkante).
-          width: `calc(min(calc((100dvh - 5rem) * 393 / 852), calc(100vw - 3rem), 280px) * ${deviceScale})`,
+          // Ziel: analog zum localhost-Look (balancierte Typo-/Button-Proportionen).
+          width: 'min(calc((100dvh - 5rem) * 393 / 852), calc(100vw - 3rem), 340px)',
           aspectRatio: '393 / 852',
           maxHeight: '860px',
           background:
