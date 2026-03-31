@@ -25,7 +25,8 @@ export function IphoneFrame({
     typeof window !== 'undefined' &&
     (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('e-id-connect'));
 
-  const frameScale = isVercelHost ? 0.45 : 1;
+  // Vercel: nochmals 50% kleiner als der letzte Stand.
+  const frameScale = isVercelHost ? 0.225 : 1;
 
   return (
     <div
