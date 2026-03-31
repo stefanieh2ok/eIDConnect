@@ -7,14 +7,14 @@ type PageProps = { searchParams: Promise<Record<string, string | string[] | unde
 
 /**
  * Demo-Einstiegsseite unter /demo (ohne demoId).
- * Bei ?token=xxx → Weiterleitung an /api/demo/enter (Kirkel-Links aus demo_tokens).
+ * Bei ?token=xxx → Weiterleitung an NDA-Gate unter /demo/access.
  * Sonst: Hinweis auf personalisierten Link.
  */
 export default async function DemoEntryPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const token = typeof params?.token === 'string' ? params.token : (Array.isArray(params?.token) ? params.token[0] : null);
   if (token?.trim()) {
-    redirect(`/api/demo/enter?token=${encodeURIComponent(token.trim())}`);
+    redirect(`/demo/access?token=${encodeURIComponent(token.trim())}`);
   }
 
   return (
