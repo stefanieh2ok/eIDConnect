@@ -56,6 +56,31 @@
   --glass-border-light: rgba(0, 0, 0, 0.06);
 }
 
+/* ───────────────── Desktop Stage: zeigt nur Mobile-App ───────────────── */
+.app-stage-root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(ellipse at 50% 15%, #f3f7ff 0%, #e9f0ff 35%, #ffffff 75%, #f6f7fb 100%);
+}
+
+.app-stage-inner {
+  width: var(--stage-w, 414px);
+  height: var(--stage-h, 900px);
+  transform-origin: center;
+  transform: scale(
+    min(
+      1,
+      calc((100vw - 48px) / var(--stage-w, 414px)),
+      calc((100dvh - 48px) / var(--stage-h, 900px))
+    )
+  );
+}
+
 /* Governikus-Utility-Klassen für direkten Einsatz */
 .gov-primary-bg   { background-color: var(--gov-primary) !important; }
 .gov-btn-bg       { background-color: var(--gov-btn) !important; }

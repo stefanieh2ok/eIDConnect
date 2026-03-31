@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
+import { AppStage } from '@/components/ui/AppStage';
 
 export const metadata: Metadata = {
   title: `Demo – ${APP_DISPLAY_NAME}`,
@@ -8,9 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function DemoLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex min-h-screen flex-col bg-neutral-100">
-      <main className="flex flex-1 flex-col items-center justify-center px-2 py-3">{children}</main>
-    </div>
-  );
+  return <AppStage>{children}</AppStage>;
 }

@@ -21,31 +21,28 @@ export function IphoneFrame({
   outerStyle,
   fillContainer = false,
 }: IphoneFrameProps) {
-  // Single-source sizing: keine doppelte Skalierung mehr.
-  // Ziel: stabil gleiche Wahrnehmung auf localhost + Vercel.
-  const DEVICE_WIDTH_PX = 270;
+  // Deterministisches Device (mobile-first). Desktop-Skalierung übernimmt AppStage.
+  const DEVICE_WIDTH_PX = 390;
 
   return (
     <div
-      className={`flex w-full flex-col items-center justify-center px-4 py-4 ${
-        fillContainer ? 'min-h-0 flex-1' : 'min-h-[100dvh]'
+      className={`flex w-full flex-col items-center justify-center ${
+        fillContainer ? 'min-h-0 flex-1' : 'min-h-0'
       } ${outerClassName}`}
       style={
         outerStyle ?? {
           background:
             // Außen-Hintergrund: hell/neutral statt Blau (Kontrast für Inhalte).
-            'radial-gradient(ellipse at 50% 15%, #f3f7ff 0%, #e9f0ff 35%, #ffffff 75%, #f6f7fb 100%)',
+            'transparent',
         }
       }
     >
       <div
-        className="relative flex w-full flex-col overflow-hidden rounded-[2.4rem] border-[9px] border-[#1c1c1e] shadow-[0_18px_52px_rgba(0,0,0,0.40)]"
+        className="relative flex w-full flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-[0_28px_80px_rgba(0,0,0,0.55)]"
         style={{
-          // Konsistente Device-Breite in allen Umgebungen (localhost + Vercel).
-          // Höhe wird bei Bedarf über maxHeight begrenzt, damit das Gerät vollständig sichtbar bleibt.
-          width: `min(${DEVICE_WIDTH_PX}px, calc(100vw - 3rem))`,
+          width: `${DEVICE_WIDTH_PX}px`,
           aspectRatio: '393 / 852',
-          maxHeight: 'min(860px, calc(100dvh - 4rem))',
+          height: '852px',
           background:
             // Light „tech“ base, aber nicht so grell, damit Content-Kontrast stimmt.
             'radial-gradient(ellipse at 50% 0%, rgba(0,85,164,0.30) 0%, rgba(10,61,107,0.18) 35%, rgba(225,235,250,0.62) 70%, rgba(255,255,255,0.94) 100%)',
