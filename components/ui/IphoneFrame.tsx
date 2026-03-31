@@ -37,8 +37,11 @@ export function IphoneFrame({
       <div
         className="relative flex w-full max-w-[390px] flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-[0_28px_80px_rgba(0,0,0,0.55)]"
         style={{
-          maxHeight: 'min(92dvh, 860px)',
-          height: 'min(92dvh, 860px)',
+          // Deterministisch über Breite + iPhone-Seitenverhältnis skalieren.
+          // Verhindert Unterschiede zwischen Dev/Prod bei variierender Viewport-Höhe.
+          width: 'min(390px, calc(100vw - 2rem))',
+          aspectRatio: '393 / 852',
+          maxHeight: '860px',
           background:
             // Light „tech“ base, aber nicht so grell, damit Content-Kontrast stimmt.
             'radial-gradient(ellipse at 50% 0%, rgba(0,85,164,0.30) 0%, rgba(10,61,107,0.18) 35%, rgba(225,235,250,0.62) 70%, rgba(255,255,255,0.94) 100%)',
