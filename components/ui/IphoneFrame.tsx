@@ -21,13 +21,6 @@ export function IphoneFrame({
   outerStyle,
   fillContainer = false,
 }: IphoneFrameProps) {
-  const isVercelHost =
-    typeof window !== 'undefined' &&
-    (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('e-id-connect'));
-
-  // Vercel: nochmals 50% kleiner als der letzte Stand.
-  const frameScale = isVercelHost ? 0.225 : 1;
-
   return (
     <div
       className={`flex w-full flex-col items-center justify-center px-4 py-4 ${
@@ -42,15 +35,13 @@ export function IphoneFrame({
       }
     >
       <div
-        className="relative flex w-full max-w-[330px] flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-[0_28px_80px_rgba(0,0,0,0.55)]"
+        className="relative flex w-full flex-col overflow-hidden rounded-[2.5rem] border-[10px] border-[#1c1c1e] shadow-[0_22px_64px_rgba(0,0,0,0.45)]"
         style={{
-          // Deterministisch über Breite + iPhone-Seitenverhältnis skalieren.
-          // Verhindert Unterschiede zwischen Dev/Prod bei variierender Viewport-Höhe.
-          width: 'min(330px, calc(100vw - 2.5rem))',
+          // Einheitliches Device-Preset für Dev + Vercel (ohne Host-Sonderfälle).
+          // Dadurch bleibt die Darstellung konsistent und iPhone-proportional.
+          width: 'min(270px, calc(100vw - 2.5rem))',
           aspectRatio: '393 / 852',
           maxHeight: '860px',
-          transform: `scale(${frameScale})`,
-          transformOrigin: 'top center',
           background:
             // Light „tech“ base, aber nicht so grell, damit Content-Kontrast stimmt.
             'radial-gradient(ellipse at 50% 0%, rgba(0,85,164,0.30) 0%, rgba(10,61,107,0.18) 35%, rgba(225,235,250,0.62) 70%, rgba(255,255,255,0.94) 100%)',
