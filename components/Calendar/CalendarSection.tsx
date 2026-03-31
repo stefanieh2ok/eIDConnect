@@ -366,12 +366,46 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
     return out;
   }, [propVotingData, currentYear, currentMonthIndex, currentMonth.key, currentMonth.days]);
 
+  const currentLocationKey = propLocation || state.activeLocation || 'deutschland';
+  const normalizeEventLocation = (loc: string): string => {
+    if (loc === 'bundesweit' || loc === 'bund') return 'deutschland';
+    if (loc === 'land') return 'saarland';
+    if (loc === 'kreis') return 'saarpfalz';
+    return loc;
+  };
+  const mappedLocation = normalizeEventLocation(currentLocationKey);
+  const regionScopeByLocation: Record<string, string[]> = {
+    bundesweit: ['deutschland'],
+    deutschland: ['deutschland'],
+    saarland: ['deutschland', 'saarland'],
+    saarpfalz: ['deutschland', 'saarland', 'saarpfalz'],
+    kirkel: ['deutschland', 'saarland', 'saarpfalz', 'kirkel'],
+    frankfurt: ['deutschland', 'hessen', 'frankfurt'],
+    hessen: ['deutschland', 'hessen'],
+    mannheim: ['deutschland', 'baden-wuerttemberg', 'mannheim'],
+    heidelberg: ['deutschland', 'baden-wuerttemberg', 'heidelberg'],
+    weinheim: ['deutschland', 'baden-wuerttemberg', 'weinheim'],
+    viernheim: ['deutschland', 'hessen', 'viernheim'],
+    neustadt: ['deutschland', 'rheinland-pfalz', 'neustadt'],
+    bremen: ['deutschland', 'bremen'],
+    berlin: ['deutschland', 'berlin'],
+    bayern: ['deutschland', 'bayern'],
+    muenchen: ['deutschland', 'bayern', 'muenchen'],
+  };
+  const isEventInSelectedRegion = (eventLocation: string) => {
+    if (mappedLocation === 'deutschland' || mappedLocation === 'bundesweit') return true;
+    const normalized = normalizeEventLocation(eventLocation);
+    const allowed = regionScopeByLocation[mappedLocation] ?? ['deutschland', mappedLocation];
+    return allowed.includes(normalized);
+  };
+
   const filteredEventsThisMonth = React.useMemo(() => {
     const allowed = new Set(availableLevels);
     return allEventsThisMonth
+      .filter(({ event }) => isEventInSelectedRegion(event.location))
       .filter(({ event }) => allowed.has(event.level))
       .filter(({ event }) => (geoScope === 'all' ? true : event.level === geoScope));
-  }, [allEventsThisMonth, availableLevels, geoScope]);
+  }, [allEventsThisMonth, availableLevels, geoScope, mappedLocation]);
 
   const sortedEventsForList = React.useMemo(() => {
     // Punkte/Relevanz nur als subtile Metainfo: in der Liste sortieren wir Abstimmungen leicht nach Punkten
@@ -406,9 +440,6 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
     ...Object.fromEntries(BW_CALENDAR_LOCATION_IDS.map((id) => [id, id])),
   };
   
-  const currentLocationKey = propLocation || state.activeLocation || 'deutschland';
-  const mappedLocation = locationMap[currentLocationKey] || currentLocationKey;
-
   const handleEventClick = (event: CalendarEvent) => {
     if (onEventClick && event.cardId) {
       onEventClick({ location: event.location, cardId: event.cardId });
@@ -437,6 +468,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
     const events = calendarData[currentMonth.key]?.[day] ?? [];
     const allowed = new Set(availableLevels);
     const visible = events
+      .filter((e) => isEventInSelectedRegion(e.location))
       .filter((e) => allowed.has(e.level))
       .filter((e) => (geoScope === 'all' ? true : e.level === geoScope));
     if (visible.length > 0) {
@@ -535,6 +567,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
             const events = calendarData[currentMonth.key]?.[day] ?? [];
             const allowed = new Set(availableLevels);
             const visible = events
+              .filter((e) => isEventInSelectedRegion(e.location))
               .filter((e) => allowed.has(e.level))
               .filter((e) => (geoScope === 'all' ? true : e.level === geoScope));
 

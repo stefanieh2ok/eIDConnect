@@ -35,11 +35,11 @@ export function IphoneFrame({
       }
     >
       <div
-        className="relative flex w-full max-w-[390px] flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-[0_28px_80px_rgba(0,0,0,0.55)]"
+        className="relative flex w-full max-w-[330px] flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-[0_28px_80px_rgba(0,0,0,0.55)]"
         style={{
           // Deterministisch über Breite + iPhone-Seitenverhältnis skalieren.
           // Verhindert Unterschiede zwischen Dev/Prod bei variierender Viewport-Höhe.
-          width: 'min(390px, calc(100vw - 2rem))',
+          width: 'min(330px, calc(100vw - 2.5rem))',
           aspectRatio: '393 / 852',
           maxHeight: '860px',
           background:

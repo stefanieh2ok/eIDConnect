@@ -35,15 +35,6 @@ export function CheckboxAcceptButton({ token }: { token: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
-        <p className="font-medium">Alternativer Bestätigungsweg</p>
-        <p className="mt-1 text-blue-800">
-          Für diese Organisation steht derzeit kein direkter digitaler Signaturprozess zur Verfügung. Bitte nutzen
-          Sie den bereitgestellten alternativen Unterzeichnungsweg: Lesen Sie die Vertraulichkeitserklärung oben und
-          bestätigen Sie mit dem Häkchen. Sie werden anschließend direkt in die Demo weitergeleitet.
-        </p>
-      </div>
-
       <label className="flex items-start gap-3 cursor-pointer select-none">
         <input
           type="checkbox"

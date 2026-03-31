@@ -670,7 +670,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
           <div className="absolute inset-0 bg-black/40" onClick={() => setFilterSheetOpen(false)} />
 
           <div className="relative z-10 flex w-full justify-center px-3 pb-3 sm:px-4 sm:pb-4">
-            <div className="flex w-[min(92vw,360px)] flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl max-h-[86vh] sm:w-[min(92vw,420px)]">
+            <div className="flex w-[min(86vw,300px)] flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl max-h-[82vh] sm:w-[min(86vw,320px)]">
               <div className="flex items-start justify-between gap-3 border-b border-neutral-200 px-4 py-4">
                 <div>
                   <div className="text-[13px] font-semibold text-neutral-900">Filter</div>
