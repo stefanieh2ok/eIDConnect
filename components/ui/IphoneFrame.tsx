@@ -21,6 +21,8 @@ export function IphoneFrame({
   outerStyle,
   fillContainer = false,
 }: IphoneFrameProps) {
+  const deviceScale = 0.82;
+
   return (
     <div
       className={`flex w-full flex-col items-center justify-center px-4 py-4 ${
@@ -37,14 +39,10 @@ export function IphoneFrame({
       <div
         className="relative flex w-full flex-col overflow-hidden rounded-[2.5rem] border-[10px] border-[#1c1c1e] shadow-[0_22px_64px_rgba(0,0,0,0.45)]"
         style={{
-          // Globaler Feintuning-Regler (Senior-UI-Knob):
-          // 1.00 = unverändert, 0.90 = 10% kleiner, 0.80 = 20% kleiner.
-          // Kann später zentral angepasst werden, ohne die Formel selbst zu ändern.
-          '--device-scale': 0.82,
           // Viewport-fitted iPhone-Proportion:
           // passt gleichzeitig in verfügbare Höhe UND Breite, damit das Gerät auf Desktop
           // vollständig sichtbar bleibt (ohne abgeschnittene Unterkante).
-          width: 'calc(min(calc((100dvh - 5rem) * 393 / 852), calc(100vw - 3rem), 280px) * var(--device-scale))',
+          width: `calc(min(calc((100dvh - 5rem) * 393 / 852), calc(100vw - 3rem), 280px) * ${deviceScale})`,
           aspectRatio: '393 / 852',
           maxHeight: '860px',
           background:
