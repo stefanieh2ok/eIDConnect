@@ -21,12 +21,12 @@ export function IphoneFrame({
   outerStyle,
   fillContainer = false,
 }: IphoneFrameProps) {
-  // Deterministisches Device (mobile-first). Desktop-Skalierung übernimmt AppStage.
+  // Desktop-Preview-Größe (echtes Mobile nutzt unten native Vollfläche).
   const DEVICE_WIDTH_PX = 390;
 
   return (
     <div
-      className={`flex w-full flex-col items-center justify-center ${
+      className={`app-device-shell flex w-full flex-col items-center justify-center ${
         fillContainer ? 'min-h-0 flex-1' : 'min-h-0'
       } ${outerClassName}`}
       style={
@@ -38,7 +38,7 @@ export function IphoneFrame({
       }
     >
       <div
-        className="relative flex w-full flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-[0_28px_80px_rgba(0,0,0,0.55)]"
+        className="app-device-frame relative flex w-full flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-[0_28px_80px_rgba(0,0,0,0.55)]"
         style={{
           width: `${DEVICE_WIDTH_PX}px`,
           aspectRatio: '393 / 852',
@@ -50,7 +50,7 @@ export function IphoneFrame({
       >
         {/* Subtle glass overlay inside the device */}
         <div
-          className="pointer-events-none absolute inset-0 opacity-65"
+          className="app-device-glass pointer-events-none absolute inset-0 opacity-65"
           style={{
             background:
               // Mehr „frosted“ als „Farbverlauf“: verteilt Licht, aber lässt Karten lesbarer.
@@ -59,12 +59,12 @@ export function IphoneFrame({
         />
 
         {/* Dynamic Island */}
-        <div className="pointer-events-none absolute left-1/2 top-3 z-20 h-7 w-[126px] -translate-x-1/2 rounded-full bg-black/90 ring-1 ring-white/10" />
-        <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden pt-10">
+        <div className="app-device-notch pointer-events-none absolute left-1/2 top-3 z-20 h-7 w-[126px] -translate-x-1/2 rounded-full bg-black/90 ring-1 ring-white/10" />
+        <div className="app-device-content relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden pt-10">
           {children}
         </div>
         {/* Home-Indikator */}
-        <div className="relative z-10 flex flex-shrink-0 justify-center pb-2 pt-1">
+        <div className="app-device-home relative z-10 flex flex-shrink-0 justify-center pb-2 pt-1">
           <div className="h-1 w-[134px] rounded-full bg-white/20" />
         </div>
       </div>
