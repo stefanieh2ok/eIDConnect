@@ -66,11 +66,15 @@ export function locationForAdministrativeScope(r: RegionResolution, scope: Admin
   if (scope === 'bund') return 'bundesweit';
 
   if (scope === 'land') {
+    if (r.stateKey === 'berlin' || r.locationHint === 'berlin') return 'berlin';
+    if (r.stateKey === 'bremen' || r.locationHint === 'bremen') return 'bremen';
     if (r.stateKey === 'bayern' || r.locationHint === 'bayern' || r.locationHint === 'muenchen') return 'bayern';
     return 'saarland';
   }
 
   if (scope === 'kreis') {
+    if (r.stateKey === 'berlin' || r.locationHint === 'berlin') return 'berlin';
+    if (r.stateKey === 'bremen' || r.locationHint === 'bremen') return 'bremen';
     if (r.locationHint === 'muenchen' || r.stateKey === 'bayern') return 'muenchen';
     return 'saarpfalz';
   }
