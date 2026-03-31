@@ -1,7 +1,6 @@
 import { ReactNode } from 'react';
 import { redirect } from 'next/navigation';
 import { getActiveDemoSession } from '@/lib/security/session';
-import { Watermark } from '@/components/security/Watermark';
 
 type DemoLayoutProps = {
   children: ReactNode;
@@ -13,22 +12,21 @@ export default async function DemoLayout({
   params,
 }: DemoLayoutProps) {
   const { demoId } = await params;
-  console.log('[DemoLayout] checking session for demoId:', demoId);
   const session = await getActiveDemoSession(demoId);
 
   if (!session) {
-    console.log('[DemoLayout] no session → redirect /access/denied');
     redirect('/access/denied');
   }
 
   if (session.demoId !== demoId) {
-    console.log('[DemoLayout] demoId mismatch session.demoId:', session.demoId, '!= requested:', demoId, '→ redirect /access/denied');
     redirect('/access/denied');
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-100 text-neutral-950">
-      <main className="flex-1 min-h-0">{children}</main>
+    <div className="flex min-h-[100dvh] flex-col bg-neutral-100 text-neutral-950">
+      <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-2 py-3 sm:px-4">
+        {children}
+      </main>
     </div>
   );
 }

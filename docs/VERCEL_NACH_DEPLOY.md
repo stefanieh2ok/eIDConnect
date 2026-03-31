@@ -40,6 +40,8 @@ Die App ist live. Damit Zugang, E-Mails und Admin funktionieren, musst du **Umge
 5. **Redeploy**  
    Oben auf **Deployments** gehen → beim letzten Deployment auf die **drei Punkte (⋯)** klicken → **Redeploy** wählen. Warten, bis der Build durch ist.
 
+   **Hinweis:** Wenn du Code geändert hast, die Änderungen auf dem Vercel-Link aber noch nicht siehst: Vercel baut immer den Branch, der mit dem Projekt verknüpft ist (z. B. `main`). Pushe deine Änderungen in diesen Branch und starte ggf. einen neuen Deploy (oder warte auf den Auto-Deploy). Ein Redeploy ohne neuen Commit baut denselben Stand noch einmal – für neue Änderungen muss der aktuelle Code im verknüpften Branch liegen.
+
 ---
 
 ## Teil 2: Supabase – URLs für die Live-Domain

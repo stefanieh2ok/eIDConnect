@@ -4,27 +4,56 @@ import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ndaConfig } from '@/config/nda';
 
+const MSG_SIGNING_UNAVAILABLE = 'Der Signaturprozess konnte derzeit nicht gestartet werden.';
+const MSG_CONNECTION_UNAVAILABLE = 'Die Verbindung zum Signaturdienst ist momentan nicht verfügbar.';
+const MSG_SIGNING_INCOMPLETE =
+  'Die Unterzeichnung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.';
+const MSG_SUCCESS =
+  'Die Vertraulichkeitserklärung wurde erfolgreich unterzeichnet.';
+const MSG_ENV_SETUP =
+  'Für diese Umgebung ist der Signaturdienst noch nicht vollständig eingerichtet. Bitte kontaktieren Sie den technischen Ansprechpartner.';
+
+function mapReturnErrorMessage(code: string | null): string | null {
+  if (!code || code === 'return_no_envelope') return null;
+  if (code === 'not_completed') return MSG_SIGNING_INCOMPLETE;
+  return MSG_SIGNING_UNAVAILABLE;
+}
+
+function classifyApiError(raw: string | undefined | null): {
+  display: string;
+  issuerSetup: boolean;
+} {
+  if (!raw) return { display: MSG_SIGNING_UNAVAILABLE, issuerSetup: false };
+  const issuerSetup = /issuer_not_found/i.test(raw);
+  const lower = raw.toLowerCase();
+  if (/consent_required|consent|grant|authorize|invalid_request/i.test(lower)) {
+    return { display: MSG_CONNECTION_UNAVAILABLE, issuerSetup: false };
+  }
+  if (issuerSetup) {
+    return { display: MSG_CONNECTION_UNAVAILABLE, issuerSetup: true };
+  }
+  if (/network|fetch failed|econnrefused|timeout/i.test(lower)) {
+    return { display: MSG_CONNECTION_UNAVAILABLE, issuerSetup: false };
+  }
+  return { display: MSG_SIGNING_UNAVAILABLE, issuerSetup: false };
+}
+
 export function AcceptNdaButton({ token }: { token: string }) {
   const searchParams = useSearchParams();
-  const [docusignLoading, setDocusignLoading] = useState(false);
+  const [signingLoading, setSigningLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [consentUrl, setConsentUrl] = useState<string | null>(null);
+  const [issuerSetupHint, setIssuerSetupHint] = useState(false);
 
-  const docusignMessage = searchParams.get('docusign');
-  const showDocusignError =
-    docusignMessage === 'not_completed'
-      ? 'Die Unterzeichnung wurde nicht abgeschlossen. Bitte erneut auf den Button klicken.'
-      : docusignMessage === 'return_no_envelope'
-        ? null
-        : docusignMessage
-          ? 'Bei der DocuSign-Rückkehr ist etwas schiefgelaufen.'
-          : null;
-  const showSignedInfo = docusignMessage === 'return_no_envelope';
+  const returnCode = searchParams.get('docusign');
+  const showReturnError = mapReturnErrorMessage(returnCode);
+  const showSignedInfo = returnCode === 'return_no_envelope';
 
-  const handleDocuSign = async () => {
-    setDocusignLoading(true);
+  const handleDigitalSign = async () => {
+    setSigningLoading(true);
     setError(null);
     setConsentUrl(null);
+    setIssuerSetupHint(false);
     try {
       const response = await fetch('/api/docusign/send-nda', {
         method: 'POST',
@@ -34,21 +63,29 @@ export function AcceptNdaButton({ token }: { token: string }) {
       });
       const result = await response.json();
       if (!response.ok || !result.success) {
-        const msg = result.error ?? 'DocuSign konnte nicht gestartet werden.';
-        setError(msg);
-        setConsentUrl(result.consentUrl ?? null);
+        const consent = result.consentUrl as string | undefined;
+        setConsentUrl(consent ?? null);
+        if (consent) {
+          setError(null);
+        } else {
+          const c = classifyApiError(
+            typeof result.error === 'string' ? result.error : null
+          );
+          setError(c.display);
+          setIssuerSetupHint(c.issuerSetup);
+        }
         return;
       }
       setConsentUrl(null);
       if (result.signingUrl) {
         window.location.href = result.signingUrl;
       } else {
-        setError('Keine Signatur-URL erhalten.');
+        setError(MSG_SIGNING_UNAVAILABLE);
       }
     } catch {
-      setError('DocuSign konnte nicht gestartet werden.');
+      setError(MSG_CONNECTION_UNAVAILABLE);
     } finally {
-      setDocusignLoading(false);
+      setSigningLoading(false);
     }
   };
 
@@ -60,13 +97,17 @@ export function AcceptNdaButton({ token }: { token: string }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-neutral-600">
-        Sie können die Vertraulichkeitsvereinbarung digital über DocuSign unterzeichnen oder die{' '}
+        Alternativ können Sie die{' '}
         <strong>Druckversion</strong> ausdrucken, unterschreiben und die unterzeichnete PDF an{' '}
         {returnEmails ? (
           <>
-            <a href={`mailto:${ndaConfig.returnEmailPrimary}`} className="text-blue-600 underline">{ndaConfig.returnEmailPrimary}</a>
+            <a href={`mailto:${ndaConfig.returnEmailPrimary}`} className="text-blue-600 underline">
+              {ndaConfig.returnEmailPrimary}
+            </a>
             {' oder '}
-            <a href={`mailto:${ndaConfig.returnEmailSecondary}`} className="text-blue-600 underline">{ndaConfig.returnEmailSecondary}</a>
+            <a href={`mailto:${ndaConfig.returnEmailSecondary}`} className="text-blue-600 underline">
+              {ndaConfig.returnEmailSecondary}
+            </a>
           </>
         ) : (
           'die angegebene E-Mail-Adresse'
@@ -77,18 +118,21 @@ export function AcceptNdaButton({ token }: { token: string }) {
       <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
         <p className="font-medium">Nach der Unterzeichnung:</p>
         <p className="mt-1 text-blue-800">
-          DocuSign leitet Sie automatisch zurück. <strong>Die Seite wechselt dann von selbst in die Demo</strong> – Sie landen in der Anwendung und können starten.
+          Sie werden automatisch zurückgeleitet. <strong>Die Seite wechselt dann in die Demo</strong> – Sie können
+          direkt starten.
         </p>
         <p className="mt-1 text-blue-800">
-          Zusätzlich erhalten Sie eine E-Mail von uns mit einem <strong>direkten Link in die Demo</strong>. Falls die Weiterleitung im Browser einmal nicht klappt, einfach auf den Link in der E-Mail klicken.
+          Zusätzlich erhalten Sie eine E-Mail mit einem <strong>direkten Link in die Demo</strong>. Falls die
+          Weiterleitung im Browser einmal nicht klappt, nutzen Sie den Link in der E-Mail.
         </p>
       </div>
 
       {showSignedInfo && (
         <div className="rounded-lg border-2 border-green-300 bg-green-50 p-4 text-sm text-green-900">
-          <p className="font-semibold text-base">Ihre Unterschrift wird geprüft.</p>
+          <p className="font-semibold text-base">{MSG_SUCCESS}</p>
           <p className="mt-2">
-            Wenn Sie die Vertraulichkeitsvereinbarung bereits in DocuSign unterzeichnet haben, klicken Sie bitte <strong>erneut auf den Button unten</strong> – Sie werden dann direkt in die Demo weitergeleitet.
+            Wenn die Demo nicht automatisch geöffnet wurde, klicken Sie bitte <strong>erneut auf den Button unten</strong>{' '}
+            – Sie werden dann weitergeleitet.
           </p>
           <p className="mt-1 text-green-800">
             Zusätzlich erhalten Sie in Kürze eine E-Mail mit einem direkten Link zur Demo.
@@ -98,54 +142,59 @@ export function AcceptNdaButton({ token }: { token: string }) {
 
       <button
         type="button"
-        onClick={handleDocuSign}
-        disabled={docusignLoading}
+        onClick={handleDigitalSign}
+        disabled={signingLoading}
         className="w-full rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {docusignLoading
-          ? 'DocuSign wird vorbereitet …'
+        {signingLoading
+          ? 'In Bearbeitung …'
           : showSignedInfo
-            ? 'Demo jetzt öffnen (erneut mit DocuSign verbinden)'
-            : 'Unterzeichnen Sie mit DocuSign und öffnen Sie die Demo'}
+            ? 'Demo öffnen'
+            : 'Digital signieren'}
       </button>
+
+      <p className="text-center text-sm">
+        <a href="#nda-fulltext" className="font-medium text-blue-600 underline hover:text-blue-700">
+          Vertraulichkeitserklärung ansehen
+        </a>
+      </p>
 
       {ndaConfig.sentenceBelowButton ? (
         <p className="text-xs text-neutral-500">{ndaConfig.sentenceBelowButton}</p>
       ) : null}
 
-      {(error || showDocusignError) ? (
+      {(error || showReturnError || consentUrl || issuerSetupHint) && (
         <div className="space-y-2">
-          <p className="text-sm text-red-600">{error ?? showDocusignError}</p>
-          {(showDocusignError && (docusignMessage === 'not_completed' || docusignMessage === 'return_no_envelope')) ? (
+          {(error ?? showReturnError) ? (
+            <p className="text-sm text-red-600">{error ?? showReturnError}</p>
+          ) : null}
+          {showReturnError && (returnCode === 'not_completed' || returnCode === 'return_no_envelope') ? (
             <p className="text-sm text-neutral-600">
-              Wenn Sie bereits unterschrieben haben und die Bestätigungs-E-Mail von DocuSign erhalten haben, ist die Rückleitung oft an der <strong>Redirect-URL</strong> gescheitert. In DocuSign (Apps and Keys) unter <strong>Redirect URIs</strong> muss exakt stehen: <code className="text-xs bg-neutral-100 px-1 rounded break-all">https://e-id-connect-lr65.vercel.app/api/docusign/return</code>. Danach Zugangs-Link aus der E-Mail in diesem Browser erneut öffnen.
+              Falls die automatische Weiterleitung nicht funktioniert hat, öffnen Sie bitte den Zugangslink aus der
+              E-Mail erneut oder verwenden Sie den Link zur Demo in der Bestätigungs-E-Mail.
             </p>
           ) : null}
-          {/issuer_not_found/i.test(error ?? '') ? (
+          {issuerSetupHint ? (
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-              <p className="font-medium">Vercel / Sandbox:</p>
-              <ul className="mt-1 list-inside list-disc space-y-0.5 text-amber-800">
-                <li>In Vercel → Projekt → Settings → Environment Variables: <strong>DOCUSIGN_USE_DEMO=true</strong> setzen.</li>
-                <li>In DocuSign (Apps and Keys) unter Redirect URIs eintragen: <strong>https://[deine-vercel-app].vercel.app/api/docusign/return</strong> (exakt die Vercel-URL dieser App).</li>
-                <li>Danach in Vercel einen Redeploy auslösen.</li>
-              </ul>
+              <p>{MSG_ENV_SETUP}</p>
             </div>
-          ) : consentUrl ? (
+          ) : null}
+          {consentUrl ? (
             <p className="text-sm text-neutral-600">
-              Einmalige Einwilligung für JWT:{' '}
+              Einmalige technische Einrichtung des Signaturdienstes:{' '}
               <a
                 href={consentUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium text-blue-600 underline hover:text-blue-700"
               >
-                Consent-URL in DocuSign öffnen und zustimmen
+                Einrichtung öffnen und zustimmen
               </a>
-              . Danach erneut auf „Unterzeichnen Sie mit DocuSign …“ klicken. Redirect URI in Apps and Keys prüfen; DOCUSIGN_USE_DEMO=true für Sandbox.
+              . Danach erneut auf „Digital signieren“ klicken.
             </p>
           ) : null}
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

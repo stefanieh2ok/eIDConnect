@@ -1,8 +1,7 @@
 import { createHash } from 'crypto';
 
 /** Header für den NDA-Screen */
-export const NDA_HEADER =
-  'Vertrauliche personalisierte Demo – Zugriff nur für autorisierte Empfänger';
+export const NDA_HEADER = 'Vertraulichkeitserklärung';
 
 /** Kurzfassung (5–6 Punkte) für den Screen */
 export const NDA_GATE_SUMMARY = [

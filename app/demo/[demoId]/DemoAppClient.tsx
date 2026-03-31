@@ -1,34 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { X } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { AppProvider } from '@/context/AppContext';
 import BuergerApp from '@/components/BuergerApp';
 import { DemoProvider, useDemoLogger } from '@/lib/demo-logger';
+import { ExternalLinkProvider } from '@/components/ExternalLink';
 import { AntiCopyLayer } from '@/components/security/AntiCopyLayer';
-
-function DemoBanner() {
-  const { meta } = useDemoLogger();
-  const [dismissed, setDismissed] = useState(false);
-  if (!meta || dismissed) return null;
-  return (
-    <div className="bg-slate-50 border-b border-slate-200 px-3 py-2 text-center text-xs text-slate-600 relative">
-      <button
-        onClick={() => setDismissed(true)}
-        className="absolute top-1.5 right-2 p-1 rounded-full hover:bg-slate-200/60 transition-colors text-slate-400 hover:text-slate-600"
-        aria-label="Hinweis schließen"
-      >
-        <X className="w-3.5 h-3.5" />
-      </button>
-      <p className="pr-6">
-        Vertrauliche Demo für <strong className="text-slate-700">{meta.recipientOrg || meta.recipientName}</strong> – Zugriff wird dokumentiert.
-        {' '}
-        <Link href="/legal/demo-nda" className="underline hover:text-blue-600" target="_blank" rel="noopener noreferrer">NDA</Link>
-      </p>
-    </div>
-  );
-}
+import { IphoneFrame } from '@/components/ui/IphoneFrame';
 
 function DemoContent() {
   const pathRef = useRef<string>('');
@@ -43,12 +21,13 @@ function DemoContent() {
   });
 
   return (
-    <>
-      <DemoBanner />
-      <AntiCopyLayer disableSelect className="min-h-0 flex flex-col flex-1">
-        <BuergerApp />
-      </AntiCopyLayer>
-    </>
+    <AntiCopyLayer disableSelect className="flex min-h-0 flex-1 flex-col">
+      <IphoneFrame fillContainer>
+        <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-b-[1.75rem] bg-[#F7F9FC]">
+          <BuergerApp variant="device" />
+        </div>
+      </IphoneFrame>
+    </AntiCopyLayer>
   );
 }
 
@@ -67,14 +46,18 @@ export function DemoAppClient({
 }: DemoAppClientProps) {
   return (
     <AppProvider>
-      <DemoProvider
-        tokenId={tokenId}
-        sessionId={sessionId}
-        recipientName={recipientName}
-        recipientOrg={recipientOrg}
-      >
-        <DemoContent />
-      </DemoProvider>
+      <ExternalLinkProvider>
+        <DemoProvider
+          tokenId={tokenId}
+          sessionId={sessionId}
+          recipientName={recipientName}
+          recipientOrg={recipientOrg}
+        >
+          <div className="flex min-h-0 flex-1 flex-col">
+            <DemoContent />
+          </div>
+        </DemoProvider>
+      </ExternalLinkProvider>
     </AppProvider>
   );
 }

@@ -36,10 +36,11 @@ export function CheckboxAcceptButton({ token }: { token: string }) {
   return (
     <div className="space-y-4">
       <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
-        <p className="font-medium">Test-Zugang (ohne DocuSign)</p>
+        <p className="font-medium">Alternativer Bestätigungsweg</p>
         <p className="mt-1 text-blue-800">
-          Bitte lesen Sie die Vertraulichkeitsvereinbarung oben und bestätigen Sie mit dem Häkchen.
-          Sie werden anschließend direkt in die Demo weitergeleitet.
+          Für diese Organisation steht derzeit kein direkter digitaler Signaturprozess zur Verfügung. Bitte nutzen
+          Sie den bereitgestellten alternativen Unterzeichnungsweg: Lesen Sie die Vertraulichkeitserklärung oben und
+          bestätigen Sie mit dem Häkchen. Sie werden anschließend direkt in die Demo weitergeleitet.
         </p>
       </div>
 
@@ -60,7 +61,7 @@ export function CheckboxAcceptButton({ token }: { token: string }) {
         type="button"
         onClick={handleAccept}
         disabled={!accepted || loading}
-        className="w-full rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+        className="w-full rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40 border-2 border-[#0066CC]"
       >
         {loading ? 'Wird vorbereitet …' : 'Zustimmen und Demo öffnen'}
       </button>

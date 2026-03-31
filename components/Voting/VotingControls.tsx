@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ThumbsUp, ThumbsDown, Minus } from 'lucide-react';
+import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { VoteType } from '@/types';
 
 interface VotingControlsProps {
@@ -13,39 +13,60 @@ const VotingControls: React.FC<VotingControlsProps> = ({ canVote, onVote }) => {
   if (!canVote) return null;
 
   return (
-    <div className="flex justify-center items-center gap-4 mt-6">
-      <button
-        onClick={() => onVote('against')}
-        className="flex flex-col items-center gap-2 group"
-        aria-label="Dagegen stimmen"
-      >
-        <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">Dagegen</div>
-        <div className="w-14 h-14 bg-white border-2 border-blue-900 hover:bg-blue-900 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all">
-          <ThumbsDown size={24} className="text-blue-900 group-hover:text-white transition-colors" />
-        </div>
-      </button>
+    <div
+      className="mt-3 rounded-2xl border px-3 py-3"
+      style={{
+        borderColor: 'var(--gov-border, #D6E0EE)',
+        background: 'rgba(255,255,255,0.95)',
+        boxShadow: '0 2px 12px rgba(0,51,102,0.08)',
+      }}
+    >
+      <p className="mb-3 text-center text-[10px] font-semibold" style={{ color: 'var(--gov-muted)' }}>
+        Tippen zum Abstimmen (oder Karte wischen)
+      </p>
+      <div className="flex items-end justify-center gap-4">
+        <button
+          type="button"
+          onClick={() => onVote('against')}
+          className="flex flex-col items-center gap-2 group"
+          aria-label="Position dagegen markieren (Demo)"
+        >
+          <div
+            className="flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-full border-[3px] border-red-500 bg-white shadow-md transition-all group-hover:bg-red-500 group-active:scale-95"
+            style={{ boxShadow: '0 4px 14px rgba(239,68,68,0.35)' }}
+          >
+            <ThumbsDown size={28} strokeWidth={2.25} className="text-red-500 transition-colors group-hover:text-white" />
+          </div>
+          <span className="text-[11px] font-bold uppercase tracking-wide text-red-600">Dagegen</span>
+        </button>
 
-      <button
-        onClick={() => onVote('abstain')}
-        className="flex flex-col items-center gap-2 group pt-4"
-        aria-label="Sich enthalten"
-      >
-        <div className="w-12 h-12 bg-white border-2 border-gray-400 hover:bg-gray-400 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all">
-          <Minus size={20} className="text-gray-400 group-hover:text-white transition-colors" />
-        </div>
-        <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Enthalten</div>
-      </button>
+        <button
+          type="button"
+          onClick={() => onVote('abstain')}
+          className="flex flex-col items-center gap-2 group"
+          aria-label="Position enthalten markieren (Demo)"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-neutral-300 bg-white shadow-sm transition-all group-hover:border-neutral-400 group-hover:bg-neutral-100 group-active:scale-95">
+            <span className="text-xs font-bold text-neutral-500">Enth.</span>
+          </div>
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">Enthalten</span>
+        </button>
 
-      <button
-        onClick={() => onVote('for')}
-        className="flex flex-col items-center gap-2 group"
-        aria-label="Dafür stimmen"
-      >
-        <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">Dafür</div>
-        <div className="w-14 h-14 bg-white border-2 border-blue-900 hover:bg-blue-900 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all">
-          <ThumbsUp size={24} className="text-blue-900 group-hover:text-white transition-colors" />
-        </div>
-      </button>
+        <button
+          type="button"
+          onClick={() => onVote('for')}
+          className="flex flex-col items-center gap-2 group"
+          aria-label="Position dafür markieren (Demo)"
+        >
+          <div
+            className="flex h-[4.25rem] w-[4.25rem] items-center justify-center rounded-full border-[3px] border-emerald-500 bg-white shadow-md transition-all group-hover:bg-emerald-500 group-active:scale-95"
+            style={{ boxShadow: '0 4px 14px rgba(34,197,94,0.35)' }}
+          >
+            <ThumbsUp size={28} strokeWidth={2.25} className="text-emerald-600 transition-colors group-hover:text-white" />
+          </div>
+          <span className="text-[11px] font-bold uppercase tracking-wide text-emerald-700">Dafür</span>
+        </button>
+      </div>
     </div>
   );
 };

@@ -4,39 +4,279 @@
 
 /* eIDConnect Custom Styles */
 :root {
-  /* CI-Farben */
-  --eu: #003399;
-  --bund: #000000;
-  --land: #4A90E2;
-  --kreis: #95A5A6;
-  --kommune: #BDC3C7;
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
-  --info: #3B82F6;
-  /* Modern Business Look: Dunkelblau-Ombré */
-  --hero-from: #0A2540;
-  --hero-via: #0f3460;
-  --hero-to: #1E3A5F;
-  --glass-bg: rgba(10, 37, 64, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  /* Governikus / AusweisApp Look */
-  --gov-bg: #ffffff;
-  --gov-heading: #374151;
-  --gov-btn: #0066cc;
-  --gov-btn-hover: #0052a3;
-  --glass-white: rgba(255, 255, 255, 0.72);
+  /* ─── Governikus / eID Corporate Design ─────────────────────────── */
+  /* Primärfarben */
+  --gov-primary:      #003366;   /* Governikus Dunkelblau */
+  --gov-primary-mid:  #0055A4;   /* Governikus Mittelblau (Buttons, Links) */
+  --gov-primary-light:#E8F0FB;   /* Sehr helles Blau (Backgrounds) */
+  /* Akzent */
+  --gov-accent:       #00A86B;   /* Governikus Grün (Bestätigung, Erfolg) */
+  --gov-accent-light: #E6F7F1;
+  /* ─── Clara KI – Signaturfarbe Lila/Lavendel ───────────────────────── */
+  --clara-deep:       #4C1D95;   /* Tiefviolett */
+  --clara-mid:        #6D28D9;   /* Violet Mitte */
+  --clara-bright:     #8B5CF6;   /* Helles Violet */
+  --clara-lavender:   #C4B5FD;   /* Lavendel (Text auf dunkel) */
+  --clara-bg:         #F5F0FF;   /* Lavendel-Hintergrund (hell) */
+  --clara-border:     #DDD6FE;   /* Lavendel-Rand */
+  --clara-glow:       rgba(139, 92, 246, 0.40);
+  /* Neutraltöne */
+  --gov-bg:           #FFFFFF;
+  --gov-surface:      #F7F9FC;   /* Seitenbereich-Hintergrund */
+  --gov-border:       #D6E0EE;
+  --gov-heading:      #1A2B45;
+  --gov-body:         #374151;
+  --gov-muted:        #6B7A99;
+  /* Buttons */
+  --gov-btn:          #0055A4;
+  --gov-btn-hover:    #003366;
+  --gov-btn-text:     #FFFFFF;
+  /* Zustands-Farben */
+  --gov-success:      #00A86B;
+  --gov-warning:      #F59E0B;
+  --gov-danger:       #D93025;
+  --gov-info:         #0055A4;
+  /* ─── Föderale Ebenen ────────────────────────────────────────────── */
+  --eu:               #003399;
+  --bund:             #1A2B45;
+  --land:             #0055A4;
+  --kreis:            #5580B0;
+  --kommune:          #8AAFD4;
+  /* ─── Hero-Gradient ──────────────────────────────────────────────── */
+  --hero-from:        #003366;
+  --hero-via:         #0055A4;
+  --hero-to:          #1A3D6B;
+  --glass-bg:         rgba(0, 51, 102, 0.75);
+  --glass-border:     rgba(255, 255, 255, 0.10);
+  /* ─── Typografie 2026 ────────────────────────────────────────────── */
+  --app-body:         0.6875rem;   /* 11px */
+  --app-meta:         0.625rem;    /* 10px */
+  --app-label:        0.6875rem;
+  --glass-white:      rgba(255, 255, 255, 0.72);
   --glass-border-light: rgba(0, 0, 0, 0.06);
 }
 
-/* Basis: Farben immer sichtbar (verhindert Schwarz-Weiß-Darstellung) */
+/* Governikus-Utility-Klassen für direkten Einsatz */
+.gov-primary-bg   { background-color: var(--gov-primary) !important; }
+.gov-btn-bg       { background-color: var(--gov-btn) !important; }
+.gov-btn-border   { border-color: var(--gov-btn) !important; }
+.gov-heading-color{ color: var(--gov-heading) !important; }
+.gov-surface-bg   { background-color: var(--gov-surface) !important; }
+.gov-accent-bg    { background-color: var(--gov-accent) !important; }
+
+/* Governikus Buttons — CI: --gov-primary, --gov-primary-mid, --gov-btn, --gov-border */
+.btn-gov-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border-radius: 1rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: 1.25;
+  color: var(--gov-btn-text);
+  background: linear-gradient(135deg, var(--gov-primary) 0%, var(--gov-primary-mid) 100%);
+  border: 1px solid rgba(0, 51, 102, 0.35);
+  box-shadow: 0 2px 10px rgba(0, 51, 102, 0.18);
+  transition: filter 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+.btn-gov-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: 0 4px 14px rgba(0, 51, 102, 0.22);
+}
+.btn-gov-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-gov-primary:focus-visible {
+  outline: 2px solid var(--gov-primary-mid);
+  outline-offset: 2px;
+}
+.btn-gov-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Primärbutton in Flex-Zeile (z. B. Intro neben Zurück) */
+.btn-gov-primary.btn-gov-primary--flex {
+  width: auto;
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-gov-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border-radius: 1rem;
+  padding: 1.5rem 1rem;
+  border: 1px solid rgba(0, 51, 102, 0.35);
+  color: var(--gov-btn-text);
+  background: linear-gradient(135deg, var(--gov-primary) 0%, var(--gov-primary-mid) 100%);
+  box-shadow: 0 2px 10px rgba(0, 51, 102, 0.18);
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.btn-gov-choice:hover {
+  border-color: rgba(0, 51, 102, 0.45);
+  filter: brightness(1.06);
+  box-shadow: 0 4px 14px rgba(0, 51, 102, 0.22);
+}
+.btn-gov-choice:focus-visible {
+  outline: 2px solid var(--gov-primary-mid);
+  outline-offset: 2px;
+}
+
+/* PersoApp-ähnlich: gleiche Rundung, ruhige Schatten für alle primären Flächen */
+.btn-gov-primary,
+.btn-gov-on-dark-secondary,
+.btn-gov-choice {
+  border-radius: 0.875rem;
+}
+.btn-gov-choice {
+  box-shadow: 0 1px 3px rgba(0, 51, 102, 0.07);
+}
+.btn-gov-primary {
+  box-shadow: 0 2px 10px rgba(0, 51, 102, 0.16);
+}
+
+.btn-gov-link {
+  font-size: 0.75rem;
+  color: var(--gov-muted);
+  background: transparent;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  width: 100%;
+  transition: color 0.15s ease;
+}
+.btn-gov-link:hover {
+  color: var(--gov-btn);
+  text-decoration: underline;
+}
+.btn-gov-link:focus-visible {
+  outline: 2px solid var(--gov-primary-mid);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* Intro-Overlay (dunkler Hintergrund): Sekundär ohne Grau-„CI-Bruch“ */
+.btn-gov-on-dark-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.btn-gov-on-dark-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.btn-gov-on-dark-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn-gov-on-dark-secondary:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 2px;
+}
+
+/* Ebenen-Filter: CI-Blau, optional kurzer Herzschlag beim ersten „Abstimmen“ pro Sitzung */
+@keyframes eid-filter-heartbeat {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 85, 164, 0.5);
+  }
+  30% {
+    transform: scale(1.07);
+    box-shadow: 0 0 0 12px rgba(0, 85, 164, 0.14);
+  }
+  50% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 85, 164, 0);
+  }
+  70% {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 8px rgba(0, 85, 164, 0.1);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 2px 12px rgba(0, 51, 102, 0.18);
+  }
+}
+
+.btn-filter-ebenen {
+  border: 2px solid var(--gov-primary-mid);
+  color: var(--gov-primary);
+  background: linear-gradient(180deg, var(--gov-primary-light) 0%, rgba(255, 255, 255, 0.95) 100%);
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(0, 51, 102, 0.14);
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.btn-filter-ebenen:hover {
+  border-color: var(--gov-primary);
+  background: #fff;
+  box-shadow: 0 3px 14px rgba(0, 51, 102, 0.2);
+}
+
+.btn-filter-ebenen:active {
+  transform: scale(0.98);
+}
+
+.btn-filter-ebenen--pulse {
+  animation: eid-filter-heartbeat 1.75s ease-in-out 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-filter-ebenen--pulse {
+    animation: none;
+  }
+}
+
+/* Login Schritt 2: Reihenfolge Sie → Du → Weiter (Heartbeat) */
+.login-anrede-spotlight {
+  animation: eid-filter-heartbeat 1.75s ease-in-out 2;
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-anrede-spotlight {
+    animation: none;
+  }
+}
+
+/* Onboarding/Intro: Spotlight-Pulse für CTA-Reihenfolge */
+.onboarding-heartbeat {
+  animation: eid-filter-heartbeat 1.75s ease-in-out 2;
+}
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-heartbeat {
+    animation: none;
+  }
+}
+
+/* Scrollbar verstecken (für Filter-Leisten) */
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Basis: Governikus Corporate Design */
 html {
-  color: #374151;
-  background-color: #ffffff;
+  color: var(--gov-body, #374151);
+  background-color: var(--gov-surface, #F7F9FC);
+  -webkit-text-size-adjust: 100%;
 }
 body {
-  color: #374151;
-  background-color: #ffffff;
+  color: var(--gov-body, #374151);
+  background-color: var(--gov-surface, #F7F9FC);
+  /* Safe-Area für iPhone mit Dynamic Island */
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 /* Fallback-Klassen falls CSS-Variablen nicht ankommen (z. B. in manchen Browsern) */
@@ -44,13 +284,42 @@ body {
 .gov-heading-color { color: #374151 !important; }
 .gov-btn-border { border-color: #0066cc !important; }
 
-/* Glassmorphism Flächen (weißer Kontext) */
+/* ── Glassmorphism-System ─────────────────────────────────────────────────── */
+
+/* Helles Glas (auf weißem/hellem Hintergrund) */
 .glass-panel {
-  background: var(--glass-white, rgba(255, 255, 255, 0.72));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border-light, rgba(0, 0, 0, 0.06));
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.80);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.60);
+  box-shadow: 0 4px 24px rgba(0, 40, 100, 0.08);
+}
+
+/* Dunkles Glas (auf dunklem Hintergrund, z.B. Header/Login) */
+.glass-dark {
+  background: rgba(0, 30, 80, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.30);
+}
+
+/* Weißes Glas (Karten auf dunklem BG) */
+.glass-white {
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Governikus Primär-Glas (semi-transparent blau) */
+.glass-gov {
+  background: rgba(0, 61, 128, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 40, 120, 0.25);
 }
 
 /* ARIA Box Styling (wie in Memories definiert) */
@@ -93,6 +362,17 @@ body {
   line-height: 1.5;
 }
 
+/* App-Kern 2026: kompakte Typografie (Footer-Niveau), Überschriften/Buttons bleiben größer */
+.app-body {
+  font-size: var(--app-body, 11px);
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+.app-body .app-meta {
+  font-size: var(--app-meta, 10px);
+}
+
 /* Swipe Card Animation */
 .swipe-card {
   transition: transform 0.3s ease, opacity 0.3s ease;
@@ -131,6 +411,190 @@ body {
     transform: scale(1);
     opacity: 1;
   }
+}
+
+/* NDA-Seite: Scrollbar in Akzentfarbe (#0066CC) – gut sichtbar */
+.nda-scroll-area::-webkit-scrollbar {
+  width: 10px;
+}
+.nda-scroll-area::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 5px;
+}
+.nda-scroll-area::-webkit-scrollbar-thumb {
+  background: #0066CC;
+  border-radius: 5px;
+}
+.nda-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: #0052a3;
+}
+.nda-scroll-area {
+  scrollbar-width: auto;
+  scrollbar-color: #0066CC #e5e7eb;
+}
+
+/* Stimmzettel-Modal: dezente Scrollbar */
+.stimmzettel-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.stimmzettel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+.stimmzettel-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 51, 102, 0.35);
+  border-radius: 4px;
+}
+.stimmzettel-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 51, 102, 0.5);
+}
+.stimmzettel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 51, 102, 0.35) transparent;
+}
+
+/* Intro „Wahlen“: sichtbare Scrollbar + Heartbeat am Thumb (WebKit) / Randpuls (Firefox) */
+@keyframes introScrollbarThumbHeartbeat {
+  0%,
+  100% {
+    background: #0066cc;
+    box-shadow: 0 0 0 0 rgba(0, 102, 204, 0);
+  }
+  10% {
+    background: #2b8cff;
+    box-shadow: 0 0 10px 2px rgba(0, 102, 204, 0.55);
+  }
+  20% {
+    background: #0066cc;
+    box-shadow: 0 0 0 0 rgba(0, 102, 204, 0);
+  }
+  32% {
+    background: #2488ff;
+    box-shadow: 0 0 8px 1px rgba(0, 102, 204, 0.4);
+  }
+  44% {
+    background: #0066cc;
+    box-shadow: 0 0 0 0 rgba(0, 102, 204, 0);
+  }
+}
+
+.intro-ballot-scroll {
+  scrollbar-width: auto;
+  scrollbar-color: #0066cc #e5e7eb;
+  animation: introBallotScrollInsetPulse 3.2s ease-in-out infinite;
+}
+
+.intro-ballot-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.intro-ballot-scroll::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 5px;
+}
+
+.intro-ballot-scroll::-webkit-scrollbar-thumb {
+  background: #0066cc;
+  border-radius: 5px;
+  animation: introScrollbarThumbHeartbeat 3.2s ease-in-out infinite;
+}
+
+.intro-ballot-scroll::-webkit-scrollbar-thumb:hover {
+  background: #0052a3;
+  animation: none;
+}
+
+.intro-ballot-scroll:hover,
+.intro-ballot-scroll:focus-visible {
+  animation: none;
+}
+
+@keyframes introBallotScrollInsetPulse {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 0 rgba(0, 102, 204, 0);
+  }
+  10% {
+    box-shadow: inset -6px 0 14px -2px rgba(0, 102, 204, 0.35);
+  }
+  20% {
+    box-shadow: inset 0 0 0 0 rgba(0, 102, 204, 0);
+  }
+  32% {
+    box-shadow: inset -5px 0 12px -2px rgba(0, 102, 204, 0.28);
+  }
+  44% {
+    box-shadow: inset 0 0 0 0 rgba(0, 102, 204, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-ballot-scroll {
+    animation: none;
+  }
+
+  .intro-ballot-scroll::-webkit-scrollbar-thumb {
+    animation: none;
+  }
+}
+
+/* Intro Meldungen: Typewriter-Caret (dezentes Blinken) */
+@keyframes introTypewriterCaret {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.intro-typewriter-caret {
+  animation: introTypewriterCaret 1s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-typewriter-caret {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* Footer Heartbeat – zieht Aufmerksamkeit auf die Navigation (zwei Schläge, Pause) */
+@keyframes footerHeartbeat {
+  0%, 100% {
+    box-shadow: 0 -2px 0 rgba(37, 99, 235, 0);
+  }
+  10% {
+    box-shadow: 0 -4px 16px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  20% {
+    box-shadow: 0 -2px 0 rgba(37, 99, 235, 0);
+  }
+  32% {
+    box-shadow: 0 -4px 14px rgba(37, 99, 235, 0.28), inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+  44% {
+    box-shadow: 0 -2px 0 rgba(37, 99, 235, 0);
+  }
+}
+
+.footer-heartbeat {
+  animation: footerHeartbeat 3.2s ease-in-out infinite;
+}
+
+/* Header Heartbeat – Glow nach unten (nach Footer-Phase) */
+@keyframes headerHeartbeat {
+  0%, 100% { box-shadow: 0 0 0 rgba(37, 99, 235, 0); }
+  10% { box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35); }
+  20% { box-shadow: 0 0 0 rgba(37, 99, 235, 0); }
+  32% { box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28); }
+  44% { box-shadow: 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+.header-heartbeat {
+  animation: headerHeartbeat 3.2s ease-in-out infinite;
 }
 
 /* Level Progress Bar */
@@ -305,9 +769,14 @@ body {
   display: none;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar – gleiches Blau wie NDA-Button (--gov-btn) */
+:root {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gov-btn, #0066cc) #f1f5f9;
+}
+
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -315,12 +784,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 2px;
+  background: var(--gov-btn, #0066cc);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--gov-btn-hover, #0052a3);
 }
 
 /* Focus styles for accessibility */

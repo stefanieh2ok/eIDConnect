@@ -1,13 +1,38 @@
-import { ClaraAnalysis, ClaraPreferences, ClaraMessage } from '@/types/clara';
+import { ClaraAnalysis, ClaraPreferences } from '@/types/clara';
 import { VotingCard } from '@/types';
+import type { AddressMode } from '@/lib/clara-system-prompt';
 
+/**
+ * Clara KI-Service (Client-seitig)
+ *
+ * Implementiert die Prinzipien aus Clara System Prompt v5:
+ * - Strikte Neutralität (keine Empfehlungen, kein Framing)
+ * - Sie/Du-sensitive Formulierungen
+ * - Personalisierung nur bei ausdrücklicher Einwilligung
+ * - Thematische Relevanz statt „personalMatch"
+ */
 export class ClaraAI {
   private preferences: ClaraPreferences;
+  private personalizationEnabled: boolean;
+  private addressMode: AddressMode;
   private apiBaseUrl: string;
+  private lastChatSafeMode = false;
 
-  constructor(preferences: ClaraPreferences) {
+  constructor(
+    preferences: ClaraPreferences,
+    personalizationEnabled: boolean,
+    addressMode: AddressMode = 'du',
+  ) {
     this.preferences = preferences;
-    this.apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+    this.personalizationEnabled = personalizationEnabled;
+    this.addressMode = addressMode;
+    // In der App immer relativ zum gleichen Origin aufrufen.
+    // NEXT_PUBLIC_API_URL hat in Dev/Preview häufig falsche Ports/Hosts verursacht.
+    this.apiBaseUrl = '/api';
+  }
+
+  private t(du: string, sie: string): string {
+    return this.addressMode === 'sie' ? sie : du;
   }
 
   updatePreferences(preferences: ClaraPreferences) {
@@ -15,13 +40,27 @@ export class ClaraAI {
   }
 
   analyzeVotingCard(card: VotingCard): ClaraAnalysis {
-    const personalMatch = this.calculatePersonalMatch(card);
-    const reasoning = this.generateReasoning(card, personalMatch);
-    const pros = this.generatePersonalizedPros(card);
-    const cons = this.generatePersonalizedCons(card);
-    const recommendation = this.getRecommendation(personalMatch);
-    const confidence = this.calculateConfidence(personalMatch, card);
-    const alternativePerspectives = this.generateAlternativePerspectives(card);
+    const personalMatch = this.personalizationEnabled
+      ? this.calculateThematicRelevance(card)
+      : 50;
+
+    const reasoning = this.personalizationEnabled
+      ? this.generateNeutralReasoning(card, personalMatch)
+      : this.t(
+          'Neutrale Übersicht: Clara gibt keine Abstimmungsempfehlung. Ich kann dir die sachlichen Pro- und Contra-Argumente zusammenfassen, damit du dir eine eigene Meinung bilden kannst.',
+          'Neutrale Übersicht: Clara gibt keine Abstimmungsempfehlung. Ich kann Ihnen die sachlichen Pro- und Contra-Argumente zusammenfassen, damit Sie sich eine eigene Meinung bilden können.',
+        );
+
+    const pros = this.personalizationEnabled
+      ? this.generateContextualPros(card)
+      : ['KI-gestützte Zusammenfassung: Mögliche sachliche Vorteile der Maßnahme'];
+    const cons = this.personalizationEnabled
+      ? this.generateContextualCons(card)
+      : ['KI-gestützte Zusammenfassung: Mögliche sachliche Gegenargumente'];
+    const confidence = this.personalizationEnabled
+      ? this.calculateConfidence(personalMatch, card)
+      : 60;
+    const alternativePerspectives = this.generateAlternativePerspectives();
 
     return {
       cardId: card.id,
@@ -29,225 +68,266 @@ export class ClaraAI {
       reasoning,
       pros,
       cons,
-      recommendation,
       confidence,
-      alternativePerspectives
+      alternativePerspectives,
     };
   }
 
-  private calculatePersonalMatch(card: VotingCard): number {
-    let match = 0;
+  private calculateThematicRelevance(card: VotingCard): number {
+    let relevance = 0;
     let totalWeight = 0;
 
-    // Umwelt & Klima
     if (card.category.includes('Umwelt') || card.category.includes('Energie')) {
-      match += this.preferences.umwelt * 0.3;
+      relevance += this.preferences.umwelt * 0.3;
       totalWeight += 0.3;
     }
-
-    // Finanzen & Wirtschaft
     if (card.category.includes('Finanzen') || card.category.includes('Wirtschaft')) {
-      match += this.preferences.finanzen * 0.25;
+      relevance += this.preferences.finanzen * 0.25;
       totalWeight += 0.25;
     }
-
-    // Bildung & Forschung
     if (card.category.includes('Bildung') || card.category.includes('Forschung')) {
-      match += this.preferences.bildung * 0.2;
+      relevance += this.preferences.bildung * 0.2;
       totalWeight += 0.2;
     }
-
-    // Digitalisierung
     if (card.category.includes('Digital') || card.title.includes('Digital')) {
-      match += this.preferences.digital * 0.15;
+      relevance += this.preferences.digital * 0.15;
       totalWeight += 0.15;
     }
-
-    // Soziales & Gesundheit
     if (card.category.includes('Sozial') || card.category.includes('Gesundheit')) {
-      match += this.preferences.soziales * 0.1;
+      relevance += this.preferences.soziales * 0.1;
       totalWeight += 0.1;
     }
 
-    return totalWeight > 0 ? Math.round(match / totalWeight) : 50;
+    return totalWeight > 0 ? Math.round(relevance / totalWeight) : 50;
   }
 
-  private generateReasoning(card: VotingCard, match: number): string {
-    const highMatch = match > 75;
-    const mediumMatch = match > 50;
-    
-    if (highMatch) {
-      return `Basierend auf deinen Präferenzen (${this.getTopPreference()}) ist diese Abstimmung sehr gut auf dich zugeschnitten. Die Auswirkungen entsprechen deinen Prioritäten.`;
-    } else if (mediumMatch) {
-      return `Diese Abstimmung passt teilweise zu deinen Präferenzen. Es gibt sowohl positive als auch neutrale Aspekte für dich.`;
-    } else {
-      return `Diese Abstimmung entspricht nicht vollständig deinen Hauptinteressen. Lass mich dir die wichtigsten Punkte erklären.`;
+  private generateNeutralReasoning(card: VotingCard, relevance: number): string {
+    const topTheme = this.getTopPreference();
+    if (relevance > 70) {
+      return this.t(
+        `Dieses Thema hat eine hohe thematische Nähe zu deinen aktiv gewählten Sachthemen (${topTheme}). KI-gestützte Zusammenfassung: Die folgenden Argumente können bei einer eigenen Einschätzung helfen.`,
+        `Dieses Thema hat eine hohe thematische Nähe zu Ihren aktiv gewählten Sachthemen (${topTheme}). KI-gestützte Zusammenfassung: Die folgenden Argumente können bei einer eigenen Einschätzung helfen.`,
+      );
     }
+    if (relevance > 45) {
+      return this.t(
+        `Dieses Thema berührt teilweise deine gewählten Sachthemen. Nachfolgend eine sachliche Zusammenfassung der relevanten Aspekte.`,
+        `Dieses Thema berührt teilweise Ihre gewählten Sachthemen. Nachfolgend eine sachliche Zusammenfassung der relevanten Aspekte.`,
+      );
+    }
+    return this.t(
+      `Dieses Thema liegt außerhalb deiner hauptsächlich gewählten Sachthemen. Hier sind die sachlichen Argumente für eine eigene Einschätzung.`,
+      `Dieses Thema liegt außerhalb Ihrer hauptsächlich gewählten Sachthemen. Hier sind die sachlichen Argumente für eine eigene Einschätzung.`,
+    );
   }
 
   private getTopPreference(): string {
     const prefs = Object.entries(this.preferences);
-    const sorted = prefs.sort(([,a], [,b]) => b - a);
-    const [key, value] = sorted[0];
-    
+    const sorted = prefs.sort(([, a], [, b]) => b - a);
+    const [key] = sorted[0];
+
     const names: Record<string, string> = {
       umwelt: 'Umwelt & Klima',
       finanzen: 'Finanzen & Wirtschaft',
       bildung: 'Bildung & Forschung',
       digital: 'Digitalisierung',
       soziales: 'Soziales & Gesundheit',
-      sicherheit: 'Sicherheit & Verteidigung'
+      sicherheit: 'Sicherheit & Verteidigung',
     };
-    
-    return `${names[key]} (${value}%)`;
+
+    return names[key] || key;
   }
 
-  private generatePersonalizedPros(card: VotingCard): string[] {
+  private generateContextualPros(card: VotingCard): string[] {
     const pros: string[] = [];
-    
-    if (this.preferences.umwelt > 70 && card.category.includes('Umwelt')) {
-      pros.push('Stärkt deine Umweltprioritäten und trägt zum Klimaschutz bei');
+
+    if (card.kiAnalysis?.pros) {
+      pros.push(...card.kiAnalysis.pros.map((p) => p.text));
     }
-    
-    if (this.preferences.finanzen > 70 && card.category.includes('Finanzen')) {
-      pros.push('Entspricht deinen wirtschaftlichen Interessen und Prioritäten');
+
+    if (pros.length === 0) {
+      pros.push('KI-gestützte Zusammenfassung: Sachliche Vorteile werden analysiert');
     }
-    
-    if (this.preferences.bildung > 70 && card.category.includes('Bildung')) {
-      pros.push('Fördert deine bildungspolitischen Ziele');
-    }
-    
-    if (this.preferences.digital > 70 && card.title.includes('Digital')) {
-      pros.push('Unterstützt deine Digitalisierungsagenda');
-    }
-    
-    return pros.length > 0 ? pros : ['Generelle positive Auswirkungen erwartet'];
+
+    return pros;
   }
 
-  private generatePersonalizedCons(card: VotingCard): string[] {
+  private generateContextualCons(card: VotingCard): string[] {
     const cons: string[] = [];
-    
-    if (this.preferences.umwelt < 30 && card.category.includes('Umwelt')) {
-      cons.push('Möglicherweise nicht deine höchste Priorität');
+
+    if (card.kiAnalysis?.cons) {
+      cons.push(...card.kiAnalysis.cons.map((c) => c.text));
     }
-    
-    if (this.preferences.finanzen < 30 && card.category.includes('Finanzen')) {
-      cons.push('Finanzielle Auswirkungen könnten deine anderen Prioritäten beeinträchtigen');
+
+    if (cons.length === 0) {
+      cons.push('KI-gestützte Zusammenfassung: Sachliche Gegenargumente werden analysiert');
     }
-    
-    return cons.length > 0 ? cons : ['Keine spezifischen Bedenken basierend auf deinen Präferenzen'];
+
+    return cons;
   }
 
-  private getRecommendation(match: number): 'strong_yes' | 'yes' | 'neutral' | 'no' | 'strong_no' {
-    if (match > 85) return 'strong_yes';
-    if (match > 70) return 'yes';
-    if (match > 40) return 'neutral';
-    if (match > 25) return 'no';
-    return 'strong_no';
+  private calculateConfidence(_relevance: number, _card: VotingCard): number {
+    return 70;
   }
 
-  private calculateConfidence(match: number, card: VotingCard): number {
-    let confidence = Math.abs(match - 50) * 1.5; // Higher confidence for extreme matches
-    confidence = Math.min(confidence, 95);
-    confidence = Math.max(confidence, 60);
-    return Math.round(confidence);
-  }
-
-  private generateAlternativePerspectives(card: VotingCard): string[] {
+  private generateAlternativePerspectives(): string[] {
     return [
-      'Betrachte auch die langfristigen Auswirkungen über deine aktuellen Prioritäten hinaus',
-      'Überlege, wie sich diese Entscheidung auf andere Bereiche auswirken könnte',
-      'Denke an die gesellschaftlichen Auswirkungen für alle Bürger'
+      this.t(
+        'Betrachte auch langfristige Auswirkungen über die aktuelle Diskussion hinaus',
+        'Betrachten Sie auch langfristige Auswirkungen über die aktuelle Diskussion hinaus',
+      ),
+      this.t(
+        'Überlege, wie sich diese Entscheidung auf verschiedene Bevölkerungsgruppen auswirken könnte',
+        'Überlegen Sie, wie sich diese Entscheidung auf verschiedene Bevölkerungsgruppen auswirken könnte',
+      ),
+      this.t(
+        'Prüfe die offiziellen Quellen und Unterlagen für weitere Details',
+        'Prüfen Sie die offiziellen Quellen und Unterlagen für weitere Details',
+      ),
     ];
   }
 
-  async generateChatResponse(userMessage: string, context?: any): Promise<string> {
+  async generateChatResponse(userMessage: string, context?: string): Promise<string> {
     try {
+      this.lastChatSafeMode = false;
       const response = await fetch(`${this.apiBaseUrl}/clara/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage,
           context,
-          preferences: this.preferences
-        })
+          addressMode: this.addressMode,
+          preferences: this.personalizationEnabled ? this.preferences : undefined,
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error('API-Fehler');
-      }
+      if (!response.ok) throw new Error('API-Fehler');
 
       const data = await response.json();
-      return data.response;
+      const raw = String(data.response || '');
+      const enforced = this.enforceSafeOutput(raw);
+      this.lastChatSafeMode = enforced.safeModeUsed;
+      return enforced.text;
     } catch (error) {
       console.error('Clara Chat API Fehler:', error);
+      this.lastChatSafeMode = true;
       return this.getFallbackResponse(userMessage);
     }
   }
 
+  private enforceSafeOutput(text: string): { text: string; safeModeUsed: boolean } {
+    const t = text.trim();
+    if (!t) {
+      return { text: this.safeNoVerifiedSource(), safeModeUsed: true };
+    }
+    const riskyRecommendation = /(ich empfehle|du solltest|sie sollten|waehle|wahlen sie|stimme fuer|stimme gegen|am besten passend)/i;
+    if (riskyRecommendation.test(t)) {
+      return {
+        text: this.t(
+        'Ich bleibe neutral und gebe keine politische Empfehlung. Dazu liegt mir hier keine verifizierte offizielle Quelle vor.',
+        'Ich bleibe neutral und gebe keine politische Empfehlung. Dazu liegt mir hier keine verifizierte offizielle Quelle vor.',
+        ),
+        safeModeUsed: true,
+      };
+    }
+    return { text: t, safeModeUsed: false };
+  }
+
+  private safeNoVerifiedSource(): string {
+    return 'Dazu liegt mir hier keine verifizierte offizielle Quelle vor.';
+  }
+
   private getFallbackResponse(userMessage: string): string {
-    const message = userMessage.toLowerCase();
-    
-    if (message.includes('hallo') || message.includes('hi')) {
-      return `Hallo! Ich bin Clara, deine KI-Assistentin für politische Entscheidungen. Wie kann ich dir heute helfen?`;
+    const msg = userMessage.toLowerCase();
+
+    if (msg.includes('hallo') || msg.includes('hi') || msg.includes('guten tag')) {
+      return this.t(
+        'Clara ist derzeit nur eingeschraenkt verfuegbar (Safe Mode). Ich helfe dir neutral bei Verfahrensfragen zu Orientierung, Meldungen, Beteiligung, Wahlen und Terminen.',
+        'Clara ist derzeit nur eingeschraenkt verfuegbar (Safe Mode). Ich helfe Ihnen neutral bei Verfahrensfragen zu Orientierung, Meldungen, Beteiligung, Wahlen und Terminen.',
+      );
     }
-    
-    if (message.includes('erklär') || message.includes('was bedeutet')) {
-      return `Gerne erkläre ich dir die Details! Basierend auf deinen Präferenzen kann ich dir eine personalisierte Analyse anbieten.`;
+
+    if (
+      msg.includes('wie funktioniert') ||
+      msg.includes('erklaer') ||
+      msg.includes('was bedeutet') ||
+      msg.includes('frist') ||
+      msg.includes('ablauf') ||
+      msg.includes('buergerbegehren') ||
+      msg.includes('meldung')
+    ) {
+      return this.t(
+        'Safe Mode: Ich erklaere dir gern den Ablauf neutral. Fuer verbindliche Inhalte nutze bitte die offiziellen Stellen und Unterlagen.',
+        'Safe Mode: Ich erklaere Ihnen gern den Ablauf neutral. Fuer verbindliche Inhalte nutzen Sie bitte die offiziellen Stellen und Unterlagen.',
+      );
     }
-    
-    if (message.includes('empfehlung') || message.includes('soll ich')) {
-      return `Meine Empfehlung basiert auf deinem Politik-Barometer. Lass mich die Abstimmung für dich analysieren.`;
+
+    if (msg.includes('empfehlung') || msg.includes('soll ich') || msg.includes('was wuerdest')) {
+      return this.t(
+        'Ich gebe keine politische Empfehlung. Dazu liegt mir hier keine verifizierte offizielle Quelle vor.',
+        'Ich gebe keine politische Empfehlung. Dazu liegt mir hier keine verifizierte offizielle Quelle vor.',
+      );
     }
-    
-    if (message.includes('danke') || message.includes('dankeschön')) {
-      return `Gerne geschehen! Ich bin hier, um dir bei politischen Entscheidungen zu helfen.`;
+
+    if (msg.includes('danke') || msg.includes('dankeschoen')) {
+      return this.t(
+        'Gern. Solange Safe Mode aktiv ist, antworte ich nur neutral und verfahrensorientiert.',
+        'Gern. Solange Safe Mode aktiv ist, antworte ich nur neutral und verfahrensorientiert.',
+      );
     }
-    
-    return `Das ist eine interessante Frage! Basierend auf deinen Präferenzen kann ich dir eine detaillierte Analyse anbieten. Möchtest du, dass ich die aktuelle Abstimmung für dich durchgehe?`;
+
+    return this.safeNoVerifiedSource();
+  }
+
+  public wasLastChatSafeMode(): boolean {
+    return this.lastChatSafeMode;
   }
 
   generateVoiceGreeting(): string {
-    return `Hallo! Ich bin Clara, deine persönliche KI-Assistentin. Ich helfe dir dabei, politische Entscheidungen basierend auf deinen Präferenzen zu treffen. Wie kann ich dir heute helfen?`;
+    return this.t(
+      'Hallo! Ich bin Clara, deine digitale Assistentin für demokratische Orientierung. Ich helfe dir, Informationen neutral zu verstehen und Beteiligungsmöglichkeiten zu finden. Wobei kann ich dir helfen?',
+      'Hallo! Ich bin Clara, Ihre digitale Assistentin für demokratische Orientierung. Ich helfe Ihnen, Informationen neutral zu verstehen und Beteiligungsmöglichkeiten zu finden. Wobei kann ich Ihnen helfen?',
+    );
   }
 
   async generateDeepDiveAnalysis(card: VotingCard): Promise<string> {
     try {
       const response = await fetch(`${this.apiBaseUrl}/clara/analyze`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           votingCard: card,
-          preferences: this.preferences
-        })
+          addressMode: this.addressMode,
+          preferences: this.personalizationEnabled ? this.preferences : undefined,
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error('API-Fehler');
-      }
+      if (!response.ok) throw new Error('API-Fehler');
 
       const data = await response.json();
       const analysis = data.analysis;
-      
-      return `Tiefenanalyse für "${card.title}": 
 
-Basierend auf deinem Politik-Barometer (${this.getTopPreference()}) ist deine Übereinstimmung ${analysis.personalMatch}%.
+      const intro = this.personalizationEnabled
+        ? this.t(
+            `Thematische Relevanz (basierend auf deinen aktiv gewählten Sachthemen: ${this.getTopPreference()}): ${analysis.personalMatch}%.`,
+            `Thematische Relevanz (basierend auf Ihren aktiv gewählten Sachthemen: ${this.getTopPreference()}): ${analysis.personalMatch}%.`,
+          )
+        : `KI-gestützte Zusammenfassung für „${card.title}" – ohne personalisierte Sachthemen.`;
+
+      return `${intro}
 
 ${analysis.reasoning}
 
-Meine Empfehlung: ${this.getRecommendationText(analysis.recommendation)} (${analysis.confidence}% Vertrauen)
-
-Wichtige Punkte für dich:
+Sachliche Pro-Argumente:
 ${analysis.pros.map((pro: string) => `• ${pro}`).join('\n')}
 
-${analysis.cons.length > 0 ? `Bedenken:\n${analysis.cons.map((con: string) => `• ${con}`).join('\n')}` : ''}
+Sachliche Contra-Argumente:
+${analysis.cons.map((con: string) => `• ${con}`).join('\n')}
 
-Alternative Perspektiven:
-${analysis.alternativePerspectives.map((perspective: string) => `• ${perspective}`).join('\n')}`;
+Weitere Perspektiven:
+${analysis.alternativePerspectives.map((p: string) => `• ${p}`).join('\n')}
+
+Dies ist eine KI-gestützte Zusammenfassung. Clara gibt keine Abstimmungsempfehlung. ${this.t('Bitte prüfe die offiziellen Quellen.', 'Bitte prüfen Sie die offiziellen Quellen.')}`;
     } catch (error) {
       console.error('Clara Analyse API Fehler:', error);
       return this.getFallbackAnalysis(card);
@@ -256,32 +336,27 @@ ${analysis.alternativePerspectives.map((perspective: string) => `• ${perspecti
 
   private getFallbackAnalysis(card: VotingCard): string {
     const analysis = this.analyzeVotingCard(card);
-    
-    return `Tiefenanalyse für "${card.title}": 
 
-Basierend auf deinem Politik-Barometer (${this.getTopPreference()}) ist deine Übereinstimmung ${analysis.personalMatch}%.
+    const intro = this.personalizationEnabled
+      ? this.t(
+          `Thematische Relevanz (basierend auf deinen aktiv gewählten Sachthemen: ${this.getTopPreference()}): ${analysis.personalMatch}%.`,
+          `Thematische Relevanz (basierend auf Ihren aktiv gewählten Sachthemen: ${this.getTopPreference()}): ${analysis.personalMatch}%.`,
+        )
+      : `KI-gestützte Zusammenfassung für „${card.title}" – ohne personalisierte Sachthemen.`;
+
+    return `${intro}
 
 ${analysis.reasoning}
 
-Meine Empfehlung: ${this.getRecommendationText(analysis.recommendation)} (${analysis.confidence}% Vertrauen)
+Sachliche Pro-Argumente:
+${analysis.pros.map((pro) => `• ${pro}`).join('\n')}
 
-Wichtige Punkte für dich:
-${analysis.pros.map(pro => `• ${pro}`).join('\n')}
+Sachliche Contra-Argumente:
+${analysis.cons.map((con) => `• ${con}`).join('\n')}
 
-${analysis.cons.length > 0 ? `Bedenken:\n${analysis.cons.map(con => `• ${con}`).join('\n')}` : ''}
+Weitere Perspektiven:
+${analysis.alternativePerspectives.map((p) => `• ${p}`).join('\n')}
 
-Alternative Perspektiven:
-${analysis.alternativePerspectives.map(perspective => `• ${perspective}`).join('\n')}`;
-  }
-
-  private getRecommendationText(recommendation: string): string {
-    const texts: Record<string, string> = {
-      strong_yes: 'Starke Zustimmung empfohlen',
-      yes: 'Zustimmung empfohlen',
-      neutral: 'Neutrale Haltung angemessen',
-      no: 'Ablehnung empfohlen',
-      strong_no: 'Starke Ablehnung empfohlen'
-    };
-    return texts[recommendation] || 'Neutrale Haltung angemessen';
+Dies ist eine KI-gestützte Zusammenfassung. Clara gibt keine Abstimmungsempfehlung. ${this.t('Bitte prüfe die offiziellen Quellen.', 'Bitte prüfen Sie die offiziellen Quellen.')}`;
   }
 }

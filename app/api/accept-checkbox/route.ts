@@ -26,7 +26,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (tokenRecord.require_docusign) {
-      return NextResponse.json({ success: false, error: 'Dieser Token erfordert DocuSign.' }, { status: 403 });
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Für diesen Zugang ist die digitale Unterzeichnung der Vertraulichkeitserklärung über den vorgesehenen Signaturdienst erforderlich.',
+        },
+        { status: 403 }
+      );
     }
 
     if (tokenRecord.is_revoked) {

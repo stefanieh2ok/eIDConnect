@@ -1,65 +1,64 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Script from 'next/script';
+import NdaPrintButton from '@/components/NdaPrintButton';
 import { ndaConfig } from '@/config/nda';
+import { APP_DISPLAY_NAME } from '@/lib/branding';
+import { IphoneFrame } from '@/components/ui/IphoneFrame';
+
 export const metadata: Metadata = {
-  title: 'Vertraulichkeitsvereinbarung (NDA) – Demo-Zugang',
-  description:
-    'Geheimhaltungsvereinbarung für den Zugang zu einer vertraulichen Demo-Umgebung (DeinDeutschland / Bürger App).',
+  title: `Vertraulichkeitserklärung – ${APP_DISPLAY_NAME}`,
+  description: `Vertraulichkeitserklärung für den Zugang zur vertraulichen Demo-Umgebung von ${APP_DISPLAY_NAME}.`,
 };
 
-type Props = { searchParams: Promise<{ print?: string }> };
+type Props = { searchParams: Promise<{ print?: string; returnTo?: string }> };
 
 export default async function DemoNdaPage({ searchParams }: Props) {
-  const { print } = await searchParams;
+  const { print, returnTo } = await searchParams;
   const isPrintView = print === '1';
+  // `returnTo` kann je nach Client/Encoding als `%2Faccess%2F...` ankommen.
+  // Wir machen es robust, damit "Zurück" immer korrekt auf die vorherige Gate-Seite führt.
+  let safeReturnTo: string | null = null;
+  if (typeof returnTo === 'string' && returnTo.length > 0) {
+    const candidate = returnTo.startsWith('%') ? decodeURIComponent(returnTo) : returnTo;
+    safeReturnTo = candidate.startsWith('/') ? candidate : null;
+  }
 
   return (
+    <IphoneFrame>
     <div
-      className="min-h-screen bg-slate-50 text-gray-800"
+      className="h-full min-h-0 overflow-y-auto rounded-b-[1.75rem] bg-[#F7F9FC] text-gray-800"
       style={{
-        minHeight: '100dvh',
-        paddingLeft: 'max(1rem, env(safe-area-inset-left))',
-        paddingRight: 'max(1rem, env(safe-area-inset-right))',
-        paddingBottom: 'max(2rem, env(safe-area-inset-bottom))',
+        paddingLeft: 'max(0.6rem, env(safe-area-inset-left))',
+        paddingRight: 'max(0.6rem, env(safe-area-inset-right))',
+        paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
       }}
     >
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10 px-4 py-3 print:static print:border-b">
-        <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <header className="bg-white border-b border-[#D6E0EE] sticky top-0 z-10 px-3 py-3 print:static">
+        <div className="mx-auto flex w-full max-w-[360px] flex-wrap items-center justify-between gap-2">
           <div>
-            <h1 className="text-base font-bold text-gray-900">Vertraulichkeitsvereinbarung (NDA)</h1>
+            <h1 className="text-base font-bold text-[#1A2B45]">Vertraulichkeitserklärung</h1>
             <p className="text-xs text-gray-500 mt-0.5">
-              für den Zugang zu einer vertraulichen Demo-Umgebung – DeinDeutschland / Bürger App
+              Demo-Zugang · {APP_DISPLAY_NAME}
             </p>
           </div>
-          {isPrintView ? (
-            <>
-              <button
-                type="button"
-                id="nda-print-btn"
-                className="rounded-lg bg-neutral-800 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 print:hidden"
-              >
-                Drucken / Als PDF speichern
-              </button>
-              <Script src="/print-nda.js" strategy="afterInteractive" />
-            </>
-          ) : (
+          <div className="flex flex-wrap items-center gap-2 print:hidden">
+            <NdaPrintButton />
             <Link
-              href="/"
-              className="text-sm text-blue-600 hover:underline"
+              href={safeReturnTo ?? '/'}
+              className="text-sm text-[#0055A4] hover:underline ml-1"
             >
-              ← Zur Startseite
+              {safeReturnTo ? '← Zurück' : '← Startseite'}
             </Link>
-          )}
+          </div>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-6 print:py-0">
+      <main className="mx-auto max-w-[360px] px-2 py-3 print:py-0">
         <article
           className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden print:border-0 print:shadow-none print:rounded-none"
           id="nda-print-content"
         >
-          <div className="p-6 sm:p-8 text-[13px] leading-relaxed space-y-4 print:p-0 print:text-[11pt] print:leading-snug nda-print-content max-h-[70vh] overflow-y-auto print:max-h-none print:overflow-visible">
+          <div className="p-4 text-[13px] leading-relaxed space-y-4 print:p-0 print:text-[11pt] print:leading-snug nda-print-content max-h-[70vh] overflow-y-auto print:max-h-none print:overflow-visible">
             <pre className="whitespace-pre-wrap font-sans text-gray-700 print:whitespace-pre-wrap">
               {ndaConfig.fullText}
             </pre>
@@ -68,11 +67,11 @@ export default async function DemoNdaPage({ searchParams }: Props) {
             {ndaConfig.footer}
           </p>
 
-          <div className="p-6 sm:p-8 pt-6 mt-6 border-t border-gray-200 print:mt-8 print:pt-8">
+          <div className="mt-6 border-t border-gray-200 p-4 pt-6 print:mt-8 print:pt-8">
             <p className="text-xs text-gray-500 mb-6 print:text-[10pt]">
               Optional: Für die Demo-Zugänge ist die dokumentierte elektronische Zustimmung rechtlich ausreichend. Die folgenden Unterschriftszeilen dienen der optionalen Dokumentation bei Bedarf (z. B. Ausdruck zur Ablage).
             </p>
-            <div className="grid gap-8 sm:grid-cols-2 print:grid-cols-2">
+            <div className="grid grid-cols-1 gap-8 print:grid-cols-2">
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-1 print:text-[11pt]">
                   {ndaConfig.signatureLabelDisclosing}
@@ -102,12 +101,16 @@ export default async function DemoNdaPage({ searchParams }: Props) {
 
         {!isPrintView && (
           <p className="mt-6 text-center">
-            <Link href="/" className="text-blue-600 hover:underline text-sm">
-              ← Zur Startseite
+            <Link
+              href={safeReturnTo ?? '/'}
+              className="text-blue-600 hover:underline text-sm"
+            >
+              {safeReturnTo ? '← Zurück' : '← Zur Startseite'}
             </Link>
           </p>
         )}
       </main>
     </div>
+    </IphoneFrame>
   );
 }

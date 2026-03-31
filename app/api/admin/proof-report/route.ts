@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sha256HexSync } from '@/lib/utils/hash';
 import { jsPDF } from 'jspdf';
+import { APP_DISPLAY_NAME } from '@/lib/branding';
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
   const { data: logs } = await admin.from('demo_access_logs').select('*').eq('token_id', tokenId).order('accessed_at', { ascending: true });
 
   const reportData = {
-    title: 'Zugriffs-Nachweis – eIDConnect Demo',
+    title: `Zugriffs-Nachweis – ${APP_DISPLAY_NAME} Demo`,
     token: {
       recipient_name: token.recipient_name,
       recipient_org: token.recipient_org,

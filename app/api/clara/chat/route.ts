@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAPIConfig, createAPIHeaders } from '@/lib/api-config';
+import { buildClaraSystemPrompt, type AddressMode } from '@/lib/clara-system-prompt';
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, context, preferences } = await request.json();
+    const { message, context, preferences, addressMode } = await request.json();
     
     if (!message) {
       return NextResponse.json(
@@ -15,20 +16,17 @@ export async function POST(request: NextRequest) {
     const config = getAPIConfig();
     const headers = createAPIHeaders(config.openai.apiKey);
 
-    // Clara's System-Prompt für deutsche politische Beratung
-    const systemPrompt = `Du bist Clara, eine freundliche und kompetente KI-Assistentin für eIDConnect. Du hilfst deutschen Bürgern bei politischen Entscheidungen.
+    const hasPreferences =
+      !!preferences &&
+      typeof preferences === 'object' &&
+      Object.keys(preferences as Record<string, unknown>).length > 0;
 
-Deine Persönlichkeit:
-- Freundlich, aber professionell
-- Analytisch und faktenbasiert
-- Neutral, aber hilfreich
-- Spricht immer auf Deutsch
-- Basiert Empfehlungen auf den Nutzerpräferenzen
-
-Nutzerpräferenzen: ${JSON.stringify(preferences || {})}
-Kontext: ${context || 'Allgemeine politische Beratung'}
-
-Antworte immer auf Deutsch und sei hilfreich bei politischen Fragen.`;
+    const systemPrompt = buildClaraSystemPrompt({
+      addressMode: (addressMode as AddressMode) || 'du',
+      personalizationEnabled: hasPreferences,
+      preferencesJson: hasPreferences ? JSON.stringify(preferences) : undefined,
+      context: context || undefined,
+    });
 
     const response = await fetch(`${config.openai.baseURL}/chat/completions`, {
       method: 'POST',

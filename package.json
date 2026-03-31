@@ -12,7 +12,10 @@
     "setup-env": "node scripts/setup-env.js",
     "create-access-requests-table": "node scripts/create-access-requests-table.js",
     "fetch-wikidata": "node scripts/fetch-wikidata-politiker.mjs",
-    "check": "npm run lint && npx tsc --noEmit && npm test -- --passWithNoTests && echo OK: Alle Pruefungen bestanden"
+    "check": "npm run lint && npx tsc --noEmit && npm test -- --passWithNoTests && echo OK: Alle Pruefungen bestanden",
+    "smoke": "node scripts/smoke-check-ui.mjs",
+    "capture:intro": "node scripts/capture-demo-screens.mjs http://localhost:3002",
+    "test:ui": "jest --testPathPattern=BuergerApp.ui"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.0",
@@ -39,6 +42,7 @@
     "eslint-config-next": "14.0.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "playwright": "^1.58.2",
     "postcss": "^8.4.0",
     "sharp": "^0.34.5",
     "tailwindcss": "^3.3.0",

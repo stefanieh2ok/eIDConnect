@@ -16,14 +16,6 @@ type DemoToken = {
   access_count: number;
 };
 
-function slug(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .slice(0, 30) || 'demo';
-}
-
 export default function DemoLinksTab() {
   const [tokens, setTokens] = useState<DemoToken[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,8 +26,9 @@ export default function DemoLinksTab() {
   const [copyId, setCopyId] = useState<string | null>(null);
   const [exportingId, setExportingId] = useState<string | null>(null);
   const [emailSnippetCopied, setEmailSnippetCopied] = useState(false);
+  const [createTokenError, setCreateTokenError] = useState<string | null>(null);
 
-  // Zugangs-Link (NDA / DocuSign): Vorname, Nachname, E-Mail
+  // Zugangs-Link mit digitaler Signatur der Vertraulichkeitserklärung
   const [vorname, setVorname] = useState('');
   const [nachname, setNachname] = useState('');
   const [email, setEmail] = useState('');
@@ -46,7 +39,7 @@ export default function DemoLinksTab() {
   const [accessLinkError, setAccessLinkError] = useState<string | null>(null);
   const [accessLinkCopied, setAccessLinkCopied] = useState(false);
 
-  // Test-Link (Checkbox, ohne DocuSign)
+  // Test-Link mit Checkbox-Bestätigung (ohne Signaturdienst)
   const [testVorname, setTestVorname] = useState('');
   const [testNachname, setTestNachname] = useState('');
   const [testEmail, setTestEmail] = useState('');
@@ -72,27 +65,34 @@ export default function DemoLinksTab() {
   }, [supabase]);
 
   async function createToken() {
-    if (!supabase || !recipientName.trim()) return;
+    if (!recipientName.trim()) return;
     setCreating(true);
-    const exp = new Date();
-    exp.setDate(exp.getDate() + expiresDays);
-    const token = `${slug(recipientOrg || recipientName)}-${Date.now().toString(36)}`;
-    const { data, error } = await supabase
-      .from('demo_tokens')
-      .insert({
-        token,
-        recipient_name: recipientName.trim(),
-        recipient_org: recipientOrg.trim() || null,
-        expires_at: exp.toISOString(),
-        is_active: true,
-      })
-      .select()
-      .single();
-    setCreating(false);
-    if (!error && data) {
-      setTokens((prev) => [data as DemoToken, ...prev]);
-      setRecipientName('');
-      setRecipientOrg('');
+    setCreateTokenError(null);
+    try {
+      const res = await fetch('/api/admin/create-demo-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          recipientName: recipientName.trim(),
+          recipientOrg: recipientOrg.trim() || undefined,
+          expiresInDays: expiresDays,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCreateTokenError(data.error ?? 'Link konnte nicht erstellt werden.');
+        return;
+      }
+      if (data.success && data.token) {
+        setTokens((prev) => [data.token as DemoToken, ...prev]);
+        setRecipientName('');
+        setRecipientOrg('');
+      }
+    } catch (e) {
+      setCreateTokenError('Netzwerkfehler. Bitte erneut versuchen.');
+    } finally {
+      setCreating(false);
     }
   }
 
@@ -267,10 +267,14 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
       </div>
 
       <div className="bg-white rounded-xl border-2 border-blue-200 p-4 mb-6 shadow-sm">
-        <h2 className="font-semibold mb-1 text-gray-900">Neuer Zugangs-Link (mit NDA / DocuSign)</h2>
-        <p className="text-xs text-blue-600 font-medium mb-2">Empfohlen: Link mit DocuSign-Unterzeichnung – Empfänger erhält nach Unterschrift E-Mail mit Demo-Zugang.</p>
+        <h2 className="font-semibold mb-1 text-gray-900">Neuer Zugangs-Link (mit digitaler Signatur)</h2>
+        <p className="text-xs text-blue-600 font-medium mb-2">
+          Empfohlen: Link mit Unterzeichnung der Vertraulichkeitserklärung über den Signaturdienst – Empfänger erhält
+          nach Abschluss eine E-Mail mit Demo-Zugang.
+        </p>
         <p className="text-sm text-gray-600 mb-3">
-          Vorname, Nachname und E-Mail des Empfängers – danach Link generieren und z. B. per E-Mail senden. Der Empfänger öffnet den Link, unterzeichnet die Vertraulichkeitsvereinbarung per DocuSign und kommt in die Demo.
+          Vorname, Nachname und E-Mail des Empfängers – danach Link generieren und z. B. per E-Mail senden. Der
+          Empfänger öffnet den Link, unterzeichnet die Vertraulichkeitserklärung digital und gelangt in die Demo.
         </p>
         <div className="grid gap-3 max-w-md">
           <div className="grid grid-cols-2 gap-2">
@@ -341,10 +345,13 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
       </div>
 
       <div className="bg-white rounded-xl border-2 border-emerald-200 p-4 mb-6 shadow-sm">
-        <h2 className="font-semibold mb-1 text-gray-900">Test-Link (Checkbox-NDA, ohne DocuSign)</h2>
-        <p className="text-xs text-emerald-600 font-medium mb-2">Für Freunde &amp; Tester – schneller Zugang mit Checkbox statt DocuSign.</p>
+        <h2 className="font-semibold mb-1 text-gray-900">Test-Link (Checkbox-Bestätigung)</h2>
+        <p className="text-xs text-emerald-600 font-medium mb-2">
+          Für Freunde und Tester – schneller Zugang mit Checkbox statt Anbindung an den Signaturdienst.
+        </p>
         <p className="text-sm text-gray-600 mb-3">
-          Empfänger sieht das NDA, setzt ein Häkchen und kommt direkt in die Demo. Kein DocuSign nötig. 50 Zugriffe, 14 Tage gültig.
+          Empfänger sieht die Vertraulichkeitserklärung, setzt ein Häkchen und kommt direkt in die Demo. 50 Zugriffe,
+          14 Tage gültig.
         </p>
         <div className="grid gap-3 max-w-md">
           <div className="grid grid-cols-2 gap-2">
@@ -368,42 +375,53 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-        <h2 className="font-semibold mb-3">Neuer Demo-Link (ohne NDA)</h2>
-        <div className="grid gap-3 max-w-md">
-          <input
-            type="text"
-            placeholder="Empfänger-Name"
-            value={recipientName}
-            onChange={(e) => setRecipientName(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2"
-          />
-          <input
-            type="text"
-            placeholder="Organisation"
-            value={recipientOrg}
-            onChange={(e) => setRecipientOrg(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2"
-          />
-          <label className="flex items-center gap-2">
-            <span className="text-sm">Ablauf (Tage):</span>
+      {/* Legacy: Interner Token-Link – nur für interne Tests ohne NDA-Flow */}
+      <details className="mb-6">
+        <summary className="cursor-pointer text-xs text-gray-400 hover:text-gray-600 select-none py-1">
+          ⚙️ Interner Direktlink (Legacy, ohne NDA-Flow) – nur für interne Tests
+        </summary>
+        <div className="mt-3 bg-amber-50 rounded-xl border border-amber-200 p-4">
+          <p className="text-xs text-amber-700 font-medium mb-3">
+            ⚠️ Dieser Link führt direkt zur Demo, ohne NDA-Prozess. Nur für interne Entwicklungs- und Funktionstests verwenden. Für externe Demos bitte den Zugangs-Link (mit NDA) oder den Test-Link (Checkbox-NDA) nutzen.
+          </p>
+          {createTokenError && (
+            <p className="text-sm text-red-600 mb-2">{createTokenError}</p>
+          )}
+          <div className="grid gap-3 max-w-md">
             <input
-              type="number"
-              min={1}
-              value={expiresDays}
-              onChange={(e) => setExpiresDays(Number(e.target.value))}
-              className="border border-gray-300 rounded px-2 py-1 w-20"
+              type="text"
+              placeholder="Empfänger-Name (intern)"
+              value={recipientName}
+              onChange={(e) => setRecipientName(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
             />
-          </label>
-          <button
-            onClick={createToken}
-            disabled={creating}
-            className="bg-blue-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50"
-          >
-            {creating ? 'Erstelle…' : 'Link erstellen'}
-          </button>
+            <input
+              type="text"
+              placeholder="Organisation (intern)"
+              value={recipientOrg}
+              onChange={(e) => setRecipientOrg(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            />
+            <label className="flex items-center gap-2 text-sm">
+              <span>Ablauf (Tage):</span>
+              <input
+                type="number"
+                min={1}
+                value={expiresDays}
+                onChange={(e) => setExpiresDays(Number(e.target.value))}
+                className="border border-gray-300 rounded px-2 py-1 w-20"
+              />
+            </label>
+            <button
+              onClick={createToken}
+              disabled={creating}
+              className="bg-amber-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50"
+            >
+              {creating ? 'Erstelle…' : 'Internen Link erstellen'}
+            </button>
+          </div>
         </div>
-      </div>
+      </details>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <table className="w-full text-sm">

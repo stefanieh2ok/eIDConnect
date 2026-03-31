@@ -1,5 +1,5 @@
 /**
- * API Configuration für eIDConnect
+ * API Configuration (OpenAI etc.); User-Agent nutzt Demo-Produktname.
  * Verwaltet API-Schlüssel und Endpunkte für verschiedene KI-Services
  */
 
@@ -74,7 +74,7 @@ export const validateAPIKeys = (): { valid: boolean; missing: string[] } => {
 export const createAPIHeaders = (apiKey: string) => ({
   'Authorization': `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
-  'User-Agent': 'eIDConnect/1.0.0'
+  'User-Agent': 'eID-Demo-Connect/1.0.0'
 });
 
 // Rate Limiting Konfiguration

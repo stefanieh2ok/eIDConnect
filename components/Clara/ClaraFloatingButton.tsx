@@ -22,7 +22,7 @@ const ClaraFloatingButton: React.FC<ClaraFloatingButtonProps> = ({ onOpenClara, 
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowGreeting(true);
-      speak("Hallo! Ich bin Clara, deine KI-Assistentin. Chatte oder sprich mit mir – alles in einem.");
+      speak("Hallo! Ich bin Clara, deine digitale Assistentin für demokratische Orientierung. Chatte oder sprich mit mir.");
     }, 3000);
     return () => clearTimeout(timer);
   }, [speak]);
@@ -74,7 +74,7 @@ const ClaraFloatingButton: React.FC<ClaraFloatingButtonProps> = ({ onOpenClara, 
           >
             <p className="text-sm font-semibold mb-1">Clara</p>
             <p className="text-xs opacity-95 mb-3">
-              KI-Agent (EU AI Act). Chatten und Sprechen – stelle mir deine Fragen.
+              Digitale Assistentin für demokratische Orientierung. Neutral, quellenbasiert, nachvollziehbar.
             </p>
             <div className="flex gap-2">
               <button

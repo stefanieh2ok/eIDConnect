@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { ThumbsUp, ThumbsDown, Info, Clock, MapPin } from 'lucide-react';
+import { ThumbsUp, ThumbsDown } from 'lucide-react';
 
 interface SwipeCardProps {
   abstimmung: {
@@ -103,7 +103,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ abstimmung, onVote, onInfo }) => 
           </div>
           <div className="text-right">
             <div className="flex items-center gap-1 text-xs opacity-80 mb-1">
-              <Clock size={12} />
               <span>Frist</span>
             </div>
             <div className="text-sm font-bold">{abstimmung.deadline}</div>
@@ -135,7 +134,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ abstimmung, onVote, onInfo }) => 
           onClick={() => setShowDetails(!showDetails)}
           className="w-full py-2 text-blue-600 hover:text-blue-800 transition-colors flex items-center justify-center gap-2"
         >
-          <Info size={16} />
           {showDetails ? 'Weniger Details' : 'Mehr Details'}
         </button>
 
@@ -175,10 +173,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ abstimmung, onVote, onInfo }) => 
             
             {/* Additional Info */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
-                <MapPin className="text-blue-600" size={16} />
-                Weitere Informationen
-              </h4>
+              <h4 className="font-bold text-blue-800 mb-2">Weitere Informationen</h4>
               <div className="text-sm text-blue-700 space-y-1">
                 <div>• Abstimmung läuft bis {abstimmung.deadline}</div>
                 <div>• Mindestbeteiligung: 20% der Wahlberechtigten</div>
@@ -202,7 +197,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({ abstimmung, onVote, onInfo }) => 
             onClick={() => onInfo(abstimmung.id)}
             className="px-4 py-3 bg-gray-600 text-white rounded-lg font-bold hover:bg-gray-700 transition-colors"
           >
-            <Info size={18} />
+            Info
           </button>
           <button
             onClick={() => onVote(abstimmung.id, 'ja')}

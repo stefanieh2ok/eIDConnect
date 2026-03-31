@@ -5,6 +5,7 @@
 declare module 'lucide-react' {
   import type { FC, SVGProps } from 'react';
   type LucideIconProps = SVGProps<SVGSVGElement> & { size?: number };
+  export type LucideIcon = FC<LucideIconProps>;
   export const Settings: FC<LucideIconProps>;
   export const X: FC<LucideIconProps>;
   export const ChevronDown: FC<LucideIconProps>;
@@ -35,6 +36,22 @@ declare module 'lucide-react' {
   export const Award: FC<LucideIconProps>;
   export const Lock: FC<LucideIconProps>;
   export const Calendar: FC<LucideIconProps>;
+  export const BarChart2: FC<LucideIconProps>;
+  export const MessageSquare: FC<LucideIconProps>;
+  export const Vote: FC<LucideIconProps>;
+  export const CalendarDays: FC<LucideIconProps>;
+  export const Building: FC<LucideIconProps>;
+  export const Clipboard: FC<LucideIconProps>;
+  export const Inbox: FC<LucideIconProps>;
+  export const List: FC<LucideIconProps>;
+  export const Scale: FC<LucideIconProps>;
+  export const ListChecks: FC<LucideIconProps>;
+  export const Camera: FC<LucideIconProps>;
+  export const Wrench: FC<LucideIconProps>;
+  export const TreePine: FC<LucideIconProps>;
+  export const Lightbulb: FC<LucideIconProps>;
+  export const MoreHorizontal: FC<LucideIconProps>;
+  export const SlidersHorizontal: FC<LucideIconProps>;
   export const Mic: FC<LucideIconProps>;
   export const MicOff: FC<LucideIconProps>;
   export const Volume2: FC<LucideIconProps>;

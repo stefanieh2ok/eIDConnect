@@ -3,15 +3,50 @@
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { VOTING_DATA } from '@/data/constants';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { WAHLEN_DATA } from '@/data/constants';
+import { HESSEN_CALENDAR_LOCATION_IDS, HESSEN_KREIS_MENU_LABELS } from '@/data/hessenKreis';
+import { BW_CALENDAR_LOCATION_IDS, BW_KREIS_MENU_LABELS } from '@/data/badenWuerttembergKreis';
+import { CalendarScopeFilter, type CalendarGeoScope } from '@/components/Filter/CalendarScopeFilter';
+import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
+import type { EbeneLevel } from '@/types';
+
+function buildHessenCalendarLocationTypes(): Record<string, string> {
+  const o: Record<string, string> = { hessen: 'saarland' };
+  for (const id of Object.keys(HESSEN_KREIS_MENU_LABELS)) {
+    o[id] = 'kreis';
+  }
+  for (const id of HESSEN_CALENDAR_LOCATION_IDS) {
+    if (id === 'hessen' || id.startsWith('he_')) continue;
+    o[id] = 'kommune';
+  }
+  return o;
+}
+
+function buildBadenWuerttembergCalendarLocationTypes(): Record<string, string> {
+  const o: Record<string, string> = { 'baden-wuerttemberg': 'saarland' };
+  for (const id of Object.keys(BW_KREIS_MENU_LABELS)) {
+    o[id] = 'kreis';
+  }
+  for (const id of BW_CALENDAR_LOCATION_IDS) {
+    if (id === 'baden-wuerttemberg' || id.startsWith('bw_')) continue;
+    o[id] = 'kommune';
+  }
+  return o;
+}
+
+const HESSEN_CAL_TYPES = buildHessenCalendarLocationTypes();
+const BW_CAL_TYPES = buildBadenWuerttembergCalendarLocationTypes();
 
 interface MenuItem { id: string; name: string; level: string }
 
 interface CalendarEvent {
-  type: string;
+  kind: 'wahl' | 'abstimmung';
+  level: EbeneLevel;
   title: string;
   cardId?: string;
   location: string;
+  /** Punkte/Relevanz (nur Abstimmungen); soll visuell subtil bleiben */
+  points?: number;
 }
 
 interface CalendarSectionProps {
@@ -20,6 +55,8 @@ interface CalendarSectionProps {
   priorities?: Record<string, number>;
   /** Nur Ebenen anzeigen, die der Nutzer hat (Bund, Land, Kreis, Kommune) */
   menuItems?: MenuItem[];
+  /** Callback bei Klick auf Kalender-Eintrag: wechselt zu Abstimmen-Tab und zeigt die Karte */
+  onEventClick?: (event: { location: string; cardId: string }) => void;
 }
 
 const MONTHS = [
@@ -57,115 +94,331 @@ const LEGEND_CONFIG: Record<string, { label: string; points: string; bg: string 
 };
 const LEVEL_ORDER = ['bund', 'land', 'kreis', 'kommune'];
 
-const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotingData, currentLocation: propLocation, priorities, menuItems }) => {
+const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotingData, currentLocation: propLocation, priorities, menuItems, onEventClick }) => {
   const legendLevels = React.useMemo(() => {
     const levels = new Set((menuItems || []).map(m => m.level));
     return LEVEL_ORDER.filter(l => levels.has(l)).map(level => ({ level, ...LEGEND_CONFIG[level] }));
   }, [menuItems]);
   const showAllLegend = legendLevels.length === 0;
   const { state, dispatch } = useApp();
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(9); // Start bei Oktober (Index 9)
-  const [currentYear, setCurrentYear] = useState(2025);
+  const now = new Date();
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(now.getMonth());
+  const [currentYear, setCurrentYear] = useState(now.getFullYear());
+  const [geoScope, setGeoScope] = useState<CalendarGeoScope>('all');
 
   const currentMonth = MONTHS[currentMonthIndex];
-  
-  // Kalender ausschließlich aus echten Abstimmungsdaten ableiten – keine separaten Daten, keine Halluzination
-  const calendarDataFromVoting = React.useMemo(() => {
-    const data: Record<number, Record<string, Record<number, CalendarEvent>>> = {};
-    const voting = propVotingData || VOTING_DATA;
-    const locationToType: Record<string, 'bundesweit' | 'saarland' | 'saarpfalz' | 'kirkel'> = {
-      deutschland: 'bundesweit',
-      saarland: 'saarland',
-      saarpfalz: 'saarpfalz',
-      kirkel: 'kirkel'
+
+  const residencePath = React.useMemo(() => {
+    const lvl = levelForResidenceLocation(state.residenceLocation);
+    if (lvl === 'kommune') return ['bund', 'land', 'kreis', 'kommune'] as EbeneLevel[];
+    if (lvl === 'kreis') return ['bund', 'land', 'kreis'] as EbeneLevel[];
+    if (lvl === 'land') return ['bund', 'land'] as EbeneLevel[];
+    return ['bund'] as EbeneLevel[];
+  }, [state.residenceLocation]);
+
+  const availableLevels = React.useMemo(() => residencePath, [residencePath]);
+
+  const LOCATION_LABEL: Record<string, string> = {
+    bundesweit: 'Deutschland',
+    deutschland: 'Deutschland',
+    saarland: 'Saarland',
+    saarpfalz: 'Saarpfalz-Kreis',
+    kirkel: 'Kirkel',
+    frankfurt: 'Frankfurt a. Main',
+    mannheim: 'Mannheim',
+    heidelberg: 'Heidelberg',
+    weinheim: 'Weinheim',
+    viernheim: 'Viernheim',
+    neustadt: 'Neustadt a. d. Weinstraße',
+    bremen: 'Bremen',
+    berlin: 'Berlin',
+    bayern: 'Bayern',
+    muenchen: 'München',
+  };
+
+  const LEVEL_LABEL: Record<EbeneLevel, string> = {
+    bund: 'Bund',
+    land: 'Land',
+    kreis: 'Kreis',
+    kommune: 'Kommune',
+  };
+
+  const LEVEL_COLOR: Record<EbeneLevel, { solid: string; border: string; text: string }> = {
+    bund: { solid: '#64748b', border: '#64748b', text: '#ffffff' }, // slate-500
+    land: { solid: '#1e3a8a', border: '#1e3a8a', text: '#ffffff' }, // blue-900
+    kreis: { solid: '#3b82f6', border: '#3b82f6', text: '#ffffff' }, // blue-500
+    kommune: { solid: '#60a5fa', border: '#60a5fa', text: '#ffffff' }, // blue-400
+  };
+
+  const selectionLabel = React.useMemo(() => {
+    if (geoScope === 'all') return 'Auswahl: Alle Ebenen';
+    const labelByLevel: Record<EbeneLevel, string> = {
+      bund: 'Bund',
+      land: 'Land',
+      kreis: 'Kreis',
+      kommune: 'Kommune',
     };
-    const locations = ['deutschland', 'saarland', 'saarpfalz', 'kirkel'] as const;
+    const locName = LOCATION_LABEL[state.activeLocation] ? ` · ${LOCATION_LABEL[state.activeLocation]}` : '';
+    return `Auswahl: ${labelByLevel[geoScope]}${locName}`;
+  }, [geoScope, state.activeLocation]);
+  
+  function parseGermanDate(dateStr: string): { d: number; m: number; y: number } | null {
+    const parts = (dateStr || '').trim().split(/\./);
+    if (parts.length !== 3) return null;
+    const [d, m, y] = parts.map(Number);
+    if (!d || !m || !y) return null;
+    if (m < 1 || m > 12) return null;
+    return { d, m, y };
+  }
+
+  // Kalender aus echten Daten ableiten:
+  // - Abstimmungen: aus VOTING_DATA deadlines
+  // - Wahlen: aus WAHLEN_DATA datum
+  const calendarDataFromVoting = React.useMemo(() => {
+    const data: Record<number, Record<string, Record<number, CalendarEvent[]>>> = {};
+    const voting = propVotingData || VOTING_DATA;
+    const locationToLevel: Record<string, EbeneLevel> = {
+      deutschland: 'bund',
+      saarland: 'land',
+      saarpfalz: 'kreis',
+      kirkel: 'kommune',
+      bayern: 'land',
+      muenchen: 'kreis',
+      hessen: 'land',
+      'rheinland-pfalz': 'land',
+      'baden-wuerttemberg': 'land',
+      neunkirchen: 'kreis',
+      merzig_wadern: 'kreis',
+      saarlouis: 'kreis',
+      st_wendel: 'kreis',
+      rv_saarbruecken: 'kreis',
+      homburg: 'kommune',
+      saarbruecken: 'kommune',
+      voelklingen: 'kommune',
+      mannheim: 'kommune',
+      heidelberg: 'kommune',
+      weinheim: 'kommune',
+      viernheim: 'kommune',
+      neustadt: 'kommune',
+      bremen: 'kommune',
+      berlin: 'kommune',
+      frankfurt: 'kommune',
+      kommune: 'kommune',
+      ...Object.fromEntries(Object.entries(HESSEN_CAL_TYPES).map(([k, v]) => [k, (v === 'kreis' ? 'kreis' : v === 'kommune' ? 'kommune' : 'land') as EbeneLevel])),
+      ...Object.fromEntries(Object.entries(BW_CAL_TYPES).map(([k, v]) => [k, (v === 'kreis' ? 'kreis' : v === 'kommune' ? 'kommune' : 'land') as EbeneLevel])),
+    };
+    const locations = [
+      'deutschland', 'saarland', 'hessen', 'rheinland-pfalz', 'baden-wuerttemberg',
+      'saarpfalz', 'neunkirchen', 'merzig_wadern', 'saarlouis', 'st_wendel', 'rv_saarbruecken',
+      'kirkel', 'homburg', 'saarbruecken', 'voelklingen', 'mannheim', 'heidelberg', 'weinheim', 'viernheim', 'neustadt',
+      'bremen', 'berlin', 'frankfurt', 'bayern', 'muenchen', 'kommune',
+      ...HESSEN_CALENDAR_LOCATION_IDS,
+      ...BW_CALENDAR_LOCATION_IDS,
+    ];
     for (const loc of locations) {
       const locData = voting[loc];
       const list = locData && 'items' in locData && Array.isArray(locData.items) ? locData.items : (locData && 'cards' in locData && Array.isArray(locData.cards) ? locData.cards : null);
       if (!list) continue;
       for (const item of list) {
-        const deadline = (item.deadline || '').trim();
-        const parts = deadline.split(/\./);
-        if (parts.length !== 3) continue;
-        const [d, m, y] = parts.map(Number);
-        if (!d || !m || !y || m < 1 || m > 12) continue;
+        const parsed = parseGermanDate(item.deadline || '');
+        if (!parsed) continue;
+        const { d, m, y } = parsed;
         const year = y;
         const monthKey = MONTHS[m - 1]?.key;
         if (!monthKey) continue;
         const day = Math.min(d, MONTHS[m - 1].days);
         if (!data[year]) data[year] = {};
         if (!data[year][monthKey]) data[year][monthKey] = {};
-        if (!data[year][monthKey][day]) {
-          data[year][monthKey][day] = {
-            type: locationToType[loc] ?? 'bundesweit',
-            title: item.title || 'Abstimmung',
-            cardId: item.id,
-            location: loc
-          };
-        }
+        if (!data[year][monthKey][day]) data[year][monthKey][day] = [];
+        data[year][monthKey][day].push({
+          kind: 'abstimmung',
+          level: locationToLevel[loc] ?? 'bund',
+          title: item.title || 'Abstimmung',
+          cardId: item.id,
+          location: loc,
+          points: typeof item.points === 'number' ? item.points : undefined,
+        });
       }
     }
+
+    // Wahlen hinzufügen (datum)
+    for (const w of WAHLEN_DATA) {
+      if (!w?.datum || w.datum === 'aktuell') continue;
+      const parsed = parseGermanDate(w.datum);
+      if (!parsed) continue;
+      const { d, m, y } = parsed;
+      const monthKey = MONTHS[m - 1]?.key;
+      if (!monthKey) continue;
+      const day = Math.min(d, MONTHS[m - 1].days);
+      const level: EbeneLevel = (w.level as EbeneLevel) || 'bund';
+      const location = w.location || (level === 'bund' ? 'deutschland' : level === 'land' ? 'saarland' : level === 'kreis' ? 'saarpfalz' : 'kirkel');
+      if (!data[y]) data[y] = {};
+      if (!data[y][monthKey]) data[y][monthKey] = {};
+      if (!data[y][monthKey][day]) data[y][monthKey][day] = [];
+      data[y][monthKey][day].push({
+        kind: 'wahl',
+        level,
+        title: w.name || 'Wahl',
+        location,
+      });
+    }
+
     return data;
   }, [propVotingData]);
 
   const calendarData = calendarDataFromVoting[currentYear] ?? {};
   const votingDataToUse = propVotingData || VOTING_DATA;
 
+  const availableYears = React.useMemo(() => {
+    const years = Object.keys(calendarDataFromVoting)
+      .map((y) => Number(y))
+      .filter((n) => Number.isFinite(n))
+      .sort((a, b) => b - a);
+    return years.length > 0 ? years : [now.getFullYear()];
+  }, [calendarDataFromVoting, now]);
+
   // Alle Abstimmungen des aktuellen Monats (Bund, Land, Kreis, Kommune) – nur aus votingData, sortiert nach Tag
   const allEventsThisMonth = React.useMemo(() => {
     const out: Array<{ day: number; event: CalendarEvent; card: any }> = [];
     const voting = propVotingData || VOTING_DATA;
-    const locationToType: Record<string, 'bundesweit' | 'saarland' | 'saarpfalz' | 'kirkel'> = {
-      deutschland: 'bundesweit', saarland: 'saarland', saarpfalz: 'saarpfalz', kirkel: 'kirkel'
+    const locationToLevel: Record<string, EbeneLevel> = {
+      deutschland: 'bund',
+      saarland: 'land',
+      saarpfalz: 'kreis',
+      kirkel: 'kommune',
+      bayern: 'land',
+      muenchen: 'kreis',
+      hessen: 'land',
+      'rheinland-pfalz': 'land',
+      'baden-wuerttemberg': 'land',
+      neunkirchen: 'kreis',
+      merzig_wadern: 'kreis',
+      saarlouis: 'kreis',
+      st_wendel: 'kreis',
+      rv_saarbruecken: 'kreis',
+      homburg: 'kommune',
+      saarbruecken: 'kommune',
+      voelklingen: 'kommune',
+      mannheim: 'kommune',
+      heidelberg: 'kommune',
+      weinheim: 'kommune',
+      viernheim: 'kommune',
+      neustadt: 'kommune',
+      bremen: 'kommune',
+      berlin: 'kommune',
+      frankfurt: 'kommune',
+      kommune: 'kommune',
+      ...Object.fromEntries(Object.entries(HESSEN_CAL_TYPES).map(([k, v]) => [k, (v === 'kreis' ? 'kreis' : v === 'kommune' ? 'kommune' : 'land') as EbeneLevel])),
+      ...Object.fromEntries(Object.entries(BW_CAL_TYPES).map(([k, v]) => [k, (v === 'kreis' ? 'kreis' : v === 'kommune' ? 'kommune' : 'land') as EbeneLevel])),
     };
     const monthKey = currentMonth.key;
     const monthNum = currentMonthIndex + 1;
-    (['deutschland', 'saarland', 'saarpfalz', 'kirkel'] as const).forEach(loc => {
+    const locs = [
+      'deutschland', 'saarland', 'hessen', 'rheinland-pfalz', 'baden-wuerttemberg',
+      'saarpfalz', 'neunkirchen', 'merzig_wadern', 'saarlouis', 'st_wendel', 'rv_saarbruecken',
+      'kirkel', 'homburg', 'saarbruecken', 'voelklingen', 'mannheim', 'heidelberg', 'weinheim', 'viernheim', 'neustadt',
+      'bremen', 'berlin', 'frankfurt', 'bayern', 'muenchen', 'kommune',
+      ...HESSEN_CALENDAR_LOCATION_IDS,
+      ...BW_CALENDAR_LOCATION_IDS,
+    ];
+    locs.forEach(loc => {
       const locData = voting[loc];
       const list = locData && 'items' in locData && Array.isArray(locData.items) ? locData.items : (locData && 'cards' in locData && Array.isArray(locData.cards) ? locData.cards : null);
       if (!list) return;
       list.forEach((item: any) => {
-        const deadline = (item.deadline || '').trim();
-        const parts = deadline.split(/\./);
-        if (parts.length !== 3) return;
-        const [d, m, y] = parts.map(Number);
-        if (!d || !m || !y || m !== monthNum || y !== currentYear) return;
+        const parsed = parseGermanDate(item.deadline || '');
+        if (!parsed) return;
+        const { d, m, y } = parsed;
+        if (m !== monthNum || y !== currentYear) return;
         const day = Math.min(d, currentMonth.days);
         out.push({
           day,
           event: {
-            type: locationToType[loc] ?? 'bundesweit',
+            kind: 'abstimmung',
+            level: locationToLevel[loc] ?? 'bund',
             title: item.title || 'Abstimmung',
             cardId: item.id,
-            location: loc
+            location: loc,
+            points: typeof item.points === 'number' ? item.points : undefined,
           },
           card: item
         });
       });
     });
+
+    // Wahlen dieses Monats ergänzen (ohne card)
+    for (const w of WAHLEN_DATA) {
+      if (!w?.datum || w.datum === 'aktuell') continue;
+      const parsed = parseGermanDate(w.datum);
+      if (!parsed) continue;
+      const { d, m, y } = parsed;
+      if (m !== monthNum || y !== currentYear) continue;
+      const level: EbeneLevel = (w.level as EbeneLevel) || 'bund';
+      const location = w.location || (level === 'bund' ? 'deutschland' : level === 'land' ? 'saarland' : level === 'kreis' ? 'saarpfalz' : 'kirkel');
+      out.push({
+        day: Math.min(d, currentMonth.days),
+        event: { kind: 'wahl', level, title: w.name || 'Wahl', location },
+        card: null,
+      });
+    }
+
     out.sort((a, b) => a.day - b.day);
     return out;
   }, [propVotingData, currentYear, currentMonthIndex, currentMonth.key, currentMonth.days]);
+
+  const filteredEventsThisMonth = React.useMemo(() => {
+    const allowed = new Set(availableLevels);
+    return allEventsThisMonth
+      .filter(({ event }) => allowed.has(event.level))
+      .filter(({ event }) => (geoScope === 'all' ? true : event.level === geoScope));
+  }, [allEventsThisMonth, availableLevels, geoScope]);
+
+  const sortedEventsForList = React.useMemo(() => {
+    // Punkte/Relevanz nur als subtile Metainfo: in der Liste sortieren wir Abstimmungen leicht nach Punkten
+    // (Wahlen bleiben prominent, aber Typ bleibt primär über Label).
+    const copy = [...filteredEventsThisMonth];
+    copy.sort((a, b) => {
+      if (a.day !== b.day) return a.day - b.day;
+      if (a.event.kind !== b.event.kind) return a.event.kind === 'wahl' ? -1 : 1; // Wahl zuerst
+      const ap = typeof a.event.points === 'number' ? a.event.points : 0;
+      const bp = typeof b.event.points === 'number' ? b.event.points : 0;
+      return bp - ap;
+    });
+    return copy;
+  }, [filteredEventsThisMonth]);
   
   // Location-Mapping
   const locationMap: Record<string, string> = {
-    'deutschland': 'deutschland',
-    'bundesweit': 'deutschland',
-    'bund': 'deutschland',
-    'saarland': 'saarland',
-    'land': 'saarland',
+    'deutschland': 'deutschland', 'bundesweit': 'deutschland', 'bund': 'deutschland',
+    'saarland': 'saarland', 'land': 'saarland', 'hessen': 'hessen', 'rheinland-pfalz': 'rheinland-pfalz', 'baden-wuerttemberg': 'baden-wuerttemberg',
     'saarpfalz': 'saarpfalz',
+    'neunkirchen': 'neunkirchen',
+    'merzig_wadern': 'merzig_wadern',
+    'saarlouis': 'saarlouis',
+    'st_wendel': 'st_wendel',
+    'rv_saarbruecken': 'rv_saarbruecken',
+    'kirkel': 'kirkel', 'homburg': 'homburg', 'saarbruecken': 'saarbruecken', 'voelklingen': 'voelklingen',
+    'mannheim': 'mannheim', 'heidelberg': 'heidelberg', 'weinheim': 'weinheim',
+    'viernheim': 'viernheim', 'neustadt': 'neustadt', 'bremen': 'bremen', 'berlin': 'berlin', 'frankfurt': 'frankfurt',
+    'kommune': 'kommune',
     'kreis': 'saarpfalz',
-    'kirkel': 'kirkel',
-    'kommune': 'kirkel'
+    ...Object.fromEntries(HESSEN_CALENDAR_LOCATION_IDS.map((id) => [id, id])),
+    ...Object.fromEntries(BW_CALENDAR_LOCATION_IDS.map((id) => [id, id])),
   };
   
   const currentLocationKey = propLocation || state.activeLocation || 'deutschland';
   const mappedLocation = locationMap[currentLocationKey] || currentLocationKey;
 
   const handleEventClick = (event: CalendarEvent) => {
+    if (onEventClick && event.cardId) {
+      onEventClick({ location: event.location, cardId: event.cardId });
+    }
     dispatch({ type: 'SET_ACTIVE_LOCATION', payload: event.location as any });
+    // Navigation je nach Eventtyp
+    if (event.kind === 'wahl') {
+      dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'wahlen' });
+      return;
+    }
     dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'live' });
     const locationKey = locationMap[event.location] || event.location;
     const locationData = votingDataToUse[locationKey];
@@ -181,8 +434,16 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
   };
 
   const handleCalendarClick = (day: number) => {
-    const event = calendarData[currentMonth.key]?.[day];
-    if (event) handleEventClick(event);
+    const events = calendarData[currentMonth.key]?.[day] ?? [];
+    const allowed = new Set(availableLevels);
+    const visible = events
+      .filter((e) => allowed.has(e.level))
+      .filter((e) => (geoScope === 'all' ? true : e.level === geoScope));
+    if (visible.length > 0) {
+      // Wahl hat Priorität beim Klick, danach Abstimmung
+      const sorted = [...visible].sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'wahl' ? -1 : 1));
+      handleEventClick(sorted[0]);
+    }
   };
 
   const nextMonth = () => {
@@ -195,6 +456,24 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
 
   return (
     <div>
+        <div className="flex items-start justify-between mb-2">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">Kalender</h2>
+            <div className="mt-0.5 text-[11px] text-neutral-500">
+              Jahr: <span className="font-semibold text-neutral-700">{currentYear}</span> · <span>{selectionLabel}</span>
+            </div>
+          </div>
+          <CalendarScopeFilter
+            value={geoScope}
+            availableLevels={availableLevels}
+            onChange={(next) => {
+              setGeoScope(next);
+              const level = next === 'all' ? 'bund' : next;
+              const loc = activeLocationForLevel(state.residenceLocation, level);
+              dispatch({ type: 'SET_ACTIVE_LOCATION', payload: loc });
+            }}
+          />
+      </div>
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => {
@@ -208,28 +487,22 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           aria-label="Vorheriger Monat"
         >
-          <ChevronLeft size={20} />
+          <span className="text-sm font-bold">Zurück</span>
         </button>
         <div className="flex items-center gap-3">
-          <h2 className="text-2xl font-bold text-gray-900">{currentMonth.name} {currentYear}</h2>
-          <div className="flex gap-1">
-            <button
-              onClick={() => setCurrentYear(2025)}
-              className={`px-3 py-1 rounded-lg text-sm font-semibold transition-colors ${
-                currentYear === 2025 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              2025
-            </button>
-            <button
-              onClick={() => setCurrentYear(2026)}
-              className={`px-3 py-1 rounded-lg text-sm font-semibold transition-colors ${
-                currentYear === 2026 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              2026
-            </button>
-          </div>
+          <h2 className="text-xl font-bold text-gray-900">{currentMonth.name}</h2>
+          <select
+            value={currentYear}
+            onChange={(e) => setCurrentYear(Number(e.target.value))}
+            className="rounded-lg border border-neutral-200 bg-white/70 px-2 py-1 text-[11px] font-semibold text-neutral-800 backdrop-blur"
+            aria-label="Jahr auswählen"
+          >
+            {availableYears.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
         </div>
         <button
           onClick={() => {
@@ -243,14 +516,14 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           aria-label="Nächster Monat"
         >
-          <ChevronRight size={20} />
+          <span className="text-sm font-bold">Weiter</span>
         </button>
       </div>
       
       <div className="bg-white rounded-2xl p-4 shadow-sm">
         <div className="grid grid-cols-7 gap-2 mb-3">
           {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(day => (
-            <div key={day} className="text-center text-xs font-semibold text-gray-600 pb-2">
+            <div key={day} className="text-center text-[10px] font-semibold text-gray-600 pb-2">
               {day}
             </div>
           ))}
@@ -259,25 +532,89 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
         <div className="grid grid-cols-7 gap-2">
           {[...Array(currentMonth.days)].map((_, i) => {
             const day = i + 1;
-            const event = calendarData[currentMonth.key]?.[day];
+            const events = calendarData[currentMonth.key]?.[day] ?? [];
+            const allowed = new Set(availableLevels);
+            const visible = events
+              .filter((e) => allowed.has(e.level))
+              .filter((e) => (geoScope === 'all' ? true : e.level === geoScope));
+
+            const wahlLevels = Array.from(
+              new Set(
+                visible
+                  .filter((e) => e.kind === 'wahl')
+                  .map((e) => e.level)
+              )
+            );
+            const abstLevels = Array.from(
+              new Set(
+                visible
+                  .filter((e) => e.kind === 'abstimmung')
+                  .map((e) => e.level)
+              )
+            );
+
+            const maxPoints = visible.reduce((mx, e) => (typeof e.points === 'number' ? Math.max(mx, e.points) : mx), 0);
+            const showRelevanceDot = maxPoints >= 300; // subtiler Hinweis, nicht dominant
             
             return (
               <button
                 key={i}
-                onClick={() => event && handleCalendarClick(day)}
-                className={`aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-all ${
-                  event
-                    ? event.type === 'bundesweit'
-                      ? 'bg-slate-500 text-white font-bold hover:bg-slate-600 cursor-pointer'
-                      : event.type === 'saarland'
-                      ? 'bg-blue-900 text-white font-bold hover:bg-blue-800 cursor-pointer'
-                      : 'bg-blue-400 text-white font-bold hover:bg-blue-500 cursor-pointer'
-                    : 'bg-gray-50 text-gray-700'
+                onClick={() => visible.length > 0 && handleCalendarClick(day)}
+                className={`relative aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-all border ${
+                  visible.length > 0
+                    ? 'bg-white text-gray-900 hover:bg-gray-50 cursor-pointer border-neutral-200'
+                    : 'bg-gray-50 text-gray-700 border-transparent'
                 }`}
-                aria-label={event ? `${event.title} am ${day}. ${currentMonth.name}` : `Tag ${day}`}
+                aria-label={
+                  visible.length > 0
+                    ? `${visible[0]?.title} am ${day}. ${currentMonth.name} (${visible.some((e) => e.kind === 'wahl') ? 'Wahl' : 'Abstimmung'})`
+                    : `Tag ${day}`
+                }
               >
                 <div>{day}</div>
-                {event && <div className="text-xs mt-0.5">🗳️</div>}
+
+                {/* Marker-Logik:
+                    1) Event-Typ (primär): Wahl = gefüllt, Abstimmung = Outline
+                    2) Ebene (sekundär): Farbe
+                    3) Punkte (tertiär): kleiner Relevanzpunkt */}
+                {(wahlLevels.length > 0 || abstLevels.length > 0) && (
+                  <div className="mt-1 flex flex-col items-center gap-0.5" aria-hidden>
+                    {wahlLevels.length > 0 && (
+                      <div className="flex items-center gap-0.5">
+                        {wahlLevels.slice(0, 2).map((lvl) => (
+                          <span
+                            key={`w-${lvl}`}
+                            className="h-1.5 w-1.5 rounded-full"
+                            style={{ background: LEVEL_COLOR[lvl].solid }}
+                            title={`Wahl · ${LEVEL_LABEL[lvl]}`}
+                          />
+                        ))}
+                        {wahlLevels.length > 2 && <span className="text-[9px] text-neutral-400">+</span>}
+                      </div>
+                    )}
+                    {abstLevels.length > 0 && (
+                      <div className="flex items-center gap-0.5">
+                        {abstLevels.slice(0, 2).map((lvl) => (
+                          <span
+                            key={`a-${lvl}`}
+                            className="h-1.5 w-1.5 rounded-full"
+                            style={{ border: `1px solid ${LEVEL_COLOR[lvl].border}`, background: 'transparent' }}
+                            title={`Abstimmung · ${LEVEL_LABEL[lvl]}`}
+                          />
+                        ))}
+                        {abstLevels.length > 2 && <span className="text-[9px] text-neutral-400">+</span>}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {showRelevanceDot && (
+                  <span
+                    className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-400/70"
+                    aria-hidden
+                    title="Höhere Punkte (subtil)"
+                  />
+                )}
               </button>
             );
           })}
@@ -285,70 +622,90 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
       </div>
 
       <div className="mt-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-4">Legende</h3>
-        <div className="space-y-3">
-          {showAllLegend
-            ? LEVEL_ORDER.map(level => {
-                const c = LEGEND_CONFIG[level];
-                return (
-                  <div key={level} className="flex items-center gap-3">
-                    <div className={`w-8 h-8 ${c.bg} rounded`}></div>
-                    <span className="text-lg font-semibold">{c.label} • {c.points}</span>
-                  </div>
-                );
-              })
-            : legendLevels.map(({ level, label, points, bg }) => (
-                <div key={level} className="flex items-center gap-3">
-                  <div className={`w-8 h-8 ${bg} rounded`}></div>
-                  <span className="text-lg font-semibold">{label} • {points}</span>
-                </div>
-              ))}
+        <h3 className="text-xs font-bold text-gray-700 mb-2">Legende</h3>
+        <div className="space-y-2">
+          {/* 1) Typ (Fill/Outline) */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ background: '#334155' }} aria-hidden />
+              <span className="text-[11px] text-gray-700">Fill = Wahl</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full" style={{ border: '1px solid #334155', background: 'transparent' }} aria-hidden />
+              <span className="text-[11px] text-gray-700">Outline = Abstimmung</span>
+            </div>
+          </div>
+
+          {/* 2) Farben (Ebene) */}
+          <div className="grid grid-cols-2 gap-y-1">
+            {(showAllLegend ? (LEVEL_ORDER as EbeneLevel[]) : (legendLevels.map((l) => l.level) as EbeneLevel[])).map((lvl) => (
+              <div key={lvl} className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: LEVEL_COLOR[lvl].solid }} aria-hidden />
+                <span className="text-[11px] text-gray-700">{LEVEL_LABEL[lvl]}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* 3) Punkte (subtil) */}
+          <div className="text-[10px] text-gray-500">
+            Punkte/Relevanz sind nur Metadaten (subtiler Hinweis, keine Hauptbedeutung).
+          </div>
         </div>
 
         <div className="mt-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2 mt-6">Abstimmungen im {currentMonth.name} {currentYear}</h3>
-          <p className="text-xs text-gray-600 mb-4">Nur Einträge aus den Stichtagen der App (Bund, Land, Kreis, Kommune). Einträge mit <span className="inline-block px-1.5 py-0.5 rounded border-2 border-emerald-500 bg-emerald-50 text-emerald-800 font-medium">Rahmen</span> wurden basierend auf Ihrem Politik-Barometer priorisiert.</p>
-          {allEventsThisMonth.length > 0 ? (
-            <div className="space-y-2">
-              {allEventsThisMonth.map(({ day, event, card }, idx) => {
-                const getTypeInfo = (type: string) => {
-                  if (type === 'bundesweit' || type === 'bund') return { label: 'BUND', borderColor: 'border-slate-500', bgColor: 'bg-slate-500', textColor: 'text-white' };
-                  if (type === 'saarland' || type === 'land') return { label: 'LAND', borderColor: 'border-blue-900', bgColor: 'bg-blue-900', textColor: 'text-white' };
-                  if (type === 'saarpfalz' || type === 'kreis') return { label: 'KREIS', borderColor: 'border-blue-500', bgColor: 'bg-blue-500', textColor: 'text-white' };
-                  return { label: 'KOMMUNE', borderColor: 'border-blue-400', bgColor: 'bg-blue-400', textColor: 'text-white' };
-                };
-                const typeInfo = getTypeInfo(event.type);
+          <h3 className="text-xs font-bold text-gray-700 mb-2 mt-4">
+            Termine im {currentMonth.name} {currentYear}
+          </h3>
+          <p className="text-[10px] text-gray-500 mb-2">
+            Kompaktliste (Filter wirkt auf Kalender + Legende + Liste).
+          </p>
+          {sortedEventsForList.length > 0 ? (
+            <div className="space-y-1">
+              {sortedEventsForList.map(({ day, event, card }, idx) => {
                 const isPriority = Boolean(priorities && card?.theme && (priorities[card.theme] ?? 0) >= PRIORITY_THRESHOLD);
+                const typeLabel = event.kind === 'wahl' ? 'Wahl' : 'Abstimmung';
+                const pointsText = typeof event.points === 'number' ? `+${event.points} Punkte` : null;
                 return (
                   <button
                     key={`${event.cardId}-${day}-${idx}`}
                     onClick={() => handleEventClick(event)}
-                    className={`w-full rounded-xl p-4 border-l-4 text-left hover:shadow-md transition-all ${typeInfo.borderColor} ${
-                      isPriority ? 'bg-emerald-50 border-2 border-emerald-500 ring-2 ring-emerald-300 shadow-sm' : 'bg-white border-r border-t border-b border-gray-100'
+                    className={`w-full rounded-lg px-3 py-2 text-left hover:bg-gray-50 transition border border-neutral-200 ${
+                      isPriority ? 'ring-1 ring-emerald-300' : ''
                     }`}
                   >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <span className={`text-sm font-bold px-3 py-1 rounded ${typeInfo.bgColor} ${typeInfo.textColor}`}>{typeInfo.label}</span>
-                          {isPriority && <span className="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-200 text-emerald-900">Basierend auf Ihrem Politik-Barometer priorisiert</span>}
-                          <span className="text-sm text-gray-600">{day}. {currentMonth.name} {currentYear}</span>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          {/* Typ (primär): Fill vs Outline */}
+                          <span
+                            className="h-2.5 w-2.5 rounded-full"
+                            style={
+                              event.kind === 'wahl'
+                                ? { background: LEVEL_COLOR[event.level].solid }
+                                : { border: `1px solid ${LEVEL_COLOR[event.level].border}`, background: 'transparent' }
+                            }
+                            aria-hidden
+                          />
+                          <span className="text-[10px] font-bold text-neutral-700">{typeLabel}</span>
+                          {/* Ebene (sekundär): Label */}
+                          <span className="text-[10px] font-semibold text-neutral-600">{LEVEL_LABEL[event.level]}</span>
+                          <span className="text-[10px] text-neutral-500">
+                            {day}. {currentMonth.name}
+                          </span>
+                          {isPriority && (
+                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                              Priorisiert
+                            </span>
+                          )}
+                          {pointsText && (
+                            <span className="ml-auto text-[10px] font-medium text-neutral-500">{pointsText}</span>
+                          )}
                         </div>
-                        <div className="text-xl font-bold mb-2">{event.title}</div>
-                        {card && (
-                          <div className="text-base text-gray-700 space-y-1 mt-2">
-                            {(card.description || card.desc) && <p className="line-clamp-2">{(card.description || card.desc)}</p>}
-                            {card.deadline && (
-                              <p className={isDeadlinePassed(card.deadline) ? 'text-gray-500 font-semibold' : 'text-gray-600 font-semibold'}>
-                                📅 {isDeadlinePassed(card.deadline) ? `Stichtag war der ${card.deadline} (abgelaufen)` : `Stichtag: ${card.deadline}`}
-                              </p>
-                            )}
-                            {card.category && <p className="text-gray-600">🏷️ {card.category}</p>}
-                            {card.points && <p className="text-gray-600 font-semibold">💰 +{card.points} Punkte</p>}
-                          </div>
-                        )}
+                        <div className="mt-1 text-[11px] font-semibold text-neutral-900 line-clamp-1">
+                          {event.title}
+                        </div>
                       </div>
-                      <ChevronRight size={24} className="text-gray-400 ml-2 flex-shrink-0" />
+                      <span className="text-[10px] font-semibold text-neutral-400 mt-1 flex-shrink-0">Details</span>
                     </div>
                   </button>
                 );
@@ -356,7 +713,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
             </div>
           ) : (
             <div className="bg-gray-50 rounded-xl p-4 text-center">
-              <p className="text-sm text-gray-600">Keine Abstimmungen mit Stichtag in {currentMonth.name} {currentYear} (nur Daten aus Bund, Land, Kreis, Kommune).</p>
+              <p className="text-[11px] text-gray-600">Keine Termine in {currentMonth.name} {currentYear}.</p>
             </div>
           )}
         </div>

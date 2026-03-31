@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { IphoneFrame } from '@/components/ui/IphoneFrame';
 
 export const metadata = {
   title: 'Zugang verweigert – HookAI',
@@ -15,7 +16,7 @@ function getReasonText(reason?: string) {
     case 'revoked':
       return 'Dieser personalisierte Zugangslink wurde widerrufen.';
     case 'invalid':
-      return 'Der Zugangslink ist ungültig oder konnte nicht verifiziert werden.';
+      return 'Der Zugangslink ist ungültig oder konnte nicht verifiziert werden. Mögliche Ursachen: Link wurde abgeschnitten, Token fehlt in der Datenbank, oder die Rückleitung vom Signaturdienst hat den Token nicht übermittelt. Bitte den vollständigen Link aus der E-Mail verwenden und erneut versuchen.';
     case 'max_views':
       return 'Die maximale Anzahl an Zugriffen für diesen Link wurde erreicht.';
     case 'error':
@@ -31,35 +32,37 @@ export default async function AccessDeniedPage({
   const { reason } = await searchParams;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 sm:px-6 py-12">
-      <div className="w-full max-w-xl rounded-3xl border border-neutral-200 bg-white p-8 sm:p-10 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">
+    <IphoneFrame>
+      <main className="flex h-full min-h-0 w-full items-center justify-center rounded-b-[1.75rem] px-3 py-6">
+      <div className="w-full max-w-[360px] rounded-2xl border border-neutral-200 bg-white/70 p-6 text-neutral-900 shadow-lg backdrop-blur-xl">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-600">
           Zugriff verweigert
         </p>
-        <h1 className="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-950">
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-neutral-900">
           Kein Zugriff auf diese Demo
         </h1>
-        <p className="mt-4 text-sm leading-6 text-neutral-600">
+        <p className="mt-4 text-sm leading-6 text-neutral-800">
           {getReasonText(reason)}
         </p>
 
-        <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-5 text-sm text-neutral-700">
+        <div className="mt-6 rounded-2xl border border-neutral-200 bg-white/55 p-4 text-sm text-neutral-800 backdrop-blur">
           Dieser Bereich ist ausschließlich für autorisierte Empfänger mit
           gültigem personalisiertem Demo-Zugang bestimmt.
         </div>
 
         {reason && (
-          <p className="mt-4 text-xs text-neutral-400 text-center">
+          <p className="mt-4 text-center text-xs text-neutral-600">
             Grund: {reason}
           </p>
         )}
 
         <p className="mt-6 text-center">
-          <Link href="/demo" className="text-sm text-blue-600 hover:underline">
+          <Link href="/demo" className="text-sm text-blue-700 underline hover:text-blue-800">
             Zum Demo-Einstieg
           </Link>
         </p>
       </div>
-    </main>
+      </main>
+    </IphoneFrame>
   );
 }

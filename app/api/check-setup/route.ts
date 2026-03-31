@@ -7,6 +7,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
  * Keine sensiblen Daten in der Antwort.
  */
 export async function GET() {
+  try {
   const checks: { step: string; ok: boolean; message: string }[] = [];
   let status: 'ok' | 'env_missing' | 'connection_failed' | 'table_missing' = 'ok';
 
@@ -112,4 +113,19 @@ export async function GET() {
           ? '.env.local prüfen: NEXT_PUBLIC_SUPABASE_URL = https://dein-projekt.supabase.co (ohne Anführungszeichen), SUPABASE_SERVICE_ROLE_KEY = langer Key aus Supabase. Danach Server neu starten.'
           : undefined,
   });
+  } catch (e) {
+    const err = e as { message?: string };
+    return NextResponse.json({
+      ok: false,
+      status: 'connection_failed',
+      checks: [
+        {
+          step: 'Check-Setup',
+          ok: false,
+          message: err?.message || 'Unbekannter Fehler in /api/check-setup',
+        },
+      ],
+      nextStep: '.env.local prüfen und Dev-Server neu starten (npm run dev).',
+    });
+  }
 }

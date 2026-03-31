@@ -8,6 +8,7 @@ import AccessLogTab from './access-log/AccessLogTab';
 import MeldungenTab from './meldungen/MeldungenTab';
 import AccessTokensTab from './access-tokens/AccessTokensTab';
 import AccessRequestsTab from './access-requests/AccessRequestsTab';
+import { APP_DISPLAY_NAME } from '@/lib/branding';
 
 const TABS = [
   { id: 'links', label: 'Demo-Links' },
@@ -31,7 +32,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="bg-white border-b border-gray-200 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-lg font-bold">Admin – eIDConnect</h1>
+        <h1 className="text-lg font-bold">Admin – {APP_DISPLAY_NAME}</h1>
         <div className="flex items-center gap-3">
           <a
             href="/admin/tokens"

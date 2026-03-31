@@ -1,167 +1,224 @@
 'use client';
 
-import React, { memo } from 'react';
-import { Clock, Sparkles, Check, ThumbsUp, ThumbsDown, ExternalLink } from 'lucide-react';
+import React, { memo, useState } from 'react';
+import { ChevronDown, ListChecks } from 'lucide-react';
 import { VotingCard as VotingCardType, VoteType } from '@/types';
-import ClaraInfoBox from '@/components/Clara/ClaraInfoBox';
 
 interface VotingCardProps {
   card: VotingCardType;
   canVote: boolean;
   dragOffset: number;
   isDragging: boolean;
-  showKIAnalysis: boolean;
   onDragStart: (clientX: number) => void;
   onDragMove: (clientX: number) => void;
   onDragEnd: () => void;
   onVote: (voteType: VoteType) => void;
-  onToggleKIAnalysis: () => void;
-  onOpenClaraChat: () => void;
 }
 
-const VotingCard: React.FC<VotingCardProps> = memo(({
-  card,
-  canVote,
-  dragOffset,
-  isDragging,
-  showKIAnalysis,
-  onDragStart,
-  onDragMove,
-  onDragEnd,
-  onVote,
-  onToggleKIAnalysis,
-  onOpenClaraChat
-}) => {
-  return (
-    <div
-      className="glass-card rounded-3xl overflow-hidden"
-      style={{
-        transform: `translateX(${dragOffset}px) rotate(${dragOffset * 0.05}deg)`,
-        opacity: isDragging ? 0.9 : 1,
-        transition: isDragging ? 'none' : 'all 0.3s'
-      }}
-      onMouseDown={(e) => canVote && onDragStart(e.clientX)}
-      onMouseMove={(e) => canVote && onDragMove(e.clientX)}
-      onMouseUp={() => canVote && onDragEnd()}
-      onMouseLeave={() => canVote && onDragEnd()}
-      onTouchStart={(e) => canVote && onDragStart(e.touches[0].clientX)}
-      onTouchMove={(e) => canVote && onDragMove(e.touches[0].clientX)}
-      onTouchEnd={() => canVote && onDragEnd()}
-    >
-      {/* Card Header */}
-      <div className="relative h-64 glass-card-header flex items-center justify-center">
-        <div className="text-7xl">{card.emoji}</div>
-        {card.urgent && (
-          <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1.5 rounded-full text-xs font-bold animate-pulse">
-            {card.deadline}
-          </div>
-        )}
-        <div className="absolute bottom-4 left-4 bg-white bg-opacity-90 px-3 py-1.5 rounded-full text-xs font-semibold">
-          {card.category}
-        </div>
-        {card.claraMatch > 70 && (
-          <div className="absolute bottom-4 right-4 bg-purple-600 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1">
-            <Sparkles size={14} />
-            {card.claraMatch}%
-          </div>
-        )}
-      </div>
+const VotingCard: React.FC<VotingCardProps> = memo(
+  ({
+    card,
+    canVote,
+    dragOffset,
+    isDragging,
+    onDragStart,
+    onDragMove,
+    onDragEnd,
+    onVote: _onVote,
+  }) => {
+    const [proOpen, setProOpen] = useState(false);
+    const [conOpen, setConOpen] = useState(false);
 
-      {/* Card Content */}
-      <div className="p-5">
-        {card.nummer && (
-          <div className="text-xs text-gray-500 mb-2">Vorlage {card.nummer}</div>
-        )}
-        <h2 className="text-xl font-bold text-gray-900 mb-2">{card.title}</h2>
-        <p className="text-sm text-gray-600 mb-4">{card.description}</p>
-
-        {/* Quick Facts */}
-        <div className="bg-gray-50 rounded-xl p-3 mb-4">
-          <div className="grid grid-cols-2 gap-2">
-            {card.quickFacts.map((fact, i) => (
-              <div key={i} className="flex items-start gap-1.5 text-xs">
-                <Check size={14} className="text-blue-900 mt-0.5 flex-shrink-0" />
-                <span>{fact}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Live Status */}
-        <div className="mb-4">
-          <div className="flex justify-between text-xs text-gray-600 mb-2">
-            <span className="font-semibold">Live-Status</span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              Wird gerade gezählt
+    return (
+      <div
+        className="rounded-2xl overflow-hidden"
+        style={{
+          background: 'rgba(255,255,255,0.90)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          border: '1px solid var(--gov-border, #D6E0EE)',
+          boxShadow: '0 4px 24px rgba(0,40,100,0.10)',
+          transform: `translateX(${dragOffset}px) rotate(${dragOffset * 0.025}deg)`,
+          opacity: isDragging ? 0.93 : 1,
+          transition: isDragging ? 'none' : 'transform 0.25s ease, opacity 0.2s',
+          cursor: canVote ? 'grab' : 'default',
+        }}
+        onMouseDown={(e) => canVote && onDragStart(e.clientX)}
+        onMouseMove={(e) => canVote && onDragMove(e.clientX)}
+        onMouseUp={() => canVote && onDragEnd()}
+        onMouseLeave={() => canVote && onDragEnd()}
+        onTouchStart={(e) => canVote && onDragStart(e.touches[0].clientX)}
+        onTouchMove={(e) => canVote && onDragMove(e.touches[0].clientX)}
+        onTouchEnd={() => canVote && onDragEnd()}
+      >
+        {/* ── Header-Streifen (Governikus Dunkelblau) ── */}
+        <div
+          className="flex items-center justify-between px-4 py-3"
+          style={{
+            background: 'linear-gradient(135deg, #002855 0%, #003d80 50%, #0055A4 100%)',
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <span
+              className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                color: 'rgba(255,255,255,0.90)',
+                border: '1px solid rgba(255,255,255,0.15)',
+              }}
+            >
+              {card.category}
             </span>
           </div>
-          <div className="flex h-12 rounded-full overflow-hidden shadow-inner">
-            <div 
-              className="bg-green-600 flex items-center justify-center text-white text-sm font-bold" 
-              style={{width: `${card.yes}%`}}
+          <div className="flex items-center gap-1.5">
+            {card.urgent ? (
+              <span
+                className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse"
+                style={{ background: 'rgba(217,48,37,0.85)', color: '#fff' }}
+              >
+                Frist: {card.deadline}
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-[9px] text-white/50">
+                Frist: {card.deadline}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* ── Inhalt ── */}
+        <div className="px-4 pt-3 pb-2">
+          <h2 className="text-[15px] font-bold leading-snug mb-1" style={{ color: 'var(--gov-heading, #1A2B45)' }}>
+            {card.title}
+          </h2>
+          <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--gov-muted, #6B7A99)' }}>
+            {card.description}
+          </p>
+        </div>
+
+        {/* ── Live-Balken ── */}
+        <div className="px-4 pb-2">
+          <div className="flex h-6 rounded-full overflow-hidden" style={{ background: '#EEF2F8' }}>
+            <div
+              className="flex items-center justify-center text-white text-[10px] font-bold"
+              style={{ width: `${card.yes}%`, background: '#22c55e' }}
             >
               {card.yes}%
             </div>
-            <div 
-              className="bg-red-600 flex items-center justify-center text-white text-sm font-bold" 
-              style={{width: `${card.no}%`}}
+            <div
+              className="flex items-center justify-center text-white text-[10px] font-bold"
+              style={{ width: `${card.no}%`, background: '#ef4444' }}
             >
               {card.no}%
             </div>
             {card.abstain > 0 && (
-              <div 
-                className="bg-gray-400 flex items-center justify-center text-white text-sm font-bold" 
-                style={{width: `${card.abstain}%`}}
+              <div
+                className="flex items-center justify-center text-[10px] font-medium"
+                style={{ width: `${card.abstain}%`, background: '#CBD5E1', color: '#64748B' }}
               >
                 {card.abstain}%
               </div>
             )}
           </div>
-          <div className="flex justify-between mt-2 text-xs text-gray-600">
-            <span>{card.votes.toLocaleString('de-DE')} Abstimmende</span>
-            <span className="font-bold text-blue-900">+{card.points} Punkte</span>
+          <div className="flex justify-between mt-1">
+            <span className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--gov-muted)' }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block" />
+              {card.votes.toLocaleString('de-DE')} Stimmen
+            </span>
+            <span className="text-[10px] font-bold" style={{ color: 'var(--gov-primary-mid, #0055A4)' }}>
+              +{card.points} Demo-Punkte
+            </span>
           </div>
         </div>
 
-        {/* Regionale Ergebnisse */}
-        {card.regionalResults && (
-          <div className="bg-blue-50 rounded-xl p-3 mb-4 border border-blue-200">
-            <h4 className="font-semibold text-sm mb-2">Regionale Verteilung</h4>
-            {card.regionalResults.map((region, i) => (
-              <div key={i} className="flex justify-between items-center py-1.5 text-xs">
-                <span className="font-medium">{region.land}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-green-700 font-bold">{region.yes}%</span>
-                  <span className="text-gray-500">/</span>
-                  <span className="text-red-700 font-bold">{region.no}%</span>
-                  {region.trend && (
-                    <span className="text-gray-600 italic ml-2">{region.trend}</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* KI Analysis Button */}
-        <button
-          onClick={onToggleKIAnalysis}
-          className="w-full bg-gradient-to-r from-purple-600 to-purple-500 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 mb-3 hover:shadow-lg transition-all"
+        {/* ── Quick Facts ── */}
+        <div
+          className="mx-4 mb-3 rounded-xl px-3 py-2 grid grid-cols-2 gap-x-3 gap-y-1"
+          style={{ background: 'var(--gov-primary-light, #E8F0FB)' }}
         >
-          <Sparkles size={16} />
-          {showKIAnalysis ? 'Clara ausblenden' : 'Clara-KI Deep Dive'}
-        </button>
+          {card.quickFacts.slice(0, 4).map((fact, i) => (
+            <div key={i} className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--gov-heading)' }}>
+              <ListChecks className="h-3 w-3 flex-shrink-0" style={{ color: 'var(--gov-primary-mid)' }} aria-hidden />
+              <span className="truncate">{fact}</span>
+            </div>
+          ))}
+        </div>
 
-        {/* Clara AI Analysis */}
-        {showKIAnalysis && (
-          <ClaraInfoBox card={card} onOpenChat={onOpenClaraChat} />
-        )}
+        {/* ── Pro / Contra: einklappbar, damit Abstimmungs-Buttons sichtbar bleiben ── */}
+        <div className="mx-4 mb-3 grid grid-cols-2 gap-2">
+          <div className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/60">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between gap-1 px-2.5 py-2 text-left"
+              onClick={() => setProOpen((o: boolean) => !o)}
+              aria-expanded={proOpen}
+              aria-controls="voting-pro-details"
+              id="voting-pro-toggle"
+            >
+              <span className="text-[10px] font-extrabold text-emerald-800">Pro</span>
+              <ChevronDown
+                className={`h-3.5 w-3.5 shrink-0 text-emerald-700 transition-transform ${proOpen ? 'rotate-180' : ''}`}
+                aria-hidden
+              />
+            </button>
+            {proOpen ? (
+              <ul
+                id="voting-pro-details"
+                role="region"
+                aria-labelledby="voting-pro-toggle"
+                className="space-y-1 border-t border-emerald-200/80 px-2.5 pb-2.5 pt-1 text-[10px] leading-snug text-emerald-950"
+              >
+                {(card.kiAnalysis?.pros ?? []).slice(0, 2).map((p, i) => (
+                  <li key={i} className="flex gap-1">
+                    <span className="mt-[2px] text-emerald-700">•</span>
+                    <span>{p.text}</span>
+                  </li>
+                ))}
+                {(card.kiAnalysis?.pros ?? []).length === 0 && (
+                  <li className="text-emerald-800/80">Sachliche Vorteile werden in der Analyse erläutert.</li>
+                )}
+              </ul>
+            ) : null}
+          </div>
+          <div className="overflow-hidden rounded-xl border border-rose-200 bg-rose-50/60">
+            <button
+              type="button"
+              className="flex w-full items-center justify-between gap-1 px-2.5 py-2 text-left"
+              onClick={() => setConOpen((o: boolean) => !o)}
+              aria-expanded={conOpen}
+              aria-controls="voting-contra-details"
+              id="voting-contra-toggle"
+            >
+              <span className="text-[10px] font-extrabold text-rose-800">Contra</span>
+              <ChevronDown
+                className={`h-3.5 w-3.5 shrink-0 text-rose-700 transition-transform ${conOpen ? 'rotate-180' : ''}`}
+                aria-hidden
+              />
+            </button>
+            {conOpen ? (
+              <ul
+                id="voting-contra-details"
+                role="region"
+                aria-labelledby="voting-contra-toggle"
+                className="space-y-1 border-t border-rose-200/80 px-2.5 pb-2.5 pt-1 text-[10px] leading-snug text-rose-950"
+              >
+                {(card.kiAnalysis?.cons ?? []).slice(0, 2).map((c, i) => (
+                  <li key={i} className="flex gap-1">
+                    <span className="mt-[2px] text-rose-700">•</span>
+                    <span>{c.text}</span>
+                  </li>
+                ))}
+                {(card.kiAnalysis?.cons ?? []).length === 0 && (
+                  <li className="text-rose-800/80">Sachliche Gegenargumente werden in der Analyse erläutert.</li>
+                )}
+              </ul>
+            ) : null}
+          </div>
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 VotingCard.displayName = 'VotingCard';
-
 export default VotingCard;

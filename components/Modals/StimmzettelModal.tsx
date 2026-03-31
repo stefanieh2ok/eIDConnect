@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, CheckCircle } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import OriginalStimmzettel from '@/components/Voting/OriginalStimmzettel';
 import { default as ClaraChat } from '@/components/Clara/ClaraChat';
@@ -10,6 +9,8 @@ const StimmzettelModal: React.FC = () => {
   const { state, dispatch } = useApp();
   const [showClaraChat, setShowClaraChat] = useState(false);
   const [voteSuccess, setVoteSuccess] = useState(false);
+  const isVotingOpen =
+    state.selectedWahl?.demoElectionStatus === 'offen' || state.selectedWahl?.datum === 'aktuell';
 
   const handleClose = () => {
     dispatch({ type: 'TOGGLE_STIMMZETTEL' });
@@ -18,6 +19,7 @@ const StimmzettelModal: React.FC = () => {
   };
 
   const handleVote = (level: string, candidate: string, party: string) => {
+    if (!isVotingOpen) return;
     const wahlId = state.selectedWahl?.id;
     if (wahlId) {
       dispatch({ type: 'RECORD_ELECTION_VOTE', payload: wahlId });
@@ -46,11 +48,12 @@ const StimmzettelModal: React.FC = () => {
   if (!state.showStimmzettel || !state.selectedWahl) return null;
 
   // Bestimme Wahl-Level basierend auf selectedWahl
-  let level: 'bund' | 'land' | 'kommune' = 'bund';
+  // Hinweis: OriginalStimmzettel unterstützt nur bund/land/kommune. Kreis-Wahlen werden daher als Ergebnis-/Infoansicht gerendert.
+  let level: 'bund' | 'land' | 'kommune' | 'kreis' = 'bund';
   
   // Prüfe zuerst das level-Feld direkt
   if (state.selectedWahl.level) {
-    level = state.selectedWahl.level;
+    level = state.selectedWahl.level as any;
   } else if (state.selectedWahl.id?.includes('sl') || state.selectedWahl.id?.includes('land') || state.selectedWahl.wahlkreis?.includes('Saarland')) {
     level = 'land';
   } else if (state.selectedWahl.id?.includes('kk') || state.selectedWahl.id?.includes('kirkel') || state.selectedWahl.wahlkreis?.includes('Kirkel')) {
@@ -58,6 +61,10 @@ const StimmzettelModal: React.FC = () => {
   } else if (state.selectedWahl.id?.includes('btw') || state.selectedWahl.name?.includes('Bundestag')) {
     level = 'bund';
   }
+
+  const wahlLoc = state.selectedWahl?.location;
+  const kommuneBallot: 'kirkel' | 'heidelberg' | 'viernheim' =
+    wahlLoc === 'heidelberg' ? 'heidelberg' : wahlLoc === 'viernheim' ? 'viernheim' : 'kirkel';
 
   return (
     <>
@@ -75,30 +82,84 @@ const StimmzettelModal: React.FC = () => {
                 onClick={handleClose}
                 className="flex items-center gap-1.5 text-white min-w-0"
               >
-                <X size={20} />
+                <span className="text-base font-bold leading-none">x</span>
                 <span className="text-sm font-bold truncate">Zurück</span>
               </button>
               <h2 className="text-lg font-black truncate mx-2" style={{letterSpacing: '-0.02em'}}>Stimmzettel</h2>
               <div className="w-14 flex-shrink-0"></div>
             </div>
             
-            {/* Content Area */}
-            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden" style={{paddingBottom: '24px'}}>
+            {/* Content Area – Scrollbar in Akzentfarbe für gute Sichtbarkeit */}
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden stimmzettel-scroll" style={{paddingBottom: '24px'}}>
               <div className="p-4 max-w-full">
                 {voteSuccess ? (
                   <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-                    <CheckCircle className="w-20 h-20 text-green-600 mb-4" aria-hidden />
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Stimme abgegeben</h3>
-                    <p className="text-gray-600">Ihre Wahl wurde erfasst (Demo). Vielen Dank für Ihre Teilnahme.</p>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Auswahl in der Demo gespeichert</h3>
+                    <p className="text-gray-600">Die Eingabe ist nur Teil der Konzeptdemo und hat keine rechtliche Wirkung.</p>
                   </div>
                 ) : (
-                  <OriginalStimmzettel
-                    level={level}
-                    wahlkreis={state.selectedWahl?.wahlkreis}
-                    onVote={handleVote}
-                    onKIAnalysis={handleKIAnalysis}
-                    onOpenClaraChat={handleOpenClaraChat}
-                  />
+                  <>
+                    <div className="mb-3 rounded-xl border border-neutral-200 bg-white p-3 text-[11px] text-neutral-700">
+                      <span className="font-semibold">Status:</span>{' '}
+                      {isVotingOpen ? 'Laeuft aktuell (Demo-Teilnahme moeglich)' : 'Abgeschlossen / Ergebnisansicht (nicht mehr abstimmbar)'}
+                    </div>
+
+                    {level === 'kreis' ? (
+                      <div className="space-y-3">
+                        <div className="rounded-xl border border-neutral-200 bg-white p-3 text-[11px] text-neutral-800">
+                          <p className="font-semibold text-neutral-900">Hinweis</p>
+                          <p className="mt-1 leading-relaxed text-neutral-700">
+                            Für Kreiswahlen ist in dieser Demo kein originalgetreuer Stimmzettel hinterlegt. Diese Ansicht zeigt eine Ergebnis-/Informationsansicht.
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl border border-neutral-200 bg-white p-3">
+                          <div className="text-[11px] font-semibold text-neutral-900">Wahlergebnis</div>
+                          {state.selectedWahl?.ergebnis?.parteien?.length ? (
+                            <div className="mt-2 space-y-1">
+                              {typeof state.selectedWahl.ergebnis.wahlbeteiligung === 'number' && (
+                                <div className="text-[10px] text-neutral-600">
+                                  Wahlbeteiligung:{' '}
+                                  <span className="font-semibold text-neutral-800">
+                                    {state.selectedWahl.ergebnis.wahlbeteiligung}%
+                                  </span>
+                                </div>
+                              )}
+                              {state.selectedWahl.ergebnis.parteien.map((p: any) => (
+                                <div key={p.partei} className="flex items-center justify-between gap-3 text-[11px] text-neutral-800">
+                                  <span className="min-w-0 truncate">{p.partei}</span>
+                                  <span className="font-semibold">{p.prozent}%</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="mt-2 text-[11px] text-neutral-700">
+                              Ergebnisdaten sind in der Demo für diese Kreiswahl noch nicht hinterlegt.
+                            </p>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenClaraChat('Ich habe Fragen zu dieser Kreiswahl – Parteien, Kandidaten, Zuständigkeiten')}
+                          className="w-full rounded-xl py-3 text-[11px] font-semibold text-white"
+                          style={{ background: 'var(--gov-btn, #0066cc)' }}
+                        >
+                          Mit Clara klären (neutral)
+                        </button>
+                      </div>
+                    ) : (
+                      <OriginalStimmzettel
+                        level={level as any}
+                        wahlkreis={state.selectedWahl?.wahlkreis}
+                        canVote={isVotingOpen}
+                        kommuneBallot={level === 'kommune' ? kommuneBallot : undefined}
+                        onVote={handleVote}
+                        onKIAnalysis={handleKIAnalysis}
+                        onOpenClaraChat={handleOpenClaraChat}
+                      />
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -122,7 +183,7 @@ const StimmzettelModal: React.FC = () => {
                   onClick={() => setShowClaraChat(false)}
                   className="flex items-center gap-1.5 text-white min-w-0"
                 >
-                  <X size={20} />
+                  <span className="text-base font-bold leading-none">x</span>
                   <span className="text-sm font-bold truncate">Zurück</span>
                 </button>
                 <h2 className="text-lg font-black truncate mx-2" style={{letterSpacing: '-0.02em'}}>Clara Chat</h2>

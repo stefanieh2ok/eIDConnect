@@ -3,9 +3,11 @@ import { findAccessTokenByRawToken, isTokenExpired } from '@/lib/security/token'
 import { ndaConfig } from '@/config/nda';
 import { AcceptNdaButton } from '@/components/access/accept-nda-button';
 import { CheckboxAcceptButton } from '@/components/access/checkbox-accept-button';
+import { APP_DISPLAY_NAME } from '@/lib/branding';
+import { IphoneFrame } from '@/components/ui/IphoneFrame';
 
 export const metadata = {
-  title: 'Vertraulicher Demo-Zugang – HookAI',
+  title: `Vertraulicher Demo-Zugang – ${APP_DISPLAY_NAME}`,
 };
 
 type AccessPageProps = {
@@ -17,21 +19,38 @@ export default async function AccessPage({ params }: AccessPageProps) {
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 py-12 text-neutral-900">
-        <div className="max-w-md text-center space-y-4">
-          <h1 className="text-xl font-semibold">Demo-Zugang derzeit nicht verfügbar</h1>
-          <p className="text-sm text-neutral-600">
-            Die Konfiguration fehlt. Bitte in der Projektdatei <code className="bg-neutral-200 px-1 rounded">.env.local</code> setzen:
-          </p>
-          <ul className="text-sm text-neutral-700 text-left list-disc list-inside">
-            <li><code>NEXT_PUBLIC_SUPABASE_URL</code></li>
-            <li><code>SUPABASE_SERVICE_ROLE_KEY</code></li>
-          </ul>
-          <p className="text-xs text-neutral-500">
-            Anleitung: <code className="bg-neutral-200 px-1 rounded">docs/SETUP-ZUGANG.md</code> im Projekt. Anschließend Dev-Server neu starten.
-          </p>
-        </div>
-      </main>
+      <IphoneFrame>
+        <main className="flex h-full min-h-0 w-full items-center justify-center rounded-b-[1.75rem] px-3 py-6">
+          <div className="w-full max-w-[360px] rounded-2xl border border-neutral-200 bg-white/70 p-6 text-neutral-900 shadow-lg backdrop-blur-xl">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-600">
+              Was fehlt auf Supabase?
+            </p>
+            <h1 className="mt-2 text-xl font-semibold">Demo-Zugang derzeit nicht verfügbar</h1>
+            <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+              Die Konfiguration fehlt. Bitte in der Projektdatei{' '}
+              <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-900">.env.local</code> setzen:
+            </p>
+            <ul className="mt-3 list-inside list-disc space-y-2 text-sm text-neutral-800">
+              <li>
+                <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-900">
+                  NEXT_PUBLIC_SUPABASE_URL
+                </code>
+              </li>
+              <li>
+                <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-900">
+                  SUPABASE_SERVICE_ROLE_KEY
+                </code>
+              </li>
+            </ul>
+            <p className="mt-3 text-xs text-neutral-600">
+              Anleitung:{' '}
+              <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-800">docs/SETUP-ZUGANG.md</code> im Projekt.
+              Danach Dev-Server neu starten. Auf Vercel dieselben Variablen unter Project Settings → Environment
+              Variables eintragen und neu deployen.
+            </p>
+          </div>
+        </main>
+      </IphoneFrame>
     );
   }
 
@@ -49,79 +68,92 @@ export default async function AccessPage({ params }: AccessPageProps) {
     redirect('/access/denied?reason=expired');
   }
 
-  return (
-    <main className="min-h-screen bg-gray-50 px-4 sm:px-6 py-8 sm:py-12 text-neutral-950 pb-safe max-w-screen-xl mx-auto">
-      <div className="mx-auto max-w-xl">
-        <div className="mb-8 rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-500">
-            Vertraulicher Zugriff
-          </p>
-          <h1 className="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight text-neutral-900">
-            {ndaConfig.header}
-          </h1>
-          <p className="mt-4 text-sm leading-6 text-neutral-600">
-            Diese Demo enthält vertrauliche Informationen, Geschäftsgeheimnisse und
-            nicht öffentliche Produkt- und Konzeptbestandteile. Der Zugriff ist nur
-            nach Zustimmung zur Vertraulichkeitsvereinbarung zulässig.
-          </p>
+  const glassCard =
+    // Helles Gerät, aber lesbarer Kontrast: leicht dunkleres Frosted-Glas + Dark Text.
+    // Kein sm:-Padding: sonst schaltet auf Desktop der Viewport um und wirkt „nicht iPhone“.
+    'rounded-2xl border border-neutral-200 bg-white/65 p-4 shadow-sm backdrop-blur-xl';
 
-          <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-5">
-            <p className="text-sm font-semibold text-neutral-900">
-              Personalisierter Demo-Zugang
+  return (
+    <IphoneFrame>
+      <div
+        className="flex h-full min-h-0 flex-col overflow-y-auto rounded-b-[1.75rem] px-2 pb-3 pt-1"
+        style={{
+          // Kein starker Farbverlauf mehr: iPhoneFrame liefert den Hintergrund, hier nur „clean“.
+          background: 'transparent',
+        }}
+      >
+        <div className="mx-auto w-full max-w-[360px] space-y-4 pb-6 text-neutral-950">
+          <div className={glassCard}>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-600">
+              Vertraulicher Zugriff
             </p>
-            <div className="mt-2 space-y-1 text-sm text-neutral-700">
-              <p><span className="font-medium">Empfänger:</span> {tokenRecord.full_name}</p>
-              {tokenRecord.company ? (
-                <p><span className="font-medium">Firma:</span> {tokenRecord.company}</p>
-              ) : null}
-              <p><span className="font-medium">E-Mail:</span> {tokenRecord.email}</p>
+            <h1 className="mt-2 text-lg font-semibold tracking-tight text-neutral-900">{ndaConfig.header}</h1>
+            <p className="mt-3 text-xs leading-relaxed text-neutral-700">
+              Für den Zugriff auf vertrauliche Inhalte ist vorab eine digitale Unterzeichnung der
+              Vertraulichkeitserklärung erforderlich.
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-neutral-700">
+              Die Unterzeichnung wird über den vorgesehenen Signaturdienst der Organisation durchgeführt.
+            </p>
+
+            <div className="mt-4 rounded-xl border border-neutral-200 bg-white/60 p-3 shadow-sm backdrop-blur">
+              <p className="text-xs font-semibold text-neutral-900">Personalisierter Demo-Zugang</p>
+              <div className="mt-2 space-y-1 text-xs text-neutral-800">
+                <p>
+                  <span className="font-medium text-neutral-900">Empfänger:</span> {tokenRecord.full_name}
+                </p>
+                {tokenRecord.company ? (
+                  <p>
+                    <span className="font-medium text-neutral-900">Firma:</span> {tokenRecord.company}
+                  </p>
+                ) : null}
+                <p>
+                  <span className="font-medium text-neutral-900">E-Mail:</span> {tokenRecord.email}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="grid gap-6 md:grid-cols-[1fr_1.2fr]">
-          <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 shadow-sm">
-            <h2 className="text-lg font-semibold text-neutral-900">Kurzfassung</h2>
-            <ul className="mt-4 space-y-3 text-sm leading-6 text-neutral-700">
+          <section className={glassCard}>
+            <h2 className="text-sm font-semibold text-neutral-900">Druckversion</h2>
+            <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
+              Druckoptimierte Ansicht öffnen – im Systemdialog als PDF speichern oder ausdrucken, z. B. für Ablage
+              oder die Rechtsabteilung.
+            </p>
+            <a
+              href={`/legal/demo-nda?print=1&returnTo=${encodeURIComponent(`/access/${token}`)}`}
+              className="mt-3 flex w-full items-center justify-center rounded-xl px-4 py-3 text-center text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-95"
+              style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
+            >
+              PDF drucken
+            </a>
+          </section>
+
+          <section className={glassCard}>
+            <h2 className="text-sm font-semibold text-neutral-900">Kurzfassung</h2>
+            <ul className="mt-3 space-y-2 text-xs leading-relaxed text-neutral-800">
               {ndaConfig.gateSummary.map((item, i) => (
-                <li key={i} className="rounded-xl bg-neutral-50 px-4 py-3">
+                <li key={i} className="rounded-lg border border-neutral-200 bg-white/55 px-3 py-2">
                   {item}
                 </li>
               ))}
             </ul>
           </section>
 
-          <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold text-neutral-900">Vollständige Vertraulichkeitsvereinbarung</h2>
-              <div className="flex flex-wrap gap-2">
-                <a
-                  href="/legal/demo-nda"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
-                >
-                  NDA als PDF herunterladen
-                </a>
-                <a
-                  href="/legal/demo-nda?print=1"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
-                >
-                  Druckversion öffnen
-                </a>
-              </div>
-            </div>
-            <div className="mt-4 max-h-[min(50vh,28rem)] overflow-y-auto rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-5">
-              <pre className="whitespace-pre-wrap text-sm leading-6 text-neutral-700 font-sans">
+          <section className={glassCard}>
+            <h2 className="text-sm font-semibold text-neutral-900" id="nda-fulltext">
+              Vertraulichkeitserklärung (Volltext)
+            </h2>
+            <div
+              className="mt-3 max-h-[min(42vh,18rem)] overflow-y-auto rounded-xl border border-neutral-200 bg-white/70 p-3 backdrop-blur"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              <pre className="whitespace-pre-wrap font-sans text-[11px] leading-relaxed text-neutral-800">
                 {ndaConfig.fullText}
               </pre>
             </div>
-            <p className="mt-4 text-xs text-neutral-500 border-t border-neutral-100 pt-4">
-              {ndaConfig.footer}
-            </p>
-            <div className="mt-8 border-t border-neutral-200 pt-6">
+            <p className="mt-3 border-t border-neutral-200 pt-3 text-[10px] text-neutral-600">{ndaConfig.footer}</p>
+            <div className="mt-5 border-t border-neutral-200 pt-4">
               {tokenRecord.require_docusign === false ? (
                 <CheckboxAcceptButton token={token} />
               ) : (
@@ -131,6 +163,6 @@ export default async function AccessPage({ params }: AccessPageProps) {
           </section>
         </div>
       </div>
-    </main>
+    </IphoneFrame>
   );
 }

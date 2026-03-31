@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Star, Target, Zap, Award, TrendingUp, Users, Calendar, CheckCircle, Lock } from 'lucide-react';
 
 interface Badge {
   id: string;
@@ -105,7 +104,6 @@ const RewardSystem: React.FC<RewardSystemProps> = ({ user, onLevelUp }) => {
       <div className="bg-white rounded-xl shadow-lg border-2 border-blue-200">
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-t-xl">
           <div className="flex items-center gap-3">
-            <div className="text-2xl">{currentLevel.icon}</div>
             <div>
               <h2 className="text-xl font-bold">Level {currentLevel.level}: {currentLevel.name}</h2>
               <p className="text-sm opacity-90">{user.points} Punkte gesammelt</p>
@@ -160,7 +158,6 @@ const RewardSystem: React.FC<RewardSystemProps> = ({ user, onLevelUp }) => {
       <div className="bg-white rounded-xl shadow-lg border-2 border-green-200">
         <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-t-xl">
           <div className="flex items-center gap-3">
-            <div className="text-2xl">📊</div>
             <div>
               <h2 className="text-xl font-bold">Deine Statistiken</h2>
               <p className="text-sm opacity-90">Fortschritt und Erfolge</p>
@@ -196,10 +193,7 @@ const RewardSystem: React.FC<RewardSystemProps> = ({ user, onLevelUp }) => {
               return (
                 <div key={stat.id} className="space-y-1">
                   <div className="flex justify-between text-sm">
-                    <span className="flex items-center gap-2">
-                      <span>{stat.icon}</span>
-                      <span>{stat.name}</span>
-                    </span>
+                    <span>{stat.name}</span>
                     <span>{stat.unlocked}/{stat.total}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -220,7 +214,6 @@ const RewardSystem: React.FC<RewardSystemProps> = ({ user, onLevelUp }) => {
         <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-t-xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="text-2xl">🏆</div>
               <div>
                 <h2 className="text-xl font-bold">Badges</h2>
                 <p className="text-sm opacity-90">{stats.unlockedBadges} von {stats.totalBadges} freigeschaltet</p>
@@ -254,7 +247,6 @@ const RewardSystem: React.FC<RewardSystemProps> = ({ user, onLevelUp }) => {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                <span>{category.icon}</span>
                 <span>{category.name}</span>
               </button>
             ))}
@@ -272,14 +264,13 @@ const RewardSystem: React.FC<RewardSystemProps> = ({ user, onLevelUp }) => {
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="text-3xl">{badge.icon}</div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <div className="font-bold text-gray-800">{badge.name}</div>
                       {badge.unlocked ? (
-                        <CheckCircle className="text-green-600" size={16} />
+                        <span className="text-green-600 text-xs font-bold">OFFEN</span>
                       ) : (
-                        <Lock className="text-gray-400" size={16} />
+                        <span className="text-gray-400 text-xs font-bold">GESPERRT</span>
                       )}
                     </div>
                     <div className="text-sm text-gray-600 mb-2">{badge.description}</div>
@@ -297,7 +288,6 @@ const RewardSystem: React.FC<RewardSystemProps> = ({ user, onLevelUp }) => {
       <div className="bg-white rounded-xl shadow-lg border-2 border-slate-200">
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 rounded-t-xl">
           <div className="flex items-center gap-3">
-            <div className="text-2xl">⚡</div>
             <div>
               <h2 className="text-xl font-bold">Punkte sammeln</h2>
               <p className="text-sm opacity-90">So erreichst du das nächste Level</p>

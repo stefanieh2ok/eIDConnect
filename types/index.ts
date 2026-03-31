@@ -199,8 +199,37 @@ export interface LeaderboardItem {
   isUser?: boolean;
 }
 
-export type Location = 'bundesweit' | 'saarland' | 'kirkel';
-export type Section = 'live' | 'leaderboard' | 'wahlen' | 'news' | 'kalender';
+// App "Location" ist der aktuelle geografische Scope, der für Filter/Labels und
+// die Zuordnung der Abstimmungs-Karten (VOTING_DATA) verwendet wird.
+// Die UI kann außerdem Werte aus Events übernehmen (z. B. aus dem Kalender),
+// daher erweitern wir die Liste um die gewünschten Demo-/Regional-Orte.
+export type Location =
+  | 'bundesweit'
+  | 'deutschland'
+  | 'saarland'
+  | 'saarpfalz'
+  | 'kirkel'
+  | 'frankfurt'
+  | 'mannheim'
+  | 'heidelberg'
+  | 'weinheim'
+  | 'viernheim'
+  | 'neustadt'
+  | 'bremen'
+  | 'berlin'
+  | 'bayern'
+  | 'muenchen';
+export type Section = 'live' | 'leaderboard' | 'wahlen' | 'news' | 'kalender' | 'meldungen';
 export type AbstimmungTab = 'aktuell' | 'ergebnisse';
+export type EbeneLevel = 'bund' | 'land' | 'kreis' | 'kommune';
 export type Anrede = 'sie' | 'du';
 export type VoteType = 'for' | 'against' | 'abstain';
+export type AdministrativeScope = 'bund' | 'land' | 'kreis' | 'kommune';
+
+export type RegionResolution = {
+  plz?: string;
+  city?: string;
+  stateKey?: string;
+  county?: string;
+  locationHint: Location;
+};

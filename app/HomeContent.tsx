@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { IphoneFrame } from '@/components/ui/IphoneFrame';
 
 /**
  * Inhalt der Startseite (HookAI Zugang).
@@ -96,16 +97,9 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
   };
 
   return (
-    <main
-      className="min-h-screen min-h-[100dvh] flex flex-col items-center justify-center bg-gray-50 px-4 py-6 text-neutral-900"
-      style={{
-        paddingLeft: 'max(1rem, env(safe-area-inset-left))',
-        paddingRight: 'max(1rem, env(safe-area-inset-right))',
-        paddingTop: 'max(1.5rem, env(safe-area-inset-top))',
-        paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
-      }}
-    >
-      <div className="w-full max-w-[26rem] flex flex-col items-center gap-8">
+    <IphoneFrame>
+      <main className="flex h-full min-h-0 w-full flex-col overflow-y-auto rounded-b-[1.75rem] px-3 py-3 text-neutral-900">
+      <div className="mx-auto w-full max-w-[360px] flex flex-col items-center gap-6 rounded-2xl border border-white/25 bg-white/12 p-4 shadow-lg backdrop-blur-xl">
         {/* Marke */}
         <div className="flex flex-col items-center gap-2">
           <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
@@ -235,6 +229,7 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
           </a>
         </p>
       </div>
-    </main>
+      </main>
+    </IphoneFrame>
   );
 }
