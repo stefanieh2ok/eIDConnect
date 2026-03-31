@@ -94,35 +94,23 @@
   }
 }
 
-/* Native Mobile-Rendering: kein Device-im-Device */
+/* Mobile: weiterhin iPhone-Frame, aber ohne Mini-Preview-Effekt */
 @media (max-width: 1023px) {
+  .app-stage-root {
+    padding: 8px;
+  }
+
   .app-device-shell {
     width: 100%;
     min-height: 100dvh;
     padding: 0;
   }
 
-  .app-device-frame {
-    width: 100% !important;
-    height: 100dvh !important;
-    max-height: none !important;
-    aspect-ratio: auto !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-  }
-
-  .app-device-glass,
-  .app-device-notch,
-  .app-device-home {
-    display: none !important;
-  }
-
   .app-device-content {
-    padding-top: env(safe-area-inset-top) !important;
-    padding-bottom: env(safe-area-inset-bottom) !important;
-    padding-left: env(safe-area-inset-left) !important;
-    padding-right: env(safe-area-inset-right) !important;
+    /* Safe-Area bleibt erhalten, zusätzlich zum bestehenden Top-Offset für Notch */
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0px);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 }
 

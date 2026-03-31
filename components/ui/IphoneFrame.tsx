@@ -21,7 +21,7 @@ export function IphoneFrame({
   outerStyle,
   fillContainer = false,
 }: IphoneFrameProps) {
-  // Desktop-Preview-Größe (echtes Mobile nutzt unten native Vollfläche).
+  // Einheitliches Device mit Frame (Desktop + Mobile), mobile skaliert nur responsiv.
   const DEVICE_WIDTH_PX = 390;
 
   return (
@@ -40,9 +40,9 @@ export function IphoneFrame({
       <div
         className="app-device-frame relative flex w-full flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-[0_28px_80px_rgba(0,0,0,0.55)]"
         style={{
-          width: `${DEVICE_WIDTH_PX}px`,
+          width: `min(${DEVICE_WIDTH_PX}px, calc(100vw - 0.75rem))`,
           aspectRatio: '393 / 852',
-          height: '852px',
+          maxHeight: 'min(852px, calc(100dvh - 0.75rem))',
           background:
             // Light „tech“ base, aber nicht so grell, damit Content-Kontrast stimmt.
             'radial-gradient(ellipse at 50% 0%, rgba(0,85,164,0.30) 0%, rgba(10,61,107,0.18) 35%, rgba(225,235,250,0.62) 70%, rgba(255,255,255,0.94) 100%)',
