@@ -37,13 +37,11 @@ export function IphoneFrame({
       <div
         className="relative flex w-full flex-col overflow-hidden rounded-[2.5rem] border-[10px] border-[#1c1c1e] shadow-[0_22px_64px_rgba(0,0,0,0.45)]"
         style={{
-          // Viewport-fitted iPhone-Proportion:
-          // passt gleichzeitig in verfügbare Höhe UND Breite, damit das Gerät auf Desktop
-          // vollständig sichtbar bleibt (ohne abgeschnittene Unterkante).
-          // Ziel: analog zum localhost-Look (balancierte Typo-/Button-Proportionen).
-          width: 'min(calc((100dvh - 5rem) * 393 / 852), calc(100vw - 3rem), 340px)',
+          // Konsistente Device-Breite in allen Umgebungen (localhost + Vercel).
+          // Höhe wird bei Bedarf über maxHeight begrenzt, damit das Gerät vollständig sichtbar bleibt.
+          width: 'min(340px, calc(100vw - 3rem))',
           aspectRatio: '393 / 852',
-          maxHeight: '860px',
+          maxHeight: 'min(860px, calc(100dvh - 4rem))',
           background:
             // Light „tech“ base, aber nicht so grell, damit Content-Kontrast stimmt.
             'radial-gradient(ellipse at 50% 0%, rgba(0,85,164,0.30) 0%, rgba(10,61,107,0.18) 35%, rgba(225,235,250,0.62) 70%, rgba(255,255,255,0.94) 100%)',
