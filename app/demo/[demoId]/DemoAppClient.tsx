@@ -38,12 +38,31 @@ type DemoAppClientProps = {
   recipientOrg: string;
 };
 
+const LAST_SESSION_KEY = 'eidconnect_last_demo_session_id_v1';
+const INTRO_DONE_KEY = 'eidconnect_product_intro_done_v4';
+const ANREDE_SESSION_KEY = 'eidconnect_anrede_confirmed_session_v1';
+
 export function DemoAppClient({
   tokenId,
   sessionId,
   recipientName,
   recipientOrg,
 }: DemoAppClientProps) {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const lastSession = localStorage.getItem(LAST_SESSION_KEY);
+      if (lastSession !== sessionId) {
+        // Neue Demo-Session: Intro-/Anrede-Flow erneut zeigen.
+        localStorage.removeItem(INTRO_DONE_KEY);
+        sessionStorage.removeItem(ANREDE_SESSION_KEY);
+        localStorage.setItem(LAST_SESSION_KEY, sessionId);
+      }
+    } catch {
+      // ignore storage access issues
+    }
+  }, [sessionId]);
+
   return (
     <AppProvider>
       <ExternalLinkProvider>
