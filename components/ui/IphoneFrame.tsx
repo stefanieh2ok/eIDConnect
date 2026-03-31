@@ -21,6 +21,12 @@ export function IphoneFrame({
   outerStyle,
   fillContainer = false,
 }: IphoneFrameProps) {
+  const isVercelHost =
+    typeof window !== 'undefined' &&
+    (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('e-id-connect'));
+
+  const frameScale = isVercelHost ? 0.67 : 1;
+
   return (
     <div
       className={`flex w-full flex-col items-center justify-center px-4 py-4 ${
@@ -42,6 +48,8 @@ export function IphoneFrame({
           width: 'min(330px, calc(100vw - 2.5rem))',
           aspectRatio: '393 / 852',
           maxHeight: '860px',
+          transform: `scale(${frameScale})`,
+          transformOrigin: 'top center',
           background:
             // Light „tech“ base, aber nicht so grell, damit Content-Kontrast stimmt.
             'radial-gradient(ellipse at 50% 0%, rgba(0,85,164,0.30) 0%, rgba(10,61,107,0.18) 35%, rgba(225,235,250,0.62) 70%, rgba(255,255,255,0.94) 100%)',
