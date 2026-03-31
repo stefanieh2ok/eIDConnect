@@ -37,9 +37,10 @@ export function IphoneFrame({
       <div
         className="relative flex w-full flex-col overflow-hidden rounded-[2.5rem] border-[10px] border-[#1c1c1e] shadow-[0_22px_64px_rgba(0,0,0,0.45)]"
         style={{
-          // Einheitliches Device-Preset für Dev + Vercel (ohne Host-Sonderfälle).
-          // Dadurch bleibt die Darstellung konsistent und iPhone-proportional.
-          width: 'min(270px, calc(100vw - 2.5rem))',
+          // Viewport-fitted iPhone-Proportion:
+          // passt gleichzeitig in verfügbare Höhe UND Breite, damit das Gerät auf Desktop
+          // vollständig sichtbar bleibt (ohne abgeschnittene Unterkante).
+          width: 'min(calc((100dvh - 4rem) * 393 / 852), calc(100vw - 2.5rem), 320px)',
           aspectRatio: '393 / 852',
           maxHeight: '860px',
           background:
