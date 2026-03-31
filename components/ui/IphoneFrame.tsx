@@ -21,10 +21,9 @@ export function IphoneFrame({
   outerStyle,
   fillContainer = false,
 }: IphoneFrameProps) {
-  // Senior-UI Preset: kompakteres Device + leicht verkleinerter In-App-Maßstab
-  // für Desktop-Darstellung (Vercel/localhost konsistent).
-  const DEVICE_WIDTH_PX = 300;
-  const CONTENT_SCALE = 0.88;
+  // Single-source sizing: keine doppelte Skalierung mehr.
+  // Ziel: stabil gleiche Wahrnehmung auf localhost + Vercel.
+  const DEVICE_WIDTH_PX = 270;
 
   return (
     <div
@@ -40,7 +39,7 @@ export function IphoneFrame({
       }
     >
       <div
-        className="relative flex w-full flex-col overflow-hidden rounded-[2.5rem] border-[10px] border-[#1c1c1e] shadow-[0_22px_64px_rgba(0,0,0,0.45)]"
+        className="relative flex w-full flex-col overflow-hidden rounded-[2.4rem] border-[9px] border-[#1c1c1e] shadow-[0_18px_52px_rgba(0,0,0,0.40)]"
         style={{
           // Konsistente Device-Breite in allen Umgebungen (localhost + Vercel).
           // Höhe wird bei Bedarf über maxHeight begrenzt, damit das Gerät vollständig sichtbar bleibt.
@@ -65,17 +64,7 @@ export function IphoneFrame({
         {/* Dynamic Island */}
         <div className="pointer-events-none absolute left-1/2 top-3 z-20 h-7 w-[126px] -translate-x-1/2 rounded-full bg-black/90 ring-1 ring-white/10" />
         <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden pt-10">
-          <div
-            className="min-h-0 flex-1"
-            style={{
-              transform: `scale(${CONTENT_SCALE})`,
-              transformOrigin: 'top center',
-              width: `${100 / CONTENT_SCALE}%`,
-              height: `${100 / CONTENT_SCALE}%`,
-            }}
-          >
-            {children}
-          </div>
+          {children}
         </div>
         {/* Home-Indikator */}
         <div className="relative z-10 flex flex-shrink-0 justify-center pb-2 pt-1">
