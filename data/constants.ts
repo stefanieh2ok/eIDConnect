@@ -187,7 +187,7 @@ const kirkelCards: VotingCard[] = [
     'Vollsanierung der Gemeindehalle Kirkel: Energetische Ertüchtigung (Wärmepumpe, Dämmung), barrierefreier Umbau und neue Bühne. Gesamtkosten: ca. 2,1 Mio. €.',
     '30.03.2026', 74, 18, 4_820, 150, true,
     'Wichtigster Versammlungsort für Vereine und Bürger, energetische Einsparung von ca. 35 %.',
-    'Hoher Investitionsbedarf, Gemeinde muss Darlehen aufnehmen, Nutzungseinschränkung 8 Monate.',
+    'Gesamtkosten ca. 2,1 Mio. €; Finanzierung inkl. Darlehensanteil ist im Haushaltsbeschluss zu konkretisieren; Nutzungseinschränkung ca. 8 Monate.',
     'Bildung', '🏛️'
   ),
   card(

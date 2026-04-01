@@ -5,7 +5,6 @@ import { useApp } from '@/context/AppContext';
 import { THEME_NAMES } from '@/data/constants';
 import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
-import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
 import type { UserPreferences } from '@/types';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
 
@@ -49,8 +48,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
   }, []);
   const du = state.anrede === 'du';
   const [demoWahlkreis, setDemoWahlkreis] = useState<string>('');
-  const [claraRegionText, setClaraRegionText] = useState('');
-  const [claraRegionLoading, setClaraRegionLoading] = useState(false);
 
   const persistDemoFields = useCallback(
     (street: string, plz: string, city: string) => {
@@ -60,59 +57,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
     [dispatch],
   );
 
-  const appRegionLabel = DEMO_LOCATION_LABEL[state.residenceLocation] ?? state.residenceLocation;
-
   useEffect(() => {
     if (step !== 1) return;
     if (state.residenceLocation === 'kirkel') return;
     persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
   }, [step, state.residenceLocation, persistDemoFields]);
-
-  useEffect(() => {
-    if (step !== 1) {
-      setClaraRegionText('');
-      setClaraRegionLoading(false);
-      return;
-    }
-
-    const regionLabel = DEMO_LOCATION_LABEL[state.residenceLocation] ?? 'Kirkel';
-    const ac = new AbortController();
-    const timer = window.setTimeout(async () => {
-      setClaraRegionLoading(true);
-      try {
-        const res = await fetch('/api/clara/region-context', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            street: KIRKEL_STREET,
-            plz: KIRKEL_PLZ,
-            city: KIRKEL_CITY,
-            county: demoWahlkreis,
-            regionLabel,
-            addressMode: du ? 'du' : 'sie',
-          }),
-          signal: ac.signal,
-        });
-        const data = (await res.json()) as { text?: string };
-        if (ac.signal.aborted) return;
-        setClaraRegionText(typeof data.text === 'string' ? data.text : '');
-      } catch {
-        if (!ac.signal.aborted) setClaraRegionText('');
-      } finally {
-        if (!ac.signal.aborted) setClaraRegionLoading(false);
-      }
-    }, 420);
-
-    return () => {
-      window.clearTimeout(timer);
-      ac.abort();
-    };
-  }, [
-    step,
-    demoWahlkreis,
-    du,
-    state.residenceLocation,
-  ]);
 
   const applyEidKirkelDemo = () => {
     persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
@@ -247,68 +196,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                   </p>
                 </div>
 
-                <div
-                  className="rounded-2xl px-4 py-3"
-                  style={{
-                    background: 'rgba(255,255,255,0.80)',
-                    border: '1px solid var(--gov-border)',
-                  }}
-                >
-                  <h2 className="text-base font-bold" style={{ color: 'var(--gov-heading)' }}>
-                    {du ? 'MVP-Fokus: Kirkel / Saarland' : 'MVP-Fokus: Kirkel / Saarland'}
-                  </h2>
-                  <p className="mt-1 text-[11px] leading-relaxed" style={{ color: 'var(--gov-body)' }}>
-                    {du
-                      ? 'Die Demo ist jetzt absichtlich auf Kirkel konzentriert, damit Zuordnung, Politikerdaten und Inhalte stabil und testbar sind.'
-                      : 'Die Demo ist jetzt absichtlich auf Kirkel konzentriert, damit Zuordnung, Politikerdaten und Inhalte stabil und testbar sind.'}
-                  </p>
-                  <p
-                    className="mt-2 rounded-lg px-2 py-1.5 text-[10px] leading-snug"
-                    style={{ background: 'var(--gov-primary-light)', color: 'var(--gov-heading)' }}
-                  >
-                    <span className="font-semibold">Region in der App: </span>
-                    {appRegionLabel}
-                  </p>
-                  <p className="mt-1 text-[10px] leading-snug" style={{ color: 'var(--gov-muted)' }}>
-                    <span className="font-semibold">Inhaltlicher Fokus:</span> Bilder, Politikerdaten fuer Kirkel /
-                    Saarland / Saarpfalz-Kreis sowie aktuelle Parteiprogramme.
-                  </p>
-                  {demoWahlkreis ? (
-                    <p className="mt-1.5 text-[10px]" style={{ color: 'var(--gov-muted)' }}>
-                      <span className="font-semibold" style={{ color: 'var(--gov-heading)' }}>
-                        Kreis/Landkreis (aus PLZ/Ort):
-                      </span>{' '}
-                      {demoWahlkreis}
-                    </p>
-                  ) : null}
-
-                  <div
-                    className="mt-3 rounded-xl px-3 py-2.5"
-                    style={{
-                      background: 'rgba(88, 28, 135, 0.06)',
-                      border: '1px solid rgba(88, 28, 135, 0.2)',
-                    }}
-                  >
-                    <p className="text-[10px] font-bold" style={{ color: 'var(--gov-heading)' }}>
-                      Clara – kurze Einordnung
-                    </p>
-                    {claraRegionLoading ? (
-                      <p className="mt-1.5 text-[10px] italic" style={{ color: 'var(--gov-muted)' }}>
-                        {du ? 'Clara ordnet gerade ein …' : 'Clara ordnet gerade ein …'}
-                      </p>
-                    ) : claraRegionText ? (
-                      <p className="mt-1.5 text-[10px] leading-snug" style={{ color: 'var(--gov-body)' }}>
-                        {claraRegionText}
-                      </p>
-                    ) : (
-                      <p className="mt-1.5 text-[10px]" style={{ color: 'var(--gov-muted)' }}>
-                        {du
-                          ? 'Clara fasst fuer den MVP die Ebenen Bund, Saarland, Saarpfalz-Kreis und Kirkel zusammen.'
-                          : 'Clara fasst fuer den MVP die Ebenen Bund, Saarland, Saarpfalz-Kreis und Kirkel zusammen.'}
-                      </p>
-                    )}
-                  </div>
-                </div>
               </div>
             )}
 
@@ -359,8 +246,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                   ) : null}
                   <span className="text-[11px] leading-snug" style={{ color: 'var(--gov-body)' }}>
                     {du
-                      ? 'Ich erlaube Clara, meine Politik-Schwerpunkte für personalisierte Analysen zu nutzen.'
-                      : 'Einwilligung: Clara darf Ihre Politik-Schwerpunkte für personalisierte Analysen verwenden.'}
+                      ? 'Ich erlaube Clara, der neutralen KI-Agentin, meine Politik-Schwerpunkte für personalisierte Analysen zu nutzen.'
+                      : 'Einwilligung: Clara, die neutrale KI-Agentin, darf Ihre Politik-Schwerpunkte für personalisierte Analysen verwenden.'}
                   </span>
                 </label>
 

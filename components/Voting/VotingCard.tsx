@@ -4,6 +4,17 @@ import React, { memo, useState } from 'react';
 import { ChevronDown, ListChecks } from 'lucide-react';
 import { VotingCard as VotingCardType, VoteType } from '@/types';
 
+function enforceFactDetail(text: string): string {
+  const t = text.trim();
+  const mentionsCost = /(investitions|kosten|darlehen|finanzier)/i.test(t);
+  const hasAmount = /\d[\d\.\s,_]*\s?(€|euro|mio|million)/i.test(t);
+  const hasDuration = /\d[\d\.\s,_]*\s?(monat|monate|jahr|jahre|woche|wochen)/i.test(t);
+  if (mentionsCost && (!hasAmount || !hasDuration)) {
+    return `${t} (Hinweis: Betrag und Laufzeit bitte mit Quelle konkretisieren.)`;
+  }
+  return t;
+}
+
 interface VotingCardProps {
   card: VotingCardType;
   canVote: boolean;
@@ -171,7 +182,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
                 {(card.kiAnalysis?.pros ?? []).slice(0, 2).map((p, i) => (
                   <li key={i} className="flex gap-1">
                     <span className="mt-[2px] text-emerald-700">•</span>
-                    <span>{p.text}</span>
+                    <span>{enforceFactDetail(p.text)}</span>
                   </li>
                 ))}
                 {(card.kiAnalysis?.pros ?? []).length === 0 && (
@@ -205,7 +216,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
                 {(card.kiAnalysis?.cons ?? []).slice(0, 2).map((c, i) => (
                   <li key={i} className="flex gap-1">
                     <span className="mt-[2px] text-rose-700">•</span>
-                    <span>{c.text}</span>
+                    <span>{enforceFactDetail(c.text)}</span>
                   </li>
                 ))}
                 {(card.kiAnalysis?.cons ?? []).length === 0 && (
