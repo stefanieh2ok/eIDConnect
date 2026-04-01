@@ -1,6 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+
+/** Muss mit Desktop-Regeln in app/globals.css (.app-stage-*) übereinstimmen */
+const DESKTOP_PREVIEW_MIN_WIDTH_PX = 900;
 
 type AppStageProps = {
   children: ReactNode;
@@ -20,20 +23,21 @@ type AppStageProps = {
 export function AppStage({
   children,
   stageWidthPx = 390,
-  stageHeightPx = 850,
+  /** Etwas Luft für Rahmen, Home-Indikator, Schatten (393×852-Logik + Rand) */
+  stageHeightPx = 880,
 }: AppStageProps) {
   /** Zusätzliche Verkleinerung nur bei Bedarf; 1 = reines scale-to-fit in den Stage-Viewport */
   const DESKTOP_PRESENTATION_FACTOR = 1;
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [desktopScale, setDesktopScale] = useState(1);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return;
 
     const computeScale = () => {
       const rect = root.getBoundingClientRect();
-      const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+      const isDesktop = window.matchMedia(`(min-width: ${DESKTOP_PREVIEW_MIN_WIDTH_PX}px)`).matches;
       if (!isDesktop) {
         setDesktopScale(1);
         return;
