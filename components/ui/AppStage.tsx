@@ -22,7 +22,7 @@ export function AppStage({
   stageWidthPx = 390,
   stageHeightPx = 850,
 }: AppStageProps) {
-  const DESKTOP_PRESENTATION_FACTOR = 0.72;
+  const DESKTOP_PRESENTATION_FACTOR = 0.5;
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [desktopScale, setDesktopScale] = useState(1);
 
