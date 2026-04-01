@@ -3,6 +3,7 @@ import Link from 'next/link';
 import NdaPrintButton from '@/components/NdaPrintButton';
 import { ndaConfig } from '@/config/nda';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
+import { AppStage } from '@/components/ui/AppStage';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export default async function DemoNdaPage({ searchParams }: Props) {
   }
 
   return (
+    <AppStage>
     <IphoneFrame>
     <div
       className="h-full min-h-0 overflow-y-auto rounded-b-[1.75rem] bg-[#F7F9FC] text-gray-800"
@@ -112,5 +114,6 @@ export default async function DemoNdaPage({ searchParams }: Props) {
       </main>
     </div>
     </IphoneFrame>
+    </AppStage>
   );
 }

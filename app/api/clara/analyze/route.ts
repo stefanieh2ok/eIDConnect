@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAPIConfig, createAPIHeaders } from '@/lib/api-config';
 import { buildClaraAnalyzePrompt, type AddressMode } from '@/lib/clara-system-prompt';
 
+const fallbackAnalysis = {
+  personalMatch: 50,
+  reasoning:
+    'Das ist eine KI-gestuetzte Zusammenfassung in der Demo. Ich kann keine Empfehlung geben, aber ich kann Pro- und Contra-Aspekte neutral strukturieren und auf offizielle Quellen verweisen.',
+  pros: ['Neutrale Einordnung der Verfahrensschritte moeglich', 'Relevante Fristen und Zuständigkeiten koennen benannt werden'],
+  cons: ['Ohne offizielle Detailquellen bleibt die Einordnung begrenzt', 'Keine politische Empfehlung oder Gewichtung einzelner Optionen'],
+  confidence: 60,
+  alternativePerspectives: ['Pruefen Sie die zustaendige Wahl- oder Verwaltungsstelle', 'Vergleichen Sie offizielle Unterlagen der beteiligten Positionen'],
+};
+
 export async function POST(request: NextRequest) {
   try {
     const { votingCard, preferences, addressMode } = await request.json();
@@ -12,9 +22,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const config = getAPIConfig();
-    const headers = createAPIHeaders(config.openai.apiKey);
 
     const hasPreferences =
       !!preferences &&
@@ -27,6 +34,17 @@ export async function POST(request: NextRequest) {
       preferencesJson: hasPreferences ? JSON.stringify(preferences) : undefined,
       context: `Abstimmung: ${votingCard.title} (${votingCard.category})`,
     });
+
+    if (!process.env.OPENAI_API_KEY) {
+      return NextResponse.json({
+        analysis: fallbackAnalysis,
+        source: 'local-fallback',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    const config = getAPIConfig();
+    const headers = createAPIHeaders(config.openai.apiKey);
 
     const userPrompt = `Analysiere diese Abstimmung:
 
@@ -84,6 +102,7 @@ Gib eine sachliche, neutrale Analyse. Keine Abstimmungsempfehlung.`;
       
       return NextResponse.json({
         analysis: normalizedAnalysis,
+        source: 'openai',
         timestamp: new Date().toISOString()
       });
     } catch {
@@ -96,19 +115,20 @@ Gib eine sachliche, neutrale Analyse. Keine Abstimmungsempfehlung.`;
           confidence: 70,
           alternativePerspectives: ['Weitere Informationen erforderlich']
         },
+        source: 'parse-fallback',
         timestamp: new Date().toISOString()
       });
     }
 
   } catch (error) {
     console.error('Clara Analyse API Fehler:', error);
-    const message = error instanceof Error ? error.message : undefined;
     return NextResponse.json(
       {
-        error: 'Clara kann momentan keine Analyse durchführen. Bitte versuchen Sie es später erneut.',
-        details: process.env.NODE_ENV === 'development' ? message : undefined
+        analysis: fallbackAnalysis,
+        source: 'error-fallback',
+        timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      { status: 200 }
     );
   }
 }

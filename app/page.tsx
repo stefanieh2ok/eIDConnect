@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { ADMIN_DEMO_COOKIE, verifyAdminDemoCookie } from '@/lib/security/admin-demo';
+import { AppStage } from '@/components/ui/AppStage';
 import HomeContent from './HomeContent';
 
 /**
@@ -17,5 +18,9 @@ export default async function Home() {
     verifyAdminDemoCookie(secret, adminCookie)
   );
 
-  return <HomeContent showSetupLink={showSetupLink} />;
+  return (
+    <AppStage>
+      <HomeContent showSetupLink={showSetupLink} />
+    </AppStage>
+  );
 }

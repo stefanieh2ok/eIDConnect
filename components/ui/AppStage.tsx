@@ -3,23 +3,22 @@ import type { ReactNode } from 'react';
 type AppStageProps = {
   children: ReactNode;
   /**
-   * Zielgröße der „Bühne“ (inkl. Device-Rahmen).
-   * Wird nur für die Desktop-Zentrierung/Scale-to-fit benutzt.
+   * Unskalierte Zielgröße der App (Device + Rahmen), nur für Desktop-Scale-to-fit.
+   * Sollte zur realen IphoneFrame-Fläche passen (ca. 390 × 393/852).
    */
   stageWidthPx?: number;
   stageHeightPx?: number;
 };
 
 /**
- * Desktop-Stage: zeigt die Mobile-App als zentriertes Preview.
- * - nutzt volle Viewport-Fläche
- * - verhindert äußere Scrollbars
- * - skaliert proportional, damit die Stage vollständig sichtbar bleibt
+ * Desktop: zentrierte Preview-Bühne, skaliert so, dass die komplette Mobile-App
+ * im Viewport bleibt (Layout-Box = skalierte Größe, kein Abschneiden durch transform).
+ * Mobile: nur Vollflächen-Container, keine zusätzliche „Desktop-Logik“.
  */
 export function AppStage({
   children,
-  stageWidthPx = 414,
-  stageHeightPx = 900,
+  stageWidthPx = 390,
+  stageHeightPx = 850,
 }: AppStageProps) {
   return (
     <div
@@ -31,7 +30,11 @@ export function AppStage({
         } as any
       }
     >
-      <div className="app-stage-inner">{children}</div>
+      <div className="app-stage-inner">
+        <div className="app-stage-scale">
+          <div className="app-stage-content">{children}</div>
+        </div>
+      </div>
     </div>
   );
 }

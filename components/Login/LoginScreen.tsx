@@ -3,11 +3,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { THEME_NAMES } from '@/data/constants';
-import {
-  formatDemoAddressLine,
-  normalizePlz,
-  suggestCityFromPlz,
-} from '@/data/plzDemoLookup';
 import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
 import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
@@ -53,9 +48,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
     window.dispatchEvent(new Event('eidconnect:open-intro'));
   }, []);
   const du = state.anrede === 'du';
-  const [demoStreet, setDemoStreet] = useState('');
-  const [demoPlz, setDemoPlz] = useState('');
-  const [demoCity, setDemoCity] = useState('');
   const [demoWahlkreis, setDemoWahlkreis] = useState<string>('');
   const [claraRegionText, setClaraRegionText] = useState('');
   const [claraRegionLoading, setClaraRegionLoading] = useState(false);
@@ -68,32 +60,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
     [dispatch],
   );
 
-  const updateDemoFields = useCallback(
-    (patch: Partial<{ street: string; plz: string; city: string }>) => {
-      let street = patch.street ?? demoStreet;
-      let plz = patch.plz !== undefined ? normalizePlz(patch.plz) : demoPlz;
-      let city = patch.city ?? demoCity;
+  const appRegionLabel = DEMO_LOCATION_LABEL[state.residenceLocation] ?? state.residenceLocation;
 
-      if (patch.plz !== undefined && plz.length === 5) {
-        const sug = suggestCityFromPlz(plz);
-        if (sug) city = sug;
-      }
-
-      setDemoStreet(street);
-      setDemoPlz(plz);
-      setDemoCity(city);
-      persistDemoFields(street, plz, city);
-    },
-    [demoStreet, demoPlz, demoCity, persistDemoFields],
-  );
-
-  const hasDemoAddressInput =
-    demoStreet.trim().length > 0 ||
-    normalizePlz(demoPlz).length === 5 ||
-    demoCity.trim().length > 0;
-  const appRegionLabel = hasDemoAddressInput
-    ? DEMO_LOCATION_LABEL[state.residenceLocation] ?? state.residenceLocation
-    : 'Noch nicht festgelegt';
+  useEffect(() => {
+    if (step !== 1) return;
+    if (state.residenceLocation === 'kirkel') return;
+    persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
+  }, [step, state.residenceLocation, persistDemoFields]);
 
   useEffect(() => {
     if (step !== 1) {
@@ -102,9 +75,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
       return;
     }
 
-    const regionLabel = hasDemoAddressInput
-      ? DEMO_LOCATION_LABEL[state.residenceLocation] ?? ''
-      : '';
+    const regionLabel = DEMO_LOCATION_LABEL[state.residenceLocation] ?? 'Kirkel';
     const ac = new AbortController();
     const timer = window.setTimeout(async () => {
       setClaraRegionLoading(true);
@@ -113,9 +84,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            street: demoStreet,
-            plz: normalizePlz(demoPlz),
-            city: demoCity,
+            street: KIRKEL_STREET,
+            plz: KIRKEL_PLZ,
+            city: KIRKEL_CITY,
             county: demoWahlkreis,
             regionLabel,
             addressMode: du ? 'du' : 'sie',
@@ -138,19 +109,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
     };
   }, [
     step,
-    demoStreet,
-    demoPlz,
-    demoCity,
     demoWahlkreis,
     du,
     state.residenceLocation,
-    hasDemoAddressInput,
   ]);
 
   const applyEidKirkelDemo = () => {
-    setDemoStreet(KIRKEL_STREET);
-    setDemoPlz(KIRKEL_PLZ);
-    setDemoCity(KIRKEL_CITY);
     persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
   };
 
@@ -202,11 +166,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
     dispatch({ type: 'SET_LOGGED_IN', payload: true });
   };
 
-  const demoLine = formatDemoAddressLine(demoStreet, demoPlz, demoCity);
-
-  const inputCls =
-    'w-full rounded-xl border bg-white px-3 py-2 text-[11px] font-semibold placeholder:opacity-50';
-  const inputStyle = { borderColor: 'var(--gov-border)', color: 'var(--gov-heading)' } as const;
+  const sliderTrackStyle = (value: number) =>
+    ({
+      background: `linear-gradient(to right, #1e40af 0%, #1e40af ${value}%, #dbe4f0 ${value}%, #dbe4f0 100%)`,
+      accentColor: '#1e40af',
+    }) as const;
 
   const content = (
     <div
@@ -260,8 +224,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                   </h2>
                   <p className="mt-1 text-[11px] leading-relaxed" style={{ color: 'var(--gov-body)' }}>
                     {du
-                      ? 'Tippe auf den Button: Straße, Postleitzahl und Ort werden für Kirkel gesetzt – wie nach einem eID-Ausweis.'
-                      : 'Tippen Sie auf den Button: Straße, Postleitzahl und Ort werden für Kirkel gesetzt – wie nach einem eID-Ausweis.'}
+                      ? 'MVP-Flow: eID setzt automatisch Kirkel (66459) mit Saarpfalz-Kreis. Keine manuelle Adresseingabe erforderlich.'
+                      : 'MVP-Flow: eID setzt automatisch Kirkel (66459) mit Saarpfalz-Kreis. Keine manuelle Adresseingabe erforderlich.'}
                   </p>
                   <button
                     type="button"
@@ -274,20 +238,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                   >
                     eID auslesen (Demo) – Kirkel
                   </button>
-                  {demoLine && state.residenceLocation === 'kirkel' ? (
-                    <p className="mt-2 text-[10px]" style={{ color: 'var(--gov-muted)' }}>
-                      Aktuell:{' '}
-                      <span className="font-semibold" style={{ color: 'var(--gov-heading)' }}>
-                        {demoLine}
-                      </span>
-                      {demoWahlkreis ? (
-                        <span>
-                          {' '}
-                          · Zuständigkeit: {demoWahlkreis}
-                        </span>
-                      ) : null}
-                    </p>
-                  ) : null}
+                  <p className="mt-2 text-[10px]" style={{ color: 'var(--gov-muted)' }}>
+                    <span className="font-semibold" style={{ color: 'var(--gov-heading)' }}>
+                      Aktuell:
+                    </span>{' '}
+                    Hauptstraße 1, 66459 Kirkel
+                    {demoWahlkreis ? <span> · Zuständigkeit: {demoWahlkreis}</span> : null}
+                  </p>
                 </div>
 
                 <div
@@ -298,12 +255,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                   }}
                 >
                   <h2 className="text-base font-bold" style={{ color: 'var(--gov-heading)' }}>
-                    {du ? 'Oder: Adresse eingeben' : 'Oder: Adresse eingeben'}
+                    {du ? 'MVP-Fokus: Kirkel / Saarland' : 'MVP-Fokus: Kirkel / Saarland'}
                   </h2>
                   <p className="mt-1 text-[11px] leading-relaxed" style={{ color: 'var(--gov-body)' }}>
                     {du
-                      ? 'Gib Straße, Postleitzahl und Wohnort ein. Bei fünfstelliger PLZ schlägt die App den Ort vor – du kannst ihn anpassen. Aus Postleitzahl, Ort und Kreisdaten ordnet die App passende Wahlen und lokale Inhalte zu.'
-                      : 'Geben Sie Straße, Postleitzahl und Wohnort ein. Bei fünfstelliger PLZ schlägt die App den Ort vor – Sie können ihn anpassen. Aus Postleitzahl, Ort und Kreisdaten ordnet die App passende Wahlen und lokale Inhalte zu.'}
+                      ? 'Die Demo ist jetzt absichtlich auf Kirkel konzentriert, damit Zuordnung, Politikerdaten und Inhalte stabil und testbar sind.'
+                      : 'Die Demo ist jetzt absichtlich auf Kirkel konzentriert, damit Zuordnung, Politikerdaten und Inhalte stabil und testbar sind.'}
                   </p>
                   <p
                     className="mt-2 rounded-lg px-2 py-1.5 text-[10px] leading-snug"
@@ -313,10 +270,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                     {appRegionLabel}
                   </p>
                   <p className="mt-1 text-[10px] leading-snug" style={{ color: 'var(--gov-muted)' }}>
-                    <span className="font-semibold">Demo-Datenstand:</span>{' '}
-                    Orts-/PLZ-Zuordnung und Wahltermine sind in dieser Demo nur für ausgewählte Regionen vollständig.
-                    Unbekannte Orte werden als Deutschland-Ansicht dargestellt; einzelne Beispiel-Inhalte können
-                    ersatzweise anhand der Demo-Gemeinde Kirkel angezeigt werden, damit Funktionen sichtbar bleiben.
+                    <span className="font-semibold">Inhaltlicher Fokus:</span> Bilder, Politikerdaten fuer Kirkel /
+                    Saarland / Saarpfalz-Kreis sowie aktuelle Parteiprogramme.
                   </p>
                   {demoWahlkreis ? (
                     <p className="mt-1.5 text-[10px]" style={{ color: 'var(--gov-muted)' }}>
@@ -326,58 +281,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                       {demoWahlkreis}
                     </p>
                   ) : null}
-
-                  <div className="mt-3 space-y-2">
-                    <div>
-                      <label className="mb-0.5 block text-[10px] font-semibold" style={{ color: 'var(--gov-muted)' }}>
-                        {du ? 'Straße und Hausnummer' : 'Straße und Hausnummer'}
-                      </label>
-                      <input
-                        type="text"
-                        value={demoStreet}
-                        onChange={(e) => updateDemoFields({ street: e.target.value })}
-                        placeholder={du ? 'z. B. Musterweg 2' : 'z. B. Musterweg 2'}
-                        className={inputCls}
-                        style={inputStyle}
-                        autoComplete="street-address"
-                        aria-label={du ? 'Straße und Hausnummer' : 'Straße und Hausnummer'}
-                      />
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div>
-                        <label className="mb-0.5 block text-[10px] font-semibold" style={{ color: 'var(--gov-muted)' }}>
-                          PLZ
-                        </label>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={5}
-                          value={demoPlz}
-                          onChange={(e) => updateDemoFields({ plz: e.target.value })}
-                          placeholder="12345"
-                          className={inputCls}
-                          style={inputStyle}
-                          autoComplete="postal-code"
-                          aria-label="Postleitzahl"
-                        />
-                      </div>
-                      <div className="col-span-2 min-w-0">
-                        <label className="mb-0.5 block text-[10px] font-semibold" style={{ color: 'var(--gov-muted)' }}>
-                          Wohnort
-                        </label>
-                        <input
-                          type="text"
-                          value={demoCity}
-                          onChange={(e) => updateDemoFields({ city: e.target.value })}
-                          placeholder={du ? 'wird aus PLZ vorgeschlagen' : 'wird aus PLZ vorgeschlagen'}
-                          className={inputCls}
-                          style={inputStyle}
-                          autoComplete="address-level2"
-                          aria-label="Wohnort"
-                        />
-                      </div>
-                    </div>
-                  </div>
 
                   <div
                     className="mt-3 rounded-xl px-3 py-2.5"
@@ -400,8 +303,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                     ) : (
                       <p className="mt-1.5 text-[10px]" style={{ color: 'var(--gov-muted)' }}>
                         {du
-                          ? 'Sobald PLZ oder Ort stehen, fasst Clara die Ebenen Bund, Land, Kreis und Kommune für dich zusammen.'
-                          : 'Sobald Postleitzahl oder Wohnort eingetragen sind, fasst Clara die Ebenen Bund, Land, Kreis und Kommune für Sie zusammen.'}
+                          ? 'Clara fasst fuer den MVP die Ebenen Bund, Saarland, Saarpfalz-Kreis und Kirkel zusammen.'
+                          : 'Clara fasst fuer den MVP die Ebenen Bund, Saarland, Saarpfalz-Kreis und Kirkel zusammen.'}
                       </p>
                     )}
                   </div>
@@ -480,8 +383,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                         onChange={(e) =>
                           handlePreferenceChange(key as keyof UserPreferences, parseInt(e.target.value, 10))
                         }
-                        className="h-1.5 w-full cursor-pointer appearance-none rounded-lg"
-                        style={{ accentColor: 'var(--gov-primary-mid)' }}
+                        className="slider h-1.5 w-full cursor-pointer rounded-lg"
+                        style={sliderTrackStyle(state.preferences[key as keyof UserPreferences])}
                       />
                     </div>
                   ))}

@@ -56,7 +56,7 @@
   --glass-border-light: rgba(0, 0, 0, 0.06);
 }
 
-/* ───────────────── Desktop Stage: zeigt nur Mobile-App ───────────────── */
+/* ───────────────── App-Stage: Mobile = Vollfläche, Desktop = zentrierte Preview ───────────────── */
 .app-stage-root {
   min-height: 100dvh;
   width: 100%;
@@ -66,10 +66,72 @@
 
 .app-stage-inner {
   width: 100%;
-  height: 100dvh;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
-/* Desktop-only App-Stage (zentriertes Mobile-Preview) */
+.app-stage-scale,
+.app-stage-content {
+  min-height: 0;
+}
+
+/* Mobile: keine Desktop-Skalierung, nur flex-Fläche für die gleiche App */
+@media (max-width: 1023px) {
+  .app-stage-root {
+    min-height: 100dvh;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+
+  .app-stage-inner {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .app-stage-scale {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .app-stage-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .app-device-shell {
+    width: 100%;
+    min-height: 0;
+    flex: 1;
+    padding: 0;
+  }
+
+  .app-device-content {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0px);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/*
+ * Desktop: Scale-to-fit ohne Layout-Overflow.
+ * Problem mit transform direkt auf der Stage: Layout bleibt groß → bei overflow:hidden
+ * wird das Mockup trotz sichtbar kleinerem Zoom abgeschnitten.
+ * Lösung: äußere Box hat exakt die skalierte Größe, Inhalt scale(top left) + overflow hidden.
+ */
 @media (min-width: 1024px) {
   .app-stage-root {
     position: fixed;
@@ -78,39 +140,49 @@
     align-items: center;
     justify-content: center;
     padding: 24px;
+    box-sizing: border-box;
   }
 
   .app-stage-inner {
-    width: var(--stage-w, 414px);
-    height: var(--stage-h, 900px);
-    transform-origin: center;
-    transform: scale(
-      min(
-        1,
-        calc((100vw - 48px) / var(--stage-w, 414px)),
-        calc((100dvh - 48px) / var(--stage-h, 900px))
-      )
-    );
-  }
-}
-
-/* Mobile: weiterhin iPhone-Frame, aber ohne Mini-Preview-Effekt */
-@media (max-width: 1023px) {
-  .app-stage-root {
-    padding: 8px;
-  }
-
-  .app-device-shell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
-    min-height: 100dvh;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
     padding: 0;
   }
 
-  .app-device-content {
-    /* Safe-Area bleibt erhalten, zusätzlich zum bestehenden Top-Offset für Notch */
-    padding-bottom: calc(env(safe-area-inset-bottom) + 0px);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
+  .app-stage-scale {
+    --stage-scale: min(
+      1,
+      calc((100svw - 48px) / var(--stage-w, 390px)),
+      calc((100svh - 48px) / var(--stage-h, 850px))
+    );
+    width: calc(var(--stage-w, 390px) * var(--stage-scale));
+    height: calc(var(--stage-h, 850px) * var(--stage-scale));
+    flex-shrink: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .app-stage-content {
+    width: var(--stage-w, 390px);
+    height: var(--stage-h, 850px);
+    transform: scale(var(--stage-scale));
+    transform-origin: top left;
+    flex-shrink: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+
+  .app-device-shell {
+    min-height: 0;
   }
 }
 
