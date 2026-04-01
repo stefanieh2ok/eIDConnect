@@ -157,13 +157,14 @@
   }
 
   .app-stage-scale {
+    --desktop-preview-factor: 0.58;
     --stage-scale: min(
       1,
       calc((100svw - 48px) / var(--stage-w, 390px)),
       calc((100svh - 48px) / var(--stage-h, 850px))
     );
-    width: calc(var(--stage-w, 390px) * var(--stage-scale));
-    height: calc(var(--stage-h, 850px) * var(--stage-scale));
+    width: calc(var(--stage-w, 390px) * var(--stage-scale) * var(--desktop-preview-factor));
+    height: calc(var(--stage-h, 850px) * var(--stage-scale) * var(--desktop-preview-factor));
     flex-shrink: 0;
     overflow: hidden;
     box-sizing: border-box;
@@ -172,7 +173,7 @@
   .app-stage-content {
     width: var(--stage-w, 390px);
     height: var(--stage-h, 850px);
-    transform: scale(var(--stage-scale));
+    transform: scale(calc(var(--stage-scale) * var(--desktop-preview-factor)));
     transform-origin: top left;
     flex-shrink: 0;
     overflow: hidden;
