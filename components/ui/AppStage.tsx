@@ -22,6 +22,7 @@ export function AppStage({
   stageWidthPx = 390,
   stageHeightPx = 850,
 }: AppStageProps) {
+  const DESKTOP_PRESENTATION_FACTOR = 0.72;
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [desktopScale, setDesktopScale] = useState(1);
 
@@ -40,7 +41,7 @@ export function AppStage({
       const availableHeight = Math.max(0, rect.height - 48);
       const scaleX = availableWidth / stageWidthPx;
       const scaleY = availableHeight / stageHeightPx;
-      const finalScale = Math.min(scaleX, scaleY, 1);
+      const finalScale = Math.min(scaleX, scaleY, 1) * DESKTOP_PRESENTATION_FACTOR;
       setDesktopScale(Number.isFinite(finalScale) && finalScale > 0 ? finalScale : 1);
     };
 

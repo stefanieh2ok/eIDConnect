@@ -400,8 +400,7 @@ html {
 body {
   color: var(--gov-body, #374151);
   background-color: var(--gov-surface, #F7F9FC);
-  /* Safe-Area für iPhone mit Dynamic Island */
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: 0;
 }
 
 /* Fallback-Klassen falls CSS-Variablen nicht ankommen (z. B. in manchen Browsern) */
@@ -751,6 +750,11 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  body {
+    /* Safe-Area nur auf echten mobilen Viewports anwenden */
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
   .swipe-card {
     margin: 0 16px;
   }
