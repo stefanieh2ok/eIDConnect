@@ -22,7 +22,8 @@ export function AppStage({
   stageWidthPx = 390,
   stageHeightPx = 850,
 }: AppStageProps) {
-  const DESKTOP_PRESENTATION_FACTOR = 0.25;
+  /** Zusätzliche Verkleinerung nur bei Bedarf; 1 = reines scale-to-fit in den Stage-Viewport */
+  const DESKTOP_PRESENTATION_FACTOR = 1;
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [desktopScale, setDesktopScale] = useState(1);
 
