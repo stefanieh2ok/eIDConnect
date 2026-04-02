@@ -37,8 +37,12 @@ const LeaderboardSection: React.FC = () => {
     <div className="space-y-5">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Punkte sammeln und Prämien erhalten</h2>
-              <div className="mt-0.5 text-[11px] text-neutral-500">
+              <h2 className="text-lg font-semibold tracking-[0.12em] text-gray-900">PUNKTE</h2>
+              <p className="mt-1 text-sm text-gray-600 max-w-md [text-wrap:pretty]">
+                Punkte sammeln Sie durch aktive Nutzung der App; gesammelte Punkte können Sie für lokale Prämien einlösen,
+                sobald Sie dem freiwilligen Programm zugestimmt haben.
+              </p>
+              <div className="mt-1 text-[11px] text-neutral-500">
                 {selectionLabelForSection('leaderboard', state.activeLocation, state.residenceLocation)}
               </div>
             </div>
@@ -152,9 +156,11 @@ const LeaderboardSection: React.FC = () => {
             <div className="px-5 pt-5 pb-3">
               <div className="text-xs font-semibold text-neutral-500">eID DEMO CONNECT</div>
               <h2 className="text-lg font-bold text-gray-900 mt-1">eID Demo Connect im Überblick</h2>
-              <div className="mt-2 text-sm font-semibold text-[#003366]">
-                Punkte sammeln und Prämien erhalten
-              </div>
+              <div className="mt-2 text-base font-extrabold tracking-[0.12em] text-[#003366]">PUNKTE</div>
+              <p className="mt-2 text-sm text-gray-600 leading-relaxed [text-wrap:pretty]">
+                Punkte sammeln Sie durch aktive Nutzung; Prämien können Sie einlösen, sobald Sie zugestimmt haben und die
+                Voraussetzungen erfüllt sind.
+              </p>
               <div className="mt-3 space-y-2 text-sm text-gray-700 leading-relaxed">
                 <p>
                   Die Teilnahme am Prämienprogramm ist freiwillig und wird erst nach Ihrer ausdrücklichen Zustimmung aktiviert.

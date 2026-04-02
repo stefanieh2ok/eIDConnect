@@ -98,7 +98,8 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
 
   return (
     <IphoneFrame>
-      <main className="scrollbar-hide flex h-full min-h-0 w-full flex-col overflow-y-auto rounded-b-[1.75rem] px-3 py-3 text-neutral-900">
+      <main className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-b-[1.75rem] px-3 py-3 text-neutral-900">
+        <div className="hookai-zugang-scroll scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
       <div className="mx-auto w-full max-w-[360px] flex flex-col items-center gap-6 rounded-2xl border border-white/25 bg-white/12 p-4 shadow-lg backdrop-blur-xl">
         {/* Marke */}
         <div className="flex flex-col items-center gap-2">
@@ -229,6 +230,7 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
           </a>
         </p>
       </div>
+        </div>
       </main>
     </IphoneFrame>
   );

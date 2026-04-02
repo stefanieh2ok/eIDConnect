@@ -252,10 +252,15 @@ function PraemienIntroPreview() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    setCheckFlash(true);
-    const id = window.setTimeout(() => setCheckFlash(false), 1800);
-    return () => window.clearTimeout(id);
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const delayMs = reduced ? 200 : 550;
+    const visibleMs = reduced ? 2400 : 2600;
+    const show = window.setTimeout(() => setCheckFlash(true), delayMs);
+    const hide = window.setTimeout(() => setCheckFlash(false), delayMs + visibleMs);
+    return () => {
+      window.clearTimeout(show);
+      window.clearTimeout(hide);
+    };
   }, []);
 
   return (
@@ -264,8 +269,12 @@ function PraemienIntroPreview() {
         className="rounded-t-xl p-3 text-white"
         style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
       >
-        <div className="text-sm font-bold leading-snug">Punkte sammeln und Prämien erhalten</div>
-        <div className="text-[10px] opacity-90">Teilnahme freiwillig</div>
+        <div className="text-base font-extrabold tracking-[0.12em]">PUNKTE</div>
+        <p className="mt-1.5 text-[10px] font-medium leading-snug opacity-95 [text-wrap:pretty]">
+          Punkte sammeln Sie durch aktive Nutzung (z.&nbsp;B. Abstimmungen). Gesammelte Punkte können Sie für lokale Prämien
+          einlösen, sobald Sie dem Programm zugestimmt haben.
+        </p>
+        <div className="mt-1.5 text-[10px] opacity-90">Teilnahme freiwillig</div>
       </div>
       <div className="space-y-2 p-3">
         <label
@@ -317,10 +326,10 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
   const isLast = idx >= steps.length - 1;
   const previewMaxHeight =
     step.id === 'praemien'
-      ? 'min(70vh, 560px)'
+      ? 'min(80vh, 640px)'
       : step.id === 'abstimmen'
-        ? 'min(74vh, 640px)'
-        : 'min(62vh, 500px)';
+        ? 'min(84vh, 760px)'
+        : 'min(72vh, 580px)';
 
   const preview = useMemo(() => {
     switch (step.id) {

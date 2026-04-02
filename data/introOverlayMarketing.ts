@@ -102,8 +102,9 @@ export const INTRO_OVERLAY_STEPS: IntroOverlayStepCopy[] = [
   },
   {
     id: 'praemien',
-    title: '5) Punkte sammeln und Prämien erhalten',
+    title: '5) PUNKTE',
     body:
+      'Punkte sammeln Sie durch aktive Nutzung der App – etwa durch Abstimmungen und andere Beteiligungsangebote. Gesammelte Punkte können Sie für lokale Prämien und Einlöseangebote verwenden, sobald Sie dem freiwilligen Programm zugestimmt haben und die jeweiligen Voraussetzungen erfüllt sind.\n\n' +
       'Die Teilnahme am Prämienprogramm ist freiwillig und wird erst nach Ihrer ausdrücklichen Zustimmung aktiviert.\n\n' +
       'Punkte für aktive Beteiligung werden nur im dafür erforderlichen Umfang verarbeitet.\n\n' +
       'Prämien und Einlöseangebote werden erst angezeigt, wenn Sie dem Programm ausdrücklich zustimmen.',
