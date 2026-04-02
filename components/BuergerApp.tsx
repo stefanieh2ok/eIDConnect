@@ -204,7 +204,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       {/* Hauptinhalt – füllt restliche Bildschirmhöhe */}
       <main
         id="main-scroll"
-        className="flex-1 min-h-0 overflow-y-auto scroll-smooth"
+        className="scrollbar-hide flex-1 min-h-0 overflow-y-auto scroll-smooth"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <div className="px-3 pt-3 pb-6">

@@ -156,7 +156,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
           </div>
 
           <div
-            className="min-h-0 flex-1 overflow-y-auto px-5 pb-2"
+            className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pb-2"
             style={{ overscrollBehavior: 'contain' }}
           >
             {step === 1 && (
@@ -262,17 +262,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                           {state.preferences[key as keyof UserPreferences]}%
                         </span>
                       </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={state.preferences[key as keyof UserPreferences]}
-                        onChange={(e) =>
-                          handlePreferenceChange(key as keyof UserPreferences, parseInt(e.target.value, 10))
-                        }
-                        className="slider h-1.5 w-full cursor-pointer rounded-lg"
-                        style={sliderTrackStyle(state.preferences[key as keyof UserPreferences])}
-                      />
                     </div>
                   ))}
                 </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { memo, useState } from 'react';
-import { ChevronDown, ListChecks } from 'lucide-react';
+import { ChevronDown, ListChecks, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { VotingCard as VotingCardType, VoteType } from '@/types';
 
 function enforceFactDetail(text: string): string {
@@ -24,6 +24,8 @@ interface VotingCardProps {
   onDragMove: (clientX: number) => void;
   onDragEnd: () => void;
   onVote: (voteType: VoteType) => void;
+  /** Produkt-Intro: Daumen-Icons in den Abstimmungsbalken (Dafür / Dagegen / Enthalten). */
+  introBarIcons?: boolean;
 }
 
 const VotingCard: React.FC<VotingCardProps> = memo(
@@ -36,6 +38,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
     onDragMove,
     onDragEnd,
     onVote: _onVote,
+    introBarIcons = false,
   }) => {
     const [proOpen, setProOpen] = useState(false);
     const [conOpen, setConOpen] = useState(false);
@@ -109,28 +112,54 @@ const VotingCard: React.FC<VotingCardProps> = memo(
 
         {/* ── Live-Balken ── */}
         <div className="px-4 pb-2">
-          <div className="flex h-6 rounded-full overflow-hidden" style={{ background: '#EEF2F8' }}>
-            <div
-              className="flex items-center justify-center text-white text-[10px] font-bold"
-              style={{ width: `${card.yes}%`, background: '#22c55e' }}
-            >
-              {card.yes}%
-            </div>
-            <div
-              className="flex items-center justify-center text-white text-[10px] font-bold"
-              style={{ width: `${card.no}%`, background: '#ef4444' }}
-            >
-              {card.no}%
-            </div>
-            {card.abstain > 0 && (
+          {introBarIcons ? (
+            <div className="flex h-9 gap-px overflow-hidden rounded-full" style={{ background: '#EEF2F8' }}>
               <div
-                className="flex items-center justify-center text-[10px] font-medium"
-                style={{ width: `${card.abstain}%`, background: '#CBD5E1', color: '#64748B' }}
+                className="flex min-w-0 flex-col items-center justify-center gap-0.5 px-1 py-0.5 text-[10px] font-bold text-white"
+                style={{ flex: `${Math.max(card.yes, 1)} 1 0%`, background: '#22c55e' }}
               >
-                {card.abstain}%
+                <ThumbsUp className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
+                <span className="tabular-nums">{card.yes}%</span>
               </div>
-            )}
-          </div>
+              <div
+                className="flex min-w-0 flex-col items-center justify-center gap-0.5 px-1 py-0.5 text-[10px] font-bold text-white"
+                style={{ flex: `${Math.max(card.no, 1)} 1 0%`, background: '#ef4444' }}
+              >
+                <ThumbsDown className="h-4 w-4 shrink-0" strokeWidth={2.5} aria-hidden />
+                <span className="tabular-nums">{card.no}%</span>
+              </div>
+              <div
+                className="flex min-w-0 flex-col items-center justify-center gap-0.5 px-1 py-0.5 text-[10px] font-medium"
+                style={{ flex: `${Math.max(card.abstain, 1)} 1 0%`, background: '#CBD5E1', color: '#64748B' }}
+              >
+                <span className="shrink-0 font-bold">Enth.</span>
+                <span className="tabular-nums">{card.abstain}%</span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex h-6 rounded-full overflow-hidden" style={{ background: '#EEF2F8' }}>
+              <div
+                className="flex items-center justify-center text-white text-[10px] font-bold"
+                style={{ width: `${card.yes}%`, background: '#22c55e' }}
+              >
+                {card.yes}%
+              </div>
+              <div
+                className="flex items-center justify-center text-white text-[10px] font-bold"
+                style={{ width: `${card.no}%`, background: '#ef4444' }}
+              >
+                {card.no}%
+              </div>
+              {card.abstain > 0 && (
+                <div
+                  className="flex items-center justify-center text-[10px] font-medium"
+                  style={{ width: `${card.abstain}%`, background: '#CBD5E1', color: '#64748B' }}
+                >
+                  {card.abstain}%
+                </div>
+              )}
+            </div>
+          )}
           <div className="flex justify-between mt-1">
             <span className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--gov-muted)' }}>
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block" />

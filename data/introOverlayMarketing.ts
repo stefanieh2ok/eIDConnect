@@ -102,7 +102,7 @@ export const INTRO_OVERLAY_STEPS: IntroOverlayStepCopy[] = [
   },
   {
     id: 'praemien',
-    title: '5) Punkte & Prämien',
+    title: '5) Punkte sammeln und Prämien erhalten',
     body:
       'Die Teilnahme am Prämienprogramm ist freiwillig und wird erst nach Ihrer ausdrücklichen Zustimmung aktiviert.\n\n' +
       'Punkte für aktive Beteiligung werden nur im dafür erforderlichen Umfang verarbeitet.\n\n' +

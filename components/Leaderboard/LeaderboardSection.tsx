@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Award } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { regionalPraemienForCity } from '@/data/demoVoting2026';
 import { SectionLevelFilterIcon, selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
@@ -38,7 +37,7 @@ const LeaderboardSection: React.FC = () => {
     <div className="space-y-5">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Punkte & Prämien</h2>
+              <h2 className="text-lg font-semibold text-gray-900">Punkte sammeln und Prämien erhalten</h2>
               <div className="mt-0.5 text-[11px] text-neutral-500">
                 {selectionLabelForSection('leaderboard', state.activeLocation, state.residenceLocation)}
               </div>
@@ -47,10 +46,7 @@ const LeaderboardSection: React.FC = () => {
       </div>
       {/* Lokale Prämien */}
       <div className="bg-white/70 rounded-2xl p-5 shadow-sm border border-neutral-200 backdrop-blur">
-        <h3 className="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <Award className="h-5 w-5 text-[#0055A4]" aria-hidden />
-          Lokale Prämien
-        </h3>
+        <h3 className="text-base font-bold text-gray-900 mb-2">Lokale Prämien</h3>
         <p className="text-sm text-gray-600 mb-3">
           {state.consentPraemien
             ? 'Ihre Teilnahme ist aktiv.'
@@ -71,10 +67,7 @@ const LeaderboardSection: React.FC = () => {
         </p>
 
         <div className="flex items-center justify-between text-sm text-gray-700 mb-3 rounded-xl border border-neutral-200 bg-[#F7F9FC] px-3 py-2">
-          <span className="flex items-center gap-2 font-medium">
-            <Award className="h-4 w-4 text-[#0055A4] shrink-0" aria-hidden />
-            Deine Punkte
-          </span>
+          <span className="font-medium">Deine Punkte</span>
           <span className="font-bold text-gray-900 tabular-nums">
             {state.participationPoints.toLocaleString('de-DE')} Punkte
           </span>
@@ -88,10 +81,7 @@ const LeaderboardSection: React.FC = () => {
               <div key={p.id} className="bg-white/60 rounded-xl border border-neutral-200 p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="font-semibold text-gray-900 truncate">
-                      <span className="mr-2">{p.emoji}</span>
-                      {p.name}
-                    </div>
+                    <div className="font-semibold text-gray-900 truncate">{p.name}</div>
                     {state.consentPraemien ? (
                       <div className="text-xs text-gray-600 mt-1">
                         {p.description} · {p.points.toLocaleString('de-DE')} Punkte
@@ -162,7 +152,9 @@ const LeaderboardSection: React.FC = () => {
             <div className="px-5 pt-5 pb-3">
               <div className="text-xs font-semibold text-neutral-500">eID DEMO CONNECT</div>
               <h2 className="text-lg font-bold text-gray-900 mt-1">eID Demo Connect im Überblick</h2>
-              <div className="mt-2 text-sm font-semibold text-[#003366]">Punkte &amp; Prämien</div>
+              <div className="mt-2 text-sm font-semibold text-[#003366]">
+                Punkte sammeln und Prämien erhalten
+              </div>
               <div className="mt-3 space-y-2 text-sm text-gray-700 leading-relaxed">
                 <p>
                   Die Teilnahme am Prämienprogramm ist freiwillig und wird erst nach Ihrer ausdrücklichen Zustimmung aktiviert.

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Award } from 'lucide-react';
 import OriginalStimmzettel from '@/components/Voting/OriginalStimmzettel';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
@@ -91,7 +90,7 @@ function IntroScreenshotOrPreview({
 function BallotScroll({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="intro-ballot-scroll max-h-[min(56vh,24rem)] overflow-y-auto overflow-x-hidden rounded-xl border border-white/30 bg-white shadow-md"
+      className="hide-scrollbar max-h-[min(56vh,24rem)] overflow-y-auto overflow-x-hidden rounded-xl border border-white/30 bg-white shadow-md"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
       <div className="p-2 text-gray-900">{children}</div>
@@ -121,6 +120,7 @@ function IntroAbstimmenPreview({ card }: { card: VotingCardModel }) {
             onDragMove={noopDrag}
             onDragEnd={noopDrag}
             onVote={noopVote}
+            introBarIcons
           />
           <VotingControls canVote onVote={noopVote} />
         </div>
@@ -248,22 +248,45 @@ function MeldungIntroPreview({ communeName }: { communeName: string }) {
 }
 
 function PraemienIntroPreview() {
+  const [checkFlash, setCheckFlash] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    setCheckFlash(true);
+    const id = window.setTimeout(() => setCheckFlash(false), 1800);
+    return () => window.clearTimeout(id);
+  }, []);
+
   return (
     <div className="rounded-xl border border-neutral-200 bg-white text-left shadow-md">
       <div
         className="rounded-t-xl p-3 text-white"
         style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
       >
-        <div className="flex items-center gap-1.5 text-sm font-bold">
-          <Award className="h-4 w-4" aria-hidden />
-          Punkte & Prämien
-        </div>
+        <div className="text-sm font-bold leading-snug">Punkte sammeln und Prämien erhalten</div>
         <div className="text-[10px] opacity-90">Teilnahme freiwillig</div>
       </div>
       <div className="space-y-2 p-3">
-        <label className="flex items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-[10px] text-neutral-800">
-          <input type="checkbox" className="mt-0.5" />
-          Ich möchte am freiwilligen Punkte- und Prämienprogramm teilnehmen.
+        <label
+          className="relative flex cursor-default items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-[10px] text-neutral-800 onboarding-heartbeat"
+          onAnimationEnd={(e) => {
+            if (e.target !== e.currentTarget) return;
+            const name = e.animationName || '';
+            if (!name.includes('eid-filter-heartbeat')) return;
+            (e.currentTarget as HTMLElement).classList.remove('onboarding-heartbeat');
+          }}
+        >
+          <input type="checkbox" readOnly tabIndex={-1} className="pointer-events-none mt-0.5" aria-hidden />
+          {checkFlash ? (
+            <span
+              className="absolute left-2.5 top-2 inline-flex h-5 w-5 items-center justify-center rounded-md bg-emerald-600 text-[12px] font-black text-white shadow-sm"
+              aria-hidden
+            >
+              ✓
+            </span>
+          ) : null}
+          <span>Ich möchte am freiwilligen Punkte- und Prämienprogramm teilnehmen.</span>
         </label>
         <p className="text-[10px] text-neutral-600">
           Prämien und Einlöseangebote werden erst nach Ihrer Zustimmung sichtbar.
@@ -292,7 +315,12 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
   const [idx, setIdx] = useState(0);
   const step = steps[idx];
   const isLast = idx >= steps.length - 1;
-  const previewMaxHeight = step.id === 'praemien' ? 'min(64vh, 500px)' : 'min(58vh, 420px)';
+  const previewMaxHeight =
+    step.id === 'praemien'
+      ? 'min(70vh, 560px)'
+      : step.id === 'abstimmen'
+        ? 'min(74vh, 640px)'
+        : 'min(62vh, 500px)';
 
   const preview = useMemo(() => {
     switch (step.id) {
@@ -408,7 +436,7 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
 
         <div className="mt-4 rounded-xl border border-neutral-200/95 bg-white p-2.5 shadow-sm">
           <div
-            className="flex-shrink-0 overflow-x-hidden overflow-y-auto overscroll-contain"
+            className="hide-scrollbar flex-shrink-0 overflow-x-hidden overflow-y-auto overscroll-contain"
             style={{ maxHeight: previewMaxHeight }}
           >
             {preview}
