@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   const { data: logs } = await admin.from('demo_access_logs').select('*').eq('token_id', tokenId).order('accessed_at', { ascending: true });
 
   const reportData = {
-    title: 'Zugriffs-Nachweis – eIDConnect Demo',
+    title: 'Zugriffs-Nachweis – eIDConnect',
     token: {
       recipient_name: token.recipient_name,
       recipient_org: token.recipient_org,

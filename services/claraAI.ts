@@ -3,10 +3,12 @@ import { VotingCard } from '@/types';
 
 export class ClaraAI {
   private preferences: ClaraPreferences;
+  private personalizationEnabled: boolean;
   private apiBaseUrl: string;
 
-  constructor(preferences: ClaraPreferences) {
+  constructor(preferences: ClaraPreferences, personalizationEnabled: boolean) {
     this.preferences = preferences;
+    this.personalizationEnabled = personalizationEnabled;
     this.apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
   }
 
@@ -15,12 +17,17 @@ export class ClaraAI {
   }
 
   analyzeVotingCard(card: VotingCard): ClaraAnalysis {
-    const personalMatch = this.calculatePersonalMatch(card);
-    const reasoning = this.generateReasoning(card, personalMatch);
-    const pros = this.generatePersonalizedPros(card);
-    const cons = this.generatePersonalizedCons(card);
-    const recommendation = this.getRecommendation(personalMatch);
-    const confidence = this.calculateConfidence(personalMatch, card);
+    // Wenn keine Einwilligung zur Personalisierung vorliegt, arbeiten wir neutral (keine Ableitung aus
+    // Politik-Schwerpunkten). Das ist datenminimierend und verhindert ungewollte Beeinflussung.
+    const personalMatch = this.personalizationEnabled ? this.calculatePersonalMatch(card) : 50;
+    const reasoning = this.personalizationEnabled
+      ? this.generateReasoning(card, personalMatch)
+      : this.generateNeutralReasoning(card);
+
+    const pros = this.personalizationEnabled ? this.generatePersonalizedPros(card) : this.generateNeutralPros(card);
+    const cons = this.personalizationEnabled ? this.generatePersonalizedCons(card) : this.generateNeutralCons(card);
+    const recommendation = this.personalizationEnabled ? this.getRecommendation(personalMatch) : undefined;
+    const confidence = this.personalizationEnabled ? this.calculateConfidence(personalMatch, card) : 60;
     const alternativePerspectives = this.generateAlternativePerspectives(card);
 
     return {
@@ -121,7 +128,9 @@ export class ClaraAI {
       pros.push('Unterstützt deine Digitalisierungsagenda');
     }
     
-    return pros.length > 0 ? pros : ['Generelle positive Auswirkungen erwartet'];
+    const factualPros = this.buildFactualPros(card);
+    const merged = [...pros, ...factualPros];
+    return merged.length > 0 ? merged.slice(0, 4) : ['Generelle positive Auswirkungen erwartet'];
   }
 
   private generatePersonalizedCons(card: VotingCard): string[] {
@@ -135,7 +144,11 @@ export class ClaraAI {
       cons.push('Finanzielle Auswirkungen könnten deine anderen Prioritäten beeinträchtigen');
     }
     
-    return cons.length > 0 ? cons : ['Keine spezifischen Bedenken basierend auf deinen Präferenzen'];
+    const factualCons = this.buildFactualCons(card);
+    const merged = [...cons, ...factualCons];
+    return merged.length > 0
+      ? merged.slice(0, 4)
+      : ['Keine spezifischen Bedenken basierend auf deinen Präferenzen'];
   }
 
   private getRecommendation(match: number): 'strong_yes' | 'yes' | 'neutral' | 'no' | 'strong_no' {
@@ -161,6 +174,83 @@ export class ClaraAI {
     ];
   }
 
+  private generateNeutralReasoning(card: VotingCard): string {
+    const facts = card.quickFacts?.slice(0, 2).join(' · ') || 'Keine Kurzfakten vorhanden';
+    const fiscal = this.buildFiscalSnapshot(card);
+    return `Neutrale Einordnung zu "${card.title}" (${card.category}): Der Vorschlag wird aktuell mit ${card.yes}% Dafür, ${card.no}% Dagegen und ${card.abstain}% Enthaltungen bewertet (${card.votes.toLocaleString('de-DE')} Abstimmende). Wichtige Punkte aus der Vorlage: ${facts}. ${fiscal}`;
+  }
+
+  private generateNeutralPros(card: VotingCard): string[] {
+    const fromAnalysis = card.kiAnalysis?.pros?.map((pro) => pro.text).filter(Boolean) ?? [];
+    const factualPros = this.buildFactualPros(card);
+    const quickFacts = (card.quickFacts?.slice(0, 2) ?? []).map((fact) => `Möglicher Vorteil laut Vorlage: ${fact}`);
+    const merged = [...fromAnalysis, ...factualPros, ...quickFacts];
+    return merged.length > 0
+      ? merged.slice(0, 4)
+      : ['Potenzielle Vorteile sind von Umsetzung, Finanzierung und Zeitplan abhängig.'];
+  }
+
+  private generateNeutralCons(card: VotingCard): string[] {
+    const fromAnalysis = card.kiAnalysis?.cons?.map((con) => con.text).filter(Boolean) ?? [];
+    const factualCons = this.buildFactualCons(card);
+    const leadCon = card.quickFacts?.find((fact) => /(risiko|kosten|aufwand|kritik|belastung)/i.test(fact));
+    const merged = [...fromAnalysis, ...factualCons, ...(leadCon ? [`Möglicher Nachteil laut Vorlage: ${leadCon}`] : [])];
+    return merged.length > 0
+      ? merged.slice(0, 4)
+      : ['Mögliche Nachteile können Kosten, Umsetzungsaufwand oder Zielkonflikte sein.'];
+  }
+
+  private buildNumericFactLines(card: VotingCard): string[] {
+    const lines: string[] = [];
+    lines.push(
+      `Zwischenstand: ${card.yes}% dafür, ${card.no}% dagegen, ${card.abstain}% Enthaltungen bei ${card.votes.toLocaleString('de-DE')} Stimmen.`
+    );
+
+    const sourceFacts = [
+      ...(card.quickFacts ?? []),
+      card.kiAnalysis?.financialImpact ?? '',
+      card.kiAnalysis?.environmentalImpact ?? '',
+    ]
+      .filter(Boolean)
+      .map((x) => x.trim());
+
+    const numericFacts = sourceFacts.filter((fact) =>
+      /(\d+[.,]?\d*\s?(€|EUR|%|Mio|Mrd|kWh|t|Tonnen|Jahre|Monat|Monate|Jahr)|haushalt|belastung|kosten)/i.test(
+        fact
+      )
+    );
+    for (const fact of numericFacts.slice(0, 3)) {
+      lines.push(`Fakt: ${fact}`);
+    }
+    return lines;
+  }
+
+  private buildFiscalSnapshot(card: VotingCard): string {
+    const fiscalSource = [card.kiAnalysis?.financialImpact, ...(card.quickFacts ?? [])]
+      .filter(Boolean)
+      .find((text) => /(haushalt|kosten|belastung|invest|finanz|steuer|einspar)/i.test(text));
+    if (!fiscalSource) {
+      return 'Haushaltswirkung: In der Vorlage sind derzeit keine belastbaren Euro-Beträge ausgewiesen.';
+    }
+    return `Haushaltswirkung: ${fiscalSource}`;
+  }
+
+  private buildFactualPros(card: VotingCard): string[] {
+    const lines = this.buildNumericFactLines(card);
+    const fiscal = this.buildFiscalSnapshot(card);
+    return [`Zahlenbasis Pro-Einordnung: ${lines[0]}`, `Einordnung zu Nutzen/Kosten: ${fiscal}`];
+  }
+
+  private buildFactualCons(card: VotingCard): string[] {
+    const lines = this.buildNumericFactLines(card);
+    const riskFact =
+      [card.kiAnalysis?.financialImpact, ...(card.quickFacts ?? [])]
+        .filter(Boolean)
+        .find((text) => /(risiko|mehrkosten|belastung|verzug|aufwand|folgekosten)/i.test(text)) ??
+      'Es sind potenzielle Mehrkosten und Folgekosten zu prüfen.';
+    return [`Zahlenbasis Contra-Einordnung: ${lines[0]}`, `Risiko-/Belastungsfaktor: ${riskFact}`];
+  }
+
   async generateChatResponse(userMessage: string, context?: any): Promise<string> {
     try {
       const response = await fetch(`${this.apiBaseUrl}/clara/chat`, {
@@ -171,7 +261,8 @@ export class ClaraAI {
         body: JSON.stringify({
           message: userMessage,
           context,
-          preferences: this.preferences
+          // Datenminimierung: Präferenzen nur senden, wenn explizite Einwilligung vorliegt.
+          preferences: this.personalizationEnabled ? this.preferences : undefined
         })
       });
 
@@ -191,26 +282,28 @@ export class ClaraAI {
     const message = userMessage.toLowerCase();
     
     if (message.includes('hallo') || message.includes('hi')) {
-      return `Hallo! Ich bin Clara, deine KI-Assistentin für politische Entscheidungen. Wie kann ich dir heute helfen?`;
+      return `Hallo! Ich bin Clara, dein KI-Assistent für politische Informationen. Wie kann ich dir heute helfen?`;
     }
     
     if (message.includes('erklär') || message.includes('was bedeutet')) {
-      return `Gerne erkläre ich dir die Details! Basierend auf deinen Präferenzen kann ich dir eine personalisierte Analyse anbieten.`;
+      return `Gerne erkläre ich dir die Details. Ich kann die relevanten Aspekte sachlich einordnen – ohne Wahlempfehlung.`;
     }
     
     if (message.includes('empfehlung') || message.includes('soll ich')) {
-      return `Meine Empfehlung basiert auf deinem Politik-Barometer. Lass mich die Abstimmung für dich analysieren.`;
+      return `Ich kann Ihnen / dir keine Abstimmungs-Empfehlung geben (also kein „dafür/dagegen“). Ich kann aber erklären, warum die Abstimmung zu Ihren / deinen Schwerpunkten passt und welche Argumente dafür bzw. dagegen relevant sind. Wollen Sie / willst du, dass ich die wichtigsten Punkte dazu zusammenfasse?`;
     }
     
     if (message.includes('danke') || message.includes('dankeschön')) {
       return `Gerne geschehen! Ich bin hier, um dir bei politischen Entscheidungen zu helfen.`;
     }
     
-    return `Das ist eine interessante Frage! Basierend auf deinen Präferenzen kann ich dir eine detaillierte Analyse anbieten. Möchtest du, dass ich die aktuelle Abstimmung für dich durchgehe?`;
+    return `Das ist eine interessante Frage! Ich kann dir die relevanten Informationen und Argumente neutral zusammenfassen.`;
   }
 
   generateVoiceGreeting(): string {
-    return `Hallo! Ich bin Clara, deine persönliche KI-Assistentin. Ich helfe dir dabei, politische Entscheidungen basierend auf deinen Präferenzen zu treffen. Wie kann ich dir heute helfen?`;
+    return this.personalizationEnabled
+      ? `Hallo! Ich bin Clara. Ich helfe dir, Informationen neutral zu verstehen und einzuordnen – passend zu deinen Präferenzen. Wobei kann ich dir heute helfen?`
+      : `Hallo! Ich bin Clara. Ich helfe dir, Informationen neutral zu verstehen und einzuordnen. Wobei kann ich dir heute helfen?`;
   }
 
   async generateDeepDiveAnalysis(card: VotingCard): Promise<string> {
@@ -222,7 +315,8 @@ export class ClaraAI {
         },
         body: JSON.stringify({
           votingCard: card,
-          preferences: this.preferences
+          // Datenminimierung: Präferenzen nur senden, wenn explizite Einwilligung vorliegt.
+          preferences: this.personalizationEnabled ? this.preferences : undefined
         })
       });
 
@@ -233,21 +327,34 @@ export class ClaraAI {
       const data = await response.json();
       const analysis = data.analysis;
       
+      const intro = this.personalizationEnabled
+        ? `Basierend auf deinem Politik-Barometer (${this.getTopPreference()}) ist deine Übereinstimmung ${analysis.personalMatch}%.`
+        : `Neutrale Tiefenanalyse für "${card.title}" ohne personalisierte Schwerpunkte.`;
+
+      const aspectsLabel = this.personalizationEnabled
+        ? 'Wichtige Aspekte (für deine Schwerpunkte relevant):'
+        : 'Wichtige Aspekte (für eine eigene Entscheidung):';
+
+      const numericEvidence = this.buildNumericFactLines(card);
       return `Tiefenanalyse für "${card.title}": 
 
-Basierend auf deinem Politik-Barometer (${this.getTopPreference()}) ist deine Übereinstimmung ${analysis.personalMatch}%.
+${intro}
 
 ${analysis.reasoning}
 
-Meine Empfehlung: ${this.getRecommendationText(analysis.recommendation)} (${analysis.confidence}% Vertrauen)
-
-Wichtige Punkte für dich:
+${aspectsLabel}
 ${analysis.pros.map((pro: string) => `• ${pro}`).join('\n')}
 
 ${analysis.cons.length > 0 ? `Bedenken:\n${analysis.cons.map((con: string) => `• ${con}`).join('\n')}` : ''}
 
+Zahlen- und Faktenbasis:
+${numericEvidence.map((line) => `• ${line}`).join('\n')}
+• ${this.buildFiscalSnapshot(card)}
+
 Alternative Perspektiven:
-${analysis.alternativePerspectives.map((perspective: string) => `• ${perspective}`).join('\n')}`;
+${analysis.alternativePerspectives.map((perspective: string) => `• ${perspective}`).join('\n')}
+
+Hinweis: Clara gibt keine „dafür/dagegen“-Empfehlung.`;
     } catch (error) {
       console.error('Clara Analyse API Fehler:', error);
       return this.getFallbackAnalysis(card);
@@ -256,32 +363,35 @@ ${analysis.alternativePerspectives.map((perspective: string) => `• ${perspecti
 
   private getFallbackAnalysis(card: VotingCard): string {
     const analysis = this.analyzeVotingCard(card);
-    
+    const intro = this.personalizationEnabled
+      ? `Basierend auf deinem Politik-Barometer (${this.getTopPreference()}) ist deine Übereinstimmung ${analysis.personalMatch}%.`
+      : `Neutrale Tiefenanalyse für "${card.title}" ohne personalisierte Schwerpunkte.`;
+
+    const aspectsLabel = this.personalizationEnabled
+      ? 'Wichtige Aspekte (für deine Schwerpunkte relevant):'
+      : 'Wichtige Aspekte (für eine eigene Entscheidung):';
+
+    const numericEvidence = this.buildNumericFactLines(card);
     return `Tiefenanalyse für "${card.title}": 
 
-Basierend auf deinem Politik-Barometer (${this.getTopPreference()}) ist deine Übereinstimmung ${analysis.personalMatch}%.
+${intro}
 
 ${analysis.reasoning}
 
-Meine Empfehlung: ${this.getRecommendationText(analysis.recommendation)} (${analysis.confidence}% Vertrauen)
-
-Wichtige Punkte für dich:
+${aspectsLabel}
 ${analysis.pros.map(pro => `• ${pro}`).join('\n')}
 
 ${analysis.cons.length > 0 ? `Bedenken:\n${analysis.cons.map(con => `• ${con}`).join('\n')}` : ''}
 
+Zahlen- und Faktenbasis:
+${numericEvidence.map((line) => `• ${line}`).join('\n')}
+• ${this.buildFiscalSnapshot(card)}
+
 Alternative Perspektiven:
-${analysis.alternativePerspectives.map(perspective => `• ${perspective}`).join('\n')}`;
+${analysis.alternativePerspectives.map(perspective => `• ${perspective}`).join('\n')}
+
+Hinweis: Clara gibt keine „dafür/dagegen“-Empfehlung.`;
   }
 
-  private getRecommendationText(recommendation: string): string {
-    const texts: Record<string, string> = {
-      strong_yes: 'Starke Zustimmung empfohlen',
-      yes: 'Zustimmung empfohlen',
-      neutral: 'Neutrale Haltung angemessen',
-      no: 'Ablehnung empfohlen',
-      strong_no: 'Starke Ablehnung empfohlen'
-    };
-    return texts[recommendation] || 'Neutrale Haltung angemessen';
-  }
+  // getRecommendationText wird nicht mehr verwendet (Abstimmungs-Empfehlungen sind tabu).
 }

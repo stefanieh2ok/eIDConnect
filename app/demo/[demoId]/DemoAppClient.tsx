@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { X } from 'lucide-react';
-import { AppProvider } from '@/context/AppContext';
+import { AppProvider, type RegistrationResidence } from '@/context/AppContext';
 import BuergerApp from '@/components/BuergerApp';
 import { DemoProvider, useDemoLogger } from '@/lib/demo-logger';
+import { ExternalLinkProvider } from '@/components/ExternalLink';
 import { AntiCopyLayer } from '@/components/security/AntiCopyLayer';
+import { PhoneStage } from '@/components/layout/PhoneStage';
 
 function DemoBanner() {
   const { meta } = useDemoLogger();
@@ -30,7 +32,7 @@ function DemoBanner() {
   );
 }
 
-function DemoContent() {
+function DemoContent({ registrationResidence }: { registrationResidence: RegistrationResidence | null }) {
   const pathRef = useRef<string>('');
   const { logPageView } = useDemoLogger();
 
@@ -43,12 +45,12 @@ function DemoContent() {
   });
 
   return (
-    <>
+    <PhoneStage>
       <DemoBanner />
-      <AntiCopyLayer disableSelect className="min-h-0 flex flex-col flex-1">
-        <BuergerApp />
+      <AntiCopyLayer disableSelect className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <BuergerApp registrationResidence={registrationResidence} />
       </AntiCopyLayer>
-    </>
+    </PhoneStage>
   );
 }
 
@@ -57,6 +59,7 @@ type DemoAppClientProps = {
   sessionId: string;
   recipientName: string;
   recipientOrg: string;
+  registrationResidence?: RegistrationResidence | null;
 };
 
 export function DemoAppClient({
@@ -64,17 +67,20 @@ export function DemoAppClient({
   sessionId,
   recipientName,
   recipientOrg,
+  registrationResidence = null,
 }: DemoAppClientProps) {
   return (
     <AppProvider>
+      <ExternalLinkProvider>
       <DemoProvider
         tokenId={tokenId}
         sessionId={sessionId}
         recipientName={recipientName}
         recipientOrg={recipientOrg}
       >
-        <DemoContent />
+        <DemoContent registrationResidence={registrationResidence} />
       </DemoProvider>
+    </ExternalLinkProvider>
     </AppProvider>
   );
 }

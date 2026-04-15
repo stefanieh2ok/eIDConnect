@@ -1,4 +1,4 @@
-# 🗳️ eIDConnect – Seriöse Demokratie ohne Gamification
+# 🗳️ eID Demo Connect – Seriöse Demokratie ohne Gamification
 
 ## ✅ **Korrekturen durchgeführt:**
 
@@ -204,7 +204,7 @@ const DatenweitergabeVerbote = {
 - **Regelmäßige Audits** durch unabhängige Stellen
 - **Transparente Berichte** über Datennutzung
 
-**eIDConnect ist jetzt eine seriöse, datenschutz-fokussierte Demokratie-App ohne Gamification!** 🗳️
+**eID Demo Connect ist jetzt eine seriöse, datenschutz-fokussierte Demokratie-App ohne Gamification!** 🗳️
 
 ---
 

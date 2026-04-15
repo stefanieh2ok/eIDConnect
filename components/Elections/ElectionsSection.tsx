@@ -16,16 +16,57 @@ interface ElectionsSectionProps {
 
 const LEVEL_NORMALIZE: Record<string, string> = { bund: 'bund', land: 'land', kreis: 'kreis', kommune: 'kommune' };
 
-const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: propLocation, currentLevel: propLevel, userWahlkreisByLevel, dynamicWahlen }) => {
+/** Vergleichsstring für Kreis ↔ Wahlkreis (Demo: Menü-ID an `wahl.location` oder Fuzzy bei `location: 'kreis'`). */
+function normalizeKreisCompare(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/^(kreis|landkreis)\s+/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Kreistags-Wahl zur aktuellen Region:
+ * 1) `wahl.location` ≠ `kreis` → exakt gleiche Menü-ID wie `currentLocation` (Saarland / Hessen / BW).
+ * 2) sonst Fuzzy-Abgleich Wahlkreis ↔ angezeigter Kreis aus der Adresse (generische Demos, Wikidata).
+ */
+function kreiswahlMatchesLocation(
+  wahl: Wahl,
+  currentLocation: string,
+  userKreisLabel: string | undefined
+): boolean {
+  const bind = wahl.location;
+  if (bind && bind !== 'kreis') {
+    return bind === currentLocation;
+  }
+  if (!userKreisLabel) return false;
+  const userK = normalizeKreisCompare(userKreisLabel);
+  const wk = normalizeKreisCompare(wahl.wahlkreis);
+  return userK === wk || userK.includes(wk) || wk.includes(userK);
+}
+
+const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: propLocation, currentLevel: propLevel, userWahlkreisByLevel: propWahlkreise, dynamicWahlen }) => {
   const { state, dispatch } = useApp();
   const votedIds = state.votedElectionIds || [];
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const markImageError = useCallback((key: string) => {
     setImageErrors(prev => (prev[key] ? prev : { ...prev, [key]: true }));
   }, []);
-  
+
   const currentLocation = propLocation || state.activeLocation || 'deutschland';
-  const currentLevel = propLevel ? LEVEL_NORMALIZE[propLevel.toLowerCase()] || propLevel.toLowerCase() : null;
+  const derivedLevel = state.activeAdministrativeScope || 'bund';
+  const currentLevel = propLevel
+    ? LEVEL_NORMALIZE[propLevel.toLowerCase()] || propLevel.toLowerCase()
+    : derivedLevel;
+
+  const userWahlkreisByLevel = propWahlkreise || (state.regionResolution ? {
+    bund: state.regionResolution.bundLabel || 'Deutschland',
+    land: state.regionResolution.landLabel || '',
+    kreis: state.regionResolution.kreisLabel || '',
+    kommune: state.regionResolution.kommuneLabel || '',
+  } : undefined);
 
   const allWahlen = useMemo(() => {
     const base = [...WAHLEN_DATA];
@@ -55,13 +96,11 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
       return wahl.location && locations.includes(wahl.location);
     }
     if (wahl.level !== currentLevel) return false;
-    if (currentLevel === 'land' && currentLocation && currentLocation !== 'deutschland') {
+    if (currentLevel === 'land' && currentLocation && currentLocation !== 'deutschland' && currentLocation !== 'bundesweit') {
       return wahl.location === currentLocation;
     }
-    if (currentLevel === 'kreis' && userWahlkreisByLevel?.kreis) {
-      const userKreis = userWahlkreisByLevel.kreis.toLowerCase().replace(/^(kreis|landkreis)\s+/, '').trim();
-      const wahlKreis = wahl.wahlkreis.toLowerCase().replace(/^(kreis|landkreis)\s+/, '').trim();
-      return userKreis === wahlKreis || userKreis.includes(wahlKreis) || wahlKreis.includes(userKreis);
+    if (currentLevel === 'kreis') {
+      return kreiswahlMatchesLocation(wahl, currentLocation, userWahlkreisByLevel?.kreis);
     }
     if (currentLevel === 'kommune' && userWahlkreisByLevel?.kommune) {
       const userKommune = userWahlkreisByLevel.kommune.toLowerCase().trim();
@@ -83,19 +122,34 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
     return badge;
   };
 
+  const getElectionPoints = (level?: string) => {
+    if (level === 'bund') return 500;
+    if (level === 'land') return 300;
+    if (level === 'kreis') return 200;
+    return 150;
+  };
+
+  const getCandidateDataStatus = (k: any): { label: string; tone: string } => {
+    if (k.confirmedByCandidate) return { label: 'Verifiziert', tone: 'bg-emerald-100 text-emerald-800' };
+    if (k.quelleUrl || k.quelle || k.wikipediaUrl || k.parlamentUrl) {
+      return { label: 'Teilverifiziert', tone: 'bg-amber-100 text-amber-800' };
+    }
+    return { label: 'Offen', tone: 'bg-rose-100 text-rose-800' };
+  };
+
   return (
     <div>
       <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--gov-heading)' }}>Kommende Wahlen</h2>
       
       {filteredWahlen.length === 0 ? (
         <div className="bg-slate-50 rounded-xl p-4 space-y-3">
-          <p className="text-sm font-medium text-slate-700">
+          <p className="text-[11px] font-medium text-slate-700">
             Noch keine Wahldaten für diese Ebene
             {userWahlkreisByLevel && (currentLevel === 'kreis' ? userWahlkreisByLevel.kreis : currentLevel === 'kommune' ? userWahlkreisByLevel.kommune : '') && (
               <span className="font-normal"> – {currentLevel === 'kreis' ? userWahlkreisByLevel.kreis : currentLevel === 'kommune' ? userWahlkreisByLevel.kommune : ''}</span>
             )}
           </p>
-          <p className="text-xs text-slate-500">
+          <p className="text-[10px] text-slate-500">
             Für diesen Ort liegen noch keine lokalen Wahl- und Politikerdaten vor. Bundesweite Informationen sind im Tab „Deutschland“ verfügbar.
           </p>
           {userWahlkreisByLevel && (userWahlkreisByLevel.kreis || userWahlkreisByLevel.kommune) && (
@@ -104,7 +158,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                 href={`https://de.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(currentLevel === 'kreis' ? userWahlkreisByLevel.kreis : userWahlkreisByLevel.kommune)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-blue-600 hover:underline"
+                className="text-[10px] text-blue-600 hover:underline"
               >
                 Wikipedia durchsuchen →
               </a>
@@ -113,7 +167,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                   href="https://de.wikipedia.org/wiki/Liste_der_Landr%C3%A4te_in_Deutschland"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:underline"
+                  className="text-[10px] text-blue-600 hover:underline"
                 >
                   Landräte-Übersicht →
                 </a>
@@ -130,21 +184,24 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h3 className="text-lg font-bold" style={{ color: 'var(--gov-heading)' }}>{wahl.name}</h3>
-                  {wahl.datum !== 'aktuell' && <div className="text-sm text-gray-600 mt-1">{wahl.datum}</div>}
+                  {wahl.datum !== 'aktuell' && <div className="text-[11px] text-gray-600 mt-1">{wahl.datum}</div>}
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {hasVoted && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-800">
                       Bereits abgestimmt
                     </span>
                   )}
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${badge.bg} ${badge.text}`}>
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${badge.bg} ${badge.text}`}>
                     {badge.label}
                   </span>
                 </div>
               </div>
 
-              <p className="text-sm text-gray-600 mb-4">Wahlkreis {userWahlkreisByLevel && wahl.level ? (userWahlkreisByLevel[wahl.level as keyof typeof userWahlkreisByLevel] || wahl.wahlkreis) : wahl.wahlkreis}</p>
+              <p className="text-[11px] text-gray-600 mb-4">Wahlkreis {userWahlkreisByLevel && wahl.level ? (userWahlkreisByLevel[wahl.level as keyof typeof userWahlkreisByLevel] || wahl.wahlkreis) : wahl.wahlkreis}</p>
+              <div className="mb-4 inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-[10px] font-semibold text-amber-900 border border-amber-200">
+                Teilnahme-Belohnung: +{getElectionPoints(wahl.level)} Punkte
+              </div>
 
               <button
                 onClick={() => handleStimmzettelClick(wahl)}
@@ -156,7 +213,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
 
               {wahl.kandidaten && wahl.kandidaten.length > 0 ? (
                 <div className="mt-4">
-                  <h4 className="text-sm font-semibold mb-2">Amtsträger / Kandidaten:</h4>
+                  <h4 className="text-[11px] font-semibold mb-2">Amtsträger / Kandidaten:</h4>
                   {wahl.kandidaten.map((k, i) => {
                     const imgKey = `${wahl.id}-${i}`;
                     const avatarKey = `${wahl.id}-${i}-avatar`;
@@ -181,13 +238,18 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-sm">{k.name}</div>
-                        <div className="text-xs text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <div className="font-semibold text-[11px]">{k.name}</div>
+                          <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold ${getCandidateDataStatus(k).tone}`}>
+                            {getCandidateDataStatus(k).label}
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-gray-600">
                           {k.partei}{k.alter ? ` • ${k.alter} Jahre` : ''}{k.beruf ? ` • ${k.beruf}` : ''}
                         </div>
                         <div className="flex gap-1 mt-1 flex-wrap">
                           {k.positionen.map((pos, j) => (
-                            <span key={j} className="bg-blue-100 text-blue-900 px-2 py-0.5 rounded text-xs">
+                            <span key={j} className="bg-blue-100 text-blue-900 px-2 py-0.5 rounded text-[10px]">
                               {pos}
                             </span>
                           ))}
@@ -221,7 +283,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                   ); })}
                 </div>
               ) : wahl.id.startsWith('kt-auto-') || wahl.id.startsWith('kw-auto-') ? (
-                <p className="text-xs text-gray-500 mt-3 italic">
+                <p className="text-[10px] text-gray-500 mt-3 italic">
                   Daten aus Wikidata (CC0). Detaillierte Informationen werden laufend ergänzt.
                 </p>
               ) : null}

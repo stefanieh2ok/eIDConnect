@@ -1,4 +1,4 @@
-# eIDConnect – Was fehlt noch?
+# eID Demo Connect – Was fehlt noch?
 
 Stand: Übersicht der offenen Punkte für einen produktionsnahen oder demo-stabilen Stand.
 
@@ -8,9 +8,9 @@ Stand: Übersicht der offenen Punkte für einen produktionsnahen oder demo-stabi
 
 | Was | Status | Empfehlung |
 |-----|--------|------------|
-| App-Name in UI | ✅ eIDConnect | – |
-| README, Projektname | ✅ eIDConnect | `package.json` name: `eidconnect` |
-| Andere Docs | ✅ Auf eIDConnect umgestellt | EID-INTEGRATION, Cursor-Prompt, ENVIRONMENT_SETUP etc. |
+| App-Name in UI | ✅ eID Demo Connect | – |
+| README, Projektname | ✅ eID Demo Connect | `package.json` name: `eidconnect` |
+| Andere Docs | ✅ Auf eID Demo Connect umgestellt | EID-INTEGRATION, Cursor-Prompt, ENVIRONMENT_SETUP etc. |
 
 ---
 
@@ -68,6 +68,6 @@ Stand: Übersicht der offenen Punkte für einen produktionsnahen oder demo-stabi
 ## Priorisierung für nächste Schritte
 
 1. **Demo stabil:** Stimmzettel-Aktion „Stimme abgeben“ mit Meldung + ggf. lokalem Speichern; Intro einmal überspringen speichern (localStorage).
-2. **Branding konsistent:** README und ggf. package.json auf eIDConnect.
+2. **Branding konsistent:** README und ggf. package.json auf eID Demo Connect.
 3. **Mängelmelder:** Foto (optional) und Persistenz (localStorage oder Supabase), wenn die Demo das braucht.
 4. **eID:** Erst wenn Pilot/Behörde feststeht – dann EID-INTEGRATION.md durchgehen und Provider/BSI-Test anbinden.

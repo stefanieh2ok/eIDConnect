@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { createAccessToken } from '@/lib/access-request-approve';
 
 const DEFAULT_FROM =
-  process.env.SEND_ACCESS_EMAIL_FROM || 'HookAI Demo <onboarding@resend.dev>';
+  process.env.SEND_ACCESS_EMAIL_FROM || 'eIDConnect Demo <onboarding@resend.dev>';
 
 function escapeHtml(s: string): string {
   return s
@@ -107,7 +107,7 @@ export async function POST(
         body: JSON.stringify({
           from: DEFAULT_FROM,
           to: [req.email],
-          subject: 'Dein HookAI Demo-Zugang (Link erneut gesendet)',
+          subject: 'Dein eIDConnect Demo-Zugang (Link erneut gesendet)',
           html: `
           <p>Hallo ${escapeHtml(req.full_name)},</p>
           <p>wie gewünscht senden wir dir deinen Zugangslink erneut:</p>

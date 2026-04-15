@@ -14,7 +14,7 @@ Die App kann auf Vercel deployed werden, damit du den Zugangslink (z. B. für 
 | `RESEND_API_KEY` | Resend-API-Key (E-Mail-Versand) |
 | `ADMIN_NOTIFY_EMAIL` | z. B. `stefanie.h2ok@gmail.com,stefanie.hook@hookai.eu` (Benachrichtigung bei neuer Zugangsanfrage) |
 | `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Supabase-Projekt |
-| Optional: `SEND_ACCESS_EMAIL_FROM` | Standard ist „HookAI Demo &lt;onboarding@resend.dev&gt;“. Für eigenen Absender (z. B. `HookAI &lt;noreply@hookai.eu&gt;`) Domain in Resend verifizieren und diese Variable setzen. |
+| Optional: `SEND_ACCESS_EMAIL_FROM` | Standard ist „eID Demo Connect Demo &lt;onboarding@resend.dev&gt;“. Für eigenen Absender (z. B. `eID Demo Connect &lt;noreply@hookai.eu&gt;`) Domain in Resend verifizieren und diese Variable setzen. |
 
 Nach Änderungen an Environment Variables: **Redeploy** auslösen (Deployments → … → Redeploy).
 
@@ -49,5 +49,5 @@ Nach Änderungen an Environment Variables: **Redeploy** auslösen (Deployments �
 - **E-Mail-Link vs. localhost:** Der Link aus der Zugangs-E-Mail führt auf die **deployed App** (Vercel-URL). Damit dort „Sie“-Texte und der DocuSign-Button korrekt angezeigt werden und der 400-Fehler verschwindet, muss der **neueste Stand** (mit „Sie“, korrektem Key-Handling) auf Vercel deployed sein (z. B. Git Push → automatischer Deploy).
 - **`NEXT_PUBLIC_APP_URL`** muss auf die tatsächlich genutzte Domain zeigen (z. B. Vercel-URL oder eigene Domain), damit die DocuSign-Return-URL und Redirects nach dem Signieren funktionieren. In DocuSign (Apps and Keys) die **Redirect URI** für genau diese URL eintragen, z. B. `https://e-id-connect-lr65.vercel.app/api/docusign/return`, und ggf. **JWT Consent** einmal im Browser erteilen.
 - **Fehler „invalid_grant: issuer_not_found“ auf Vercel:** Dann fehlt meist **DOCUSIGN_USE_DEMO=true** in den Vercel Environment Variables (Sandbox) oder die Vercel-Redirect-URI ist in DocuSign nicht eingetragen. Beides setzen → Redeploy.
-- **E-Mail zeigt „HookAI Demo“ / onboarding@resend.dev:** Das ist der Standard-Absender, wenn `SEND_ACCESS_EMAIL_FROM` nicht gesetzt ist. Für eigenen Absender (z. B. deine Domain): Resend → Domains verifizieren, dann in Vercel `SEND_ACCESS_EMAIL_FROM=HookAI <noreply@hookai.eu>` setzen.
+- **E-Mail zeigt „eID Demo Connect Demo“ / onboarding@resend.dev:** Das ist der Standard-Absender, wenn `SEND_ACCESS_EMAIL_FROM` nicht gesetzt ist. Für eigenen Absender (z. B. deine Domain): Resend → Domains verifizieren, dann in Vercel `SEND_ACCESS_EMAIL_FROM=eID Demo Connect <noreply@hookai.eu>` setzen.
 - **Zugangs-E-Mail enthält localhost-Link:** Ursache war Freigabe von localhost aus. Ab jetzt: **ACCESS_LINK_BASE_URL** auf Vercel auf die Vercel-URL setzen; dann wird der Link in der E-Mail immer die Vercel-URL sein. Lokal in `.env.local` optional `ACCESS_LINK_BASE_URL=https://e-id-connect-lr65.vercel.app` setzen, wenn du von localhost freigibst, aber den Vercel-Link in der E-Mail haben willst.

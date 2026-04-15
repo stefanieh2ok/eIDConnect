@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const ENDPOINT = 'https://query.wikidata.org/sparql';
-const UA = 'eIDConnect-DataFetcher/1.0 (https://github.com/eidconnect)';
+const UA = 'eIDConnect-DataFetcher/1.0 (https://github.com/stefanieh2ok/eIDConnect)';
 
 async function sparql(query) {
   const url = `${ENDPOINT}?query=${encodeURIComponent(query)}&format=json`;

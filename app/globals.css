@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* eIDConnect Custom Styles */
+/* eID Demo Connect Custom Styles */
 :root {
   /* CI-Farben */
   --eu: #003399;
@@ -25,6 +25,10 @@
   --gov-heading: #374151;
   --gov-btn: #0066cc;
   --gov-btn-hover: #0052a3;
+  /* App Typografie 2026: kompakt, footer-konsistent */
+  --app-body: 0.6875rem;   /* 11px */
+  --app-meta: 0.625rem;    /* 10px */
+  --app-label: 0.6875rem;
   --glass-white: rgba(255, 255, 255, 0.72);
   --glass-border-light: rgba(0, 0, 0, 0.06);
 }
@@ -93,6 +97,17 @@ body {
   line-height: 1.5;
 }
 
+/* App-Kern 2026: kompakte Typografie (Footer-Niveau), Überschriften/Buttons bleiben größer */
+.app-body {
+  font-size: var(--app-body, 11px);
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+.app-body .app-meta {
+  font-size: var(--app-meta, 10px);
+}
+
 /* Swipe Card Animation */
 .swipe-card {
   transition: transform 0.3s ease, opacity 0.3s ease;
@@ -131,6 +146,82 @@ body {
     transform: scale(1);
     opacity: 1;
   }
+}
+
+/* NDA-Seite: Scrollbar DocuSign-blau (#0066CC) – gut sichtbar */
+.nda-scroll-area::-webkit-scrollbar {
+  width: 10px;
+}
+.nda-scroll-area::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 5px;
+}
+.nda-scroll-area::-webkit-scrollbar-thumb {
+  background: #0066CC;
+  border-radius: 5px;
+}
+.nda-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: #0052a3;
+}
+.nda-scroll-area {
+  scrollbar-width: auto;
+  scrollbar-color: #0066CC #e5e7eb;
+}
+
+/* Stimmzettel-Modal: Scrollbar gut sichtbar (DocuSign-Blau) */
+.stimmzettel-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+.stimmzettel-scroll::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 5px;
+}
+.stimmzettel-scroll::-webkit-scrollbar-thumb {
+  background: #0066CC;
+  border-radius: 5px;
+}
+.stimmzettel-scroll::-webkit-scrollbar-thumb:hover {
+  background: #0052a3;
+}
+.stimmzettel-scroll {
+  scrollbar-width: auto;
+  scrollbar-color: #0066CC #e5e7eb;
+}
+
+/* Footer Heartbeat – zieht Aufmerksamkeit auf die Navigation (zwei Schläge, Pause) */
+@keyframes footerHeartbeat {
+  0%, 100% {
+    box-shadow: 0 -2px 0 rgba(37, 99, 235, 0);
+  }
+  10% {
+    box-shadow: 0 -4px 16px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  20% {
+    box-shadow: 0 -2px 0 rgba(37, 99, 235, 0);
+  }
+  32% {
+    box-shadow: 0 -4px 14px rgba(37, 99, 235, 0.28), inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+  44% {
+    box-shadow: 0 -2px 0 rgba(37, 99, 235, 0);
+  }
+}
+
+.footer-heartbeat {
+  animation: footerHeartbeat 3.2s ease-in-out infinite;
+}
+
+/* Header Heartbeat – Glow nach unten (nach Footer-Phase) */
+@keyframes headerHeartbeat {
+  0%, 100% { box-shadow: 0 0 0 rgba(37, 99, 235, 0); }
+  10% { box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35); }
+  20% { box-shadow: 0 0 0 rgba(37, 99, 235, 0); }
+  32% { box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28); }
+  44% { box-shadow: 0 0 0 rgba(37, 99, 235, 0); }
+}
+
+.header-heartbeat {
+  animation: headerHeartbeat 3.2s ease-in-out infinite;
 }
 
 /* Level Progress Bar */
@@ -305,9 +396,14 @@ body {
   display: none;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar – gleiches Blau wie NDA-Button (--gov-btn) */
+:root {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gov-btn, #0066cc) #f1f5f9;
+}
+
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -315,12 +411,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 2px;
+  background: var(--gov-btn, #0066cc);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--gov-btn-hover, #0052a3);
 }
 
 /* Focus styles for accessibility */
@@ -352,7 +448,7 @@ select:focus-visible {
   background: #FFE066; /* Amtlich Gelb nach BWahlG */
   border: 2px solid var(--text-dark, #000000);
   border-radius: 0; /* Keine Rundungen - originalgetreu */
-  padding: var(--space-6, 24px);
+  padding: var(--space-5, 20px);
   font-family: Arial, -apple-system, system-ui, sans-serif;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -361,9 +457,9 @@ select:focus-visible {
 .ballot-option {
   display: flex;
   align-items: center;
-  min-height: 48px; /* Touch Target - größer als Original für Mobile */
-  padding: var(--space-3, 12px);
-  margin-bottom: var(--space-2, 8px);
+  min-height: 44px; /* kompakter auf iPhone */
+  padding: var(--space-2, 8px);
+  margin-bottom: 6px;
   transition: background-color var(--duration-fast, 150ms);
   position: relative;
   border: 1px solid transparent;
@@ -379,10 +475,10 @@ select:focus-visible {
 
 /* Ballot Checkbox (Originalgetreu, aber touch-optimiert) */
 .ballot-checkbox {
-  width: 48px; /* Größer als Original (10mm ≈ 38px) für Touch */
-  height: 48px;
-  min-width: 48px;
-  min-height: 48px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   border: 2px solid var(--text-dark, #000000);
   border-radius: 0; /* Keine Rundungen - originalgetreu */
   margin-right: var(--space-4, 16px);
@@ -415,7 +511,7 @@ select:focus-visible {
   -webkit-transform: translate(-50%, -50%);
   -ms-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
-  font-size: 32px;
+  font-size: 26px;
   font-weight: bold;
   color: var(--text-dark, #000000);
   line-height: 1;
@@ -475,18 +571,18 @@ select:focus-visible {
 /* Mobile Optimierungen */
 @media (max-width: 768px) {
   .ballot-paper {
-    padding: var(--space-4, 16px);
+    padding: 12px;
   }
   
   .ballot-checkbox {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
   }
   
   .ballot-checkbox:checked::after {
-    font-size: 28px;
+    font-size: 22px;
   }
   
   .ballot-info-trigger {
@@ -498,8 +594,8 @@ select:focus-visible {
   }
   
   .ballot-option {
-    min-height: 56px; /* Größer für Touch */
-    padding: var(--space-2, 8px);
+    min-height: 44px;
+    padding: 6px;
   }
 }
 

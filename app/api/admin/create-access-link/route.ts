@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     const rawToken = generateRawAccessToken();
     const tokenHash = sha256(rawToken);
-    const demoId = (body.demoId ?? process.env.DEMO_ACCESS_DEFAULT_ID ?? 'eidconnect-v1').trim();
+    const demoId = (body.demoId ?? process.env.DEMO_ACCESS_DEFAULT_ID ?? 'eid-demo-connect-v1').trim();
     const expiresInDays = Math.max(1, Number(body.expiresInDays) || 30);
     const expiresAt = new Date(
       Date.now() + expiresInDays * 24 * 60 * 60 * 1000

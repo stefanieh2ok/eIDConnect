@@ -10,40 +10,66 @@ interface VotingControlsProps {
 }
 
 const VotingControls: React.FC<VotingControlsProps> = ({ canVote, onVote }) => {
-  if (!canVote) return null;
+  const interactive = canVote;
+
+  const circleDafuerDagegen = interactive
+    ? 'border-blue-900 bg-white hover:bg-blue-900'
+    : 'cursor-not-allowed border-gray-300 bg-gray-100';
+  const iconDafuerDagegen = interactive ? 'text-blue-900 group-hover:text-white' : 'text-gray-400';
+
+  const circleEnthalten = interactive
+    ? 'border-gray-400 bg-white hover:bg-gray-400'
+    : 'cursor-not-allowed border-gray-300 bg-gray-100';
+  const iconEnthalten = interactive ? 'text-gray-400 group-hover:text-white' : 'text-gray-400';
 
   return (
-    <div className="flex justify-center items-center gap-4 mt-6">
+    <div
+      className={`mt-6 flex items-center justify-center gap-4 ${interactive ? '' : 'opacity-70'}`}
+      role="group"
+      aria-label="Abstimmung: Dafür, Enthalten oder Dagegen"
+    >
       <button
-        onClick={() => onVote('against')}
-        className="flex flex-col items-center gap-2 group"
+        type="button"
+        disabled={!interactive}
+        onClick={() => interactive && onVote('against')}
+        className={`group flex flex-col items-center gap-2 ${interactive ? '' : 'cursor-not-allowed'}`}
         aria-label="Dagegen stimmen"
       >
-        <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">Dagegen</div>
-        <div className="w-14 h-14 bg-white border-2 border-blue-900 hover:bg-blue-900 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all">
-          <ThumbsDown size={24} className="text-blue-900 group-hover:text-white transition-colors" />
+        <div className="text-xs font-medium uppercase tracking-wide text-gray-600">Dagegen</div>
+        <div
+          className={`flex h-14 w-14 items-center justify-center rounded-full border-2 shadow-md transition-colors ${circleDafuerDagegen}`}
+        >
+          <ThumbsDown size={24} className={`transition-colors ${iconDafuerDagegen}`} />
         </div>
       </button>
 
       <button
-        onClick={() => onVote('abstain')}
-        className="flex flex-col items-center gap-2 group pt-4"
+        type="button"
+        disabled={!interactive}
+        onClick={() => interactive && onVote('abstain')}
+        className={`group flex flex-col items-center gap-2 pt-4 ${interactive ? '' : 'cursor-not-allowed'}`}
         aria-label="Sich enthalten"
       >
-        <div className="w-12 h-12 bg-white border-2 border-gray-400 hover:bg-gray-400 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all">
-          <Minus size={20} className="text-gray-400 group-hover:text-white transition-colors" />
+        <div
+          className={`flex h-12 w-12 items-center justify-center rounded-full border-2 shadow-md transition-colors ${circleEnthalten}`}
+        >
+          <Minus size={20} className={`transition-colors ${iconEnthalten}`} />
         </div>
-        <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Enthalten</div>
+        <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Enthalten</div>
       </button>
 
       <button
-        onClick={() => onVote('for')}
-        className="flex flex-col items-center gap-2 group"
+        type="button"
+        disabled={!interactive}
+        onClick={() => interactive && onVote('for')}
+        className={`group flex flex-col items-center gap-2 ${interactive ? '' : 'cursor-not-allowed'}`}
         aria-label="Dafür stimmen"
       >
-        <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">Dafür</div>
-        <div className="w-14 h-14 bg-white border-2 border-blue-900 hover:bg-blue-900 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all">
-          <ThumbsUp size={24} className="text-blue-900 group-hover:text-white transition-colors" />
+        <div className="text-xs font-medium uppercase tracking-wide text-gray-600">Dafür</div>
+        <div
+          className={`flex h-14 w-14 items-center justify-center rounded-full border-2 shadow-md transition-colors ${circleDafuerDagegen}`}
+        >
+          <ThumbsUp size={24} className={`transition-colors ${iconDafuerDagegen}`} />
         </div>
       </button>
     </div>

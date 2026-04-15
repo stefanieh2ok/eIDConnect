@@ -3,7 +3,7 @@ import { isValidBasicAuth } from '@/lib/security/basic-auth';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { createAccessToken } from '@/lib/access-request-approve';
 const DEFAULT_FROM =
-  process.env.SEND_ACCESS_EMAIL_FROM || 'HookAI Demo <onboarding@resend.dev>';
+  process.env.SEND_ACCESS_EMAIL_FROM || 'eIDConnect Demo <onboarding@resend.dev>';
 
 function escapeHtml(s: string): string {
   return s
@@ -119,7 +119,7 @@ export async function POST(
         body: JSON.stringify({
           from: DEFAULT_FROM,
           to: [req.email],
-          subject: 'Dein HookAI Demo-Zugang wurde freigegeben',
+          subject: 'Dein eIDConnect Demo-Zugang wurde freigegeben',
           html: `
           <p>Hallo ${escapeHtml(req.full_name)},</p>
           <p>Dein Zugang wurde freigegeben. Hier ist dein personalisierter Link:</p>

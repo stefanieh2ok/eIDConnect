@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Zugang verweigert – HookAI',
+  title: 'Zugang verweigert – eIDConnect',
 };
 
 type AccessDeniedPageProps = {
@@ -15,7 +15,7 @@ function getReasonText(reason?: string) {
     case 'revoked':
       return 'Dieser personalisierte Zugangslink wurde widerrufen.';
     case 'invalid':
-      return 'Der Zugangslink ist ungültig oder konnte nicht verifiziert werden.';
+      return 'Der Zugangslink ist ungültig oder konnte nicht verifiziert werden. Mögliche Ursachen: Link wurde abgeschnitten, Token fehlt in der Datenbank, oder DocuSign hat beim Redirect den Token nicht übergeben. Bitte den vollständigen Link aus der E-Mail verwenden und erneut versuchen.';
     case 'max_views':
       return 'Die maximale Anzahl an Zugriffen für diesen Link wurde erreicht.';
     case 'error':

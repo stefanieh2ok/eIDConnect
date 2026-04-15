@@ -1,4 +1,4 @@
-# 📱 eIDConnect – Optimierte User Journey & iPhone 15/16 Design
+# 📱 eID Demo Connect – Optimierte User Journey & iPhone 15/16 Design
 
 ## 🔍 **Analyse der ursprünglichen Probleme:**
 
@@ -240,7 +240,7 @@ const CI_COLORS = {
 - **Touch-Friendly**
 - **Accessibility**
 
-Die optimierte eIDConnect-App ist jetzt **perfekt für iPhone 15/16** optimiert und bietet eine **intuitive User Journey** mit klarer Informationsarchitektur und lokalen Prämien-Angeboten! 🚀
+Die optimierte eID Demo Connect-App ist jetzt **perfekt für iPhone 15/16** optimiert und bietet eine **intuitive User Journey** mit klarer Informationsarchitektur und lokalen Prämien-Angeboten! 🚀
 
 
 

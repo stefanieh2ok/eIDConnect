@@ -9,9 +9,10 @@ import { deactivateOtherSessionsForToken } from '@/lib/security/session-create';
 import { performAcceptAndCreateSession } from '@/lib/security/accept-and-session';
 import { DEMO_SESSION_COOKIE } from '@/lib/security/session';
 import { createOneTimeEntry } from '@/lib/security/one-time-entry';
+import { findTokenRecordByEnvelopeId } from '@/lib/security/docusign-envelope';
 
 const DEFAULT_FROM =
-  process.env.SEND_ACCESS_EMAIL_FROM || 'HookAI Demo <onboarding@resend.dev>';
+  process.env.SEND_ACCESS_EMAIL_FROM || 'eIDConnect Demo <onboarding@resend.dev>';
 
 /**
  * GET /api/docusign/return?token=...&envelopeId=...&event=...
@@ -35,14 +36,18 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    if (!token) {
-      console.log('[DocuSign Return] EXIT no-token → /access/denied?reason=invalid');
-      return NextResponse.redirect(new URL('/access/denied?reason=invalid', request.url));
+    let tokenRecord: Awaited<ReturnType<typeof findAccessTokenByRawToken>> = null;
+    const rawTokenForSession = token ?? (envelopeId ? `envelope:${envelopeId}` : '');
+
+    if (token) {
+      console.log('[DocuSign Return] DB lookup by token...');
+      tokenRecord = await findAccessTokenByRawToken(token);
+    } else if (envelopeId) {
+      console.log('[DocuSign Return] Kein token – Fallback: Lookup per envelopeId', envelopeId);
+      tokenRecord = await findTokenRecordByEnvelopeId(envelopeId);
     }
 
-    console.log('[DocuSign Return] DB lookup starting...');
-    const tokenRecord = await findAccessTokenByRawToken(token);
-    console.log('[DocuSign Return] DB lookup done. tokenRecord:', tokenRecord ? `id=${tokenRecord.id} demo_id=${tokenRecord.demo_id} expires=${tokenRecord.expires_at} revoked=${tokenRecord.is_revoked} max_views=${tokenRecord.max_views}` : 'NULL');
+    console.log('[DocuSign Return] tokenRecord:', tokenRecord ? `id=${tokenRecord.id} demo_id=${tokenRecord.demo_id}` : 'NULL');
 
     if (!tokenRecord) {
       console.log('[DocuSign Return] EXIT tokenRecord=null → /access/denied?reason=invalid');
@@ -75,7 +80,7 @@ export async function GET(request: NextRequest) {
 
     console.log('[DocuSign Return] creating session...');
     const { redirectTo, rawSessionToken, sessionExpiresAt } =
-      await performAcceptAndCreateSession(tokenRecord, token, request, {
+      await performAcceptAndCreateSession(tokenRecord, rawTokenForSession, request, {
         source: 'docusign',
       });
     console.log('[DocuSign Return] session created. redirectTo:', redirectTo, 'sessionExpiresAt:', sessionExpiresAt);
@@ -98,23 +103,29 @@ export async function GET(request: NextRequest) {
         console.log('[DocuSign Return] createOneTimeEntry failed:', e instanceof Error ? e.message : e);
       }
 
-      const accessLink = `${baseUrl}/access/${token}`;
+      const accessLink = token ? `${baseUrl}/access/${token}` : null;
       const html = enterUrl
         ? `
           <p>Hallo ${tokenRecord.full_name},</p>
           <p><strong>Sie haben die Vertraulichkeitsvereinbarung unterzeichnet.</strong> Vielen Dank.</p>
-          <p>Falls Sie nicht automatisch in die Demo weitergeleitet wurden, klicken Sie bitte auf einen der folgenden Links:</p>
+          <p>Falls Sie nicht automatisch in die Demo weitergeleitet wurden, klicken Sie bitte auf den folgenden Link:</p>
           <p><strong>Direkt in die Demo (1 Stunde gültig, einmal nutzbar):</strong><br />
           <a href="${enterUrl}" style="word-break: break-all;">${enterUrl}</a></p>
-          <p><strong>Oder Zugangsseite öffnen</strong> und erneut auf „Unterzeichnen mit DocuSign" klicken – Sie werden dann in die Demo weitergeleitet:<br />
-          <a href="${accessLink}" style="word-break: break-all;">${accessLink}</a></p>
+          ${accessLink ? `<p><strong>Oder Zugangsseite öffnen</strong> und erneut auf „Unterzeichnen mit DocuSign" klicken:<br /><a href="${accessLink}" style="word-break: break-all;">${accessLink}</a></p>` : ''}
           <p>Mit freundlichen Grüßen<br />Stefanie Hook</p>
         `
-        : `
+        : accessLink
+          ? `
           <p>Hallo ${tokenRecord.full_name},</p>
           <p><strong>Sie haben die Vertraulichkeitsvereinbarung unterzeichnet.</strong> Vielen Dank.</p>
           <p>Bitte öffnen Sie den folgenden Link und klicken Sie auf „Unterzeichnen mit DocuSign" – Sie werden dann in die Demo weitergeleitet:</p>
           <p><a href="${accessLink}" style="word-break: break-all;">${accessLink}</a></p>
+          <p>Mit freundlichen Grüßen<br />Stefanie Hook</p>
+        `
+          : `
+          <p>Hallo ${tokenRecord.full_name},</p>
+          <p><strong>Sie haben die Vertraulichkeitsvereinbarung unterzeichnet.</strong> Vielen Dank.</p>
+          <p>Sie sollten in Kürze automatisch in die Demo weitergeleitet werden. Falls nicht, wenden Sie sich bitte an den Absender.</p>
           <p>Mit freundlichen Grüßen<br />Stefanie Hook</p>
         `;
 

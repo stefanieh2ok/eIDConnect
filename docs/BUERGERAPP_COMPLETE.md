@@ -1,4 +1,4 @@
-# 🇩🇪 eIDConnect – Vollständige Implementierung
+# 🇩🇪 eID Demo Connect – Vollständige Implementierung
 
 ## ✅ **Alle Anforderungen erfüllt:**
 
@@ -255,7 +255,7 @@ interface Vote {
 
 ## 🎯 **Zusammenfassung:**
 
-eIDConnect ist eine **vollständige, produktionsreife Anwendung** mit:
+eID Demo Connect ist eine **vollständige, produktionsreife Anwendung** mit:
 
 ✅ **Korrektem CI-Design** (Dunkelblau/Hellblau/Grau, keine Icons)  
 ✅ **5 Ebenen-Navigation** (EU, Bund, Land, Kreis, Kommune)  

@@ -12,7 +12,9 @@
     "setup-env": "node scripts/setup-env.js",
     "create-access-requests-table": "node scripts/create-access-requests-table.js",
     "fetch-wikidata": "node scripts/fetch-wikidata-politiker.mjs",
-    "check": "npm run lint && npx tsc --noEmit && npm test -- --passWithNoTests && echo OK: Alle Pruefungen bestanden"
+    "check": "npm run lint && npx tsc --noEmit && npm test -- --passWithNoTests && echo OK: Alle Pruefungen bestanden",
+    "smoke": "node scripts/smoke-check-ui.mjs",
+    "test:ui": "jest --testPathPattern=BuergerApp.ui"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.0",

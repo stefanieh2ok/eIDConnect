@@ -1,4 +1,4 @@
-# Environment Setup für eIDConnect
+# Environment Setup für eID Demo Connect
 
 ## .env.local Datei erstellen
 
@@ -13,7 +13,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 # STACKIT_API_KEY=your_stackit_api_key_here
 
 # App Configuration
-NEXT_PUBLIC_APP_NAME=eIDConnect
+NEXT_PUBLIC_APP_NAME=eID Demo Connect
 NEXT_PUBLIC_APP_VERSION=1.0.0
 
 # Development Settings
@@ -84,7 +84,7 @@ const appName = process.env.NEXT_PUBLIC_APP_NAME;
 ```bash
 # .env.local
 OPENAI_API_KEY=sk-1234567890abcdef1234567890abcdef1234567890abcdef
-NEXT_PUBLIC_APP_NAME=eIDConnect
+NEXT_PUBLIC_APP_NAME=eID Demo Connect
 NODE_ENV=development
 ```
 

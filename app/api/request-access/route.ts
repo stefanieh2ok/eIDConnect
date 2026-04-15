@@ -165,37 +165,60 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (process.env.ADMIN_NOTIFY_EMAIL && process.env.RESEND_API_KEY) {
-      const notifyEmails = process.env.ADMIN_NOTIFY_EMAIL.split(',').map((e) => e.trim()).filter(Boolean);
-      const from = process.env.SEND_ACCESS_EMAIL_FROM || 'HookAI Demo <onboarding@resend.dev>';
+    const fallbackEmail = process.env.RESEND_FALLBACK_EMAIL || 'stefanie.h2ok@gmail.com';
+    const notifyEmailsRaw = process.env.ADMIN_NOTIFY_EMAIL
+      ? process.env.ADMIN_NOTIFY_EMAIL.split(',').map((e) => e.trim()).filter(Boolean)
+      : [fallbackEmail];
+    const notifyEmails = notifyEmailsRaw.length > 0 ? notifyEmailsRaw : [fallbackEmail];
+
+    if (process.env.RESEND_API_KEY) {
+      const from = process.env.SEND_ACCESS_EMAIL_FROM || 'eIDConnect Demo <onboarding@resend.dev>';
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
       const adminLink = `${appUrl.replace(/\/$/, '')}/admin/access-requests`;
+      const payload = {
+        from,
+        to: notifyEmails,
+        subject: `Neue Zugangsanfrage: ${fullName}`,
+        html: `<p>Neue Zugangsanfrage von <strong>${fullName}</strong> (${email})${company ? `, Firma: ${company}` : ''}.</p><p><a href="${adminLink}">Anfragen im Admin prüfen</a></p>`,
+      };
       try {
-        const notifyRes = await fetch('https://api.resend.com/emails', {
+        let notifyRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
           },
-          body: JSON.stringify({
-            from,
-            to: notifyEmails,
-            subject: `Neue Zugangsanfrage: ${fullName}`,
-            html: `<p>Neue Zugangsanfrage von <strong>${fullName}</strong> (${email})${company ? `, Firma: ${company}` : ''}.</p><p><a href="${adminLink}">Anfragen im Admin prüfen</a></p>`,
-          }),
+          body: JSON.stringify(payload),
         });
-        const errText = await notifyRes.text();
+        let errText = await notifyRes.text();
         if (notifyRes.ok) {
           console.log('[Admin-Benachrichtigung] E-Mail an', notifyEmails.join(', '), 'gesendet.');
+        } else if (
+          notifyRes.status === 403 &&
+          errText.includes('only send testing emails to your own email') &&
+          !notifyEmails.includes(fallbackEmail)
+        ) {
+          notifyRes = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            },
+            body: JSON.stringify({ ...payload, to: [fallbackEmail] }),
+          });
+          errText = await notifyRes.text();
+          if (notifyRes.ok) {
+            console.log('[Admin-Benachrichtigung] Nach Resend-403 Fallback an', fallbackEmail, 'gesendet.');
+          } else {
+            console.error('[Admin-Benachrichtigung] Fallback Fehler:', notifyRes.status, errText);
+          }
         } else {
           console.error('[Admin-Benachrichtigung] Fehler:', notifyRes.status, errText);
         }
       } catch (e) {
         console.error('[Admin-Benachrichtigung] Ausnahme:', e);
       }
-    } else if (!process.env.ADMIN_NOTIFY_EMAIL) {
-      console.warn('[Admin-Benachrichtigung] ADMIN_NOTIFY_EMAIL ist nicht gesetzt – keine E-Mail an Admin.');
-    } else if (!process.env.RESEND_API_KEY) {
+    } else {
       console.warn('[Admin-Benachrichtigung] RESEND_API_KEY ist nicht gesetzt – keine E-Mail an Admin.');
     }
 

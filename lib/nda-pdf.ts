@@ -27,20 +27,36 @@ export type BuildNdaPdfResult = {
  * Die Empfangende Partei unterschreibt in DocuSign auf der letzten Seite.
  */
 export async function buildNdaPdfBuffer(): Promise<Buffer>;
+export async function buildNdaPdfBuffer(opts: {
+  withSignatureBlock: true;
+  appendPlainText?: string;
+  contractBody?: string;
+  signatureLabelReceiving?: string;
+  signatureHintReceiving?: string;
+}): Promise<BuildNdaPdfResult>;
 export async function buildNdaPdfBuffer(
-  opts: { withSignatureBlock: true }
-): Promise<BuildNdaPdfResult>;
-export async function buildNdaPdfBuffer(
-  opts?: { withSignatureBlock?: boolean }
+  opts?: {
+    withSignatureBlock?: boolean;
+    appendPlainText?: string;
+    /** Ersetzt den Standard-Vertragstext (z. B. andere Empfangende Partei als Governikus). */
+    contractBody?: string;
+    /** Rechte Spalte Unterschrift – Standard: Governikus-Formulierung */
+    signatureLabelReceiving?: string;
+    /** Hinweis unter rechter Unterschrift; leerer String = kein Hinweis */
+    signatureHintReceiving?: string;
+  }
 ): Promise<Buffer | BuildNdaPdfResult> {
   const withSignatureBlock = opts?.withSignatureBlock ?? false;
+  const append = opts?.appendPlainText?.trim();
+  const contractBase = (opts?.contractBody ?? ndaConfig.fullText).trim();
 
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   let page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
   let y = PAGE_HEIGHT - MARGIN;
 
-  const lines = ndaConfig.fullText.split(/\r?\n/);
+  const bodyText = append ? `${contractBase}\n\n${append}` : contractBase;
+  const lines = bodyText.split(/\r?\n/);
 
   for (const line of lines) {
     const trimmed = line.trim();
@@ -183,7 +199,8 @@ export async function buildNdaPdfBuffer(
     });
 
     // Rechte Spalte: Empfangende Partei (DocuSign-Signer)
-    page.drawText(ndaConfig.signatureLabelReceiving, {
+    const receivingLabel = opts?.signatureLabelReceiving ?? ndaConfig.signatureLabelReceiving;
+    page.drawText(receivingLabel, {
       x: col2X,
       y,
       size: labelSize,
@@ -203,7 +220,10 @@ export async function buildNdaPdfBuffer(
       font,
       color: rgb(0.4, 0.4, 0.4),
     });
-    const hintReceiving = ndaConfig.signatureHintReceiving;
+    const hintReceiving =
+      opts?.signatureHintReceiving !== undefined
+        ? opts.signatureHintReceiving
+        : ndaConfig.signatureHintReceiving;
     if (hintReceiving) {
       page.drawText(hintReceiving, {
         x: col2X,

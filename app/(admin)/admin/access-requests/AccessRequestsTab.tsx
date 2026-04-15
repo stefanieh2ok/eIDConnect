@@ -148,7 +148,7 @@ export default function AccessRequestsTab() {
         Anfragen von der Startseite „Zugang anfordern“. Nach deiner Freigabe wird der Zugang erstellt und der Link automatisch per E-Mail an die Person geschickt.
       </p>
       <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-        <strong>Damit die E-Mail wirklich ankommt:</strong> Mit dem Standard-Absender (Resend Test) liefert Resend nur an deine Resend-Account-E-Mail. Damit <em>jede</em> Person den Link per E-Mail erhält, in Resend eine Domain verifizieren (<a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className="underline">resend.com/domains</a>) und in den Umgebungsvariablen <code className="bg-amber-100 px-1 rounded">SEND_ACCESS_EMAIL_FROM</code> setzen (z. B. <code className="bg-amber-100 px-1 rounded">HookAI &lt;noreply@deine-domain.de&gt;</code>). Bis dahin: Link nach dem Freigeben unten kopieren und manuell schicken.
+        <strong>Damit die E-Mail wirklich ankommt:</strong> Mit dem Standard-Absender (Resend Test) liefert Resend nur an deine Resend-Account-E-Mail. Damit <em>jede</em> Person den Link per E-Mail erhält, in Resend eine Domain verifizieren (<a href="https://resend.com/domains" target="_blank" rel="noopener noreferrer" className="underline">resend.com/domains</a>) und in den Umgebungsvariablen <code className="bg-amber-100 px-1 rounded">SEND_ACCESS_EMAIL_FROM</code> setzen (z. B. <code className="bg-amber-100 px-1 rounded">eIDConnect &lt;noreply@deine-domain.de&gt;</code>). Bis dahin: Link nach dem Freigeben unten kopieren und manuell schicken.
       </div>
 
       <div className="flex gap-2">

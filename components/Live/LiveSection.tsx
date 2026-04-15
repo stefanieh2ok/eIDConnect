@@ -16,8 +16,10 @@ const LiveSection: React.FC = () => {
   const [showClaraVoice, setShowClaraVoice] = useState(false);
   const [activeNow, setActiveNow] = useState(3847291);
   
-  const currentData = VOTING_DATA[state.activeLocation];
+  const loc = state.activeLocation;
+  const currentData = VOTING_DATA[loc] ?? VOTING_DATA[loc === 'deutschland' ? 'bundesweit' : loc] ?? VOTING_DATA.bundesweit;
   const currentCard = abstimmungTab === 'aktuell' ? currentData?.cards[state.currentCardIndex] : null;
+  const effectiveCanVote = state.canVote && currentData.canVote;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -27,8 +29,8 @@ const LiveSection: React.FC = () => {
   }, []);
 
   const handleVote = useCallback((voteType: VoteType) => {
-    if (!currentCard) return;
-    
+    if (!currentCard || !state.canVote) return;
+
     dispatch({ 
       type: 'HANDLE_VOTE', 
       payload: { 
@@ -47,7 +49,7 @@ const LiveSection: React.FC = () => {
       }
       dispatch({ type: 'TOGGLE_KI_ANALYSIS' });
     }, 2500);
-  }, [currentCard, currentData, state.currentCardIndex, dispatch]);
+  }, [currentCard, currentData, state.currentCardIndex, state.canVote, dispatch]);
 
   const handleDragStart = useCallback((clientX: number) => {
     dispatch({ type: 'SET_IS_DRAGGING', payload: true });
@@ -76,8 +78,28 @@ const LiveSection: React.FC = () => {
     setShowClaraChat(true);
   }, []);
 
+  const claraLevel =
+    state.regionResolution != null
+      ? state.activeAdministrativeScope === 'kommune'
+        ? 'kommune'
+        : state.activeAdministrativeScope === 'land'
+          ? 'land'
+          : 'bund'
+      : state.activeLocation === 'kirkel' || state.activeLocation === 'saarpfalz'
+        ? 'kommune'
+        : state.activeLocation === 'saarland'
+          ? 'land'
+          : 'bund';
+
   return (
     <div>
+      {!state.canVote && (
+        <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <strong>Vorschau ohne Abstimmung:</strong> Inhalte und Clara sind nutzbar; Stimmabgaben sind in diesem
+          Modus deaktiviert.
+        </div>
+      )}
+
       {/* Live Status Header */}
       <div className="bg-gradient-to-r from-purple-600 to-blue-700 text-white rounded-2xl p-6 mb-4 text-center">
         <div className="text-2xl font-bold mb-4">DIGITALE DEMOKRATIE LIVE</div>
@@ -118,7 +140,7 @@ const LiveSection: React.FC = () => {
         <div>
           <VotingCard
             card={currentCard}
-            canVote={currentData.canVote}
+            canVote={effectiveCanVote}
             dragOffset={state.dragOffset}
             isDragging={state.isDragging}
             showKIAnalysis={state.showKIAnalysis}
@@ -130,7 +152,7 @@ const LiveSection: React.FC = () => {
             onOpenClaraChat={handleOpenClaraChat}
           />
 
-          <VotingControls canVote={currentData.canVote} onVote={handleVote} />
+          <VotingControls canVote={effectiveCanVote} onVote={handleVote} />
         </div>
       )}
 
@@ -195,8 +217,7 @@ const LiveSection: React.FC = () => {
             ))
           ) : (
             <div className="bg-white rounded-2xl p-8 text-center text-gray-500">
-              <div className="text-4xl mb-3">📊</div>
-              <p>Noch keine abgeschlossenen Abstimmungen</p>
+              <p>Noch keine abgeschlossenen Abstimmungen.</p>
             </div>
           )}
         </div>
@@ -209,8 +230,8 @@ const LiveSection: React.FC = () => {
             <div className="flex justify-end p-2 border-b">
               <button onClick={() => setShowClaraChat(false)} className="p-2 text-gray-500 hover:text-gray-700">✕</button>
             </div>
-            <div className="flex-1 overflow-auto p-4">
-              <ClaraChat level="bund" onPointsEarned={() => {}} selectedWahl={null} />
+            <div className="flex-1 min-h-0 p-4">
+              <ClaraChat level={claraLevel} onPointsEarned={() => {}} selectedWahl={state.selectedWahl} />
             </div>
           </div>
         </div>

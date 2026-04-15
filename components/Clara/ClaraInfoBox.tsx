@@ -15,11 +15,13 @@ interface ClaraInfoBoxProps {
 
 const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
   const { state } = useApp();
+  const personalizationEnabled = state.consentClaraPersonalization;
+  const isFormal = state.anrede === 'sie';
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const { speak, stopSpeaking } = useClaraVoice();
   
-  const claraAI = new ClaraAI(state.preferences);
+  const claraAI = new ClaraAI(state.preferences, state.consentClaraPersonalization);
   const analysis = claraAI.analyzeVotingCard(card);
 
   const handleSpeak = async () => {
@@ -29,31 +31,9 @@ const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
     } else {
       const text = isExpanded 
         ? await claraAI.generateDeepDiveAnalysis(card)
-        : `Clara's Einschätzung: ${analysis.reasoning}`;
+        : `Clara-Analyse (Relevanz & Argumente): ${analysis.reasoning}`;
       speak(text);
       setIsSpeaking(true);
-    }
-  };
-
-  const getRecommendationColor = (recommendation: string) => {
-    switch (recommendation) {
-      case 'strong_yes': return 'text-green-600 bg-green-50 border-green-200';
-      case 'yes': return 'text-green-700 bg-green-100 border-green-300';
-      case 'neutral': return 'text-slate-600 bg-slate-100 border-slate-300';
-      case 'no': return 'text-red-700 bg-red-100 border-red-300';
-      case 'strong_no': return 'text-red-600 bg-red-50 border-red-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
-    }
-  };
-
-  const getRecommendationText = (recommendation: string) => {
-    switch (recommendation) {
-      case 'strong_yes': return 'Starke Zustimmung empfohlen';
-      case 'yes': return 'Zustimmung empfohlen';
-      case 'neutral': return 'Neutrale Haltung angemessen';
-      case 'no': return 'Ablehnung empfohlen';
-      case 'strong_no': return 'Starke Ablehnung empfohlen';
-      default: return 'Neutrale Haltung';
     }
   };
 
@@ -63,8 +43,14 @@ const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
       <div className="rounded-xl p-4 border" style={{ background: LAVENDER.bg, borderColor: LAVENDER.border }}>
         <div className="flex items-center gap-2 mb-3">
           <div>
-            <h4 className="font-semibold text-sm" style={{ color: LAVENDER.text }}>Claras Einschätzung</h4>
-            <p className="text-xs text-gray-600">Basierend auf deinem Politik-Barometer</p>
+              <h4 className="font-semibold text-sm" style={{ color: LAVENDER.text }}>Clara-Analyse</h4>
+              <p className="text-xs text-gray-600">
+                {personalizationEnabled
+                  ? isFormal
+                    ? 'Basierend auf Ihrem Politik-Barometer (Einwilligung erforderlich)'
+                    : 'Basierend auf deinem Politik-Barometer (Einwilligung erforderlich)'
+                  : 'Neutral (ohne personalisierte Politik-Schwerpunkte)'}
+              </p>
           </div>
           <div className="ml-auto flex gap-1">
             <button
@@ -91,7 +77,9 @@ const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
         {/* Personal Match Score */}
         <div className="mb-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Deine Übereinstimmung</span>
+            <span className="text-sm font-medium text-gray-700">
+              {personalizationEnabled ? 'Deine Übereinstimmung' : 'Relevanzscore (neutral)'}
+            </span>
             <span className="text-lg font-bold" style={{ color: LAVENDER.accent }}>{analysis.personalMatch}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
@@ -107,11 +95,19 @@ const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
           {analysis.reasoning}
         </p>
 
-        {/* Recommendation */}
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${getRecommendationColor(analysis.recommendation)}`}>
-          {getRecommendationText(analysis.recommendation)}
-          <span className="text-xs opacity-75">({analysis.confidence}% Vertrauen)</span>
+        {/* Relevanz (kein Abstimmung-Ratschlag) */}
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border border-purple-200 bg-white">
+          {personalizationEnabled
+            ? isFormal
+              ? 'Passung zu Ihren Schwerpunkten'
+              : 'Passung zu deinen Schwerpunkten'
+            : 'Neutrale Einordnung'}
+          <span className="text-xs opacity-75">({analysis.confidence}% Einordnung)</span>
         </div>
+
+        <p className="text-[11px] text-gray-600 mt-2">
+          Clara gibt keine Wahlempfehlung. Sie erklärt nur Relevanz und Argumente für eine eigene Entscheidung.
+        </p>
 
         {/* Expand/Collapse Button */}
         <button
@@ -128,7 +124,13 @@ const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
         <div className="space-y-3 animate-slide-up">
           {/* Personalized Pros */}
           <div className="bg-green-50 rounded-xl p-3 border border-green-200">
-            <h4 className="font-semibold text-green-900 mb-2 text-sm">Für dich relevant</h4>
+            <h4 className="font-semibold text-green-900 mb-2 text-sm">
+              {personalizationEnabled
+                ? isFormal
+                  ? 'Für Sie relevant'
+                  : 'Für dich relevant'
+                : 'Mögliche Vorteile (allgemein)'}
+            </h4>
             <div className="space-y-1.5">
               {analysis.pros.map((pro, i) => (
                 <div key={i} className="text-xs text-gray-800 bg-white rounded-lg p-2">
@@ -143,7 +145,11 @@ const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
             <div className="bg-red-50 rounded-xl p-3 border border-red-200">
               <h4 className="font-semibold text-red-900 mb-2 text-sm flex items-center gap-1.5">
                 <span className="text-red-600">⚠</span>
-                Bedenken für dich
+                {personalizationEnabled
+                  ? isFormal
+                    ? 'Bedenken für Sie'
+                    : 'Bedenken für dich'
+                  : 'Mögliche Risiken/Nachteile (allgemein)'}
               </h4>
               <div className="space-y-1.5">
                 {analysis.cons.map((con, i) => (

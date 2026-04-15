@@ -7,7 +7,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sha256 } from '@/lib/security/hash';
 import { getNdaDocumentHash, ndaConfig } from '@/config/nda';
 
-const DEMO_ID = process.env.DEMO_ACCESS_DEFAULT_ID || 'eidconnect-v1';
+const DEMO_ID = process.env.DEMO_ACCESS_DEFAULT_ID || 'eid-demo-connect-v1';
 const EXPIRES_IN_DAYS = 14;
 const MAX_VIEWS = 10;
 const MAX_DEVICES = 1;

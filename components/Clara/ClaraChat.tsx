@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { WAHLEN_DATA } from '@/data/constants';
+import { getProgramEntry } from '@/data/partyProgramRegistry';
+import { isTrustedEvidenceUrl, sanitizeEvidenceSources } from '@/lib/clara-evidence';
 import ClaraVoiceInterface from './ClaraVoiceInterface';
 
 const LAVENDER = {
@@ -33,6 +35,11 @@ interface ClaraProps {
   selectedWahl?: any; // Aktuelle Wahl für Parteiprogramm-Zugriff
 }
 
+type StructuredAnswer = {
+  content: string;
+  sources: string[];
+};
+
 const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl }) => {
   const [messages, setMessages] = useState<ClaraMessage[]>([
     {
@@ -56,256 +63,218 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl }
     scrollToBottom();
   }, [messages]);
 
-  // Hole Parteiprogramm aus WAHLEN_DATA
-  const getParteiprogramm = (parteiName: string): string | null => {
-    // Finde die aktuelle Wahl
-    const wahl = selectedWahl || WAHLEN_DATA.find(w => 
-      (level === 'bund' && w.level === 'bund') ||
-      (level === 'land' && w.level === 'land') ||
-      (level === 'kommune' && w.level === 'kommune')
+  const renderSource = (source: string, index: number) => {
+    const urlMatch = source.match(/https?:\/\/\S+/i);
+    if (!urlMatch) {
+      return (
+        <div key={index} className="mt-0.5 break-words" style={{ color: LAVENDER.text }}>
+          • {source}
+        </div>
+      );
+    }
+    const url = urlMatch[0];
+    const label = source.replace(url, '').replace(/\s[-–:]\s*$/, '').trim() || url;
+    const trusted = isTrustedEvidenceUrl(url);
+    return (
+      <div key={index} className="mt-0.5 break-words" style={{ color: LAVENDER.text }}>
+        • {label}{' '}
+        <a
+          className={`underline ${trusted ? 'hover:opacity-80' : 'opacity-70'}`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {url}
+        </a>
+        {!trusted ? <span className="ml-1 text-[10px] opacity-80">(nicht auf Trusted-Whitelist)</span> : null}
+      </div>
     );
-    
-    if (!wahl || !wahl.parteien) return null;
-    
-    // Normalisiere Parteinamen für Suche
-    const parteiMap: Record<string, string[]> = {
-      'spd': ['SPD', 'spd', 'sozialdemokrat'],
-      'cdu': ['CDU', 'cdu', 'csu', 'christlich demokratisch'],
-      'grüne': ['GRÜNE', 'grüne', 'grünen', 'bündnis 90', 'b90'],
-      'fdp': ['FDP', 'fdp', 'freie demokratische'],
-      'linke': ['DIE LINKE', 'linke', 'die linke'],
-      'afd': ['AfD', 'afd', 'alternative für deutschland']
-    };
-    
-    const parteiKey = Object.keys(parteiMap).find(key => 
-      parteiMap[key].some(alias => parteiName.toLowerCase().includes(alias))
-    );
-    
-    if (!parteiKey) return null;
-    
-    const partei = wahl.parteien.find((p: { name: string }) => 
-      parteiMap[parteiKey].some(alias => 
-        p.name.toLowerCase().includes(alias.toLowerCase()) ||
-        p.name === alias
-      )
-    );
-    
-    return partei?.programm || null;
   };
 
-  // KI-Antworten basierend auf Level und Frage
-  const getClaraResponse = (question: string): { content: string; sources: string[] } => {
-    const lowerQuestion = question.toLowerCase();
-    
-    // Prüfe auf Anfragen nach Parteiprogrammen
-    const parteiProgrammKeywords = ['programm', 'wahlprogramm', 'parteiprogramm', 'was plant', 'positionen', 'ziele', 'was will', 'was sagt'];
-    const parteiNamen = ['spd', 'cdu', 'csu', 'grüne', 'grünen', 'fdp', 'linke', 'afd'];
-    
-    const fragtNachProgramm = parteiProgrammKeywords.some(keyword => lowerQuestion.includes(keyword));
-    const fragtNachPartei = parteiNamen.some(partei => lowerQuestion.includes(partei));
-    
-    if (fragtNachProgramm && fragtNachPartei) {
-      const partei = parteiNamen.find(p => lowerQuestion.includes(p));
-      if (partei) {
-        const programm = getParteiprogramm(partei);
-        if (programm) {
-          const parteiName = partei.toUpperCase() === 'GRÜNE' ? 'GRÜNE' : 
-                            partei.toUpperCase() === 'LINKE' ? 'DIE LINKE' : 
-                            partei.toUpperCase();
-          
-          // Finde die aktuelle Wahl für Quellen
-          const wahl = selectedWahl || WAHLEN_DATA.find(w => 
-            (level === 'bund' && w.level === 'bund') ||
-            (level === 'land' && w.level === 'land') ||
-            (level === 'kommune' && w.level === 'kommune')
-          );
-          
-          // Formatierte Antwort mit ARIA-Box-Style
-          const formattedContent = `ARIA EXECUTIVE INTELLIGENCE\n\nKEY INSIGHT: Parteiprogramm der ${parteiName} für ${wahl?.name || 'diese Wahl'}\n\n${programm}\n\nDies ist der originale Inhalt des Wahlprogramms im KI-Style. Für detaillierte Informationen empfehle ich, das vollständige Wahlprogramm auf der offiziellen Website zu lesen.`;
-          
-          return {
-            content: formattedContent,
-            sources: [`${parteiName}-Wahlprogramm 2025`, `Offizielle Website der ${parteiName}`, wahl?.name || 'Aktuelle Wahl']
-          };
-        }
-      }
-    }
-    
-    // Bundestagswahl-spezifische Antworten
-    if (level === 'bund') {
-      // SPD-spezifische Antworten
-      if (lowerQuestion.includes('spd')) {
-        if (lowerQuestion.includes('wohnen') || lowerQuestion.includes('miete')) {
-          return {
-            content: 'Die SPD will die Mietpreisbremse verschärfen und 400.000 neue Wohnungen pro Jahr bauen. Sie plant eine Spekulationssteuer auf Immobilien und will Bauland für sozialen Wohnungsbau reservieren. Der Fokus liegt auf bezahlbarem Wohnraum für alle.',
-            sources: ['SPD-Wahlprogramm 2025, S. 34-38', 'SPD-Positionspapier Wohnen 2024']
-          };
-        }
-        if (lowerQuestion.includes('klima') || lowerQuestion.includes('umwelt')) {
-          return {
-            content: 'Die SPD setzt auf Klimaneutralität bis 2045, beschleunigte Energiewende und sozialverträgliche Klimapolitik. Sie plant Investitionen in erneuerbare Energien und eine CO2-Bepreisung mit sozialem Ausgleich.',
-            sources: ['SPD-Wahlprogramm 2025, S. 22-28', 'SPD-Klimakonzept 2024']
-          };
-        }
-        return {
-          content: 'Die SPD ist eine sozialdemokratische Partei mit Fokus auf soziale Gerechtigkeit, Mindestlohn 15€, bezahlbares Wohnen und Klimaschutz. Sie setzt sich für eine gerechte Verteilung von Wohlstand und Chancen ein.',
-          sources: ['SPD-Wahlprogramm 2025', 'SPD-Grundsatzprogramm']
-        };
-      }
-      
-      // CDU/CSU-spezifische Antworten
-      if (lowerQuestion.includes('cdu') || lowerQuestion.includes('csu')) {
-        if (lowerQuestion.includes('wirtschaft') || lowerQuestion.includes('steuer')) {
-          return {
-            content: 'Die CDU möchte die Wirtschaft durch Steuerentlastungen stärken und Bürokratie abbauen. Sie plant eine Entlastung bei der Einkommensteuer und will den Mittelstand fördern. Digitalisierung und Innovation stehen im Fokus.',
-            sources: ['CDU-Wahlprogramm 2025, S. 12-15', 'CDU-Wirtschaftskonzept 2024']
-          };
-        }
-        if (lowerQuestion.includes('klima') || lowerQuestion.includes('umwelt')) {
-          return {
-            content: 'Die CDU setzt auf Klimaneutralität bis 2045 mit technologieoffenem Ansatz. Sie fördert erneuerbare Energien, Wasserstoff-Technologie und setzt auf Innovation statt Verbote.',
-            sources: ['CDU-Wahlprogramm 2025, S. 18-22', 'CDU-Klimastrategie 2024']
-          };
-        }
-        return {
-          content: 'Die CDU/CSU ist eine konservative Partei mit Fokus auf Wirtschaftswachstum, Familienpolitik und innere Sicherheit. Steuerentlastungen und Bürokratieabbau stehen im Vordergrund.',
-          sources: ['CDU-Wahlprogramm 2025', 'CDU-Grundsatzprogramm']
-        };
-      }
-      
-      // GRÜNE-spezifische Antworten
-      if (lowerQuestion.includes('grüne') || lowerQuestion.includes('grünen')) {
-        if (lowerQuestion.includes('klima') || lowerQuestion.includes('energie')) {
-          return {
-            content: 'Die Grünen fordern Klimaneutralität bis 2035 und einen massiven Ausbau erneuerbarer Energien. Sie wollen den Kohleausstieg beschleunigen und eine CO2-Steuer einführen. Der Fokus liegt auf nachhaltiger Transformation.',
-            sources: ['Grünes Wahlprogramm 2025, S. 8-12', 'Grüne Klimakonzept 2024']
-          };
-        }
-        if (lowerQuestion.includes('sozial') || lowerQuestion.includes('gerechtigkeit')) {
-          return {
-            content: 'Die Grünen verbinden Klimaschutz mit sozialer Gerechtigkeit. Sie fordern mehr Investitionen in Bildung, bezahlbares Wohnen und eine gerechte Verteilung von Klimakosten.',
-            sources: ['Grünes Wahlprogramm 2025, S. 32-38', 'Grüne Sozialprogramm 2024']
-          };
-        }
-        return {
-          content: 'Die Grünen sind eine ökologische Partei mit Fokus auf Klimaschutz, Nachhaltigkeit und soziale Gerechtigkeit. Klimaneutralität 2035, Energiewende und soziale Gerechtigkeit sind zentrale Ziele.',
-          sources: ['Grünes Wahlprogramm 2025', 'Grünes Grundsatzprogramm']
-        };
-      }
-      
-      // FDP-spezifische Antworten
-      if (lowerQuestion.includes('fdp')) {
-        if (lowerQuestion.includes('wirtschaft') || lowerQuestion.includes('digital')) {
-          return {
-            content: 'Die FDP setzt auf Wirtschaftsfreiheit, Digitalisierung und Innovation. Sie will Bürokratie abbauen, Start-ups fördern und die digitale Infrastruktur ausbauen. Bildung und Forschung stehen im Fokus.',
-            sources: ['FDP-Wahlprogramm 2025, S. 14-18', 'FDP-Digitalisierungsstrategie 2024']
-          };
-        }
-        return {
-          content: 'Die FDP ist eine liberale Partei mit Schwerpunkt auf Wirtschaftsfreiheit und Bildung. Digitalisierung, Innovation und Bürokratieabbau stehen im Fokus.',
-          sources: ['FDP-Wahlprogramm 2025', 'FDP-Grundsatzprogramm']
-        };
-      }
-      
-      // DIE LINKE
-      if (lowerQuestion.includes('linke')) {
-        return {
-          content: 'DIE LINKE ist eine linke Partei mit Fokus auf soziale Gerechtigkeit und Umverteilung. Mindestlohn, Mietpreisbremse und Friedenspolitik sind Hauptthemen.',
-          sources: ['DIE LINKE Wahlprogramm 2025', 'DIE LINKE Grundsatzprogramm']
-        };
-      }
-      
-      // AfD
-      if (lowerQuestion.includes('afd')) {
-        return {
-          content: 'Die AfD ist eine rechtspopulistische Partei mit Fokus auf Migration, nationale Souveränität und EU-Kritik. Sie setzt sich für strengere Einwanderungspolitik ein.',
-          sources: ['AfD-Wahlprogramm 2025', 'AfD-Positionspapiere']
-        };
-      }
-    }
+  const getRegistryRegion = (): 'bund' | 'saarland' | 'saarpfalz-kreis' | 'kirkel' => {
+    if (level === 'bund') return 'bund';
+    if (level === 'land') return 'saarland';
+    if (level === 'kommune') return 'kirkel';
+    return 'saarpfalz-kreis';
+  };
 
-    // Landtagswahl Saarland-spezifische Antworten
-    if (level === 'land') {
-      if (lowerQuestion.includes('rehlinger') || lowerQuestion.includes('spd')) {
-        return {
-          content: 'Anke Rehlinger ist seit 2022 Ministerpräsidentin des Saarlandes. Sie führte die SPD zur absoluten Mehrheit und setzt sich für Digitalisierung, Klimaschutz und soziale Gerechtigkeit ein. Ihre Schwerpunkte sind Bildung und Wirtschaftsförderung.',
-          sources: ['Saarland-SPD Programm 2027', 'Rehlinger Biografie 2024']
-        };
-      }
-      
-      if (lowerQuestion.includes('wirth') || lowerQuestion.includes('cdu')) {
-        return {
-          content: 'Christian Wirth ist CDU-Landeschef im Saarland und will Rehlinger bei der nächsten Landtagswahl herausfordern. Er setzt auf Wirtschaftsförderung, Familienpolitik und Sicherheit. Seine Erfahrung als ehemaliger Innenminister prägt seine Positionen.',
-          sources: ['Saarland-CDU Programm 2027', 'Wirth Positionspapiere 2024']
-        };
-      }
-    }
-
-    // Kommunalwahl-spezifische Antworten
-    if (level === 'kommune') {
-      if (lowerQuestion.includes('müller') || lowerQuestion.includes('klaus')) {
-        return {
-          content: 'Klaus Müller ist erfahrener Gemeinderat seit 2019 mit Fokus auf Infrastruktur und Gemeinschaftsprojekte. Er engagiert sich besonders für die Mehrzweckhalle, Radwege und Ortskernsanierung in Kirkel.',
-          sources: ['Gemeinderatsprotokolle 2019-2025', 'Wahlprogramm SPD Kirkel']
-        };
-      }
-      
-      if (lowerQuestion.includes('schmidt') || lowerQuestion.includes('petra')) {
-        return {
-          content: 'Petra Schmidt ist langjährige Gemeinderätin seit 2015 mit Schwerpunkt auf Finanzen und Haushalt. Sie setzt auf verantwortungsvolle Haushaltspolitik und Wirtschaftsförderung.',
-          sources: ['Gemeinderatsprotokolle 2015-2025', 'Wahlprogramm CDU Kirkel']
-        };
-      }
-      
-      if (lowerQuestion.includes('hoffmann') || lowerQuestion.includes('michael')) {
-        return {
-          content: 'Michael Hoffmann ist neuer Kandidat mit Fokus auf Klimaschutz und Nachhaltigkeit auf kommunaler Ebene. Er engagiert sich für Radwege, Bürgergärten und LED-Beleuchtung in Kirkel.',
-          sources: ['Wahlprogramm GRÜNE Kirkel', 'Klimaschutzkonzept Gemeinde Kirkel']
-        };
-      }
-      
-      if (lowerQuestion.includes('weber') || lowerQuestion.includes('anna') || lowerQuestion.includes('unabhängig')) {
-        return {
-          content: 'Anna Weber ist unabhängige Gemeinderätin ohne Parteibindung seit 2019. Sie setzt auf parteiübergreifende Lösungen, Transparenz und direkte Bürgerbeteiligung.',
-          sources: ['Wahlprogramm Unabhängige Liste Kirkel', 'Gemeinderatsprotokolle']
-        };
-      }
-      
-      if (lowerQuestion.includes('klein') || lowerQuestion.includes('thomas')) {
-        return {
-          content: 'Thomas Klein ist neuer Kandidat mit wirtschaftsliberalem Ansatz. Sein Fokus liegt auf Digitalisierung, Wirtschaftsförderung und Bürokratieabbau auf kommunaler Ebene.',
-          sources: ['Wahlprogramm FDP Kirkel', 'Wirtschaftskonzept']
-        };
-      }
-      
-      if (lowerQuestion.includes('kommunal') || lowerQuestion.includes('gemeinde') || lowerQuestion.includes('kirkel')) {
-        return {
-          content: 'Die Kommunalwahl in Kirkel entscheidet über den Gemeinderat und die Verbandsgemeinde. Wichtige Themen sind: Infrastruktur (Mehrzweckhalle, Radwege), Finanzen, Klimaschutz und Bürgerbeteiligung. Du kannst einen Kandidaten wählen, der deine lokalen Prioritäten vertritt.',
-          sources: ['Wahlhilfe Gemeinde Kirkel', 'Kommunalwahlrecht Saarland']
-        };
-      }
-    }
-
-    // Allgemeine Antworten
-    if (lowerQuestion.includes('wahlsystem') || lowerQuestion.includes('wie funktioniert')) {
+  const getProgramAvailabilityHint = (party: string): { hint: string; source?: string } => {
+    const region = getRegistryRegion();
+    const year = region === 'bund' ? 2025 : 2026;
+    const entry = getProgramEntry(region, year, party);
+    if (!entry) {
       return {
-        content: 'Das deutsche Wahlsystem ist ein personalisiertes Verhältniswahlrecht. Du hast zwei Stimmen: Die Erststimme für den Direktkandidaten deines Wahlkreises und die Zweitstimme für die Partei. Die Zweitstimme entscheidet über die Sitzverteilung im Bundestag.',
-        sources: ['Bundeswahlgesetz § 1', 'Bundeszentrale für politische Bildung']
+        hint: 'Hinweis: Für diese Partei liegt in der Registry noch kein verifizierter Programmeintrag vor.',
       };
     }
-
-    if (lowerQuestion.includes('erststimme') || lowerQuestion.includes('zweitstimme')) {
+    if (entry.status === 'verified') {
       return {
-        content: 'Die Erststimme wählst du einen Direktkandidaten aus deinem Wahlkreis. Die Zweitstimme wählst du eine Partei und entscheidest damit über die Sitzverteilung im Bundestag. Beide Stimmen sind gleich wichtig!',
-        sources: ['Bundeswahlgesetz § 6', 'Wahlhilfe des Bundeswahlleiters']
+        hint: `Hinweis: Programmquelle verifiziert (${year}).`,
+        source: entry.sourceUrl
+          ? `Registry-Status: verified (${year}) – ${entry.sourceUrl}`
+          : `Registry-Status: verified (${year})`,
       };
     }
-
-    // Fallback-Antwort
+    if (entry.status === 'partial') {
+      return {
+        hint: 'Hinweis: Teilabdeckung; meist Listen-/Zwischenstand, keine vollständige Endfassung.',
+        source: entry.sourceUrl
+          ? `Registry-Status: partial (${year}) – ${entry.sourceUrl}`
+          : `Registry-Status: partial (${year})`,
+      };
+    }
     return {
-      content: 'Das ist eine interessante Frage! Ich kann dir gerne bei spezifischen Themen helfen. Du kannst mich nach Wahlprogrammen, Kandidaten-Informationen oder dem Wahlsystem fragen. Versuche es mit konkreteren Begriffen wie "SPD Wohnen" oder "CDU Wirtschaft".',
-      sources: ['Clara KI-Assistent', 'eIDConnect Hilfe']
+      hint: 'Hinweis: Für diese Partei fehlt aktuell eine verifizierte Programmquelle.',
+      source: `Registry-Status: missing (${year})`,
     };
+  };
+
+  const getCurrentWahl = () =>
+    selectedWahl ||
+    WAHLEN_DATA.find(
+      (w) =>
+        (level === 'bund' && w.level === 'bund') ||
+        (level === 'land' && w.level === 'land') ||
+        (level === 'kommune' && w.level === 'kommune')
+    );
+
+  const PARTY_ALIASES: Record<string, string[]> = {
+    SPD: ['spd', 'sozialdemokrat'],
+    CDU: ['cdu', 'csu', 'christlich demokratisch'],
+    GRÜNE: ['grüne', 'gruene', 'grünen', 'bündnis 90', 'buendnis 90', 'b90'],
+    FDP: ['fdp', 'freie demokratische'],
+    'DIE LINKE': ['linke', 'die linke'],
+    AfD: ['afd', 'alternative für deutschland'],
+    BSW: ['bsw', 'bündnis sahra wagenknecht', 'buendnis sahra wagenknecht'],
+  };
+
+  const extractPartyName = (question: string): string | null => {
+    const q = question.toLowerCase();
+    for (const [party, aliases] of Object.entries(PARTY_ALIASES)) {
+      if (aliases.some((alias) => q.includes(alias))) return party;
+      if (q.includes(party.toLowerCase())) return party;
+    }
+    return null;
+  };
+
+  const buildStructuredResponse = (input: {
+    core: string;
+    facts: string[];
+    pros: string[];
+    cons: string[];
+    uncertainty: string;
+    sources: string[];
+  }): StructuredAnswer => {
+    const safeSources = sanitizeEvidenceSources(input.sources);
+    const content = [
+      `Kernaussage: ${input.core}`,
+      '',
+      'Zahlen & Fakten:',
+      ...input.facts.map((f) => `- ${f}`),
+      '',
+      'Pro:',
+      ...input.pros.map((p) => `- ${p}`),
+      '',
+      'Contra:',
+      ...input.cons.map((c) => `- ${c}`),
+      '',
+      `Unsicherheiten: ${input.uncertainty}`,
+      '',
+      'Hinweis: Clara gibt keine Wahlempfehlung.',
+    ].join('\n');
+    return { content, sources: safeSources };
+  };
+
+  // Strict-Evidence: Nur aus hinterlegten Daten/Registry antworten.
+  const getClaraResponse = (question: string): StructuredAnswer => {
+    const lowerQuestion = question.toLowerCase();
+    const wahl = getCurrentWahl();
+    const asksProgram =
+      ['programm', 'wahlprogramm', 'parteiprogramm', 'was plant', 'positionen', 'ziele', 'was will', 'was sagt'].some(
+        (keyword) => lowerQuestion.includes(keyword)
+      );
+    const party = extractPartyName(lowerQuestion);
+
+    if (asksProgram && party) {
+      const partei = wahl?.parteien?.find((p: { name: string }) =>
+        p.name.toLowerCase().includes(party.toLowerCase()) || party.toLowerCase().includes(p.name.toLowerCase())
+      );
+      const registry = getProgramAvailabilityHint(party);
+      const sourceList = [
+        wahl?.name ? `Wahlkontext: ${wahl.name}` : 'Wahlkontext: nicht eindeutig auflösbar',
+        registry.source ?? 'Registry-Status: nicht vorhanden',
+      ];
+
+      if (!partei?.programm) {
+        return buildStructuredResponse({
+          core: `Für ${party} liegt in den hinterlegten Daten aktuell kein belastbarer Programmtext vor.`,
+          facts: [`Region: ${getRegistryRegion()}`, registry.hint],
+          pros: ['Transparenz: fehlende Quelle wird offen ausgewiesen.'],
+          cons: ['Inhaltliche Aussage zum Programm ist aktuell nicht verifizierbar.'],
+          uncertainty: 'Ohne verifizierte Primärquelle keine belastbare Programmauskunft.',
+          sources: sourceList,
+        });
+      }
+
+      return buildStructuredResponse({
+        core: `Programmhinweise zu ${partei.name} für ${wahl?.name ?? 'die aktuelle Wahl'} liegen vor.`,
+        facts: [partei.programm, registry.hint],
+        pros: ['Direkter Bezug zu hinterlegten Wahl-/Programmdaten.'],
+        cons: [registry.hint.includes('Teilabdeckung') ? 'Programmstand ist nur teilweise verifiziert.' : 'Details müssen in Originalquellen gegengeprüft werden.'],
+        uncertainty: 'Zusammenfassung aus hinterlegten Daten, nicht aus Live-Web-Recherche.',
+        sources: sourceList,
+      });
+    }
+
+    if (lowerQuestion.includes('wahlsystem') || lowerQuestion.includes('erststimme') || lowerQuestion.includes('zweitstimme')) {
+      return buildStructuredResponse({
+        core: 'Das Wahlsystem wird als personalisierte Verhältniswahl dargestellt.',
+        facts: [
+          'Erststimme: Wahl einer Person im Wahlkreis.',
+          'Zweitstimme: maßgeblich für Sitzverteilung nach Parteien.',
+          'Beide Stimmen sind gültig und haben unterschiedliche Funktionen.',
+        ],
+        pros: ['Klare Trennung der Funktionen beider Stimmen verbessert Nachvollziehbarkeit.'],
+        cons: ['Komplexität kann ohne erklärende Beispiele zu Missverständnissen führen.'],
+        uncertainty: 'Detailregeln können je Wahltyp/Änderungsstand variieren.',
+        sources: [
+          'Bundeswahlgesetz (BWahlG): https://www.gesetze-im-internet.de/bwahlg/',
+          'Bundeswahlleiter – Wahlsystem: https://www.bundeswahlleiterin.de',
+        ],
+      });
+    }
+
+    const candidate = wahl?.kandidaten?.find((c: { name: string }) => lowerQuestion.includes(String(c.name).toLowerCase()));
+    if (candidate) {
+      const candidateSources =
+        (candidate.quellen as string[] | undefined)?.length
+          ? (candidate.quellen as string[])
+          : ['Kandidatenprofil ohne verifizierte Quellenangabe (Status: partial/missing)'];
+      return buildStructuredResponse({
+        core: `Profilhinweise zu ${candidate.name} wurden aus den hinterlegten Kandidatendaten abgeleitet.`,
+        facts: [
+          `Partei: ${candidate.partei}`,
+          `Beruf: ${candidate.beruf}`,
+          `Positionen: ${(candidate.positionen || []).slice(0, 3).join(' · ') || 'Keine Positionen hinterlegt'}`,
+        ],
+        pros: ['Direkter Datensatzbezug aus der aktuellen Wahlansicht.'],
+        cons: ['Profil kann unvollständig sein, falls keine Primärquellen hinterlegt sind.'],
+        uncertainty: 'Ohne verifizierte Quellen ist die Aussage nur als Zwischenstand zu lesen.',
+        sources: candidateSources,
+      });
+    }
+
+    return buildStructuredResponse({
+      core: 'Für diese Frage liegt aktuell keine verifizierte, belastbare Datenbasis in Clara vor.',
+      facts: [
+        'Strict-Evidence-Modus aktiv: keine Antwort ohne prüfbare Datenquelle.',
+        'Bitte frage konkret nach Partei, Wahlsystem oder einer Person aus der aktuellen Wahl.',
+      ],
+      pros: ['Reduziert Halluzinationen, da ungesicherte Aussagen blockiert werden.'],
+      cons: ['Antwortumfang ist bei fehlenden Quellen bewusst eingeschränkt.'],
+      uncertainty: 'Es erfolgt keine freie Generierung ohne Evidenz.',
+      sources: ['Clara Strict-Evidence-Modus (intern)'],
+    });
   };
 
   const sendMessage = async () => {
@@ -354,6 +323,8 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl }
         'Was ist das Programm der CDU?',
         'Was ist das Programm der GRÜNEN?',
         'Was ist das Programm der FDP?',
+        'Was ist das Programm der AfD?',
+        'Was ist das Programm der Linken?',
         'Wie funktioniert das Wahlsystem?',
         'Erststimme oder Zweitstimme - was ist wichtiger?',
         'Was plant die GRÜNE für Klimaschutz?'
@@ -363,6 +334,9 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl }
         'Was ist das Programm der SPD?',
         'Was ist das Programm der CDU?',
         'Was ist das Programm der GRÜNEN?',
+        'Was ist das Programm der FDP?',
+        'Was ist das Programm der AfD?',
+        'Was ist das Programm der Linken?',
         'Wer ist Anke Rehlinger?',
         'Wie funktioniert das Wahlsystem?',
         'Was sind die Unterschiede zwischen den Kandidaten?'
@@ -371,13 +345,16 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl }
         'Was ist das Programm der SPD?',
         'Was ist das Programm der CDU?',
         'Was ist das Programm der GRÜNEN?',
+        'Was ist das Programm der FDP?',
+        'Was ist das Programm der AfD?',
+        'Was ist das Programm der Linken?',
         'Wie funktioniert die Kommunalwahl?',
         'Was macht ein Gemeinderat?',
-        'Welche Themen sind in Kirkel wichtig?'
+        'Welche Themen sind in meiner Kommune wichtig?'
       ];
 
   return (
-    <div className="rounded-xl shadow-xl border-2 flex flex-col overflow-hidden min-h-0 h-full max-h-[85vh]" style={{ borderColor: '#8B5CF6', boxShadow: '0 8px 32px rgba(124, 58, 237, 0.2)' }}>
+    <div className="rounded-xl shadow-xl border-2 flex h-full min-h-0 flex-col overflow-hidden" style={{ borderColor: '#8B5CF6', boxShadow: '0 8px 32px rgba(124, 58, 237, 0.2)' }}>
       {/* Header – Neutralität + Quellen, kein Beraten */}
       <div
         className="p-3 rounded-t-xl text-white border-b border-white/20 flex-shrink-0"
@@ -388,6 +365,9 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl }
       >
         <h2 className="text-base font-bold">Clara – KI-Assistent</h2>
         <p className="text-xs opacity-95 mt-0.5">Quellenbasiert • nachvollziehbar • transparent</p>
+        <p className="text-[10px] mt-1 inline-flex rounded-full bg-white/20 px-2 py-0.5">
+          Strict Evidence: ON
+        </p>
         <p className="text-[11px] opacity-90 mt-1 leading-tight">
           <strong>Neutral – gibt keine Beratung oder Wahlempfehlung.</strong> Clara informiert nur auf Basis von Quellen. Jede Antwort verweist auf angegebene Quellen; bitte Original-Dokumente prüfen.
         </p>
@@ -413,9 +393,7 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl }
                 {message.sources && message.sources.length > 0 && (
                   <div className="mt-2 pt-2 border-t text-xs break-words" style={{ borderColor: LAVENDER.border }}>
                     <span className="font-semibold" style={{ color: LAVENDER.text }}>Quellenverweis:</span>
-                    {message.sources.map((source, index) => (
-                      <div key={index} className="mt-0.5" style={{ color: LAVENDER.text }}>• {source}</div>
-                    ))}
+                    {message.sources.map((source, index) => renderSource(source, index))}
                   </div>
                 )}
                 <div className="text-[10px] opacity-60 mt-1">{message.timestamp.toLocaleTimeString()}</div>
@@ -440,12 +418,12 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl }
       {/* Quick Questions */}
       <div className="px-4 py-2 border-t flex-shrink-0" style={{ borderColor: LAVENDER.border, background: LAVENDER.bg }}>
         <div className="text-xs text-gray-500 mb-2">Schnelle Fragen:</div>
-        <div className="flex flex-wrap gap-2">
-          {quickQuestions.map((question, index) => (
+        <div className="flex gap-2 overflow-x-auto whitespace-nowrap pb-1">
+          {quickQuestions.slice(0, 6).map((question, index) => (
             <button
               key={index}
               onClick={() => setInputMessage(question)}
-              className="text-xs px-2 py-1 rounded-full transition-colors"
+              className="text-xs px-2 py-1 rounded-full transition-colors shrink-0"
               style={{ background: LAVENDER.bubble, color: LAVENDER.text }}
             >
               {question}
@@ -465,6 +443,7 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl }
             placeholder="Frag Clara: Was sagt die SPD zum Thema Wohnen?"
             className="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2"
             style={{ borderColor: LAVENDER.border, background: LAVENDER.bg }}
+            aria-label="Nachricht an Clara"
           />
           <button
             onClick={sendMessage}

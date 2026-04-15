@@ -82,7 +82,7 @@ Die Clara API nutzt bereits die echte Integration:
 Der System-Prompt wird automatisch gesetzt:
 
 ```
-Du bist Clara, eine freundliche und kompetente KI-Assistentin für eIDConnect.
+Du bist Clara, eine freundliche und kompetente KI-Assistentin für eID Demo Connect.
 Du hilfst Nutzer:innen bei politischen Entscheidungen.
 
 Deine Persönlichkeit:

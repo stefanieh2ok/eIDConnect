@@ -15,7 +15,7 @@
 
 1. Im DocuSign Dashboard: **Settings** (Zahnrad) → **Apps and Keys**.
 2. **Add App and Integration Key** (oder „Create App“).
-3. **Integration Key** vergeben (Name z. B. „BürgerApp NDA“) → **Create**.
+3. **Integration Key** vergeben (Name z. B. „eID Demo Connect NDA“) → **Create**.
 4. Unter der neuen App:
    - **Integration Key** kopieren → das ist `DOCUSIGN_INTEGRATION_KEY`.
    - **API User ID** (GUID) kopieren → das ist `DOCUSIGN_USER_ID`.

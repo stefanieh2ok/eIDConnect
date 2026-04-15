@@ -8,6 +8,7 @@ import AccessLogTab from './access-log/AccessLogTab';
 import MeldungenTab from './meldungen/MeldungenTab';
 import AccessTokensTab from './access-tokens/AccessTokensTab';
 import AccessRequestsTab from './access-requests/AccessRequestsTab';
+import ProgramCoverageTab from './program-coverage/ProgramCoverageTab';
 
 const TABS = [
   { id: 'links', label: 'Demo-Links' },
@@ -15,6 +16,7 @@ const TABS = [
   { id: 'access-requests', label: 'Zugangsanfragen' },
   { id: 'log', label: 'Zugriffs-Log' },
   { id: 'meldungen', label: 'Meldungen' },
+  { id: 'program-coverage', label: 'Programm-Abdeckung' },
 ] as const;
 
 export default function AdminPage() {
@@ -85,6 +87,7 @@ export default function AdminPage() {
         {tab === 'access-requests' && <AccessRequestsTab />}
         {tab === 'log' && <AccessLogTab />}
         {tab === 'meldungen' && <MeldungenTab />}
+        {tab === 'program-coverage' && <ProgramCoverageTab />}
       </main>
     </div>
   );

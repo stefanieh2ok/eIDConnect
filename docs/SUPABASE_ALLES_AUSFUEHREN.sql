@@ -1,5 +1,5 @@
 -- =============================================================================
--- Supabase: Alles für eIDConnect / Demo mit DocuSign
+-- Supabase: Alles für eID Demo Connect / Demo mit DocuSign
 -- Im Supabase Dashboard: SQL Editor → New query → einfügen → Run
 -- =============================================================================
 

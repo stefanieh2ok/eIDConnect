@@ -1,11 +1,17 @@
 import { redirect } from 'next/navigation';
 import { findAccessTokenByRawToken, isTokenExpired } from '@/lib/security/token';
 import { ndaConfig } from '@/config/nda';
+import {
+  buildNdaFullContractText,
+  buildNdaPersonalizationAnnex,
+  describeAccessRecipientOrg,
+  isGovernikusEmail,
+} from '@/lib/nda-personalize';
 import { AcceptNdaButton } from '@/components/access/accept-nda-button';
 import { CheckboxAcceptButton } from '@/components/access/checkbox-accept-button';
 
 export const metadata = {
-  title: 'Vertraulicher Demo-Zugang – HookAI',
+  title: 'Vertraulicher Demo-Zugang – eID Demo Connect',
 };
 
 type AccessPageProps = {
@@ -49,6 +55,22 @@ export default async function AccessPage({ params }: AccessPageProps) {
     redirect('/access/denied?reason=expired');
   }
 
+  const ndaBody = buildNdaFullContractText({
+    fullName: tokenRecord.full_name,
+    email: tokenRecord.email,
+    company: tokenRecord.company,
+  });
+  const ndaAnnex = buildNdaPersonalizationAnnex({
+    fullName: tokenRecord.full_name,
+    email: tokenRecord.email,
+    company: tokenRecord.company,
+  });
+  const orgLabel = describeAccessRecipientOrg({
+    email: tokenRecord.email,
+    company: tokenRecord.company,
+  });
+  const showGovernikusAddress = isGovernikusEmail(tokenRecord.email);
+
   return (
     <main className="min-h-screen bg-gray-50 px-4 sm:px-6 py-8 sm:py-12 text-neutral-950 pb-safe max-w-screen-xl mx-auto">
       <div className="mx-auto max-w-xl">
@@ -70,11 +92,22 @@ export default async function AccessPage({ params }: AccessPageProps) {
               Personalisierter Demo-Zugang
             </p>
             <div className="mt-2 space-y-1 text-sm text-neutral-700">
-              <p><span className="font-medium">Empfänger:</span> {tokenRecord.full_name}</p>
-              {tokenRecord.company ? (
-                <p><span className="font-medium">Firma:</span> {tokenRecord.company}</p>
+              <p>
+                <span className="font-medium">Organisation mit Demo-Zugriff (Empfangende Partei):</span>{' '}
+                {orgLabel}
+              </p>
+              <p>
+                <span className="font-medium">Ansprechpartner mit Zugriff:</span> {tokenRecord.full_name}
+              </p>
+              <p>
+                <span className="font-medium">E-Mail:</span> {tokenRecord.email}
+              </p>
+              {showGovernikusAddress ? (
+                <p className="mt-2 text-xs leading-relaxed text-neutral-600 border-t border-neutral-200 pt-2">
+                  Firmensitz der Empfangenden Partei im Vertrag: Governikus GmbH & Co. KG, Hochschulring 4, 28359 Bremen
+                  (vollständiger Block im Vertragstext und in der Ergänzung).
+                </p>
               ) : null}
-              <p><span className="font-medium">E-Mail:</span> {tokenRecord.email}</p>
             </div>
           </div>
         </div>
@@ -92,30 +125,46 @@ export default async function AccessPage({ params }: AccessPageProps) {
           </section>
 
           <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="mt-2 text-sm text-neutral-700">
+              <strong>Name und E-Mail</strong> aus Ihrer Freischaltung stehen unten im Abschnitt{' '}
+              <strong>„Ergänzung“</strong> – dieser Teil gehört mit zur Vereinbarung. DocuSign und das unterzeichnete PDF
+              enthalten dieselbe Ergänzung.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-neutral-900">Vollständige Vertraulichkeitsvereinbarung</h2>
               <div className="flex flex-wrap gap-2">
                 <a
                   href="/legal/demo-nda"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+                  className="rounded-lg border-2 border-[#0066CC] bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-blue-50 transition-colors"
                 >
-                  NDA als PDF herunterladen
+                  NDA-Info (Web, ohne Personalisierung)
                 </a>
                 <a
                   href="/legal/demo-nda?print=1"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+                  className="rounded-lg border-2 border-[#0066CC] bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-blue-50 transition-colors"
                 >
                   Druckversion öffnen
                 </a>
+                <a
+                  href="/api/legal/nda-pdf"
+                  download
+                  className="rounded-lg border-2 border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+                >
+                  PDF nur Vertragstext (ohne Ergänzung)
+                </a>
               </div>
             </div>
-            <div className="mt-4 max-h-[min(50vh,28rem)] overflow-y-auto rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:p-5">
+            <div
+              className="mt-4 max-h-[min(50vh,28rem)] overflow-y-auto rounded-2xl border-2 border-neutral-200 bg-neutral-50 p-4 sm:p-5 nda-scroll-area"
+              style={{ borderColor: 'rgba(0, 102, 204, 0.3)' }}
+            >
               <pre className="whitespace-pre-wrap text-sm leading-6 text-neutral-700 font-sans">
-                {ndaConfig.fullText}
+                {ndaBody}
+                {ndaAnnex}
               </pre>
             </div>
             <p className="mt-4 text-xs text-neutral-500 border-t border-neutral-100 pt-4">

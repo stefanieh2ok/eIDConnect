@@ -1,5 +1,10 @@
 import { createPrivateKey } from 'crypto';
 import { buildNdaPdfBuffer } from '@/lib/nda-pdf';
+import {
+  buildNdaFullContractText,
+  buildNdaPersonalizationAnnex,
+  isGovernikusEmail,
+} from '@/lib/nda-personalize';
 
 const DOCUMENT_ID = '1';
 const SIGNER_CLIENT_ID = 'nda-signer-1';
@@ -117,6 +122,7 @@ async function getAccessToken(): Promise<string> {
 export type SendNdaEnvelopeOptions = {
   signerEmail: string;
   signerName: string;
+  company?: string | null;
   /** Basis-URL der App (z. B. https://e-id-connect-lr65.vercel.app oder http://localhost:3002) */
   baseUrl: string;
   /** Access-Token (roh), wird in der Return-URL mitgeschickt */
@@ -131,10 +137,31 @@ export async function sendNdaEnvelopeAndGetSigningUrl(
   options: SendNdaEnvelopeOptions
 ): Promise<{ envelopeId: string; signingUrl: string }> {
   const docusign = getDocusign();
-  const { signerEmail, signerName, baseUrl, token } = options;
+  const { signerEmail, signerName, company, baseUrl, token } = options;
   const { accountId, basePath } = getConfig();
 
-  const result = await buildNdaPdfBuffer({ withSignatureBlock: true });
+  const annex = buildNdaPersonalizationAnnex({
+    fullName: signerName,
+    email: signerEmail,
+    company: company ?? null,
+  });
+  const contractBody = buildNdaFullContractText({
+    fullName: signerName,
+    email: signerEmail,
+    company: company ?? null,
+  });
+  const gov = isGovernikusEmail(signerEmail);
+  const result = await buildNdaPdfBuffer({
+    withSignatureBlock: true,
+    appendPlainText: annex,
+    contractBody,
+    ...(gov
+      ? {}
+      : {
+          signatureLabelReceiving: `${signerName} (Empfangende Partei)`,
+          signatureHintReceiving: '',
+        }),
+  });
   const documentBase64 = result.buffer.toString('base64');
 
   const document = docusign.Document.constructFromObject({

@@ -1,9 +1,38 @@
 'use client';
 
 import React, { useState } from 'react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { VOTING_DATA } from '@/data/constants';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { HESSEN_CALENDAR_LOCATION_IDS, HESSEN_KREIS_MENU_LABELS } from '@/data/hessenKreis';
+import { BW_CALENDAR_LOCATION_IDS, BW_KREIS_MENU_LABELS } from '@/data/badenWuerttembergKreis';
+
+function buildHessenCalendarLocationTypes(): Record<string, string> {
+  const o: Record<string, string> = { hessen: 'saarland' };
+  for (const id of Object.keys(HESSEN_KREIS_MENU_LABELS)) {
+    o[id] = 'kreis';
+  }
+  for (const id of HESSEN_CALENDAR_LOCATION_IDS) {
+    if (id === 'hessen' || id.startsWith('he_')) continue;
+    o[id] = 'kommune';
+  }
+  return o;
+}
+
+function buildBadenWuerttembergCalendarLocationTypes(): Record<string, string> {
+  const o: Record<string, string> = { 'baden-wuerttemberg': 'saarland' };
+  for (const id of Object.keys(BW_KREIS_MENU_LABELS)) {
+    o[id] = 'kreis';
+  }
+  for (const id of BW_CALENDAR_LOCATION_IDS) {
+    if (id === 'baden-wuerttemberg' || id.startsWith('bw_')) continue;
+    o[id] = 'kommune';
+  }
+  return o;
+}
+
+const HESSEN_CAL_TYPES = buildHessenCalendarLocationTypes();
+const BW_CAL_TYPES = buildBadenWuerttembergCalendarLocationTypes();
 
 interface MenuItem { id: string; name: string; level: string }
 
@@ -20,6 +49,8 @@ interface CalendarSectionProps {
   priorities?: Record<string, number>;
   /** Nur Ebenen anzeigen, die der Nutzer hat (Bund, Land, Kreis, Kommune) */
   menuItems?: MenuItem[];
+  /** Callback bei Klick auf Kalender-Eintrag: wechselt zu Abstimmen-Tab und zeigt die Karte */
+  onEventClick?: (event: { location: string; cardId: string }) => void;
 }
 
 const MONTHS = [
@@ -57,15 +88,41 @@ const LEGEND_CONFIG: Record<string, { label: string; points: string; bg: string 
 };
 const LEVEL_ORDER = ['bund', 'land', 'kreis', 'kommune'];
 
-const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotingData, currentLocation: propLocation, priorities, menuItems }) => {
+function getEventMarkerClasses(type: string) {
+  if (type === 'bundesweit' || type === 'bund') {
+    return {
+      cell: 'bg-slate-500 text-white font-bold hover:bg-slate-600 ring-2 ring-slate-300/70',
+      dot: 'bg-white border border-slate-200',
+    };
+  }
+  if (type === 'saarland' || type === 'land') {
+    return {
+      cell: 'bg-blue-900 text-white font-bold hover:bg-blue-800 ring-2 ring-blue-300/70',
+      dot: 'bg-white border border-blue-200',
+    };
+  }
+  if (type === 'saarpfalz' || type === 'kreis') {
+    return {
+      cell: 'bg-blue-500 text-white font-bold hover:bg-blue-600 ring-2 ring-blue-200/80',
+      dot: 'bg-white border border-blue-100',
+    };
+  }
+  return {
+    cell: 'bg-blue-400 text-white font-bold hover:bg-blue-500 ring-2 ring-sky-200/80',
+    dot: 'bg-white border border-sky-100',
+  };
+}
+
+const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotingData, currentLocation: propLocation, priorities, menuItems, onEventClick }) => {
   const legendLevels = React.useMemo(() => {
     const levels = new Set((menuItems || []).map(m => m.level));
     return LEVEL_ORDER.filter(l => levels.has(l)).map(level => ({ level, ...LEGEND_CONFIG[level] }));
   }, [menuItems]);
   const showAllLegend = legendLevels.length === 0;
   const { state, dispatch } = useApp();
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(9); // Start bei Oktober (Index 9)
-  const [currentYear, setCurrentYear] = useState(2025);
+  const now = new Date();
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(now.getMonth());
+  const [currentYear, setCurrentYear] = useState(now.getFullYear());
 
   const currentMonth = MONTHS[currentMonthIndex];
   
@@ -73,13 +130,25 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
   const calendarDataFromVoting = React.useMemo(() => {
     const data: Record<number, Record<string, Record<number, CalendarEvent>>> = {};
     const voting = propVotingData || VOTING_DATA;
-    const locationToType: Record<string, 'bundesweit' | 'saarland' | 'saarpfalz' | 'kirkel'> = {
-      deutschland: 'bundesweit',
-      saarland: 'saarland',
-      saarpfalz: 'saarpfalz',
-      kirkel: 'kirkel'
+    const locationToType: Record<string, string> = {
+      deutschland: 'bundesweit', saarland: 'saarland', saarpfalz: 'saarpfalz', kirkel: 'kirkel',
+      hessen: 'saarland', 'rheinland-pfalz': 'saarland', 'baden-wuerttemberg': 'saarland',
+      neunkirchen: 'kreis', merzig_wadern: 'kreis', saarlouis: 'kreis', st_wendel: 'kreis', rv_saarbruecken: 'kreis',
+      homburg: 'kommune', saarbruecken: 'kommune', voelklingen: 'kommune',
+      mannheim: 'kommune', heidelberg: 'kommune', weinheim: 'kommune', viernheim: 'kommune',
+      neustadt: 'kommune', bremen: 'kommune', berlin: 'kommune', frankfurt: 'kommune',
+      kommune: 'kommune',
+      ...HESSEN_CAL_TYPES,
+      ...BW_CAL_TYPES,
     };
-    const locations = ['deutschland', 'saarland', 'saarpfalz', 'kirkel'] as const;
+    const locations = [
+      'deutschland', 'saarland', 'hessen', 'rheinland-pfalz', 'baden-wuerttemberg',
+      'saarpfalz', 'neunkirchen', 'merzig_wadern', 'saarlouis', 'st_wendel', 'rv_saarbruecken',
+      'kirkel', 'homburg', 'saarbruecken', 'voelklingen', 'mannheim', 'heidelberg', 'weinheim', 'viernheim', 'neustadt',
+      'bremen', 'berlin', 'frankfurt', 'kommune',
+      ...HESSEN_CALENDAR_LOCATION_IDS,
+      ...BW_CALENDAR_LOCATION_IDS,
+    ];
     for (const loc of locations) {
       const locData = voting[loc];
       const list = locData && 'items' in locData && Array.isArray(locData.items) ? locData.items : (locData && 'cards' in locData && Array.isArray(locData.cards) ? locData.cards : null);
@@ -116,12 +185,28 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
   const allEventsThisMonth = React.useMemo(() => {
     const out: Array<{ day: number; event: CalendarEvent; card: any }> = [];
     const voting = propVotingData || VOTING_DATA;
-    const locationToType: Record<string, 'bundesweit' | 'saarland' | 'saarpfalz' | 'kirkel'> = {
-      deutschland: 'bundesweit', saarland: 'saarland', saarpfalz: 'saarpfalz', kirkel: 'kirkel'
+    const locationToType: Record<string, string> = {
+      deutschland: 'bundesweit', saarland: 'saarland', saarpfalz: 'saarpfalz', kirkel: 'kirkel',
+      hessen: 'saarland', 'rheinland-pfalz': 'saarland', 'baden-wuerttemberg': 'saarland',
+      neunkirchen: 'kreis', merzig_wadern: 'kreis', saarlouis: 'kreis', st_wendel: 'kreis', rv_saarbruecken: 'kreis',
+      homburg: 'kommune', saarbruecken: 'kommune', voelklingen: 'kommune',
+      mannheim: 'kommune', heidelberg: 'kommune', weinheim: 'kommune', viernheim: 'kommune',
+      neustadt: 'kommune', bremen: 'kommune', berlin: 'kommune', frankfurt: 'kommune',
+      kommune: 'kommune',
+      ...HESSEN_CAL_TYPES,
+      ...BW_CAL_TYPES,
     };
     const monthKey = currentMonth.key;
     const monthNum = currentMonthIndex + 1;
-    (['deutschland', 'saarland', 'saarpfalz', 'kirkel'] as const).forEach(loc => {
+    const locs = [
+      'deutschland', 'saarland', 'hessen', 'rheinland-pfalz', 'baden-wuerttemberg',
+      'saarpfalz', 'neunkirchen', 'merzig_wadern', 'saarlouis', 'st_wendel', 'rv_saarbruecken',
+      'kirkel', 'homburg', 'saarbruecken', 'voelklingen', 'mannheim', 'heidelberg', 'weinheim', 'viernheim', 'neustadt',
+      'bremen', 'berlin', 'frankfurt', 'kommune',
+      ...HESSEN_CALENDAR_LOCATION_IDS,
+      ...BW_CALENDAR_LOCATION_IDS,
+    ];
+    locs.forEach(loc => {
       const locData = voting[loc];
       const list = locData && 'items' in locData && Array.isArray(locData.items) ? locData.items : (locData && 'cards' in locData && Array.isArray(locData.cards) ? locData.cards : null);
       if (!list) return;
@@ -150,21 +235,30 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
   
   // Location-Mapping
   const locationMap: Record<string, string> = {
-    'deutschland': 'deutschland',
-    'bundesweit': 'deutschland',
-    'bund': 'deutschland',
-    'saarland': 'saarland',
-    'land': 'saarland',
+    'deutschland': 'deutschland', 'bundesweit': 'deutschland', 'bund': 'deutschland',
+    'saarland': 'saarland', 'land': 'saarland', 'hessen': 'hessen', 'rheinland-pfalz': 'rheinland-pfalz', 'baden-wuerttemberg': 'baden-wuerttemberg',
     'saarpfalz': 'saarpfalz',
+    'neunkirchen': 'neunkirchen',
+    'merzig_wadern': 'merzig_wadern',
+    'saarlouis': 'saarlouis',
+    'st_wendel': 'st_wendel',
+    'rv_saarbruecken': 'rv_saarbruecken',
+    'kirkel': 'kirkel', 'homburg': 'homburg', 'saarbruecken': 'saarbruecken', 'voelklingen': 'voelklingen',
+    'mannheim': 'mannheim', 'heidelberg': 'heidelberg', 'weinheim': 'weinheim',
+    'viernheim': 'viernheim', 'neustadt': 'neustadt', 'bremen': 'bremen', 'berlin': 'berlin', 'frankfurt': 'frankfurt',
+    'kommune': 'kommune',
     'kreis': 'saarpfalz',
-    'kirkel': 'kirkel',
-    'kommune': 'kirkel'
+    ...Object.fromEntries(HESSEN_CALENDAR_LOCATION_IDS.map((id) => [id, id])),
+    ...Object.fromEntries(BW_CALENDAR_LOCATION_IDS.map((id) => [id, id])),
   };
   
   const currentLocationKey = propLocation || state.activeLocation || 'deutschland';
   const mappedLocation = locationMap[currentLocationKey] || currentLocationKey;
 
   const handleEventClick = (event: CalendarEvent) => {
+    if (onEventClick && event.cardId) {
+      onEventClick({ location: event.location, cardId: event.cardId });
+    }
     dispatch({ type: 'SET_ACTIVE_LOCATION', payload: event.location as any });
     dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'live' });
     const locationKey = locationMap[event.location] || event.location;
@@ -213,22 +307,17 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
         <div className="flex items-center gap-3">
           <h2 className="text-2xl font-bold text-gray-900">{currentMonth.name} {currentYear}</h2>
           <div className="flex gap-1">
-            <button
-              onClick={() => setCurrentYear(2025)}
-              className={`px-3 py-1 rounded-lg text-sm font-semibold transition-colors ${
-                currentYear === 2025 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              2025
-            </button>
-            <button
-              onClick={() => setCurrentYear(2026)}
-              className={`px-3 py-1 rounded-lg text-sm font-semibold transition-colors ${
-                currentYear === 2026 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              2026
-            </button>
+            {[now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1].map(y => (
+              <button
+                key={y}
+                onClick={() => setCurrentYear(y)}
+                className={`px-3 py-1 rounded-lg text-sm font-semibold transition-colors ${
+                  currentYear === y ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {y}
+              </button>
+            ))}
           </div>
         </div>
         <button
@@ -250,7 +339,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
       <div className="bg-white rounded-2xl p-4 shadow-sm">
         <div className="grid grid-cols-7 gap-2 mb-3">
           {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(day => (
-            <div key={day} className="text-center text-xs font-semibold text-gray-600 pb-2">
+            <div key={day} className="text-center text-[10px] font-semibold text-gray-600 pb-2">
               {day}
             </div>
           ))}
@@ -267,17 +356,15 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
                 onClick={() => event && handleCalendarClick(day)}
                 className={`aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-all ${
                   event
-                    ? event.type === 'bundesweit'
-                      ? 'bg-slate-500 text-white font-bold hover:bg-slate-600 cursor-pointer'
-                      : event.type === 'saarland'
-                      ? 'bg-blue-900 text-white font-bold hover:bg-blue-800 cursor-pointer'
-                      : 'bg-blue-400 text-white font-bold hover:bg-blue-500 cursor-pointer'
+                    ? `${getEventMarkerClasses(event.type).cell} cursor-pointer`
                     : 'bg-gray-50 text-gray-700'
                 }`}
                 aria-label={event ? `${event.title} am ${day}. ${currentMonth.name}` : `Tag ${day}`}
               >
                 <div>{day}</div>
-                {event && <div className="text-xs mt-0.5">🗳️</div>}
+                {event ? (
+                  <div className={`mt-1 h-2.5 w-2.5 rounded-full ${getEventMarkerClasses(event.type).dot}`} />
+                ) : null}
               </button>
             );
           })}
@@ -285,29 +372,29 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
       </div>
 
       <div className="mt-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-4">Legende</h3>
-        <div className="space-y-3">
+        <h3 className="text-base font-bold text-gray-900 mb-3">Legende</h3>
+        <div className="space-y-2">
           {showAllLegend
             ? LEVEL_ORDER.map(level => {
                 const c = LEGEND_CONFIG[level];
                 return (
-                  <div key={level} className="flex items-center gap-3">
-                    <div className={`w-8 h-8 ${c.bg} rounded`}></div>
-                    <span className="text-lg font-semibold">{c.label} • {c.points}</span>
+                  <div key={level} className="flex items-center gap-2">
+                    <div className={`w-6 h-6 ${c.bg} rounded flex-shrink-0`}></div>
+                    <span className="text-sm font-medium">{c.label} • {c.points}</span>
                   </div>
                 );
               })
             : legendLevels.map(({ level, label, points, bg }) => (
-                <div key={level} className="flex items-center gap-3">
-                  <div className={`w-8 h-8 ${bg} rounded`}></div>
-                  <span className="text-lg font-semibold">{label} • {points}</span>
+                <div key={level} className="flex items-center gap-2">
+                  <div className={`w-6 h-6 ${bg} rounded flex-shrink-0`}></div>
+                  <span className="text-sm font-medium">{label} • {points}</span>
                 </div>
               ))}
         </div>
 
         <div className="mt-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-2 mt-6">Abstimmungen im {currentMonth.name} {currentYear}</h3>
-          <p className="text-xs text-gray-600 mb-4">Nur Einträge aus den Stichtagen der App (Bund, Land, Kreis, Kommune). Einträge mit <span className="inline-block px-1.5 py-0.5 rounded border-2 border-emerald-500 bg-emerald-50 text-emerald-800 font-medium">Rahmen</span> wurden basierend auf Ihrem Politik-Barometer priorisiert.</p>
+          <h3 className="text-base font-bold text-gray-900 mb-2 mt-4">Abstimmungen im {currentMonth.name} {currentYear}</h3>
+          <p className="text-[10px] text-gray-600 mb-4">Nur Einträge aus den Stichtagen der App (Bund, Land, Kreis, Kommune). Einträge mit <span className="inline-block px-1.5 py-0.5 rounded border-2 border-emerald-500 bg-emerald-50 text-emerald-800 font-medium">Rahmen</span> wurden basierend auf Ihrem Politik-Barometer priorisiert.</p>
           {allEventsThisMonth.length > 0 ? (
             <div className="space-y-2">
               {allEventsThisMonth.map(({ day, event, card }, idx) => {
@@ -323,20 +410,20 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
                   <button
                     key={`${event.cardId}-${day}-${idx}`}
                     onClick={() => handleEventClick(event)}
-                    className={`w-full rounded-xl p-4 border-l-4 text-left hover:shadow-md transition-all ${typeInfo.borderColor} ${
+                    className={`w-full rounded-lg p-3 border-l-4 text-left hover:shadow-md transition-all ${typeInfo.borderColor} ${
                       isPriority ? 'bg-emerald-50 border-2 border-emerald-500 ring-2 ring-emerald-300 shadow-sm' : 'bg-white border-r border-t border-b border-gray-100'
                     }`}
                   >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <span className={`text-sm font-bold px-3 py-1 rounded ${typeInfo.bgColor} ${typeInfo.textColor}`}>{typeInfo.label}</span>
-                          {isPriority && <span className="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-200 text-emerald-900">Basierend auf Ihrem Politik-Barometer priorisiert</span>}
-                          <span className="text-sm text-gray-600">{day}. {currentMonth.name} {currentYear}</span>
+                        <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${typeInfo.bgColor} ${typeInfo.textColor}`}>{typeInfo.label}</span>
+                          {isPriority && <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900">Priorisiert</span>}
+                          <span className="text-xs text-gray-600">{day}. {currentMonth.name} {currentYear}</span>
                         </div>
-                        <div className="text-xl font-bold mb-2">{event.title}</div>
+                        <div className="text-sm font-bold mb-1">{event.title}</div>
                         {card && (
-                          <div className="text-base text-gray-700 space-y-1 mt-2">
+                          <div className="text-xs text-gray-700 space-y-0.5 mt-1">
                             {(card.description || card.desc) && <p className="line-clamp-2">{(card.description || card.desc)}</p>}
                             {card.deadline && (
                               <p className={isDeadlinePassed(card.deadline) ? 'text-gray-500 font-semibold' : 'text-gray-600 font-semibold'}>
@@ -356,7 +443,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
             </div>
           ) : (
             <div className="bg-gray-50 rounded-xl p-4 text-center">
-              <p className="text-sm text-gray-600">Keine Abstimmungen mit Stichtag in {currentMonth.name} {currentYear} (nur Daten aus Bund, Land, Kreis, Kommune).</p>
+              <p className="text-[11px] text-gray-600">Keine Abstimmungen mit Stichtag in {currentMonth.name} {currentYear} (nur Daten aus Bund, Land, Kreis, Kommune).</p>
             </div>
           )}
         </div>

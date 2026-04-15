@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
     const { envelopeId, signingUrl } = await sendNdaEnvelopeAndGetSigningUrl({
       signerEmail: tokenRecord.email,
       signerName: tokenRecord.full_name,
+      company: tokenRecord.company,
       baseUrl,
       token: body.token,
     });

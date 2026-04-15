@@ -6,7 +6,7 @@
 
 | Element | Aktuell | Empfohlen | Pixel | Begründung |
 |---------|---------|-----------|-------|------------|
-| App-Titel „eIDConnect“ | `text-4xl` (36px) | `text-5xl` | **48px** | Hauptbranding muss besonders groß sein |
+| App-Titel „eID Demo Connect“ | `text-4xl` (36px) | `text-5xl` | **48px** | Hauptbranding muss besonders groß sein |
 | Punkte/Stimmen Zahlen | `text-3xl` (30px) | `text-5xl` | **48px** | Wichtige Zahlen müssen sofort erkennbar sein |
 | Punkte/Stimmen Labels | `text-base` (16px) | `text-xl` | **20px** | Klare Zuordnung zu den Zahlen |
 

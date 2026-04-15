@@ -19,7 +19,7 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({ isOpen, onClo
   const [isProcessing, setIsProcessing] = useState(false);
   const { voiceState, startListening, stopListening, speak, stopSpeaking } = useClaraVoice();
   
-  const claraAI = new ClaraAI(state.preferences);
+  const claraAI = new ClaraAI(state.preferences, state.consentClaraPersonalization);
 
   useEffect(() => {
     if (isOpen && conversation.length === 0) {
@@ -91,6 +91,7 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({ isOpen, onClo
             <div>
               <h3 className="text-lg font-semibold" style={{ color: LAVENDER.text }}>Clara Voice</h3>
               <p className="text-sm text-gray-600">Sprachassistentin · KI-Agent (EU AI Act)</p>
+              <p className="text-xs text-gray-500 mt-1">Clara gibt keine Wahlempfehlung. Sie erklärt nur Relevanz und Argumente.</p>
             </div>
           </div>
           <button
@@ -196,10 +197,10 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({ isOpen, onClo
               Abstimmung erklären
             </button>
             <button
-              onClick={() => handleVoiceInput('Was ist deine Empfehlung?')}
+              onClick={() => handleVoiceInput('Erkläre mir die Relevanz dieser Abstimmung zu meinen Schwerpunkten')}
               className="flex-1 bg-green-100 text-green-700 py-2 px-3 rounded-lg text-xs font-semibold hover:bg-green-200 transition-colors"
             >
-              Empfehlung
+              Relevanz
             </button>
           </div>
         </div>

@@ -1,4 +1,4 @@
-# 🗳️ eIDConnect – Seriöse Demokratie ohne Gamification
+# 🗳️ eID Demo Connect – Seriöse Demokratie ohne Gamification
 
 ## ❌ **Was NICHT geht - Demokratie ist kein Spiel:**
 

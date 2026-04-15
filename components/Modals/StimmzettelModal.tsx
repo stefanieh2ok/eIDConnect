@@ -45,15 +45,30 @@ const StimmzettelModal: React.FC = () => {
 
   if (!state.showStimmzettel || !state.selectedWahl) return null;
 
-  // Bestimme Wahl-Level basierend auf selectedWahl
-  let level: 'bund' | 'land' | 'kommune' = 'bund';
-  
-  // Prüfe zuerst das level-Feld direkt
+  // Bestimme Wahl-Level (muss mit OriginalStimmzettel übereinstimmen)
+  let level: 'bund' | 'land' | 'kreis' | 'kommune' = 'bund';
+
   if (state.selectedWahl.level) {
-    level = state.selectedWahl.level;
-  } else if (state.selectedWahl.id?.includes('sl') || state.selectedWahl.id?.includes('land') || state.selectedWahl.wahlkreis?.includes('Saarland')) {
+    const lv = state.selectedWahl.level;
+    if (lv === 'bund' || lv === 'land' || lv === 'kreis' || lv === 'kommune') {
+      level = lv;
+    }
+  } else if (
+    state.selectedWahl.id?.includes('sl') ||
+    state.selectedWahl.id?.includes('land') ||
+    state.selectedWahl.wahlkreis?.includes('Saarland')
+  ) {
     level = 'land';
-  } else if (state.selectedWahl.id?.includes('kk') || state.selectedWahl.id?.includes('kirkel') || state.selectedWahl.wahlkreis?.includes('Kirkel')) {
+  } else if (
+    state.selectedWahl.id?.includes('kt-') ||
+    state.selectedWahl.name?.toLowerCase().includes('kreistag')
+  ) {
+    level = 'kreis';
+  } else if (
+    state.selectedWahl.id?.includes('kk') ||
+    state.selectedWahl.id?.includes('kirkel') ||
+    state.selectedWahl.wahlkreis?.includes('Kirkel')
+  ) {
     level = 'kommune';
   } else if (state.selectedWahl.id?.includes('btw') || state.selectedWahl.name?.includes('Bundestag')) {
     level = 'bund';
@@ -72,18 +87,19 @@ const StimmzettelModal: React.FC = () => {
             {/* iPhone Header – kompakt */}
             <div className="text-white px-4 py-3 flex-shrink-0 flex justify-between items-center" style={{background: 'linear-gradient(135deg, #0A2540 0%, #1E3A5F 100%)'}}>
               <button
+                type="button"
                 onClick={handleClose}
-                className="flex items-center gap-1.5 text-white min-w-0"
+                className="flex min-w-0 items-center gap-1.5 text-white"
               >
                 <X size={20} />
-                <span className="text-sm font-bold truncate">Zurück</span>
+                <span className="truncate text-sm font-bold">Zurück</span>
               </button>
               <h2 className="text-lg font-black truncate mx-2" style={{letterSpacing: '-0.02em'}}>Stimmzettel</h2>
               <div className="w-14 flex-shrink-0"></div>
             </div>
             
-            {/* Content Area */}
-            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden" style={{paddingBottom: '24px'}}>
+            {/* Content Area – Scrollbar DocuSign-blau für gute Sichtbarkeit */}
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden stimmzettel-scroll" style={{paddingBottom: '24px'}}>
               <div className="p-4 max-w-full">
                 {voteSuccess ? (
                   <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
@@ -119,11 +135,12 @@ const StimmzettelModal: React.FC = () => {
               {/* iPhone Header – kompakt */}
               <div className="text-white px-4 py-3 flex-shrink-0 flex justify-between items-center" style={{background: 'linear-gradient(135deg, #0A2540 0%, #1E3A5F 100%)'}}>
                 <button
+                  type="button"
                   onClick={() => setShowClaraChat(false)}
-                  className="flex items-center gap-1.5 text-white min-w-0"
+                  className="flex min-w-0 items-center gap-1.5 text-white"
                 >
                   <X size={20} />
-                  <span className="text-sm font-bold truncate">Zurück</span>
+                  <span className="truncate text-sm font-bold">Zurück</span>
                 </button>
                 <h2 className="text-lg font-black truncate mx-2" style={{letterSpacing: '-0.02em'}}>Clara Chat</h2>
                 <div className="w-14 flex-shrink-0"></div>

@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { PhoneStage } from '@/components/layout/PhoneStage';
 
 /**
- * Inhalt der Startseite (HookAI Zugang).
+ * Inhalt der Startseite (eIDConnect Zugang).
  * showSetupLink: nur true, wenn Admin-Cookie gesetzt (Cookie wird serverseitig geprüft).
  */
 
@@ -96,23 +97,24 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
   };
 
   return (
-    <main
-      className="min-h-screen min-h-[100dvh] flex flex-col items-center justify-center bg-gray-50 px-4 py-6 text-neutral-900"
-      style={{
-        paddingLeft: 'max(1rem, env(safe-area-inset-left))',
-        paddingRight: 'max(1rem, env(safe-area-inset-right))',
-        paddingTop: 'max(1.5rem, env(safe-area-inset-top))',
-        paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
-      }}
-    >
+    <PhoneStage>
+      <main
+        className="flex min-h-dvh w-full flex-col items-center justify-start overflow-y-auto overscroll-y-contain px-4 py-6 text-neutral-900"
+        style={{
+          paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+          paddingRight: 'max(1rem, env(safe-area-inset-right))',
+          paddingTop: 'max(1.5rem, env(safe-area-inset-top))',
+          paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
+        }}
+      >
       <div className="w-full max-w-[26rem] flex flex-col items-center gap-8">
         {/* Marke */}
         <div className="flex flex-col items-center gap-2">
           <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
-            HookAI
+            {process.env.NEXT_PUBLIC_APP_NAME || 'eIDConnect'}
           </h1>
           <p className="text-sm text-neutral-500 text-center">
-            Zugang
+            Demonstrationsumgebung
           </p>
         </div>
 
@@ -218,9 +220,6 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
           </button>
         </div>
 
-        <p className="text-xs text-neutral-500 text-center max-w-[20rem]">
-          Wenn Sie einen personalisierten Link per E-Mail erhalten haben, fügen Sie ihn oben ein oder öffnen Sie ihn direkt. Ohne Link können Sie weiter oben einen Zugang anfordern.
-        </p>
         {showSetupLink && (
           <p className="text-xs text-center">
             <a href="/setup" className="text-neutral-500 underline hover:text-neutral-700">
@@ -235,6 +234,7 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
           </a>
         </p>
       </div>
-    </main>
+      </main>
+    </PhoneStage>
   );
 }

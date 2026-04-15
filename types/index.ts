@@ -199,8 +199,30 @@ export interface LeaderboardItem {
   isUser?: boolean;
 }
 
-export type Location = 'bundesweit' | 'saarland' | 'kirkel';
-export type Section = 'live' | 'leaderboard' | 'wahlen' | 'news' | 'kalender';
+export type Location =
+  | 'bundesweit'
+  | 'saarland'
+  | 'saarpfalz'
+  | 'kirkel'
+  | 'deutschland'
+  | 'rheinland-pfalz'
+  | 'neustadt'
+  | 'hessen'
+  | 'baden-wuerttemberg';
+
+export type Section = 'live' | 'leaderboard' | 'wahlen' | 'news' | 'kalender' | 'melden';
 export type AbstimmungTab = 'aktuell' | 'ergebnisse';
 export type Anrede = 'sie' | 'du';
 export type VoteType = 'for' | 'against' | 'abstain';
+
+export type AdministrativeScope = 'bund' | 'land' | 'kreis' | 'kommune';
+
+export interface RegionResolution {
+  plz: string;
+  city: string;
+  bundLabel: string;
+  landLabel: string;
+  bundeslandSlug: string;
+  kreisLabel: string | null;
+  kommuneLabel: string | null;
+}

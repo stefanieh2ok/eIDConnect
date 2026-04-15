@@ -13,7 +13,7 @@
 ## 1:1 Cursor-Prompt (copy-paste)
 
 ```text
-# CURSOR PROMPT – eIDConnect: Mängelmelder MVP ergänzen
+# CURSOR PROMPT – eID Demo Connect: Mängelmelder MVP ergänzen
 
 ## ROLLE
 

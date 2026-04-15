@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isValidBasicAuth } from '@/lib/security/basic-auth';
 
 const DEFAULT_FROM =
-  process.env.SEND_ACCESS_EMAIL_FROM || 'HookAI Demo <onboarding@resend.dev>';
+  process.env.SEND_ACCESS_EMAIL_FROM || 'eIDConnect Demo <onboarding@resend.dev>';
 
 type Body = {
   to: string;
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     body: JSON.stringify({
       from: DEFAULT_FROM,
       to: [email],
-      subject: 'Dein personalisierter Demo-Zugang – HookAI',
+      subject: 'Dein personalisierter Demo-Zugang – eIDConnect',
       html: `
       <p>Hallo ${escapeHtml(name)},</p>
       <p>Du erhältst deinen personalisierten Zugang zur Demo:</p>

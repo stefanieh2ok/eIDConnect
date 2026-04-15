@@ -62,7 +62,7 @@ export const NDA_SIGNATURE_HINT_RECEIVING =
 export const NDA_RETURN_EMAIL_PRIMARY = 'stefanie.hook@hookai.eu';
 export const NDA_RETURN_EMAIL_SECONDARY = 'stefanie.h2ok@gmail.com';
 
-/** Vollständiger NDA-Volltext (Governikus / DeinDeutschland / Bürger App) */
+/** Vollständiger NDA-Volltext (Governikus / DeinDeutschland / eIDConnect) */
 export const NDA_FULL_TEXT = `GEHEIMHALTUNGSVEREINBARUNG / NDA
 für den Zugang zu einer vertraulichen Demo-Umgebung
 
@@ -92,7 +92,7 @@ Die vorliegende Vereinbarung wird zwischen der Offenlegenden Partei und der Empf
 
 2. Zweck der Offenlegung
 
-Die Offenlegende Partei gewährt der Empfangenden Partei Zugang zu einer vertraulichen Demo-, Test- oder Präsentationsumgebung einer digitalen Civic-Tech-/GovTech-Lösung mit dem Arbeitstitel „DeinDeutschland“ / „Bürger App“ sowie zu damit verbundenen Informationen, Unterlagen, Konzepten und technischen bzw. geschäftlichen Inhalten.
+Die Offenlegende Partei gewährt der Empfangenden Partei Zugang zu einer vertraulichen Demo-, Test- oder Präsentationsumgebung einer digitalen Civic-Tech-/GovTech-Lösung mit dem Arbeitstitel „DeinDeutschland“ / „eIDConnect“ sowie zu damit verbundenen Informationen, Unterlagen, Konzepten und technischen bzw. geschäftlichen Inhalten.
 
 Die Offenlegung erfolgt ausschließlich zum Zweck der Prüfung einer möglichen geschäftlichen, technischen, strategischen oder partnerschaftlichen Zusammenarbeit.
 
@@ -252,6 +252,16 @@ Im Übrigen gelten die gesetzlichen Gerichtsstandsregelungen.
 Änderungen und Ergänzungen dieser Vereinbarung bedürfen mindestens der Textform, soweit nicht gesetzlich eine strengere Form vorgeschrieben ist.
 
 Sollten einzelne Bestimmungen dieser Vereinbarung ganz oder teilweise unwirksam oder undurchführbar sein oder werden, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt. Anstelle der unwirksamen oder undurchführbaren Bestimmung gilt eine wirksame Regelung als vereinbart, die dem wirtschaftlichen Zweck der weggefallenen Regelung am nächsten kommt.`;
+
+/** Bei E-Mail mit dieser Domain wird die Firmenanschrift in der personalisierten NDA-Ergänzung angefügt. */
+export const GOVERNIKUS_EMAIL_SUFFIX = '@governikus.de';
+
+/** Canonical Firmenanschrift Governikus (Empfangende Partei), für NDA-Anhang/PDF. */
+export const GOVERNIKUS_COMPANY_ADDRESS_BLOCK = `Governikus GmbH & Co. KG
+z. Hd. der Geschäftsführung
+Herrn Dr. Stephan Klein und Herrn Hartje Bruns
+Hochschulring 4
+28359 Bremen`;
 
 export const ndaConfig = {
   version: 'v3.0.0',

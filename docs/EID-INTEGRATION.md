@@ -1,6 +1,6 @@
 # eID-Integration (Online-Ausweisfunktion)
 
-Damit „Mit eID anmelden“ in eIDConnect **echt** funktioniert, sind folgende Schritte nötig.
+Damit „Mit eID anmelden“ in eID Demo Connect **echt** funktioniert, sind folgende Schritte nötig.
 
 ---
 
@@ -48,7 +48,7 @@ Statt einen eigenen eID-Server zu betreiben, einen **eID-Service-Provider** nutz
 2. **Backend:**  
    - Callback/Webhook vom eID-Provider empfangen.  
    - Daten (z. B. Name, Geburtsdatum, optional Adresse) prüfen und speichern oder nur für die Session nutzen.  
-   - Session/Token für eIDConnect setzen (z. B. Cookie/JWT).
+   - Session/Token für eID Demo Connect setzen (z. B. Cookie/JWT).
 
 3. **Region:**  
    - Wenn der Ausweis eine Adresse liefert: wie bei „Nur ansehen“ **PLZ/Stadt** aus eID nutzen und bestehende Logik (Nominatim, PLZ → Bundesland, `getStateFromCity`) wiederverwenden.  
@@ -87,7 +87,7 @@ Die BSI-Testinfrastruktur erlaubt Entwicklung und Tests **ohne** sofortige Produ
    - [AusweisApp2](https://www.ausweisapp.bund.de/) installieren (Desktop/Mobile).  
    - Für Tests ohne echten Ausweis: **Developer-Mode** / Testinfrastruktur der AusweisApp nutzen (laut AusweisApp-Doku).
 
-### 4.3 Konkrete Schritte für eIDConnect
+### 4.3 Konkrete Schritte für eID Demo Connect
 
 | Schritt | Aktion |
 |--------|--------|
@@ -95,7 +95,7 @@ Die BSI-Testinfrastruktur erlaubt Entwicklung und Tests **ohne** sofortige Produ
 | 2 | Entscheiden: **eigenes Test-eID-Server-Backend** (z. B. mit [eID-Testbeds](https://github.com/eID-Testbeds)) oder **Test-Zugang bei einem eID-Service-Provider** anfragen |
 | 3 | Backend: Test-URL/Callback für eID-Flow bereitstellen; bei Nutzung eines Providers: Test-API/Redirect des Providers einbinden |
 | 4 | Frontend: „Mit eID anmelden“ auf Test-URL/Provider-Redirect zeigen (z. B. nur wenn `NEXT_PUBLIC_EID_TEST=true`) |
-| 5 | End-to-End testen: AusweisApp2 (Testmodus) → eID-Server/Provider → Callback → Session in eIDConnect setzen → Region auslesen oder abfragen |
+| 5 | End-to-End testen: AusweisApp2 (Testmodus) → eID-Server/Provider → Callback → Session in eID Demo Connect setzen → Region auslesen oder abfragen |
 
 ### 4.4 Kontakt BSI
 

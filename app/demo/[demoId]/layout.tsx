@@ -27,8 +27,8 @@ export default async function DemoLayout({
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-100 text-neutral-950">
-      <main className="flex-1 min-h-0">{children}</main>
+    <div className="min-h-[100dvh] flex flex-col bg-slate-200 text-neutral-950">
+      <main className="flex min-h-0 flex-1 flex-col">{children}</main>
     </div>
   );
 }

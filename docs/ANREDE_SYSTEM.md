@@ -1,4 +1,4 @@
-# 👋 eIDConnect – Anrede-System
+# 👋 eID Demo Connect – Anrede-System
 
 ## ✅ **Anrede-Auswahl implementiert:**
 
@@ -234,7 +234,7 @@ const Mehrsprachigkeit = {
 - **Kulturell** → Berücksichtigt deutsche Höflichkeit
 - **Konsistent** → Einheitliche Anrede in der gesamten App
 
-**eIDConnect respektiert jetzt die deutsche Höflichkeitskultur!** 👋
+**eID Demo Connect respektiert jetzt die deutsche Höflichkeitskultur!** 👋
 
 ---
 

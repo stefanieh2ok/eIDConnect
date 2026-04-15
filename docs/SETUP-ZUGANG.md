@@ -1,4 +1,4 @@
-# Demo-Zugang einrichten (HookAI)
+# Demo-Zugang einrichten (eID Demo Connect)
 
 Damit die Meldung „Demo-Zugang derzeit nicht verfügbar“ verschwindet und der Zugangslink funktioniert, diese Schritte in Reihenfolge durchführen.
 
@@ -91,4 +91,52 @@ Anschließend die Zugangsseite mit deinem Link erneut aufrufen.
 - [ ] `ADMIN_BASIC_USER` und `ADMIN_BASIC_PASS` in `.env.local` gesetzt
 - [ ] `npm run dev` neu gestartet
 
-Danach: Admin unter `/admin` öffnen → Tab „Access-Token (NDA)“ → Link erstellen → Link auf der Startseite (HookAI Zugang) einfügen → **Zugang öffnen**.
+Danach: Admin unter `/admin` öffnen → Tab „Access-Token (NDA)“ → Link erstellen → Link auf der Startseite (eID Demo Connect Zugang) einfügen → **Zugang öffnen**.
+
+---
+
+## DocuSign: Von Demo/Sandbox zur echten Produktion
+
+**Aktuell (Test für Governikus):** `DOCUSIGN_USE_DEMO=true` → DocuSign Sandbox (demo.docusign.net).
+
+**Für den Versand an echte Empfänger** wechseln Sie zur DocuSign-Produktion:
+
+### 1. DocuSign-Produktions-App anlegen
+
+1. Öffnen Sie [DocuSign Admin](https://admindemo.docusign.com) (Sandbox) bzw. [DocuSign Production Admin](https://admin.docusign.com).
+2. Für **Produktion**: Mit Ihrem **echten** DocuSign-Konto (nicht Sandbox) anmelden.
+3. **Apps and Keys** → **Add App and Integration Key**.
+4. Name vergeben (z. B. „eID Demo Connect NDA“), **RSA Keypair** generieren.
+5. **Integrations** → **Add URI** → Redirect URI eintragen:
+   - Produktion: `https://Ihre-Vercel-URL.vercel.app/api/docusign/return` (exakt die Live-URL Ihrer App).
+
+### 2. Produktions-Credentials in die Umgebung
+
+In **Vercel** → Projekt → **Settings** → **Environment Variables** (oder lokal in `.env.local`):
+
+| Variable | Test (Governikus) | Produktion |
+|----------|-------------------|------------|
+| `DOCUSIGN_USE_DEMO` | `true` | **entfernen** oder `false` |
+| `DOCUSIGN_INTEGRATION_KEY` | Sandbox Integration Key | **Produktion** Integration Key |
+| `DOCUSIGN_USER_ID` | Sandbox User ID (GUID) | **Produktion** User ID |
+| `DOCUSIGN_ACCOUNT_ID` | Sandbox Account ID | **Produktion** Account ID |
+| `DOCUSIGN_PRIVATE_KEY` | Sandbox RSA Key | **Produktion** RSA Private Key |
+
+### 3. Einmalige JWT-Zustimmung in Produktion
+
+Nach dem Wechsel muss die JWT-Einwilligung **einmal** im **Produktions**-Konto erfolgen:
+
+1. In der App (oder per URL) die **Consent-URL** aufrufen. (Tritt auf, wenn DocuSign einen Fehler meldet – oft mit Link zur Consent-URL.)
+2. Oder manuell: `https://account.docusign.com` (ohne `-d`) → mit **Produktions**-Konto anmelden → bei Aufforderung zustimmen.
+
+### 4. Redeploy
+
+In Vercel einen **Redeploy** auslösen, damit die neuen Umgebungsvariablen geladen werden.
+
+### Kurz-Checkliste Produktion
+
+- [ ] `DOCUSIGN_USE_DEMO` auf `false` gesetzt oder gelöscht
+- [ ] Alle DocuSign-Variablen mit **Produktions**-Werten
+- [ ] Redirect URI in DocuSign Production: `https://[Ihre-App].vercel.app/api/docusign/return`
+- [ ] JWT-Consent im Produktions-Konto einmal ausgeführt
+- [ ] Vercel Redeploy

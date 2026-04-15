@@ -1,4 +1,4 @@
-# eIDConnect – Swipe. Vote. Change.
+# eID Demo Connect – Swipe. Vote. Change.
 
 Moderne Bürgerbeteiligungs-App mit KI-Unterstützung, optimiert für Next.js 14.
 
@@ -52,7 +52,7 @@ npm run dev
 
 **Server beenden:** Im Terminal **Strg+C** drücken (nicht nur Fenster schließen). Sonst bleibt der Prozess aktiv und beim nächsten Start erscheint „address already in use“. Dann in PowerShell: `netstat -ano | findstr :3002` → letzte Spalte ist die PID → `taskkill /PID <PID> /F`.
 
-**Tipp:** Den Projektordner am besten **eIDConnect** oder **eidconnect** nennen (ohne Umlaute). So vermeidest du Pfadprobleme in einigen Terminals und Tools (z. B. bei `cd` oder CI).
+**Tipp:** Den Projektordner am besten **eid-demo-connect** nennen (ohne Umlaute). So vermeidest du Pfadprobleme in einigen Terminals und Tools (z. B. bei `cd` oder CI).
 
 ## API-Schlüssel konfigurieren
 
@@ -81,7 +81,7 @@ Detaillierte Anweisungen finden Sie in [docs/ENVIRONMENT_SETUP.md](docs/ENVIRONM
 │   ├── layout.tsx         # Root Layout
 │   └── page.tsx           # Home Page
 ├── components/            # React Komponenten
-│   ├── BuergerApp.tsx     # Haupt-App (eIDConnect)
+│   ├── BuergerApp.tsx      # Haupt-App
 │   ├── Calendar/          # Kalender Komponenten
 │   ├── Elections/         # Wahl Komponenten
 │   ├── Footer/            # Footer Komponenten

@@ -60,7 +60,7 @@ export function CheckboxAcceptButton({ token }: { token: string }) {
         type="button"
         onClick={handleAccept}
         disabled={!accepted || loading}
-        className="w-full rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+        className="w-full rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40 border-2 border-[#0066CC]"
       >
         {loading ? 'Wird vorbereitet …' : 'Zustimmen und Demo öffnen'}
       </button>

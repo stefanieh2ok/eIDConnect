@@ -56,7 +56,7 @@ Wenn beides so eintritt, ist die Redirect-URI korrekt und der Ablauf in Ordnung.
 | **Vercel:** `RESEND_API_KEY` gesetzt | Vercel → Settings → Environment Variables | ☐ |
 | **Vercel:** Nach Änderungen **Redeploy** | Deployments → Redeploy | ☐ |
 
-**Tab-Titel:** Im Code steht jetzt nur noch **„eIDConnect“** (kein langer Text mehr im Tab).
+**Tab-Titel:** Im Code steht jetzt nur noch **„eID Demo Connect“** (kein langer Text mehr im Tab).
 
 ---
 

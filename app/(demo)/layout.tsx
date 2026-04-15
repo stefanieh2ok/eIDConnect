@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 
 export const metadata: Metadata = {
   title: 'Demo – eIDConnect',
@@ -6,10 +7,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function DemoLayout({ children }: { children: React.ReactNode }) {
+export default function DemoLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-1">{children}</main>
+    <div className="flex min-h-screen flex-col bg-slate-200">
+      <main className="flex min-h-0 flex-1 flex-col">{children}</main>
     </div>
   );
 }

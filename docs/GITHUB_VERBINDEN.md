@@ -1,11 +1,11 @@
-# eIDConnect mit GitHub verbinden
+# eID Demo Connect mit GitHub verbinden
 
 Das Projekt ist lokal bereits mit Git eingerichtet (erster Commit ist erstellt). Du musst nur noch das Repo auf GitHub anlegen und den Code hochladen.
 
 ## Schritt 1: Neues Repository auf GitHub erstellen
 
 1. Gehe zu **https://github.com/new**
-2. **Repository name:** z. B. `eidconnect` (für die eIDConnect-App)
+2. **Repository name:** z. B. `eidconnect` (für die eID Demo Connect-App)
 3. **Public** auswählen
 4. **NICHT** "Add a README" oder ".gitignore" ankreuzen – das Repo soll **leer** bleiben
 5. Auf **"Create repository"** klicken
@@ -44,4 +44,4 @@ Als Passwort verwendest du ein **Personal Access Token** (GitHub akzeptiert seit
 2. Das Repo **eidconnect** (oder wie du es genannt hast) sollte jetzt in der Liste erscheinen
 3. **Import** klicken → **Deploy**
 
-Fertig. Die eIDConnect-App hat dann eine URL wie `https://eidconnect-xxx.vercel.app`.
+Fertig. Die eID Demo Connect-App hat dann eine URL wie `https://eidconnect-xxx.vercel.app`.

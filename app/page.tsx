@@ -3,7 +3,7 @@ import { ADMIN_DEMO_COOKIE, verifyAdminDemoCookie } from '@/lib/security/admin-d
 import HomeContent from './HomeContent';
 
 /**
- * Startseite: HookAI Zugang (Link einfügen / Zugang anfordern).
+ * Startseite: eIDConnect Zugang (Link einfügen / Zugang anfordern).
  * Der Setup-Link im Footer wird nur angezeigt, wenn ein gültiger Admin-Demo-Cookie
  * gesetzt ist (z. B. nach /api/admin/enter-demo). Normale Besucher sehen ihn nicht.
  */

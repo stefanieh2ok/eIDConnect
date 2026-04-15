@@ -5,7 +5,7 @@ import { ndaConfig } from '@/config/nda';
 export const metadata: Metadata = {
   title: 'Vertraulichkeitsvereinbarung (NDA) – Demo-Zugang',
   description:
-    'Geheimhaltungsvereinbarung für den Zugang zu einer vertraulichen Demo-Umgebung (DeinDeutschland / Bürger App).',
+    'Geheimhaltungsvereinbarung für den Zugang zu einer vertraulichen Demo-Umgebung (eIDConnect / DeinDeutschland).',
 };
 
 type Props = { searchParams: Promise<{ print?: string }> };
@@ -29,7 +29,12 @@ export default async function DemoNdaPage({ searchParams }: Props) {
           <div>
             <h1 className="text-base font-bold text-gray-900">Vertraulichkeitsvereinbarung (NDA)</h1>
             <p className="text-xs text-gray-500 mt-0.5">
-              für den Zugang zu einer vertraulichen Demo-Umgebung – DeinDeutschland / Bürger App
+              für den Zugang zu einer vertraulichen Demo-Umgebung – eIDConnect (DeinDeutschland)
+            </p>
+            <p className="mt-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5 max-w-xl">
+              Ohne personalisierten Zugangslink: nur der <strong>statische Vertragstext</strong>. Name, E-Mail und ggf.
+              Firmenanschrift werden auf Ihrer persönlichen Seite <strong>/access/…</strong> bzw. in DocuSign automatisch
+              ergänzt.
             </p>
           </div>
           {isPrintView ? (
@@ -44,12 +49,18 @@ export default async function DemoNdaPage({ searchParams }: Props) {
               <Script src="/print-nda.js" strategy="afterInteractive" />
             </>
           ) : (
-            <Link
-              href="/"
-              className="text-sm text-blue-600 hover:underline"
-            >
-              ← Zur Startseite
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href="/api/legal/nda-pdf"
+                download="eIDConnect-Vertraulichkeitsvereinbarung-Demo.pdf"
+                className="rounded-lg bg-[#0066CC] px-3 py-2 text-sm font-medium text-white hover:opacity-90"
+              >
+                PDF herunterladen
+              </a>
+              <Link href="/" className="text-sm text-blue-600 hover:underline">
+                ← Zur Startseite
+              </Link>
+            </div>
           )}
         </div>
       </header>

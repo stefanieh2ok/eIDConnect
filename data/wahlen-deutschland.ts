@@ -7,6 +7,7 @@
  * Keine KI-Empfehlungen, keine Meinungen, keine Bewertungen.
  */
 import { Wahl } from '@/types';
+import { KREISTAGE_HESSEN_BW } from './wahlen-kreistage-he-bw';
 
 // ─── BUND ─────────────────────────────────────────────────────────────────────
 
@@ -614,25 +615,12 @@ const LTW_NRW: Wahl = {
 };
 
 const LTW_RLP: Wahl = {
-  id: 'ltw-rp-2021',
-  name: 'Landtagswahl Rheinland-Pfalz 2021',
-  datum: '14.03.2021',
+  id: 'ltw-rp-2026',
+  name: 'Landtagswahl Rheinland-Pfalz 2026',
+  datum: '22.03.2026',
   wahlkreis: 'Rheinland-Pfalz',
   level: 'land',
   location: 'rheinland-pfalz',
-  ergebnis: {
-    wahlbeteiligung: 64.4,
-    parteien: [
-      { partei: 'SPD', prozent: 35.7, sitze: 39 },
-      { partei: 'CDU', prozent: 27.7, sitze: 31 },
-      { partei: 'GRÜNE', prozent: 9.3, sitze: 10 },
-      { partei: 'AfD', prozent: 8.3, sitze: 9 },
-      { partei: 'FDP', prozent: 5.5, sitze: 6 },
-      { partei: 'Freie Wähler', prozent: 5.4, sitze: 6 },
-    ],
-    koalition: 'SPD + GRÜNE + FDP (Ampel)',
-    status: 'abgeschlossen',
-  },
   kandidaten: [
     {
       name: 'Alexander Schweitzer',
@@ -1057,6 +1045,36 @@ const KW_BREMEN_STADT: Wahl = {
   ],
 };
 
+const KW_FRANKFURT: Wahl = {
+  id: 'kw-frankfurt-2026',
+  name: 'Kommunalwahl Frankfurt am Main 2026',
+  datum: '14.03.2026',
+  wahlkreis: 'Frankfurt am Main',
+  level: 'kommune',
+  location: 'frankfurt',
+  kandidaten: [
+    {
+      name: 'Mike Josef',
+      partei: 'SPD',
+      emoji: '👨‍💼',
+      alter: 54,
+      beruf: 'Oberbürgermeister',
+      positionen: ['Wohnungsbau', 'Klimaschutz', 'Verkehrswende', 'Finanzen'],
+      claraInfo: 'Oberbürgermeister von Frankfurt seit 2024 [1]. Zuvor Planungs- und Wohnungsdezernent.',
+      quellen: ['[1] frankfurt.de'],
+      image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Mike_Josef_%28Frankfurter_Buchmesse_2015%29.jpg/220px-Mike_Josef_%28Frankfurter_Buchmesse_2015%29.jpg',
+      quelle: 'Wikimedia Commons (CC BY-SA 4.0)',
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Mike_Josef',
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'SPD', programm: 'Bezahlbares Wohnen, Klimaschutz, soziale Stadt, Verkehrswende.' },
+    { name: 'CDU', programm: 'Wirtschaft, Sicherheit, Haushaltssanierung, Infrastruktur.' },
+    { name: 'GRÜNE', programm: 'Klimaneutralität 2035, Radverkehr, Stadtbegrünung.' },
+  ],
+};
+
 const KW_BERLIN_STADT: Wahl = {
   id: 'kw-berlin-2023',
   name: 'BVV-Wahlen Berlin 2023',
@@ -1095,7 +1113,7 @@ const KT_RHEIN_NECKAR: Wahl = {
   datum: '09.06.2024',
   wahlkreis: 'Rhein-Neckar-Kreis',
   level: 'kreis',
-  location: 'kreis',
+  location: 'bw_rhein_neckar',
   kandidaten: [
     {
       name: 'Stefan Dallinger',
@@ -1104,7 +1122,7 @@ const KT_RHEIN_NECKAR: Wahl = {
       alter: 59,
       beruf: 'Landrat',
       positionen: ['Regionalentwicklung', 'Mobilität', 'Digitalisierung', 'Wirtschaft'],
-      claraInfo: 'Landrat des Rhein-Neckar-Kreises seit 2013 [1]. Zuvor Bürgermeister von Ilvesheim.',
+      claraInfo: 'Landrat des Rhein-Neckar-Kreises seit 2010 (Listen „Landräte in Baden-Württemberg“) [1]. Zuvor u. a. Bürgermeister von Ilvesheim.',
       quellen: ['[1] rhein-neckar-kreis.de'],
       wikipediaUrl: 'https://de.wikipedia.org/wiki/Stefan_Dallinger',
       socialMedia: { website: 'https://www.rhein-neckar-kreis.de' },
@@ -1125,7 +1143,7 @@ const KT_BERGSTRASSE: Wahl = {
   datum: '14.03.2021',
   wahlkreis: 'Kreis Bergstraße',
   level: 'kreis',
-  location: 'kreis',
+  location: 'he_bergstrasse',
   kandidaten: [
     {
       name: 'Christian Engelhardt',
@@ -1174,6 +1192,151 @@ const KT_SAARPFALZ: Wahl = {
     { name: 'SPD', programm: 'Soziale Infrastruktur, Bildung, Tourismus Biosphäre Bliesgau.' },
     { name: 'CDU', programm: 'Wirtschaftsstandort, Sicherheit, Familienpolitik.' },
     { name: 'GRÜNE', programm: 'Klimaschutz, Biosphärenreservat, nachhaltige Mobilität.' },
+  ],
+};
+
+const KT_RV_SAARBRUECKEN: Wahl = {
+  id: 'kt-rv-saarbruecken-2024',
+  name: 'Verbandstag Regionalverband Saarbrücken',
+  datum: '09.06.2024',
+  wahlkreis: 'Regionalverband Saarbrücken',
+  level: 'kreis',
+  location: 'rv_saarbruecken',
+  kandidaten: [
+    {
+      name: 'Peter Gillo',
+      partei: 'CDU',
+      emoji: '👨‍💼',
+      alter: 58,
+      beruf: 'Regionalverbandsdirektor',
+      positionen: ['Regionalplanung', 'Mobilität', 'Digitalisierung', 'Wirtschaft'],
+      claraInfo: 'Regionalverbandsdirektor des Regionalverbandes Saarbrücken [1].',
+      quellen: ['[1] rv-saarbruecken.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Peter_Gillo',
+      socialMedia: { website: 'https://www.rv-saarbruecken.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Wirtschaftsstandort, Infrastruktur, Sicherheit, Zusammenarbeit der Gemeinden.' },
+    { name: 'SPD', programm: 'Soziale Infrastruktur, ÖPNV, bezahlbares Wohnen, Klimaschutz.' },
+    { name: 'GRÜNE', programm: 'Verkehrswende, Umwelt, Bürgerbeteiligung.' },
+  ],
+};
+
+const KT_MERZIG_WADERN: Wahl = {
+  id: 'kt-merzig-wadern-2024',
+  name: 'Kreistag Merzig-Wadern',
+  datum: '09.06.2024',
+  wahlkreis: 'Merzig-Wadern',
+  level: 'kreis',
+  location: 'merzig_wadern',
+  kandidaten: [
+    {
+      name: 'Daniela Schobert',
+      partei: 'SPD',
+      emoji: '👩‍💼',
+      alter: 52,
+      beruf: 'Landrätin',
+      positionen: ['Wirtschaft', 'Tourismus', 'Bildung', 'Klimaschutz'],
+      claraInfo: 'Landrätin des Landkreises Merzig-Wadern [1].',
+      quellen: ['[1] merzig-wadern.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Daniela_Schobert',
+      socialMedia: { website: 'https://www.merzig-wadern.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'SPD', programm: 'Soziale Gerechtigkeit, Bildung, Tourismus, Nahverkehr.' },
+    { name: 'CDU', programm: 'Wirtschaftsstandort, Sicherheit, Familienpolitik.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, nachhaltige Mobilität, Natur.' },
+  ],
+};
+
+const KT_NEUNKIRCHEN_SL: Wahl = {
+  id: 'kt-neunkirchen-sl-2024',
+  name: 'Kreistag Landkreis Neunkirchen',
+  datum: '09.06.2024',
+  wahlkreis: 'Neunkirchen',
+  level: 'kreis',
+  location: 'neunkirchen',
+  kandidaten: [
+    {
+      name: 'Udo Recktenwald',
+      partei: 'CDU',
+      emoji: '👨‍💼',
+      alter: 61,
+      beruf: 'Landrat',
+      positionen: ['Wirtschaft', 'Bildung', 'Infrastruktur', 'Digitalisierung'],
+      claraInfo: 'Landrat des Landkreises Neunkirchen (Saarland) [1].',
+      quellen: ['[1] landkreis-neunkirchen.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Udo_Recktenwald',
+      socialMedia: { website: 'https://www.landkreis-neunkirchen.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Wirtschaft, Infrastruktur, Bildung, Haushaltssicherheit.' },
+    { name: 'SPD', programm: 'Soziale Infrastruktur, ÖPNV, bezahlbares Wohnen.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Verkehrswende, Umwelt.' },
+  ],
+};
+
+const KT_SAARLOUIS_SL: Wahl = {
+  id: 'kt-saarlouis-sl-2024',
+  name: 'Kreistag Landkreis Saarlouis',
+  datum: '09.06.2024',
+  wahlkreis: 'Saarlouis',
+  level: 'kreis',
+  location: 'saarlouis',
+  kandidaten: [
+    {
+      name: 'Patrik Lauer',
+      partei: 'SPD',
+      emoji: '👨‍💼',
+      alter: 62,
+      beruf: 'Landrat',
+      positionen: ['Wirtschaft', 'Bildung', 'Verkehr', 'Klimaschutz'],
+      claraInfo: 'Landrat des Landkreises Saarlouis [1].',
+      quellen: ['[1] saarlouis.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Patrik_Lauer',
+      socialMedia: { website: 'https://www.kreis-saarlouis.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'SPD', programm: 'Soziale Gerechtigkeit, Bildung, Infrastruktur, Klimaschutz.' },
+    { name: 'CDU', programm: 'Wirtschaft, Sicherheit, Familienpolitik.' },
+    { name: 'GRÜNE', programm: 'Umwelt, Verkehrswende, nachhaltige Kreispolitik.' },
+  ],
+};
+
+const KT_ST_WENDEL_SL: Wahl = {
+  id: 'kt-st-wendel-sl-2024',
+  name: 'Kreistag Landkreis St. Wendel',
+  datum: '09.06.2024',
+  wahlkreis: 'St. Wendel',
+  level: 'kreis',
+  location: 'st_wendel',
+  kandidaten: [
+    {
+      name: 'Krischan Rudolph',
+      partei: 'CDU',
+      emoji: '👨‍💼',
+      alter: 55,
+      beruf: 'Landrat',
+      positionen: ['Tourismus', 'Wirtschaft', 'Bildung', 'Infrastruktur'],
+      claraInfo: 'Landrat des Landkreises St. Wendel [1].',
+      quellen: ['[1] landkreis-stwendel.de'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Krischan_Rudolph',
+      socialMedia: { website: 'https://www.landkreis-stwendel.de' },
+      standDatum: '2026-01-24',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Wirtschaft, Tourismus, Infrastruktur, ländlicher Raum.' },
+    { name: 'SPD', programm: 'Soziale Infrastruktur, Bildung, Nahverkehr.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Natur, nachhaltige Mobilität.' },
   ],
 };
 
@@ -1328,23 +1491,24 @@ const KT_ESSLINGEN: Wahl = {
   datum: '09.06.2024',
   wahlkreis: 'Esslingen',
   level: 'kreis',
-  location: 'kreis',
+  location: 'bw_esslingen',
   kandidaten: [
     {
-      name: 'Matthias Klopfer',
-      partei: 'SPD',
+      name: 'Marcel Musolf',
+      partei: 'Freie Wähler',
       emoji: '👨‍💼',
-      alter: 57,
+      alter: 41,
       beruf: 'Landrat',
-      positionen: ['Bildung', 'Verkehr', 'Wirtschaft', 'Klimaschutz'],
-      claraInfo: 'Landrat des Landkreises Esslingen seit 2006 [1].',
-      quellen: ['[1] landkreis-esslingen.de'],
-      wikipediaUrl: 'https://de.wikipedia.org/wiki/Matthias_Klopfer',
+      positionen: ['Wirtschaft', 'Bildung', 'Mobilität', 'Verwaltung'],
+      claraInfo: 'Landrat des Landkreises Esslingen (Liste der Landräte in Baden-Württemberg) [1].',
+      quellen: ['[1] Wikipedia / Landratsamt Esslingen'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Marcel_Musolf',
       socialMedia: { website: 'https://www.landkreis-esslingen.de' },
       standDatum: '2026-01-24',
     },
   ],
   parteien: [
+    { name: 'Freie Wähler', programm: 'Bürgernähe, kommunale Sachpolitik, regionale Wirtschaft.' },
     { name: 'SPD', programm: 'Bildung, Soziales, Verkehr, bezahlbares Wohnen.' },
     { name: 'CDU', programm: 'Wirtschaft, Infrastruktur, Sicherheit.' },
     { name: 'GRÜNE', programm: 'Klimaschutz, Verkehrswende, Nachhaltigkeit.' },
@@ -1357,7 +1521,7 @@ const KT_LUDWIGSBURG: Wahl = {
   datum: '09.06.2024',
   wahlkreis: 'Ludwigsburg',
   level: 'kreis',
-  location: 'kreis',
+  location: 'bw_ludwigsburg',
   kandidaten: [
     {
       name: 'Dietmar Allgaier',
@@ -1444,7 +1608,7 @@ const KT_MAIN_TAUNUS: Wahl = {
   datum: '14.03.2021',
   wahlkreis: 'Main-Taunus-Kreis',
   level: 'kreis',
-  location: 'kreis',
+  location: 'he_main_taunus',
   kandidaten: [
     {
       name: 'Michael Cyriax',
@@ -1521,6 +1685,11 @@ export const WAHLEN_DEUTSCHLAND: Wahl[] = [
   KT_RHEIN_NECKAR,
   KT_BERGSTRASSE,
   KT_SAARPFALZ,
+  KT_RV_SAARBRUECKEN,
+  KT_MERZIG_WADERN,
+  KT_NEUNKIRCHEN_SL,
+  KT_SAARLOUIS_SL,
+  KT_ST_WENDEL_SL,
   KT_RHEIN_SIEG,
   KT_METTMANN,
   KT_REGION_HANNOVER,
@@ -1532,6 +1701,7 @@ export const WAHLEN_DEUTSCHLAND: Wahl[] = [
   KT_RHEIN_NEUSS,
   KT_MAIN_TAUNUS,
   KT_PINNEBERG,
+  ...KREISTAGE_HESSEN_BW,
   // Kommunalwahlen Teststädte
   KW_MANNHEIM,
   KW_HEIDELBERG,
@@ -1540,4 +1710,5 @@ export const WAHLEN_DEUTSCHLAND: Wahl[] = [
   KW_NEUSTADT,
   KW_BREMEN_STADT,
   KW_BERLIN_STADT,
+  KW_FRANKFURT,
 ];

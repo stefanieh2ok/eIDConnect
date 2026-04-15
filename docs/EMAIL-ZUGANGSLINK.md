@@ -15,7 +15,7 @@ Damit nach dem Klick auf **Freigeben** der Zugangslink **automatisch per E-Mail*
 
 1. **Domain bei Resend verifizieren:** [resend.com/domains](https://resend.com/domains) → Domain hinzufügen (z. B. hookai.eu) → angezeigte DNS-Einträge beim Domain-Anbieter eintragen → in Resend verifizieren.
 2. **Absender setzen:** In `.env.local` und in Vercel die Variable **SEND_ACCESS_EMAIL_FROM** setzen, z. B.  
-   `SEND_ACCESS_EMAIL_FROM=HookAI <noreply@deine-domain.de>`  
+   `SEND_ACCESS_EMAIL_FROM=eID Demo Connect <noreply@deine-domain.de>`  
    (E-Mail-Adresse muss zu der in Resend verifizierten Domain gehören.)
 3. **Server neu starten** (lokal: `npm run dev`; Vercel: Redeploy).
 

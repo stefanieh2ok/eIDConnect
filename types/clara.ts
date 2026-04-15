@@ -13,9 +13,13 @@ export interface ClaraAnalysis {
   reasoning: string;
   pros: string[];
   cons: string[];
-  recommendation: 'strong_yes' | 'yes' | 'neutral' | 'no' | 'strong_no';
   confidence: number;
   alternativePerspectives: string[];
+  /**
+   * Hinweis: Abstimmungs-Empfehlungen sind tabu.
+   * Dieses Feld wird in der UI nicht mehr verwendet, kann aber vom Backend noch mitkommen.
+   */
+  recommendation?: 'strong_yes' | 'yes' | 'neutral' | 'no' | 'strong_no';
 }
 
 export interface ClaraPreferences {

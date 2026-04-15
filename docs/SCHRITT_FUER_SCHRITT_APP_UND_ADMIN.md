@@ -9,7 +9,7 @@
 ### A1. Zugangsdaten auf Vercel eintragen
 
 1. Browser öffnen → **https://vercel.com** → einloggen.
-2. Dein **Projekt** wählen (z. B. e-id-connect / eIDConnect).
+2. Dein **Projekt** wählen (z. B. e-id-connect / eID Demo Connect).
 3. Oben auf **„Settings“** klicken.
 4. Links auf **„Environment Variables“** klicken.
 5. Zwei Variablen anlegen (jeweils **„Add New“**):

@@ -1,4 +1,4 @@
-# 🚀 eIDConnect – Killer Features & Innovationen
+# 🚀 eID Demo Connect – Killer Features & Innovationen
 
 ## 📱 **Aktuelle Stimmzettel - Originalgetreu:**
 
@@ -296,7 +296,7 @@ const prognosen = {
 
 ## 🎉 **Fazit:**
 
-eIDConnect wird mit diesen Killer-Features zur **revolutionärsten Demokratie-App** der Welt:
+eID Demo Connect wird mit diesen Killer-Features zur **revolutionärsten Demokratie-App** der Welt:
 
 ✅ **Originale Stimmzettel** - Vertrauen durch Authentizität  
 ✅ **KI-Wahlomat** - Löst das Hauptproblem der Wahlentscheidung  

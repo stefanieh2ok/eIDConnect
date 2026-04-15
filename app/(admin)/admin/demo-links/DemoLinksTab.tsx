@@ -16,14 +16,6 @@ type DemoToken = {
   access_count: number;
 };
 
-function slug(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .slice(0, 30) || 'demo';
-}
-
 export default function DemoLinksTab() {
   const [tokens, setTokens] = useState<DemoToken[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +26,7 @@ export default function DemoLinksTab() {
   const [copyId, setCopyId] = useState<string | null>(null);
   const [exportingId, setExportingId] = useState<string | null>(null);
   const [emailSnippetCopied, setEmailSnippetCopied] = useState(false);
+  const [createTokenError, setCreateTokenError] = useState<string | null>(null);
 
   // Zugangs-Link (NDA / DocuSign): Vorname, Nachname, E-Mail
   const [vorname, setVorname] = useState('');
@@ -72,27 +65,34 @@ export default function DemoLinksTab() {
   }, [supabase]);
 
   async function createToken() {
-    if (!supabase || !recipientName.trim()) return;
+    if (!recipientName.trim()) return;
     setCreating(true);
-    const exp = new Date();
-    exp.setDate(exp.getDate() + expiresDays);
-    const token = `${slug(recipientOrg || recipientName)}-${Date.now().toString(36)}`;
-    const { data, error } = await supabase
-      .from('demo_tokens')
-      .insert({
-        token,
-        recipient_name: recipientName.trim(),
-        recipient_org: recipientOrg.trim() || null,
-        expires_at: exp.toISOString(),
-        is_active: true,
-      })
-      .select()
-      .single();
-    setCreating(false);
-    if (!error && data) {
-      setTokens((prev) => [data as DemoToken, ...prev]);
-      setRecipientName('');
-      setRecipientOrg('');
+    setCreateTokenError(null);
+    try {
+      const res = await fetch('/api/admin/create-demo-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          recipientName: recipientName.trim(),
+          recipientOrg: recipientOrg.trim() || undefined,
+          expiresInDays: expiresDays,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCreateTokenError(data.error ?? 'Link konnte nicht erstellt werden.');
+        return;
+      }
+      if (data.success && data.token) {
+        setTokens((prev) => [data.token as DemoToken, ...prev]);
+        setRecipientName('');
+        setRecipientOrg('');
+      }
+    } catch (e) {
+      setCreateTokenError('Netzwerkfehler. Bitte erneut versuchen.');
+    } finally {
+      setCreating(false);
     }
   }
 
@@ -142,7 +142,7 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
           fullName,
           email: (email ?? '').trim(),
           company: (organisation ?? '').trim() || undefined,
-          demoId: 'eidconnect-v1',
+          demoId: 'eid-demo-connect-v1',
           expiresInDays: accessLinkExpiresDays,
         }),
       });
@@ -190,7 +190,7 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
         body: JSON.stringify({
           fullName,
           email: (testEmail ?? '').trim(),
-          demoId: 'eidconnect-v1',
+          demoId: 'eid-demo-connect-v1',
           expiresInDays: 14,
           requireDocusign: false,
         }),
@@ -370,6 +370,9 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
 
       <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
         <h2 className="font-semibold mb-3">Neuer Demo-Link (ohne NDA)</h2>
+        {createTokenError && (
+          <p className="text-sm text-red-600 mb-2">{createTokenError}</p>
+        )}
         <div className="grid gap-3 max-w-md">
           <input
             type="text"
