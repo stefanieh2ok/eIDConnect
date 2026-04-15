@@ -94,7 +94,7 @@ export function TopHighlightsSlide({ onClose, embedded = false }: TopHighlightsS
         <div
           className={
             embedded
-              ? 'flex min-h-0 flex-1 flex-col overflow-hidden px-3 py-1.5'
+              ? 'flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-1.5'
               : 'min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4'
           }
         >
@@ -103,8 +103,8 @@ export function TopHighlightsSlide({ onClose, embedded = false }: TopHighlightsS
               <p className="shrink-0 text-center text-[11px] leading-tight text-gray-700">
                 Abstimmungsvorschau mit vollständiger Tinder-Karte.
               </p>
-              <div className="flex min-h-0 flex-1 flex-col overflow-hidden py-1">
-                <IntroSwipePreview fillLayout />
+              <div className="shrink-0 py-1">
+                <IntroSwipePreview />
               </div>
               <p className="shrink-0 text-center text-[10px] leading-snug text-gray-500">
                 Nach „Weiter“: Wahlen, Clara, Kalender in der App.
