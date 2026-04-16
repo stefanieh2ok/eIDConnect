@@ -57,6 +57,7 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
   const [isTyping, setIsTyping] = useState(false);
   const [showVoice, setShowVoice] = useState(false);
   const [isSafeMode, setIsSafeMode] = useState(false);
+  const [showCompliance, setShowCompliance] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastAutoPromptRef = useRef<string>('');
 
@@ -254,22 +255,37 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
         'Wann ist die nächste Kommunalwahl?',
       ];
 
+  const compactQuickQuestions = quickQuestions.slice(0, 5);
+
   return (
-    <div className="rounded-xl shadow-xl border-2 flex flex-col overflow-hidden min-h-0 h-full max-h-[85vh]" style={{ borderColor: '#8B5CF6', boxShadow: '0 8px 32px rgba(124, 58, 237, 0.2)' }}>
+    <div className="rounded-xl shadow-xl border-2 flex flex-col overflow-hidden min-h-0 h-full max-h-[82vh]" style={{ borderColor: '#8B5CF6', boxShadow: '0 8px 32px rgba(124, 58, 237, 0.2)' }}>
       {/* Header – Neutralität + Quellen, kein Beraten */}
       <div
-        className="p-3 rounded-t-xl text-white border-b border-white/20 flex-shrink-0"
+        className="p-2.5 rounded-t-xl text-white border-b border-white/20 flex-shrink-0"
         style={{
           background: LAVENDER.header,
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 20px rgba(76, 29, 149, 0.3)',
         }}
       >
-        <h2 className="text-base font-bold">Clara – Digitale Assistentin</h2>
-        <p className="text-xs opacity-95 mt-0.5">Neutral • quellenbasiert • nachvollziehbar</p>
-        <p className="text-[11px] opacity-90 mt-1 leading-tight">
-          <strong>Verfahren ja, Meinung nein.</strong> Clara erklärt demokratische Prozesse und strukturiert offizielle Informationen – ohne Empfehlung oder Bewertung.
-        </p>
-        <p className="text-[10px] opacity-80 mt-0.5">KI-gestützt (EU AI Act) · eID Beteiligung Konzeptdemo</p>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h2 className="text-sm font-bold sm:text-base">Clara – Digitale Assistentin</h2>
+            <p className="text-[11px] opacity-95">Neutral • Quellenbasiert • EU AI Act</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowCompliance((prev) => !prev)}
+            className="rounded-md border border-white/40 px-2 py-1 text-[10px] font-semibold hover:bg-white/10"
+          >
+            {showCompliance ? 'Weniger' : 'Info'}
+          </button>
+        </div>
+        {showCompliance && (
+          <p className="mt-1.5 text-[10px] leading-snug opacity-90">
+            <strong>Verfahren ja, Meinung nein.</strong> Clara gibt keine Wahlempfehlung, verweist auf offizielle Quellen
+            und verarbeitet Eingaben nur für die bereitgestellte Funktion.
+          </p>
+        )}
         {isSafeMode && (
           <p className="mt-1 rounded-md bg-amber-100/90 px-2 py-1 text-[10px] font-semibold text-amber-900">
             Eingeschraenkter Modus: Clara beantwortet aktuell nur neutral und verfahrensorientiert.
@@ -278,7 +294,7 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
       </div>
 
       {/* Messages – scrollbar, nicht abgeschnitten */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 space-y-4" style={{ background: LAVENDER.bg }}>
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 space-y-3" style={{ background: LAVENDER.bg }}>
         {messages.map((message) => (
           <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] min-w-0 rounded-2xl px-4 py-2 break-words ${message.type === 'user' ? 'bg-gray-200 text-gray-900' : ''}`} style={message.type === 'clara' ? { background: LAVENDER.bubble, color: LAVENDER.text, border: '1px solid rgba(139, 92, 246, 0.2)' } : {}}>
@@ -321,14 +337,14 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
       </div>
 
       {/* Quick Questions */}
-      <div className="px-4 py-2 border-t flex-shrink-0" style={{ borderColor: LAVENDER.border, background: LAVENDER.bg }}>
-        <div className="text-xs text-gray-500 mb-2">Schnelle Fragen:</div>
-        <div className="flex flex-wrap gap-2">
-          {quickQuestions.map((question, index) => (
+      <div className="px-3 py-2 border-t flex-shrink-0" style={{ borderColor: LAVENDER.border, background: LAVENDER.bg }}>
+        <div className="text-[11px] text-gray-500 mb-1.5">Schnellfragen:</div>
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
+          {compactQuickQuestions.map((question, index) => (
             <button
               key={index}
               onClick={() => setInputMessage(question)}
-              className="text-xs px-2 py-1 rounded-full transition-colors"
+              className="shrink-0 whitespace-nowrap text-[11px] px-2 py-1 rounded-full transition-colors"
               style={{ background: LAVENDER.bubble, color: LAVENDER.text }}
             >
               {question}
@@ -338,7 +354,7 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
       </div>
 
       {/* Input + Sprechen */}
-      <div className="p-4 border-t flex-shrink-0" style={{ borderColor: LAVENDER.border }}>
+      <div className="p-3 border-t flex-shrink-0" style={{ borderColor: LAVENDER.border }}>
         <div className="flex gap-2">
           <input
             type="text"
@@ -346,20 +362,20 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={t('Frag Clara: Was sagt die SPD zum Thema Wohnen?', 'Fragen Sie Clara: Was sagt die SPD zum Thema Wohnen?')}
-            className="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2"
+            className="flex-1 p-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2"
             style={{ borderColor: LAVENDER.border, background: LAVENDER.bg }}
           />
           <button
             onClick={sendMessage}
             disabled={!inputMessage.trim() || isTyping}
-            className="px-4 py-3 text-white rounded-lg font-bold transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-2.5 text-white rounded-lg text-sm font-bold transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             style={!inputMessage.trim() || isTyping ? { backgroundColor: LAVENDER.border } : { ...IRIDESCENT_BUTTON, color: LAVENDER.text }}
           >
             Senden
           </button>
           <button
             onClick={() => setShowVoice(true)}
-            className="px-4 py-3 rounded-lg font-bold transition-all hover:shadow-lg"
+            className="px-3 py-2.5 rounded-lg text-sm font-bold transition-all hover:shadow-lg"
             style={{ ...IRIDESCENT_BUTTON, color: LAVENDER.text }}
           >
             Sprechen
@@ -368,9 +384,10 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
       </div>
 
       {/* Wichtig: Neutral, keine Beratung, nur Quellen */}
-      <div className="px-4 pb-4 flex-shrink-0">
-        <div className="rounded-lg p-3 text-[11px] leading-snug" style={{ background: LAVENDER.bubble, color: LAVENDER.text, border: `1px solid ${LAVENDER.border}` }}>
-          <strong>Neutral – keine Wahlempfehlung:</strong> Clara gibt keine Empfehlung für Parteien, Kandidaten oder Abstimmungsoptionen. Sie erklärt Verfahren und strukturiert offizielle Informationen. {t('Bitte prüfe die offiziellen Quellen.', 'Bitte prüfen Sie die offiziellen Quellen.')} KI-gestützt (EU AI Act) · {t('Deine Eingaben werden nur im Rahmen der bereitgestellten Funktion verarbeitet.', 'Ihre Eingaben werden nur im Rahmen der bereitgestellten Funktion verarbeitet.')}
+      <div className="px-3 pb-3 flex-shrink-0">
+        <div className="rounded-lg p-2 text-[10px] leading-snug" style={{ background: LAVENDER.bubble, color: LAVENDER.text, border: `1px solid ${LAVENDER.border}` }}>
+          <strong>Neutral:</strong> Keine Wahlempfehlung. {t('Bitte prüfe offizielle Quellen.', 'Bitte prüfen Sie offizielle Quellen.')}{' '}
+          {t('Eingaben werden nur für diese Funktion verarbeitet.', 'Eingaben werden nur für diese Funktion verarbeitet.')}
         </div>
       </div>
 

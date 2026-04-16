@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { ListChecks } from 'lucide-react';
+import { WAHLEN_DATA } from '@/data/constants';
 
 /* Clara-Farben (wie Clara-Chat / Floating-Button) */
 const CLARA_BG = '#F5F0FF';
@@ -144,59 +145,55 @@ const LANDTAG_KANDIDATEN = [
 // Kommunalwahl Kirkel - Gemeinderat/Verbandsgemeinde
 const KOMMUNAL_KANDIDATEN = [
   { 
-    name: 'Müller, Klaus', 
-    partei: 'SPD', 
+    name: 'Hochlenert, Dominik',
+    partei: 'CDU',
+    parteiLang: 'Christlich Demokratische Union Deutschlands',
+    beruf: 'Bürgermeister',
+    wohnort: 'Kirkel',
+    kiInfo:
+      'Als Bürgermeister von Kirkel benannt (Gemeinderat Kirkel, Niederschrift der öffentlichen Sitzung 30. Januar 2025).',
+    quellen: ['[1] https://ratsinfoservice.de/ris/kirkel/file/getfile/64066'],
+    matchScore: undefined
+  },
+  { 
+    name: 'Jahnke, Dennis',
+    partei: 'SPD',
     parteiLang: 'Sozialdemokratische Partei Deutschlands',
-    beruf: 'Gemeinderat (seit 2019)',
-    alter: 54,
-    wohnort: 'Kirkel-Neuhäusel',
-    kiInfo: 'Erfahrener Gemeinderat mit Fokus auf Infrastruktur und Gemeinschaftsprojekte. Engagiert sich für Mehrzweckhalle, Radwege und Ortskernsanierung.',
-    positionen: ['Gemeinschaftsprojekte', 'Infrastruktur', 'Nachhaltigkeit'],
-    matchScore: 82
+    beruf: 'Gemeinderatsmitglied',
+    kiInfo:
+      'Als Mitglied der SPD-Fraktion im Gemeinderat Kirkel aufgeführt (Niederschrift der öffentlichen Sitzung 30. Januar 2025).',
+    quellen: ['[1] https://ratsinfoservice.de/ris/kirkel/file/getfile/64066'],
+    matchScore: undefined
   },
   { 
-    name: 'Schmidt, Petra', 
-    partei: 'CDU', 
-    parteiLang: 'Christlich Demokratische Union',
-    beruf: 'Gemeinderätin (seit 2015)',
-    alter: 49,
-    wohnort: 'Kirkel',
-    kiInfo: 'Langjährige Gemeinderätin mit Schwerpunkt auf Finanzen und Haushalt. Setzt auf verantwortungsvolle Haushaltspolitik und Wirtschaftsförderung.',
-    positionen: ['Haushaltspolitik', 'Wirtschaftsförderung', 'Familie'],
-    matchScore: 75
+    name: 'Jahnke, Dirk',
+    partei: 'SPD',
+    parteiLang: 'Sozialdemokratische Partei Deutschlands',
+    beruf: 'Gemeinderatsmitglied',
+    kiInfo:
+      'Als Mitglied der SPD-Fraktion im Gemeinderat Kirkel aufgeführt (Niederschrift der öffentlichen Sitzung 30. Januar 2025).',
+    quellen: ['[1] https://ratsinfoservice.de/ris/kirkel/file/getfile/64066'],
+    matchScore: undefined
   },
   { 
-    name: 'Hoffmann, Michael', 
-    partei: 'GRÜNE', 
+    name: 'Leibrock, Axel',
+    partei: 'GRÜNE',
     parteiLang: 'BÜNDNIS 90/DIE GRÜNEN',
-    beruf: 'Neuer Kandidat',
-    alter: 41,
-    wohnort: 'Kirkel-Neuhäusel',
-    kiInfo: 'Neuer Kandidat mit Fokus auf Klimaschutz und Nachhaltigkeit auf kommunaler Ebene. Engagiert für Radwege, Bürgergärten und LED-Beleuchtung.',
-    positionen: ['Klimaschutz', 'Nachhaltigkeit', 'Bürgerbeteiligung'],
-    matchScore: 89
+    beruf: 'Gemeinderatsmitglied',
+    kiInfo:
+      'Als Mitglied der Fraktion Bündnis 90/Die Grünen im Gemeinderat Kirkel aufgeführt (Niederschrift der öffentlichen Sitzung 30. Januar 2025).',
+    quellen: ['[1] https://ratsinfoservice.de/ris/kirkel/file/getfile/64066'],
+    matchScore: undefined
   },
   { 
-    name: 'Weber, Anna', 
-    partei: 'Unabhängige Liste', 
-    parteiLang: 'Unabhängige Wählerliste Kirkel',
-    beruf: 'Gemeinderätin (seit 2019)',
-    alter: 38,
-    wohnort: 'Kirkel',
-    kiInfo: 'Unabhängige Kandidatin ohne Parteibindung. Fokus auf parteiübergreifende Lösungen, Transparenz und direkte Bürgerbeteiligung.',
-    positionen: ['Transparenz', 'Bürgerbeteiligung', 'Parteiübergreifend'],
-    matchScore: 78
-  },
-  { 
-    name: 'Klein, Thomas', 
-    partei: 'FDP', 
-    parteiLang: 'Freie Demokratische Partei',
-    beruf: 'Neuer Kandidat',
-    alter: 45,
-    wohnort: 'Kirkel-Neuhäusel',
-    kiInfo: 'Neuer Kandidat mit wirtschaftsliberalem Ansatz. Fokus auf Digitalisierung, Wirtschaftsförderung und Bürokratieabbau auf kommunaler Ebene.',
-    positionen: ['Digitalisierung', 'Wirtschaftsförderung', 'Bürokratieabbau'],
-    matchScore: 71
+    name: 'Reinhold, Nicole',
+    partei: 'DIE LINKE',
+    parteiLang: 'DIE LINKE',
+    beruf: 'Gemeinderatsmitglied',
+    kiInfo:
+      'Als Mitglied der Fraktion Die Linke im Gemeinderat Kirkel aufgeführt (Niederschrift der öffentlichen Sitzung 30. Januar 2025).',
+    quellen: ['[1] https://ratsinfoservice.de/ris/kirkel/file/getfile/64066'],
+    matchScore: undefined
   }
 ];
 
@@ -308,9 +305,13 @@ const VIERNHEIM_KANDIDATEN = [
 ];
 
 interface StimmzettelProps {
-  level: 'bund' | 'land' | 'kommune';
+  level: 'bund' | 'land' | 'kommune' | 'kreis';
   wahlkreis?: string;
   canVote?: boolean;
+  /** Aktuell ausgewählte Wahl aus WAHLEN_DATA (entscheidet über Datum + Status). */
+  selectedWahl?: any;
+  /** Anrede-Modus aus der App (true = du, false = Sie). */
+  du?: boolean;
   /** Kommunal-Stimmzettel: Kirkel (Standard), Heidelberg oder Viernheim */
   kommuneBallot?: 'kirkel' | 'heidelberg' | 'viernheim';
   /** Nur Darstellung (Einführung): keine Info-/Clara-/Abgabe-Buttons */
@@ -323,12 +324,57 @@ interface StimmzettelProps {
 interface ClaraInfoModalProps {
   data: any;
   type: 'kandidat' | 'partei';
+  du: boolean;
   onClose: () => void;
   onOpenChat: (context?: string) => void;
 }
 
+type SourceLink = { label: string; url: string };
+
+function collectSourceLinks(data: any): SourceLink[] {
+  const out: SourceLink[] = [];
+  const push = (label: string, url?: unknown) => {
+    const u = typeof url === 'string' ? url.trim() : '';
+    if (!u) return;
+    if (!/^https?:\/\//i.test(u)) return;
+    if (out.some((x) => x.url === u)) return;
+    out.push({ label, url: u });
+  };
+
+  // Prefer explicit sources if provided by data.
+  if (data && Array.isArray(data.sources)) {
+    for (const s of data.sources) {
+      if (s && typeof s === 'object') {
+        const label = typeof s.label === 'string' ? s.label : 'Quelle';
+        push(label, (s as any).url);
+      }
+    }
+  }
+
+  // Accept URLs stored inside `quellen` as well (demo data / non-standard fields).
+  // Example format: "[1] https://.../document.pdf"
+  if (data && Array.isArray(data.quellen)) {
+    for (const q of data.quellen) {
+      if (typeof q !== 'string') continue;
+      const match = q.match(/https?:\/\/[^\s)]+/i);
+      if (!match) continue;
+      const url = match[0];
+      const label = q.replace(url, '').replace(/\s+/g, ' ').trim();
+      push(label || 'Quelle', url);
+    }
+  }
+
+  // Fallbacks used in `data/wahlen-deutschland.ts` (verifiable links).
+  push('Wikipedia', data?.wikipediaUrl);
+  push('Bundestag/Parlament', data?.parlamentUrl);
+  push('abgeordnetenwatch', data?.abgeordnetenwatchUrl);
+  push('Offizielle Website', data?.socialMedia?.website);
+  return out;
+}
+
 // Clara Info Bottom Sheet Modal – bleibt innerhalb des iPhone-Screens (safe area, scrollbarer Inhalt)
-const ClaraInfoModal: React.FC<ClaraInfoModalProps> = ({ data, type, onClose, onOpenChat }) => {
+const ClaraInfoModal: React.FC<ClaraInfoModalProps> = ({ data, type, du, onClose, onOpenChat }) => {
+  const sourceLinks = collectSourceLinks(data);
   return (
     <div
       className="fixed inset-0 z-[99999] flex items-end justify-center bg-black/50 p-0"
@@ -352,7 +398,9 @@ const ClaraInfoModal: React.FC<ClaraInfoModalProps> = ({ data, type, onClose, on
             </div>
             <div className="min-w-0">
               <h3 className="text-base font-bold leading-tight">Clara erklärt</h3>
-              <p className="truncate text-xs opacity-90">{type === 'kandidat' ? data.name : data.kuerzel}</p>
+              <p className="truncate text-xs opacity-90">
+                {type === 'kandidat' ? data.name : (data.kuerzel ?? data.name ?? data.partei ?? '')}
+              </p>
             </div>
           </div>
           <button
@@ -370,7 +418,9 @@ const ClaraInfoModal: React.FC<ClaraInfoModalProps> = ({ data, type, onClose, on
             <div className="aria-label">ARIA EXECUTIVE INTELLIGENCE</div>
             <div className="aria-content">
               <p className="font-semibold mb-2">KEY INSIGHT:</p>
-              <p>{data.kiInfo}</p>
+              <p>
+                {data.kiInfo ?? data.claraInfo ?? data.programm ?? data.klartext ?? '—'}
+              </p>
             </div>
           </div>
 
@@ -379,7 +429,7 @@ const ClaraInfoModal: React.FC<ClaraInfoModalProps> = ({ data, type, onClose, on
             <div>
               <h4 className="font-bold text-gray-900 mb-3">Wichtigste Positionen</h4>
               <div className="space-y-2">
-                {data.positionen.map((pos: string, i: number) => (
+                {data.positionen.slice(0, 3).map((pos: string, i: number) => (
                   <div key={i} className="flex items-center gap-2 rounded-lg bg-gray-50 p-3">
                     <ListChecks className="h-4 w-4 flex-shrink-0" style={{ color: CLARA_TEXT }} aria-hidden />
                     <span className="text-sm text-gray-700">{pos}</span>
@@ -393,7 +443,9 @@ const ClaraInfoModal: React.FC<ClaraInfoModalProps> = ({ data, type, onClose, on
           {data.matchScore && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-gray-700">Match mit deinen Prioritäten</span>
+                <span className="font-semibold text-gray-700">
+                  {du ? 'Match mit deinen Prioritäten' : 'Match mit Ihren Prioritäten'}
+                </span>
                 <span className="text-2xl font-bold" style={{ color: CLARA_TEXT }}>{data.matchScore}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
@@ -408,11 +460,26 @@ const ClaraInfoModal: React.FC<ClaraInfoModalProps> = ({ data, type, onClose, on
           {/* Quellen */}
           <div className="pt-4 border-t border-gray-200">
             <h4 className="font-semibold text-gray-900 mb-2">Quellen</h4>
-            <div className="space-y-1 text-xs text-gray-600">
-              <p>• {type === 'kandidat' ? `Wahlprogramm ${data.partei} 2025` : `Wahlprogramm ${data.kuerzel} 2025`}</p>
-              <p>• Abstimmungsverhalten 2021-2025</p>
-              <p>• Öffentliche Positionen und Aussagen</p>
-            </div>
+            {sourceLinks.length > 0 ? (
+              <div className="space-y-1 text-xs text-gray-700">
+                {sourceLinks.map((s) => (
+                  <a
+                    key={s.url}
+                    href={s.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block truncate text-[#0055A4] underline decoration-[#BFD9FF] underline-offset-2 hover:opacity-90"
+                    title={s.url}
+                  >
+                    • {s.label}
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-600">
+                Keine verifizierten Quellen hinterlegt (Konzeptdemo). Bitte offizielle Wahlleitung/Parteiquellen prüfen.
+              </p>
+            )}
           </div>
 
           <p className="text-xs text-gray-600 pt-2 border-t border-gray-100">
@@ -448,15 +515,71 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
   level,
   wahlkreis,
   canVote = true,
+  selectedWahl,
+  du = false,
   kommuneBallot = 'kirkel',
   introMode = false,
   onVote,
   onKIAnalysis,
   onOpenClaraChat,
 }) => {
+  const t = (duText: string, sieText: string) => (du ? duText : sieText);
+  const partyFullName = (short: string | undefined): string => {
+    const s = (short || '')
+      .toLowerCase()
+      .replace(/ä/g, 'ae')
+      .replace(/ö/g, 'oe')
+      .replace(/ü/g, 'ue')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!s) return '';
+    const map: Record<string, string> = {
+      cdu: 'Christlich Demokratische Union Deutschlands',
+      'cdu/csu': 'Christlich Demokratische Union Deutschlands / Christlich-Soziale Union in Bayern',
+      spd: 'Sozialdemokratische Partei Deutschlands',
+      gruene: 'BÜNDNIS 90/DIE GRÜNEN',
+      fdp: 'Freie Demokratische Partei',
+      'die linke': 'DIE LINKE',
+      afd: 'Alternative für Deutschland',
+      bsw: 'Bündnis Sahra Wagenknecht',
+      'dielinke': 'DIE LINKE',
+    };
+    return map[s] || short || '';
+  };
+
+  const formatGermanDate = (dateStr?: string): string => {
+    if (!dateStr) return '';
+    // expected: DD.MM.YYYY
+    const m = dateStr.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    if (!m) return dateStr;
+    const dd = Number(m[1]);
+    const mm = Number(m[2]);
+    const yyyy = Number(m[3]);
+    const d = new Date(yyyy, mm - 1, dd);
+    const weekdays = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+    const months = [
+      'Januar',
+      'Februar',
+      'März',
+      'April',
+      'Mai',
+      'Juni',
+      'Juli',
+      'August',
+      'September',
+      'Oktober',
+      'November',
+      'Dezember',
+    ];
+    const weekday = weekdays[d.getDay()] || '';
+    const month = months[mm - 1] || '';
+    return `${weekday}, ${dd}. ${month} ${yyyy}`;
+  };
+
   const [selectedErststimme, setSelectedErststimme] = useState<string | null>(null);
   const [selectedZweitstimme, setSelectedZweitstimme] = useState<string | null>(null);
   const [selectedLandtag, setSelectedLandtag] = useState<string | null>(null);
+  const [selectedKreis, setSelectedKreis] = useState<string | null>(null);
   const [selectedKommune, setSelectedKommune] = useState<string | null>(null);
   const [showClaraInfo, setShowClaraInfo] = useState<{ type: 'kandidat' | 'partei'; data: any } | null>(null);
 
@@ -470,6 +593,8 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
       onVote('bund', selectedErststimme, selectedZweitstimme);
     } else if (level === 'land' && selectedLandtag) {
       onVote('land', selectedLandtag, '');
+    } else if (level === 'kreis' && selectedKreis) {
+      onVote('kreis', selectedKreis, '');
     } else if (level === 'kommune' && selectedKommune) {
       onVote('kommune', selectedKommune, '');
     }
@@ -489,6 +614,42 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
         ? VIERNHEIM_KANDIDATEN
         : KOMMUNAL_KANDIDATEN;
 
+  // Für Datum/Kandidaten verwenden wir bevorzugt die wirklich ausgewählte Wahl.
+  // Fallback: statische Demo-Daten.
+  const bundElection =
+    level === 'bund' && selectedWahl
+      ? selectedWahl
+      : WAHLEN_DATA.find((w: any) => w.id === 'btw25' || w.name?.includes('Bundestagswahl'));
+  const landElection =
+    level === 'land' && selectedWahl
+      ? selectedWahl
+      : WAHLEN_DATA.find((w: any) => w.id === 'ltw-sl-2022' || w.name?.includes('Landtagswahl Saarland'));
+  const kreisElection =
+    level === 'kreis' && selectedWahl
+      ? selectedWahl
+      : WAHLEN_DATA.find((w: any) => w.id === 'kt-saarpfalz-2024' || w.name?.includes('Saarpfalz-Kreis'));
+
+  const bundKandidaten: any[] = bundElection?.kandidaten?.length
+    ? bundElection.kandidaten
+    : BUNDESTAG_KANDIDATEN;
+  const bundParteien: any[] = bundElection?.parteien?.length
+    ? bundElection.parteien.map((p: any) => ({
+        kuerzel: p.name,
+        name: p.name,
+        kiInfo: p.programm,
+      }))
+    : BUNDESTAG_PARTEIEN;
+
+  const landKandidaten: any[] = landElection?.kandidaten?.length ? landElection.kandidaten : LANDTAG_KANDIDATEN;
+  const kreisParteien: any[] = kreisElection?.parteien?.length
+    ? kreisElection.parteien.map((p: any) => ({
+        kuerzel: p.name,
+        name: p.name,
+        kiInfo: p.programm,
+      }))
+    : [];
+  const kreisKandidaten: any[] = kreisElection?.kandidaten?.length ? kreisElection.kandidaten : [];
+
   const kommuneHead =
     kommuneBallot === 'heidelberg'
       ? { top: 'Stadt Heidelberg', sub: 'Stadt Heidelberg', candLine: '(Gemeinderat)' }
@@ -500,42 +661,44 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
     <div className="max-w-4xl mx-auto">
       {/* Bundestagswahl Stimmzettel */}
       {level === 'bund' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Header mit Bundesadler-Placeholder */}
-          <div className="ballot-paper text-center pb-6 border-b-2 border-gray-900">
+          <div className="ballot-paper border-b-2 border-gray-900 pb-4 text-center">
             <div className="flex items-center justify-center gap-4 mb-4">
               <h1
                 className={
                   introMode
-                    ? 'text-xl font-bold tracking-tight text-gray-900 sm:text-2xl'
-                    : 'text-3xl font-bold text-gray-900'
+                    ? 'text-lg font-bold tracking-tight text-gray-900 sm:text-2xl'
+                    : 'text-2xl font-bold text-gray-900 sm:text-3xl'
                 }
               >
                 BUNDESTAGSWAHL
               </h1>
             </div>
-            <p className="text-lg text-gray-700 font-semibold">Sonntag, 28. September 2025</p>
-            <p className="text-base text-gray-700 mt-1">Wahlkreis {wahlkreis || '—'}</p>
-            <div className="mt-4 p-4 bg-blue-100 border-2 border-blue-300">
-              <p className="text-base text-blue-900 font-bold">
-                Sie haben 2 Stimmen
+            <p className="text-base font-semibold text-gray-700 sm:text-lg">
+              {formatGermanDate(bundElection?.datum) || '—'}
+            </p>
+            <p className="mt-1 text-sm text-gray-700 sm:text-base">Wahlkreis {wahlkreis || '—'}</p>
+            <div className="mt-3 border-2 border-blue-300 bg-blue-100 p-2.5 sm:mt-4 sm:p-4">
+              <p className="text-sm font-bold text-blue-900 sm:text-base">
+                {t('Du hast 2 Stimmen', 'Sie haben 2 Stimmen')}
               </p>
             </div>
           </div>
 
           {/* Erststimme */}
-          <div className="ballot-paper border-2 border-gray-900 p-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">ERSTSTIMME</h2>
-              <p className="text-base text-gray-700 mb-4">
+          <div className="ballot-paper border-2 border-gray-900 p-3 sm:p-6">
+            <div className="mb-4 sm:mb-6">
+              <h2 className="mb-1.5 text-xl font-bold text-gray-900 sm:mb-2 sm:text-2xl">ERSTSTIMME</h2>
+              <p className="mb-3 text-sm text-gray-700 sm:mb-4 sm:text-base">
                 (Wahl eines Wahlkreisabgeordneten)
               </p>
             </div>
 
             <div className="space-y-2">
-              {BUNDESTAG_KANDIDATEN.map((kandidat, index) => (
+              {bundKandidaten.map((kandidat, index) => (
                 <div key={index} className="ballot-option relative group">
-                  <label className="flex items-center gap-4 cursor-pointer w-full">
+                  <label className="flex items-center gap-3 cursor-pointer w-full">
                     <input
                       type="radio"
                       name="erststimme"
@@ -547,10 +710,12 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-gray-900 text-lg">{index + 1}.</span>
-                        <span className="font-bold text-gray-900 text-lg">{kandidat.name}</span>
+                        <span className="text-base font-bold text-gray-900 sm:text-lg">{index + 1}.</span>
+                        <span className="text-base font-bold text-gray-900 sm:text-lg">{kandidat.name}</span>
                       </div>
-                      <div className="text-sm text-gray-700 mt-1">{kandidat.parteiLang}</div>
+                      <div className="mt-0.5 text-xs text-gray-700 sm:mt-1 sm:text-sm">
+                        {kandidat.parteiLang || partyFullName(kandidat.partei)}
+                      </div>
                     </div>
                   </label>
                   {showAux ? (
@@ -573,18 +738,18 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
           </div>
 
           {/* Zweitstimme */}
-          <div className="ballot-paper border-2 border-gray-900 p-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">ZWEITSTIMME</h2>
-              <p className="text-base text-gray-700 mb-4">
+          <div className="ballot-paper border-2 border-gray-900 p-3 sm:p-6">
+            <div className="mb-4 sm:mb-6">
+              <h2 className="mb-1.5 text-xl font-bold text-gray-900 sm:mb-2 sm:text-2xl">ZWEITSTIMME</h2>
+              <p className="mb-3 text-sm text-gray-700 sm:mb-4 sm:text-base">
                 (Wahl einer Landesliste - entscheidet über die Sitzverteilung im Bundestag)
               </p>
             </div>
 
             <div className="space-y-2">
-              {BUNDESTAG_PARTEIEN.map((partei, index) => (
+              {bundParteien.map((partei, index) => (
                 <div key={index} className="ballot-option relative group">
-                  <label className="flex items-center gap-4 cursor-pointer w-full">
+                  <label className="flex items-center gap-3 cursor-pointer w-full">
                     <input
                       type="radio"
                       name="zweitstimme"
@@ -595,8 +760,10 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       className="ballot-checkbox"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="font-bold text-gray-900 text-lg">{partei.kuerzel}</div>
-                      <div className="text-sm text-gray-700">{partei.name}</div>
+                      <div className="text-base font-bold text-gray-900 sm:text-lg">{partei.kuerzel}</div>
+                      <div className="text-xs text-gray-700 sm:text-sm">
+                        {partyFullName(partei.kuerzel) || partei.name}
+                      </div>
                     </div>
                   </label>
                   {showAux ? (
@@ -633,16 +800,19 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
           <div className="text-center pb-6">
             {introMode ? (
               <p className="text-sm text-gray-600 px-2">
-                In der App tippen Sie auf das Kreisfeld neben Ihrer Wahl – Erststimme (Person) und Zweitstimme (Partei).
+                {t(
+                  'In der App tippst du auf das Kreisfeld neben deiner Wahl – Erststimme (Person) und Zweitstimme (Partei).',
+                  'In der App tippen Sie auf das Kreisfeld neben Ihrer Wahl – Erststimme (Person) und Zweitstimme (Partei).',
+                )}
               </p>
             ) : (
               <button
                 onClick={handleVote}
                 disabled={!canVote || !selectedErststimme || !selectedZweitstimme}
-                className={`px-12 py-4 text-xl font-bold transition-all ${
+                className={`rounded-lg px-6 py-3 text-base font-bold transition-all sm:px-12 sm:py-4 sm:text-xl ${
                   canVote && selectedErststimme && selectedZweitstimme
-                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg rounded-lg'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed rounded-lg'
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg'
+                    : 'cursor-not-allowed bg-gray-300 text-gray-500'
                 }`}
               >
                 {!canVote ? 'Ergebnis ansehen (nicht mehr abstimmbar)' : selectedErststimme && selectedZweitstimme ? 'Teilnahme in Demo bestaetigen' : 'Bitte beide Stimmen auswaehlen'}
@@ -654,31 +824,35 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
 
       {/* Landtagswahl Saarland Stimmzettel */}
       {level === 'land' && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Header */}
-          <div className="ballot-paper text-center pb-6 border-b-2 border-gray-900">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">LANDTAGSWAHL SAARLAND</h1>
-            <p className="text-lg text-gray-700 font-semibold">Frühjahr 2027</p>
-            <div className="mt-4 p-4 bg-blue-100 border-2 border-blue-300">
-              <p className="text-base text-blue-900 font-bold">
-                Sie haben 1 Stimme
+          <div className="ballot-paper border-b-2 border-gray-900 pb-4 text-center">
+            <h1 className="mb-2 text-2xl font-bold text-gray-900 sm:text-3xl">LANDTAGSWAHL SAARLAND</h1>
+            <p className="text-base font-semibold text-gray-700 sm:text-lg">
+              {landElection?.datum === 'aktuell'
+                ? 'Frühjahr 2027'
+                : formatGermanDate(landElection?.datum) || '—'}
+            </p>
+            <div className="mt-3 border-2 border-blue-300 bg-blue-100 p-2.5 sm:mt-4 sm:p-4">
+              <p className="text-sm font-bold text-blue-900 sm:text-base">
+                {t('Du hast 1 Stimme', 'Sie haben 1 Stimme')}
               </p>
             </div>
           </div>
 
           {/* Kandidaten */}
-          <div className="ballot-paper border-2 border-gray-900 p-6">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">KANDIDATEN</h2>
-              <p className="text-base text-gray-700 mb-4">
+          <div className="ballot-paper border-2 border-gray-900 p-3 sm:p-6">
+            <div className="mb-4 sm:mb-6">
+              <h2 className="mb-1.5 text-xl font-bold text-gray-900 sm:mb-2 sm:text-2xl">KANDIDATEN</h2>
+              <p className="mb-3 text-sm text-gray-700 sm:mb-4 sm:text-base">
                 (Ministerpräsident/in)
               </p>
             </div>
 
             <div className="space-y-2">
-              {LANDTAG_KANDIDATEN.map((kandidat, index) => (
+              {landKandidaten.map((kandidat, index) => (
                 <div key={index} className="ballot-option relative group">
-                  <label className="flex items-center gap-4 cursor-pointer w-full">
+                  <label className="flex items-center gap-3 cursor-pointer w-full">
                     <input
                       type="radio"
                       name="landtag"
@@ -690,12 +864,15 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-gray-900 text-lg">{index + 1}.</span>
-                        <span className="font-bold text-gray-900 text-lg">{kandidat.name}</span>
+                        <span className="text-base font-bold text-gray-900 sm:text-lg">{index + 1}.</span>
+                        <span className="text-base font-bold text-gray-900 sm:text-lg">{kandidat.name}</span>
                       </div>
-                      <div className="text-sm text-gray-700 mt-1">{kandidat.parteiLang}</div>
-                      <div className="text-xs text-gray-600 mt-1">
-                        {kandidat.beruf} • {kandidat.alter} Jahre
+                      <div className="mt-0.5 text-xs text-gray-700 sm:mt-1 sm:text-sm">
+                        {kandidat.parteiLang || partyFullName(kandidat.partei)}
+                      </div>
+                      <div className="mt-0.5 text-xs text-gray-600 sm:mt-1">
+                        {kandidat.beruf}
+                        {typeof kandidat.alter === 'number' ? ` • ${kandidat.alter} Jahre` : ''}
                       </div>
                     </div>
                   </label>
@@ -733,19 +910,169 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
           <div className="text-center pb-6">
             {introMode ? (
               <p className="text-sm text-gray-600 px-2">
-                In der App wählen Sie Ihre Stimme für den Landtag – hier ein Beispiel für das Saarland.
+                {t(
+                  'In der App wählst du deine Stimme für den Landtag – hier ein Beispiel für das Saarland.',
+                  'In der App wählen Sie Ihre Stimme für den Landtag – hier ein Beispiel für das Saarland.',
+                )}
               </p>
             ) : (
               <button
                 onClick={handleVote}
                 disabled={!canVote || !selectedLandtag}
-                className={`px-12 py-4 text-xl font-bold transition-all ${
+                className={`rounded-lg px-6 py-3 text-base font-bold transition-all sm:px-12 sm:py-4 sm:text-xl ${
                   canVote && selectedLandtag
-                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg rounded-lg'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed rounded-lg'
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg'
+                    : 'cursor-not-allowed bg-gray-300 text-gray-500'
                 }`}
               >
                 {!canVote ? 'Ergebnis ansehen (nicht mehr abstimmbar)' : selectedLandtag ? 'Teilnahme in Demo bestaetigen' : 'Bitte Kandidaten auswaehlen'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Kreisebene (z. B. Saarpfalz-Kreis) */}
+      {level === 'kreis' && (
+        <div className="space-y-4">
+          <div className="ballot-paper border-b-2 border-gray-900 pb-4 text-center">
+            <h1 className="mb-2 text-2xl font-bold text-gray-900 sm:text-3xl">
+              {String(kreisElection?.name || 'KREISWAHL').toUpperCase()}
+            </h1>
+            <p className="text-base font-semibold text-gray-700 sm:text-lg">
+              {formatGermanDate(kreisElection?.datum) || '—'}
+            </p>
+            <p className="mt-1 text-sm text-gray-700 sm:text-base">{kreisElection?.wahlkreis || wahlkreis || '—'}</p>
+            <div className="mt-3 border-2 border-blue-300 bg-blue-100 p-2.5 sm:mt-4 sm:p-4">
+              <p className="text-sm font-bold text-blue-900 sm:text-base">
+                {t('Du hast 1 Stimme', 'Sie haben 1 Stimme')}
+              </p>
+            </div>
+          </div>
+
+          <div className="ballot-paper border-2 border-gray-900 p-3 sm:p-6">
+            <div className="mb-4 sm:mb-6">
+              <h2 className="mb-1.5 text-xl font-bold text-gray-900 sm:mb-2 sm:text-2xl">LISTEN / PARTEIEN</h2>
+              <p className="mb-3 text-sm text-gray-700 sm:mb-4 sm:text-base">(Kreislisten)</p>
+            </div>
+
+            {kreisParteien.length ? (
+              <div className="space-y-2">
+                {kreisParteien.map((partei, index) => (
+                  <div key={index} className="ballot-option relative group">
+                    <label className="flex items-center gap-3 cursor-pointer w-full">
+                      <input
+                        type="radio"
+                        name="kreis"
+                        value={partei.kuerzel}
+                        checked={selectedKreis === partei.kuerzel}
+                        onChange={(e) => setSelectedKreis(e.target.value)}
+                        disabled={!canVote}
+                        className="ballot-checkbox"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-base font-bold text-gray-900 sm:text-lg">{partei.kuerzel}</div>
+                        <div className="text-xs text-gray-700 sm:text-sm">{partyFullName(partei.kuerzel) || partei.name}</div>
+                      </div>
+                    </label>
+                    {showAux ? (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleClaraInfo('partei', partei);
+                        }}
+                        className="rounded-lg p-1.5 flex items-center justify-center hover:opacity-90 transition-opacity border"
+                        style={GOV_INFO_BTN}
+                        aria-label={`Clara Info zu ${partei.kuerzel}`}
+                      >
+                        Info
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-700">
+                In der Demo sind für diese Kreiswahl aktuell nur Basisdaten hinterlegt.
+              </p>
+            )}
+          </div>
+
+          {kreisKandidaten.length && showAux ? (
+            <div className="ballot-paper border-2 border-gray-900 p-3 sm:p-6">
+              <div className="mb-4 sm:mb-6">
+                <h2 className="mb-1.5 text-xl font-bold text-gray-900 sm:mb-2 sm:text-2xl">AMT / PERSON</h2>
+                <p className="mb-3 text-sm text-gray-700 sm:mb-4 sm:text-base">(z. B. Landrat – Informationsbereich)</p>
+              </div>
+              <div className="space-y-2">
+                {kreisKandidaten.map((kandidat, index) => (
+                  <div key={index} className="ballot-option relative group">
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="ballot-checkbox opacity-30" aria-hidden />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base font-bold text-gray-900 sm:text-lg">{index + 1}.</span>
+                          <span className="text-base font-bold text-gray-900 sm:text-lg">{kandidat.name}</span>
+                        </div>
+                        <div className="mt-0.5 text-xs text-gray-700 sm:mt-1 sm:text-sm">
+                          {kandidat.parteiLang || partyFullName(kandidat.partei)}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleClaraInfo('kandidat', kandidat);
+                      }}
+                      className="rounded-lg p-1.5 flex items-center justify-center hover:opacity-90 transition-opacity border"
+                      style={GOV_INFO_BTN}
+                      aria-label={`Clara Info zu ${kandidat.name}`}
+                    >
+                      Info
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {showAux ? (
+            <div className="text-center py-4">
+              <button
+                onClick={() => handleOpenClaraChat('Ich habe Fragen zu dieser Kreiswahl – Parteien, Zuständigkeiten, Kandidaten')}
+                className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-xl font-semibold hover:shadow-lg transition-all border border-white/30"
+                style={{ background: CLARA_GRADIENT, boxShadow: '0 2px 12px rgba(124, 58, 237, 0.35)' }}
+              >
+                Frag Clara zu dieser Wahl
+              </button>
+            </div>
+          ) : null}
+
+          <div className="text-center pb-6">
+            {introMode ? (
+              <p className="text-sm text-gray-600 px-2">
+                {t(
+                  'In der App wählst du bei Kreiswahlen typischerweise eine Liste/Partei – hier als kompakte Demo-Ansicht.',
+                  'In der App wählen Sie bei Kreiswahlen typischerweise eine Liste/Partei – hier als kompakte Demo-Ansicht.',
+                )}
+              </p>
+            ) : (
+              <button
+                onClick={handleVote}
+                disabled={!canVote || !selectedKreis}
+                className={`rounded-lg px-6 py-3 text-base font-bold transition-all sm:px-12 sm:py-4 sm:text-xl ${
+                  canVote && selectedKreis
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg'
+                    : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                }`}
+              >
+                {!canVote
+                  ? 'Ergebnis ansehen (nicht mehr abstimmbar)'
+                  : selectedKreis
+                    ? 'Teilnahme in Demo bestaetigen'
+                    : 'Bitte Liste auswaehlen'}
               </button>
             )}
           </div>
@@ -770,7 +1097,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                 boxShadow: '0 2px 8px rgba(0, 51, 102, 0.2)',
               }}
             >
-              <p className="text-sm font-bold">Sie haben 1 Stimme</p>
+              <p className="text-sm font-bold">{t('Du hast 1 Stimme', 'Sie haben 1 Stimme')}</p>
             </div>
           </div>
 
@@ -801,7 +1128,13 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       </div>
                       <div className="text-sm text-gray-700 mt-0.5 break-words">{kandidat.parteiLang}</div>
                       <div className="text-xs text-gray-600 mt-0.5 break-words">
-                        {kandidat.beruf} • {kandidat.alter} Jahre • {kandidat.wohnort}
+                        {[
+                          (kandidat as any).beruf,
+                          typeof (kandidat as any).alter === 'number' ? `${(kandidat as any).alter} Jahre` : null,
+                          (kandidat as any).wohnort,
+                        ]
+                          .filter(Boolean)
+                          .join(' • ')}
                       </div>
                     </div>
                   </label>
@@ -841,10 +1174,19 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
               {introMode ? (
                 <p className="text-sm text-gray-600 px-2">
                   {kommuneBallot === 'viernheim'
-                    ? 'In Viernheim wählen Sie z. B. den Gemeinderat – ein Kreuz bei der Person, wie auf dem Papierstimmzettel.'
+                    ? t(
+                        'In Viernheim wählst du z. B. den Gemeinderat – ein Kreuz bei der Person, wie auf dem Papierstimmzettel.',
+                        'In Viernheim wählen Sie z. B. den Gemeinderat – ein Kreuz bei der Person, wie auf dem Papierstimmzettel.',
+                      )
                     : kommuneBallot === 'heidelberg'
-                      ? 'In Heidelberg wählen Sie den Gemeinderat – vergleichbar zum Papierstimmzettel.'
-                      : 'In Kirkel wählen Sie z. B. den Gemeinderat – ein Kreuz bei der Liste oder Person, wie auf dem Papierstimmzettel.'}
+                      ? t(
+                          'In Heidelberg wählst du den Gemeinderat – vergleichbar zum Papierstimmzettel.',
+                          'In Heidelberg wählen Sie den Gemeinderat – vergleichbar zum Papierstimmzettel.',
+                        )
+                      : t(
+                          'In Kirkel wählst du z. B. den Gemeinderat – ein Kreuz bei der Liste oder Person, wie auf dem Papierstimmzettel.',
+                          'In Kirkel wählen Sie z. B. den Gemeinderat – ein Kreuz bei der Liste oder Person, wie auf dem Papierstimmzettel.',
+                        )}
                 </p>
               ) : (
                 <button
@@ -869,6 +1211,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
         <ClaraInfoModal
           data={showClaraInfo.data}
           type={showClaraInfo.type}
+          du={du}
           onClose={() => setShowClaraInfo(null)}
           onOpenChat={handleOpenClaraChat}
         />

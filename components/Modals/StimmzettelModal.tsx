@@ -48,7 +48,6 @@ const StimmzettelModal: React.FC = () => {
   if (!state.showStimmzettel || !state.selectedWahl) return null;
 
   // Bestimme Wahl-Level basierend auf selectedWahl
-  // Hinweis: OriginalStimmzettel unterstützt nur bund/land/kommune. Kreis-Wahlen werden daher als Ergebnis-/Infoansicht gerendert.
   let level: 'bund' | 'land' | 'kommune' | 'kreis' = 'bund';
   
   // Prüfe zuerst das level-Feld direkt
@@ -104,61 +103,17 @@ const StimmzettelModal: React.FC = () => {
                       {isVotingOpen ? 'Laeuft aktuell (Demo-Teilnahme moeglich)' : 'Abgeschlossen / Ergebnisansicht (nicht mehr abstimmbar)'}
                     </div>
 
-                    {level === 'kreis' ? (
-                      <div className="space-y-3">
-                        <div className="rounded-xl border border-neutral-200 bg-white p-3 text-[11px] text-neutral-800">
-                          <p className="font-semibold text-neutral-900">Hinweis</p>
-                          <p className="mt-1 leading-relaxed text-neutral-700">
-                            Für Kreiswahlen ist in dieser Demo kein originalgetreuer Stimmzettel hinterlegt. Diese Ansicht zeigt eine Ergebnis-/Informationsansicht.
-                          </p>
-                        </div>
-
-                        <div className="rounded-xl border border-neutral-200 bg-white p-3">
-                          <div className="text-[11px] font-semibold text-neutral-900">Wahlergebnis</div>
-                          {state.selectedWahl?.ergebnis?.parteien?.length ? (
-                            <div className="mt-2 space-y-1">
-                              {typeof state.selectedWahl.ergebnis.wahlbeteiligung === 'number' && (
-                                <div className="text-[10px] text-neutral-600">
-                                  Wahlbeteiligung:{' '}
-                                  <span className="font-semibold text-neutral-800">
-                                    {state.selectedWahl.ergebnis.wahlbeteiligung}%
-                                  </span>
-                                </div>
-                              )}
-                              {state.selectedWahl.ergebnis.parteien.map((p: any) => (
-                                <div key={p.partei} className="flex items-center justify-between gap-3 text-[11px] text-neutral-800">
-                                  <span className="min-w-0 truncate">{p.partei}</span>
-                                  <span className="font-semibold">{p.prozent}%</span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="mt-2 text-[11px] text-neutral-700">
-                              Ergebnisdaten sind in der Demo für diese Kreiswahl noch nicht hinterlegt.
-                            </p>
-                          )}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleOpenClaraChat('Ich habe Fragen zu dieser Kreiswahl – Parteien, Kandidaten, Zuständigkeiten')}
-                          className="w-full rounded-xl py-3 text-[11px] font-semibold text-white"
-                          style={{ background: 'var(--gov-btn, #0066cc)' }}
-                        >
-                          Mit Clara klären (neutral)
-                        </button>
-                      </div>
-                    ) : (
-                      <OriginalStimmzettel
-                        level={level as any}
-                        wahlkreis={state.selectedWahl?.wahlkreis}
-                        canVote={isVotingOpen}
-                        kommuneBallot={level === 'kommune' ? kommuneBallot : undefined}
-                        onVote={handleVote}
-                        onKIAnalysis={handleKIAnalysis}
-                        onOpenClaraChat={handleOpenClaraChat}
-                      />
-                    )}
+                    <OriginalStimmzettel
+                      level={level as any}
+                      wahlkreis={state.selectedWahl?.wahlkreis}
+                      selectedWahl={state.selectedWahl}
+                      du={state.anrede === 'du'}
+                      canVote={isVotingOpen}
+                      kommuneBallot={level === 'kommune' ? kommuneBallot : undefined}
+                      onVote={handleVote}
+                      onKIAnalysis={handleKIAnalysis}
+                      onOpenClaraChat={handleOpenClaraChat}
+                    />
                   </>
                 )}
               </div>

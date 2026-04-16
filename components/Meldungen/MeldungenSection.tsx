@@ -13,12 +13,12 @@ type MeldungKategorie =
   | 'gruenanlage'
   | 'sonstiges';
 
-const KATEGORIEN: { id: MeldungKategorie; label: string; code: string; hint: string }[] = [
-  { id: 'strasse',     label: 'Straße / Weg',   code: 'S', hint: 'Schlaglöcher, beschädigter Gehweg, Beschilderung' },
-  { id: 'spielplatz',  label: 'Spielplatz',     code: 'P', hint: 'Defekte Geräte, fehlende Absicherung' },
-  { id: 'beleuchtung', label: 'Beleuchtung',    code: 'B', hint: 'Ausgefall. Straßenlaterne, dunkle Wege' },
-  { id: 'gruenanlage', label: 'Grünanlage',     code: 'G', hint: 'Verwildert, umgestürzter Baum, Müll' },
-  { id: 'sonstiges',   label: 'Sonstiges',      code: 'X', hint: 'Andere Meldungen an die Gemeinde' },
+const KATEGORIEN: { id: MeldungKategorie; label: string; hint: string }[] = [
+  { id: 'strasse',     label: 'Straße / Weg',   hint: 'Schlaglöcher, beschädigter Gehweg, Beschilderung' },
+  { id: 'spielplatz',  label: 'Spielplatz',     hint: 'Defekte Geräte, fehlende Absicherung' },
+  { id: 'beleuchtung', label: 'Beleuchtung',    hint: 'Ausgefall. Straßenlaterne, dunkle Wege' },
+  { id: 'gruenanlage', label: 'Grünanlage',     hint: 'Verwildert, umgestürzter Baum, Müll' },
+  { id: 'sonstiges',   label: 'Sonstiges',      hint: 'Andere Meldungen an die Gemeinde' },
 ];
 
 type Step = 'kategorie' | 'details' | 'bestaetigt';
@@ -112,9 +112,6 @@ export default function MeldungenSection() {
                 className="w-full flex items-center gap-3 p-4 bg-white rounded-2xl border text-left transition-all hover:border-[#0055A4] hover:shadow-sm group"
                 style={{ borderColor: 'var(--gov-border, #D6E0EE)' }}
               >
-                <span className="text-[#0055A4] flex-shrink-0 rounded-md border border-[#BFD9FF] bg-[#E8F0FB] px-2 py-1 text-[11px] font-bold">
-                  {k.code}
-                </span>
                 <div>
                   <div className="text-sm font-semibold text-[#1A2B45]">{k.label}</div>
                   <div className="text-xs text-gray-500 mt-0.5">{k.hint}</div>
@@ -170,7 +167,6 @@ export default function MeldungenSection() {
           </button>
 
           <div className="bg-[#E8F0FB] rounded-xl p-3 mb-4 flex items-center gap-2">
-            <span className="text-[#0055A4] rounded-md border border-[#BFD9FF] bg-white px-2 py-1 text-[11px] font-bold">{selectedKat.code}</span>
             <span className="text-sm font-semibold text-[#003366]">{selectedKat.label}</span>
           </div>
 

@@ -310,11 +310,13 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
   const communeKey = introCommuneVoteKey(residenceLocation);
   const communeName = COMMUNE_DISPLAY[communeKey] ?? communeKey;
   const previewCard = VOTING_DATA[communeKey]?.cards?.[0] ?? VOTING_DATA.kirkel.cards[0];
+  const du = _du;
   const steps = INTRO_OVERLAY_STEPS;
 
   const [idx, setIdx] = useState(0);
   const step = steps[idx];
   const isLast = idx >= steps.length - 1;
+  const isAbstimmenStep = step.id === 'abstimmen';
   const previewMaxHeight =
     step.id === 'praemien'
       ? 'min(70vh, 560px)'
@@ -343,6 +345,7 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
                 wahlkreis="Saarbrücken"
                 canVote
                 introMode
+                du={du}
                 onVote={noopVote}
                 onKIAnalysis={noopKi}
               />
@@ -351,7 +354,11 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
         );
       case 'kalender':
         return (
-          <IntroScreenshotOrPreview src={INTRO_SCREENSHOTS.kalender} alt="Bereich Kalender">
+          <IntroScreenshotOrPreview
+            src={INTRO_SCREENSHOTS.kalender}
+            alt="Bereich Kalender"
+            useScreenshot={false}
+          >
             <IntroKalenderPreview />
           </IntroScreenshotOrPreview>
         );
@@ -366,7 +373,7 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
       default:
         return null;
     }
-  }, [step.id, previewCard, communeName]);
+  }, [step.id, previewCard, communeName, du]);
 
   return (
     <div
@@ -416,10 +423,10 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
 
       {/* Inhalt: Abschnitt, Fließtext, Vorschau */}
       <div className="hide-scrollbar min-h-0 flex-1 touch-pan-y overflow-y-auto overflow-x-hidden overscroll-contain px-3 pb-3 sm:px-4">
-        <div className="space-y-3">
+        <div className={isAbstimmenStep ? 'space-y-2' : 'space-y-3'}>
           <p className="text-[12px] font-bold leading-snug text-white/95">{step.title}</p>
-          <div className="space-y-2.5">
-            {step.body
+          <div className={isAbstimmenStep ? 'space-y-1.5' : 'space-y-2.5'}>
+            {(isAbstimmenStep ? step.body.replace(/\n\n+/g, '\n') : step.body)
               .split(/\n\n+/)
               .map((block) => block.trim())
               .filter(Boolean)
@@ -434,12 +441,12 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
           </div>
         </div>
 
-        <div className="mt-4 rounded-xl border border-neutral-200/95 bg-white p-2.5 shadow-sm">
+        <div className={`${isAbstimmenStep ? 'mt-2.5' : 'mt-4'} rounded-xl border border-neutral-200/95 bg-white p-2.5 shadow-sm`}>
           <div
             className="hide-scrollbar flex-shrink-0 overflow-x-hidden overflow-y-auto overscroll-contain"
             style={{ maxHeight: previewMaxHeight }}
           >
-            {preview}
+            <div key={step.id}>{preview}</div>
           </div>
         </div>
 

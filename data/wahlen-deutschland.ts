@@ -712,6 +712,19 @@ const LTW_SAARLAND: Wahl = {
       socialMedia: { twitter: 'https://twitter.com/AnkeRehlinger', instagram: 'https://www.instagram.com/ankerehlinger/', facebook: 'https://www.facebook.com/AnkeRehlinger' },
       standDatum: '2026-01-24',
     },
+    {
+      name: 'Tobias Hans',
+      partei: 'CDU',
+      emoji: '👨‍💼',
+      alter: 44,
+      beruf: 'Ehem. Ministerpräsident, Politiker',
+      positionen: ['Wirtschaft', 'Sicherheit', 'Infrastruktur', 'Familienpolitik'],
+      claraInfo:
+        'Ministerpräsident des Saarlandes 2018–2022 (CDU) und Spitzenkandidat der CDU Saar für die Landtagswahl 2022 [1].',
+      quellen: ['[1] Wikipedia: Tobias Hans'],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Tobias_Hans',
+      standDatum: '2026-01-24',
+    },
   ],
   parteien: [
     { name: 'SPD', programm: 'Soziale Gerechtigkeit, Industriepolitik, Klimaschutz, Bildungsinvestitionen, gute Arbeit.' },

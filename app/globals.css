@@ -869,6 +869,7 @@ select:focus-visible {
   border-radius: 0; /* Keine Rundungen - originalgetreu */
   padding: var(--space-6, 24px);
   font-family: Arial, -apple-system, system-ui, sans-serif;
+  font-size: 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -894,13 +895,13 @@ select:focus-visible {
 
 /* Ballot Checkbox (Originalgetreu, aber touch-optimiert) */
 .ballot-checkbox {
-  width: 48px; /* Größer als Original (10mm ≈ 38px) für Touch */
-  height: 48px;
-  min-width: 48px;
-  min-height: 48px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
   border: 2px solid var(--text-dark, #000000);
   border-radius: 0; /* Keine Rundungen - originalgetreu */
-  margin-right: var(--space-4, 16px);
+  margin-right: 10px;
   /* Browser-spezifische Reset */
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -930,7 +931,7 @@ select:focus-visible {
   -webkit-transform: translate(-50%, -50%);
   -ms-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
-  font-size: 32px;
+  font-size: 24px;
   font-weight: bold;
   color: var(--text-dark, #000000);
   line-height: 1;
@@ -990,31 +991,32 @@ select:focus-visible {
 /* Mobile Optimierungen */
 @media (max-width: 768px) {
   .ballot-paper {
-    padding: var(--space-4, 16px);
+    padding: var(--space-3, 12px);
+    font-size: 12px;
   }
   
   .ballot-checkbox {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    min-height: 26px;
   }
   
   .ballot-checkbox:checked::after {
-    font-size: 28px;
+    font-size: 18px;
   }
   
   .ballot-info-trigger {
     opacity: 1;
     visibility: visible;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     right: var(--space-1, 4px);
   }
   
   .ballot-option {
-    min-height: 56px; /* Größer für Touch */
-    padding: var(--space-2, 8px);
+    min-height: 38px;
+    padding: 5px;
   }
 }
 

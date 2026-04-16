@@ -111,6 +111,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
     dispatch({ type: 'SET_PREFERENCES', payload: { [key]: value } });
   };
 
+  const applyPreset = (preset: Partial<UserPreferences>) => {
+    dispatch({ type: 'SET_PREFERENCES', payload: preset });
+  };
+
   const handleProceedToApp = () => {
     dispatch({ type: 'SET_LOGGED_IN', payload: true });
   };
@@ -251,6 +255,50 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                   </span>
                 </label>
 
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(
+                    [
+                      {
+                        id: 'neutral',
+                        label: 'Neutral',
+                        values: { umwelt: 50, finanzen: 50, bildung: 50, digital: 50, soziales: 50, sicherheit: 50 },
+                      },
+                      {
+                        id: 'klima',
+                        label: 'Klima',
+                        values: { umwelt: 80, finanzen: 45, bildung: 55, digital: 50, soziales: 55, sicherheit: 45 },
+                      },
+                      {
+                        id: 'wirtschaft',
+                        label: 'Wirtschaft',
+                        values: { umwelt: 45, finanzen: 80, bildung: 55, digital: 60, soziales: 45, sicherheit: 55 },
+                      },
+                      {
+                        id: 'sicherheit',
+                        label: 'Sicherheit',
+                        values: { umwelt: 45, finanzen: 55, bildung: 50, digital: 55, soziales: 45, sicherheit: 80 },
+                      },
+                    ] as const
+                  ).map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => applyPreset(p.values)}
+                      disabled={!state.consentClaraPersonalization}
+                      className="rounded-full border px-3 py-1 text-[11px] font-semibold transition"
+                      style={{
+                        borderColor: 'var(--gov-border)',
+                        background: state.consentClaraPersonalization ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.60)',
+                        color: 'var(--gov-heading)',
+                        opacity: state.consentClaraPersonalization ? 1 : 0.55,
+                        cursor: state.consentClaraPersonalization ? 'pointer' : 'not-allowed',
+                      }}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+
                 <div className="mt-4 space-y-3.5">
                   {Object.entries(THEME_NAMES).map(([key, name]) => (
                     <div key={key}>
@@ -262,9 +310,30 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                           {state.preferences[key as keyof UserPreferences]}%
                         </span>
                       </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={5}
+                        value={state.preferences[key as keyof UserPreferences]}
+                        onChange={(e) => handlePreferenceChange(key as keyof UserPreferences, Number(e.target.value))}
+                        disabled={!state.consentClaraPersonalization}
+                        aria-label={`${name} Priorität`}
+                        className="w-full h-2 rounded-full"
+                        style={{
+                          ...sliderTrackStyle(state.preferences[key as keyof UserPreferences]),
+                          opacity: state.consentClaraPersonalization ? 1 : 0.55,
+                          cursor: state.consentClaraPersonalization ? 'pointer' : 'not-allowed',
+                        }}
+                      />
                     </div>
                   ))}
                 </div>
+                {!state.consentClaraPersonalization && (
+                  <p className="mt-3 text-[10px] leading-snug" style={{ color: 'var(--gov-muted)' }}>
+                    Hinweis: Schieberegler werden erst genutzt, wenn die Einwilligung aktiviert ist.
+                  </p>
+                )}
               </div>
             )}
           </div>

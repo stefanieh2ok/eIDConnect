@@ -959,7 +959,9 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
           {!showArchiv ? (
             <>
               <p className="text-[11px] font-medium text-slate-700">
-                Aktuell ist keine Wahl geoeffnet. Nachfolgend sehen Sie die letzten verfuegbaren Ergebnisse.
+                {state.anrede === 'du'
+                  ? 'Aktuell ist keine Wahl geöffnet. Nachfolgend siehst du die letzten verfügbaren Ergebnisse.'
+                  : 'Aktuell ist keine Wahl geöffnet. Nachfolgend sehen Sie die letzten verfügbaren Ergebnisse.'}
               </p>
               <button
                 type="button"
@@ -1025,22 +1027,26 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
           };
           const canParticipate = status === 'offen';
           return (
-            <div key={wahl.id} className="glass-panel rounded-2xl p-5 mb-4 border border-gray-200/60">
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h3 className="text-lg font-bold" style={{ color: 'var(--gov-heading)' }}>{wahl.name}</h3>
-                  {wahl.datum !== 'aktuell' && <div className="text-[11px] text-gray-600 mt-1">{wahl.datum}</div>}
+            <div key={wahl.id} className="glass-panel rounded-2xl p-4 sm:p-5 mb-4 border border-gray-200/60">
+              <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <h3 className="text-lg font-bold leading-snug break-words" style={{ color: 'var(--gov-heading)' }}>
+                    {wahl.name}
+                  </h3>
+                  {wahl.datum !== 'aktuell' && (
+                    <div className="mt-1 text-[11px] text-gray-600">{wahl.datum}</div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex w-full flex-wrap items-center justify-start gap-1.5 sm:w-auto sm:justify-end">
                   {hasVoted && (
-                    <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-800">
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-800 whitespace-nowrap">
                       Bereits abgestimmt
                     </span>
                   )}
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${statusClass[status]}`}>
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${statusClass[status]}`}>
                     {statusBadge[status]}
                   </span>
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${badge.bg} ${badge.text}`}>
+                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${badge.bg} ${badge.text}`}>
                     {badge.label}
                   </span>
                 </div>

@@ -124,6 +124,62 @@ export function mergeCommunalVotes2026(
 /** Prämien-Liste für eine beliebige Kommune (Demo, regional formuliert). */
 export function regionalPraemienForCity(cityName: string) {
   const c = cityName.trim() || 'Kommune';
+  const norm = c.toLowerCase();
+
+  // Kirkel (Demo-Kernkommune): lokal plausibel, ohne konkrete Partner-Namen zu behaupten.
+  if (norm === 'kirkel' || norm.includes('kirkel')) {
+    return [
+      {
+        id: 'rk1',
+        name: 'Kirkel – Bücherei/Jugendangebot: Jahreskarte',
+        points: 2200,
+        emoji: '📚',
+        description: 'Kommunales Angebot (Demo)',
+      },
+      {
+        id: 'rk2',
+        name: 'Kirkel – Schwimmbad/Sport: 10er-Karte',
+        points: 3200,
+        emoji: '🏊',
+        description: 'Freizeitangebot vor Ort (Demo)',
+      },
+      {
+        id: 'rk3',
+        name: 'Kirkel – Vereinsleben: Zuschuss für Mitgliedsbeitrag',
+        points: 3800,
+        emoji: '🤝',
+        description: 'Sport/Kultur/Soziales (Demo)',
+      },
+      {
+        id: 'rk4',
+        name: 'Kirkel & Saarpfalz-Kreis – ÖPNV: Monatsbonus',
+        points: 6200,
+        emoji: '🚌',
+        description: 'Nahverkehr in der Region (Demo)',
+      },
+      {
+        id: 'rk5',
+        name: 'Kirkel – Lokaler Einkauf: Gutschein 10€',
+        points: 4200,
+        emoji: '🛒',
+        description: 'Einlösbar bei lokalen Partnern (Demo)',
+      },
+      {
+        id: 'rk6',
+        name: 'Kirkel – Natur & Klima: Baum-/Blühpatenschaft',
+        points: 2600,
+        emoji: '🌿',
+        description: 'Gemeindliches Umweltprojekt (Demo)',
+      },
+      {
+        id: 'rk7',
+        name: 'Kirkel – Bürgerabend: Einladung + Getränk',
+        points: 1800,
+        emoji: '🏛️',
+        description: 'Dialogformat vor Ort (Demo)',
+      },
+    ];
+  }
   return [
     { id: 'rp1', name: `Stadtbibliothek / Bücherei ${c} – Jahreskarte`, points: 2500, emoji: '📚', description: 'Kostenlose Jahreskarte' },
     { id: 'rp2', name: `Laden- & Gastronomie-Gutschein ${c} 15€`, points: 4000, emoji: '🛒', description: 'Lokale Partner' },
