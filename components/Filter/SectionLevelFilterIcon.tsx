@@ -100,8 +100,7 @@ export function SectionLevelFilterIcon({ section }: Props) {
         payload: activeLocationForLevel(state.residenceLocation, next),
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [section]);
+  }, [section, state.residenceLocation, availableLevels, currentLevel, dispatch]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

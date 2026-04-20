@@ -49,6 +49,8 @@ export const NDA_SIGNATURE_LABEL_DISCLOSING = 'Stefanie Hook (Offenlegende Parte
 /** Bezeichnung Unterschrift Empfangende Partei (Druck/PDF) – eine Zeile, ein GF reicht */
 export const NDA_SIGNATURE_LABEL_RECEIVING =
   'Governikus GmbH & Co. KG (Empfangende Partei) – Name / Funktion / Unterschrift';
+export const NDA_SIGNATURE_LABEL_RECEIVING_GENERIC =
+  'Personalisierter Empfänger (Empfangende Partei) – Name / Funktion / Unterschrift';
 
 /** Hinweis unter der Unterschriftszeile Empfangende Partei */
 export const NDA_SIGNATURE_HINT_RECEIVING =
@@ -252,27 +254,68 @@ Im Übrigen gelten die gesetzlichen Gerichtsstandsregelungen.
 
 Sollten einzelne Bestimmungen dieser Vereinbarung ganz oder teilweise unwirksam oder undurchführbar sein oder werden, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt. Anstelle der unwirksamen oder undurchführbaren Bestimmung gilt eine wirksame Regelung als vereinbart, die dem wirtschaftlichen Zweck der weggefallenen Regelung am nächsten kommt.`;
 
+const NDA_RECEIVING_BLOCK_GOVERNIKUS = `Governikus GmbH & Co. KG
+z. Hd. der Geschäftsführung
+Herrn Dr. Stephan Klein und Herrn Hartje Bruns
+Hochschulring 4
+28359 Bremen
+
+– nachfolgend „Empfangende Partei“ –`;
+
+const NDA_RECEIVING_BLOCK_GENERIC = `Personalisierter Empfänger laut Zugangslink
+(gemäß registrierter E-Mail-Adresse)
+
+– nachfolgend „Empfangende Partei“ –`;
+
+const NDA_FULL_TEXT_GENERIC = NDA_FULL_TEXT.replace(
+  /und\s*\n\s*Governikus[\s\S]*?gemeinsam auch „die Parteien“\./m,
+  `und
+
+${NDA_RECEIVING_BLOCK_GENERIC}
+
+gemeinsam auch „die Parteien“.`
+);
+
+function isGovernikusRecipient(email?: string | null, company?: string | null): boolean {
+  const e = (email ?? '').trim().toLowerCase();
+  const c = (company ?? '').trim().toLowerCase();
+  return e.endsWith('@governikus.de') || c.includes('governikus');
+}
+
+export function getNdaConfigForRecipient(input?: {
+  email?: string | null;
+  company?: string | null;
+}) {
+  const gov = isGovernikusRecipient(input?.email, input?.company);
+  const version = gov ? 'v3.1.0-gov' : 'v3.1.0-generic';
+  const fullText = (gov ? NDA_FULL_TEXT : NDA_FULL_TEXT_GENERIC).trim();
+  return {
+    version,
+    gateSummary: NDA_GATE_SUMMARY,
+    fullText,
+    header: NDA_HEADER,
+    footer: NDA_FOOTER,
+    buttonText: NDA_BUTTON_TEXT,
+    errorSave: NDA_ERROR_SAVE,
+    checkboxText: NDA_CHECKBOX_TEXT,
+    hintAboveCheckbox: NDA_HINT_ABOVE_CHECKBOX,
+    sentenceBelowButton: NDA_SENTENCE_BELOW_BUTTON,
+    signatureImagePath: NDA_SIGNATURE_IMAGE_PATH,
+    signatureLabelDisclosing: NDA_SIGNATURE_LABEL_DISCLOSING,
+    signatureLabelReceiving: gov ? NDA_SIGNATURE_LABEL_RECEIVING : NDA_SIGNATURE_LABEL_RECEIVING_GENERIC,
+    signatureHintReceiving: NDA_SIGNATURE_HINT_RECEIVING,
+    returnEmailPrimary: NDA_RETURN_EMAIL_PRIMARY,
+    returnEmailSecondary: NDA_RETURN_EMAIL_SECONDARY,
+  };
+}
+
 export const ndaConfig = {
-  version: 'v3.0.0',
-  gateSummary: NDA_GATE_SUMMARY,
-  fullText: NDA_FULL_TEXT.trim(),
-  header: NDA_HEADER,
-  footer: NDA_FOOTER,
-  buttonText: NDA_BUTTON_TEXT,
-  errorSave: NDA_ERROR_SAVE,
-  checkboxText: NDA_CHECKBOX_TEXT,
-  hintAboveCheckbox: NDA_HINT_ABOVE_CHECKBOX,
-  sentenceBelowButton: NDA_SENTENCE_BELOW_BUTTON,
-  signatureImagePath: NDA_SIGNATURE_IMAGE_PATH,
-  signatureLabelDisclosing: NDA_SIGNATURE_LABEL_DISCLOSING,
-  signatureLabelReceiving: NDA_SIGNATURE_LABEL_RECEIVING,
-  signatureHintReceiving: NDA_SIGNATURE_HINT_RECEIVING,
-  returnEmailPrimary: NDA_RETURN_EMAIL_PRIMARY,
-  returnEmailSecondary: NDA_RETURN_EMAIL_SECONDARY,
+  ...getNdaConfigForRecipient(),
 };
 
-export function getNdaDocumentHash(): string {
+export function getNdaDocumentHash(input?: { email?: string | null; company?: string | null }): string {
+  const cfg = getNdaConfigForRecipient(input);
   return createHash('sha256')
-    .update(`${ndaConfig.version}::${ndaConfig.fullText}`, 'utf8')
+    .update(`${cfg.version}::${cfg.fullText}`, 'utf8')
     .digest('hex');
 }

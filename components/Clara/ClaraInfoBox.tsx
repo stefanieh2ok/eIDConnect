@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { VotingCard } from '@/types';
 import { ClaraAI } from '@/services/claraAI';
 import { useApp } from '@/context/AppContext';
@@ -25,7 +25,10 @@ const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
   const { speak, stopSpeaking } = useClaraVoice();
   
   const addressMode = state.anrede === 'sie' ? 'sie' : 'du';
-  const claraAI = new ClaraAI(state.preferences, state.consentClaraPersonalization, addressMode);
+  const claraAI = useMemo(
+    () => new ClaraAI(state.preferences, state.consentClaraPersonalization, addressMode),
+    [state.preferences, state.consentClaraPersonalization, addressMode],
+  );
   const analysis = claraAI.analyzeVotingCard(card);
 
   const deepDiveEnabled = isExpanded;
@@ -44,7 +47,7 @@ const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
     }
   };
 
-  const handleLoadDeepDive = async () => {
+  const handleLoadDeepDive = useCallback(async () => {
     if (!deepDiveEnabled) return;
     setDeepDiveError(null);
     setDeepDiveLoading(true);
@@ -56,7 +59,19 @@ const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
     } finally {
       setDeepDiveLoading(false);
     }
-  };
+  }, [deepDiveEnabled, claraAI, card, isFormal]);
+
+  useEffect(() => {
+    setDeepDiveText(null);
+    setDeepDiveError(null);
+    setIsExpanded(false);
+  }, [card.id]);
+
+  useEffect(() => {
+    if (!isExpanded) return;
+    if (deepDiveText || deepDiveLoading) return;
+    void handleLoadDeepDive();
+  }, [isExpanded, deepDiveText, deepDiveLoading, handleLoadDeepDive]);
 
   return (
     <div className="space-y-3 mb-3">
@@ -75,7 +90,7 @@ const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
             KI
           </div>
           <div>
-              <h4 className="font-semibold text-sm" style={{ color: LAVENDER.text }}>Clara-Analyse</h4>
+              <h4 className="font-semibold text-sm" style={{ color: LAVENDER.text }}>Clara – Digitale Assistentin</h4>
               <p className="text-xs text-gray-600">
                 {personalizationEnabled
                   ? isFormal

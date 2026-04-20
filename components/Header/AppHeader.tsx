@@ -463,32 +463,43 @@ const AppHeader: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Row 2: Section Navigation ── */}
-      {/* Kein Horizontal-Scroll: alle Tabs sichtbar inkl. Meldungen */}
-      <div className="flex flex-wrap gap-1 px-2 pb-1.5">
-        {NAV_ITEMS.map((item) => {
-          const isActive = state.activeSection === item.section;
-          const showItem = !item.kommuneOnly || residencePath.includes('kommune');
-          if (!showItem) return null;
-          return (
-            <button
-              key={item.section}
-              id={item.section === 'live' ? 'tour-voting-btn'
-                : item.section === 'meldungen' ? 'tour-melden-btn'
-                : undefined}
-              onClick={() =>
-                dispatch({ type: 'SET_ACTIVE_SECTION', payload: item.section })
-              }
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all ${
-                isActive
-                  ? 'bg-[#003366] text-white shadow-sm'
-                  : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900'
-              }`}
-            >
-              {item.label}
-            </button>
-          );
-        })}
+      {/* ── Row 2: Section Navigation ──
+          Senior-UI: eigener Kontrast-Streifen statt „Pillen auf Glas“ — aktiver Tab invertiert (hell auf dunkel),
+          inaktiv dezent hell; so wirkt die Menüzeile nicht mehr unter dem Seiteninhalt „weg“. */}
+      <div
+        className="border-t border-white/10 px-2 pb-2 pt-1.5"
+        style={{
+          background: 'linear-gradient(180deg, #002855 0%, #003366 55%, #002f5c 100%)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+        }}
+      >
+        <div className="flex flex-wrap items-stretch justify-center gap-1 sm:justify-start">
+          {NAV_ITEMS.map((item) => {
+            const isActive = state.activeSection === item.section;
+            const showItem = !item.kommuneOnly || residencePath.includes('kommune');
+            if (!showItem) return null;
+            return (
+              <button
+                key={item.section}
+                id={
+                  item.section === 'live'
+                    ? 'tour-voting-btn'
+                    : item.section === 'meldungen'
+                      ? 'tour-melden-btn'
+                      : undefined
+                }
+                onClick={() => dispatch({ type: 'SET_ACTIVE_SECTION', payload: item.section })}
+                className={`min-h-[40px] flex flex-1 basis-0 items-center justify-center gap-1 rounded-full px-2 py-2 text-[11px] whitespace-nowrap transition-all sm:min-h-0 sm:flex-none sm:px-3 ${
+                  isActive
+                    ? 'bg-white font-extrabold text-[#003366] shadow-md ring-1 ring-white/80'
+                    : 'font-semibold text-white/85 hover:bg-white/12 hover:text-white active:bg-white/18'
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {settingsModal}

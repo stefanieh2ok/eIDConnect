@@ -173,7 +173,10 @@ export async function POST(request: NextRequest) {
 
     if (process.env.RESEND_API_KEY) {
       const from = process.env.SEND_ACCESS_EMAIL_FROM || 'HookAI Demo <onboarding@resend.dev>';
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+      const appUrl =
+        process.env.ACCESS_LINK_BASE_URL ||
+        process.env.NEXT_PUBLIC_APP_URL ||
+        request.nextUrl.origin;
       const adminLink = `${appUrl.replace(/\/$/, '')}/admin/access-requests`;
       const payload = {
         from,
@@ -195,9 +198,14 @@ export async function POST(request: NextRequest) {
           console.log('[Admin-Benachrichtigung] E-Mail an', notifyEmails.join(', '), 'gesendet.');
         } else if (
           notifyRes.status === 403 &&
-          errText.includes('only send testing emails to your own email') &&
-          !notifyEmails.includes(fallbackEmail)
+          errText.includes('only send testing emails to your own email')
         ) {
+          const alreadyFallbackOnly =
+            notifyEmails.length === 1 &&
+            notifyEmails[0].toLowerCase() === fallbackEmail.toLowerCase();
+          if (alreadyFallbackOnly) {
+            console.error('[Admin-Benachrichtigung] Testmodus-Block trotz Fallback-Adresse:', errText);
+          } else {
           notifyRes = await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
@@ -211,6 +219,7 @@ export async function POST(request: NextRequest) {
             console.log('[Admin-Benachrichtigung] Nach Resend-403 Fallback an', fallbackEmail, 'gesendet.');
           } else {
             console.error('[Admin-Benachrichtigung] Fallback Fehler:', notifyRes.status, errText);
+          }
           }
         } else {
           console.error('[Admin-Benachrichtigung] Fehler:', notifyRes.status, errText);

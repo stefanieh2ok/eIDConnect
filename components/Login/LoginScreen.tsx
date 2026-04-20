@@ -67,6 +67,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
     persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
   };
 
+  const handleEidDemoClick = () => {
+    cancelOnboardingSpotlight();
+    setStep(2);
+    // UI-Flow zuerst sichtbar weiterführen; eID-Daten danach synchronisieren.
+    // So wirkt der Button nie "tot", selbst wenn der Sync verzögert ist.
+    window.setTimeout(() => {
+      try {
+        applyEidKirkelDemo();
+      } catch {
+        /* noop: Weiter-Navigation bleibt stabil */
+      }
+    }, 0);
+  };
+
   /** Onboarding-Spotlight: eID → Weiter → Checkbox → Zur Demo-App */
   type OnboardingSpotlight = 'off' | 'eid' | 'weiter' | 'baro_check' | 'demo';
   const [onboardingSpotlight, setOnboardingSpotlight] = useState<OnboardingSpotlight>('off');
@@ -182,10 +196,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                   </p>
                   <button
                     type="button"
-                    onClick={() => {
-                      cancelOnboardingSpotlight();
-                      applyEidKirkelDemo();
-                    }}
+                    onClick={handleEidDemoClick}
                     onAnimationEnd={onOnboardingSpotlightAnimationEnd}
                     className={`btn-gov-primary mt-3 ${onboardingSpotlight === 'eid' ? 'onboarding-heartbeat' : ''}`}
                   >

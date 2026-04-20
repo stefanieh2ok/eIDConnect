@@ -54,10 +54,6 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
       sessionStorage.setItem(SESSION_KEY, 'true');
     } catch {}
     setOpen(false);
-    // Direkt im Anschluss das Produkt-Intro öffnen (damit es nicht „verschwindet“).
-    try {
-      window.dispatchEvent(new Event('eidconnect:open-intro'));
-    } catch {}
   }, [pending]);
 
   if (!open) return null;

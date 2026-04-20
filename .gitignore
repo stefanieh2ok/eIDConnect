@@ -48,3 +48,9 @@ next-env.d.ts
 
 # OS
 Thumbs.db
+
+.vercel
+
+# local debug/tooling artifacts
+.tmp_*.html
+/supabase/.temp/

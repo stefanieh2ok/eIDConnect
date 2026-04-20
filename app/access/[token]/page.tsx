@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { findAccessTokenByRawToken, isTokenExpired } from '@/lib/security/token';
-import { ndaConfig } from '@/config/nda';
+import { getNdaConfigForRecipient } from '@/config/nda';
 import { AcceptNdaButton } from '@/components/access/accept-nda-button';
 import { CheckboxAcceptButton } from '@/components/access/checkbox-accept-button';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
@@ -67,6 +67,34 @@ export default async function AccessPage({ params }: AccessPageProps) {
   if (isTokenExpired(tokenRecord.expires_at)) {
     redirect('/access/denied?reason=expired');
   }
+
+  const ndaConfig = getNdaConfigForRecipient({
+    email: tokenRecord.email,
+    company: tokenRecord.company,
+  });
+  const isGovRecipient =
+    tokenRecord.email.toLowerCase().endsWith('@governikus.de') ||
+    (tokenRecord.company ?? '').toLowerCase().includes('governikus');
+  const recipientBlock = [
+    tokenRecord.full_name,
+    tokenRecord.company ? tokenRecord.company : null,
+    tokenRecord.email,
+    '',
+    '– nachfolgend „Empfangende Partei“ –',
+  ]
+    .filter(Boolean)
+    .join('\n');
+  const ndaFullTextForView = isGovRecipient
+    ? ndaConfig.fullText
+    : ndaConfig.fullText
+        .replace(
+          /und\s*\n\s*Governikus[\s\S]*?– nachfolgend „Empfangende Partei“ –/m,
+          `und\n\n${recipientBlock}`
+        )
+        .replace(
+          /und\s*\n\s*Personalisierter Empfänger laut Zugangslink[\s\S]*?– nachfolgend „Empfangende Partei“ –/m,
+          `und\n\n${recipientBlock}`
+        );
 
   const glassCard =
     // Helles Gerät, aber lesbarer Kontrast: leicht dunkleres Frosted-Glas + Dark Text.
@@ -149,7 +177,7 @@ export default async function AccessPage({ params }: AccessPageProps) {
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <pre className="whitespace-pre-wrap font-sans text-[11px] leading-relaxed text-neutral-800">
-                {ndaConfig.fullText}
+                {ndaFullTextForView}
               </pre>
             </div>
             <p className="mt-3 border-t border-neutral-200 pt-3 text-[10px] text-neutral-600">{ndaConfig.footer}</p>

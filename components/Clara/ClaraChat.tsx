@@ -1,7 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import ClaraVoiceInterface from './ClaraVoiceInterface';
 import { ClaraAI } from '@/services/claraAI';
+import { ensureStructuredClaraResponse, parseClaraStructuredResponse } from '@/lib/clara-response-format';
+import type { AddressMode } from '@/lib/clara-system-prompt';
 
 const LAVENDER = {
   bg: 'linear-gradient(180deg, #F5F0FF 0%, #EDE9FE 50%, #F3E8FF 100%)',
@@ -12,6 +14,29 @@ const LAVENDER = {
   bubble: 'linear-gradient(145deg, #EDE9FE 0%, #E9D5FF 50%, #EDE9FE 100%)',
   accent: '#7C3AED'
 };
+
+function ClaraStructuredMessageBody({ content }: { content: string }) {
+  const sections = parseClaraStructuredResponse(content);
+  if (!sections) {
+    return <div className="text-sm whitespace-pre-line break-words">{content}</div>;
+  }
+  return (
+    <div className="space-y-2">
+      {sections.map((s) => (
+        <div
+          key={s.id}
+          className="rounded-lg border px-2.5 py-2 text-[12px] leading-snug"
+          style={{ borderColor: 'rgba(91, 33, 182, 0.22)', background: 'rgba(255,255,255,0.55)' }}
+        >
+          <div className="text-[10px] font-extrabold uppercase tracking-wide opacity-85" style={{ color: '#5B21B6' }}>
+            {s.id}) {s.title}
+          </div>
+          <div className="mt-1 whitespace-pre-wrap break-words text-[12px] text-gray-800">{s.body || '—'}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const IRIDESCENT_BUTTON: React.CSSProperties = {
   background: 'linear-gradient(145deg, #6D28D9 0%, #7C3AED 35%, #8B5CF6 65%, #A78BFA 100%)',
@@ -39,8 +64,11 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
   const { state } = useApp();
   const isFormal = state.anrede === 'sie';
   const t = (du: string, sie: string) => isFormal ? sie : du;
-  const addressMode = isFormal ? 'sie' : 'du';
-  const claraAI = new ClaraAI(state.preferences as any, state.consentClaraPersonalization, addressMode);
+  const addressMode: AddressMode = isFormal ? 'sie' : 'du';
+  const claraAI = useMemo(
+    () => new ClaraAI(state.preferences as any, state.consentClaraPersonalization, addressMode),
+    [state.preferences, state.consentClaraPersonalization, addressMode],
+  );
 
   const [messages, setMessages] = useState<ClaraMessage[]>([
     {
@@ -104,7 +132,7 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
           type: 'clara',
           content: apiAnswer,
           timestamp: new Date(),
-          sources: ['Clara (KI-gestützt, System Prompt v5)']
+          sources: ['Clara (KI-gestuetzt, System Prompt v6)']
         };
         setMessages(prev => [...prev, claraMessage]);
       } catch (_) {
@@ -113,7 +141,7 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
         const claraMessage: ClaraMessage = {
           id: (Date.now() + 1).toString(),
           type: 'clara',
-          content: response.content,
+          content: ensureStructuredClaraResponse(response.content, addressMode),
           timestamp: new Date(),
           sources: response.sources
         };
@@ -125,7 +153,7 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
     };
 
     run();
-  }, [autoSendInitialPrompt, initialPrompt, selectedWahl, level, onPointsEarned]);
+  }, [autoSendInitialPrompt, initialPrompt, selectedWahl, level, onPointsEarned, claraAI, addressMode]);
 
   // Lokaler Safe Fallback (keine politischen Einzelbehauptungen ohne verifizierte Quelle)
   const getClaraResponse = (question: string): { content: string; sources: string[] } => {
@@ -171,8 +199,8 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
     };
   };
 
-  const sendMessage = async () => {
-    const messageText = inputMessage.trim();
+  const sendMessageWithText = async (rawText: string) => {
+    const messageText = rawText.trim();
     if (!messageText) return;
 
     const userMessage: ClaraMessage = {
@@ -187,7 +215,6 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
     setIsTyping(true);
 
     try {
-      // 1) Versuch: echtes Clara-Backend (System Prompt v5)
       const context = selectedWahl
         ? `Kontext: ${selectedWahl.name || 'Wahl'} (${selectedWahl.wahlkreis || ''}) · Ebene: ${level}`
         : `Ebene: ${level}`;
@@ -198,17 +225,16 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
         type: 'clara',
         content: apiAnswer,
         timestamp: new Date(),
-        sources: ['Clara (KI-gestützt, System Prompt v5)']
+        sources: ['Clara (KI-gestuetzt, System Prompt v6)']
       };
       setMessages(prev => [...prev, claraMessage]);
     } catch (_) {
-      // 2) Fallback: lokales Regelwerk (offline/ohne API)
       setIsSafeMode(true);
       const response = getClaraResponse(messageText);
       const claraMessage: ClaraMessage = {
         id: (Date.now() + 1).toString(),
         type: 'clara',
-        content: response.content,
+        content: ensureStructuredClaraResponse(response.content, addressMode),
         timestamp: new Date(),
         sources: response.sources
       };
@@ -217,6 +243,10 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
       setIsTyping(false);
       onPointsEarned(5);
     }
+  };
+
+  const sendMessage = async () => {
+    await sendMessageWithText(inputMessage);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -306,6 +336,8 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
                       {message.content.replace(/^ARIA EXECUTIVE INTELLIGENCE\n\n/, '')}
                     </div>
                   </div>
+                ) : message.type === 'clara' ? (
+                  <ClaraStructuredMessageBody content={message.content} />
                 ) : (
                   <div className="text-sm whitespace-pre-line break-words">{message.content}</div>
                 )}
@@ -343,8 +375,10 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
           {compactQuickQuestions.map((question, index) => (
             <button
               key={index}
-              onClick={() => setInputMessage(question)}
-              className="shrink-0 whitespace-nowrap text-[11px] px-2 py-1 rounded-full transition-colors"
+              type="button"
+              onClick={() => void sendMessageWithText(question)}
+              disabled={isTyping}
+              className="shrink-0 whitespace-nowrap text-[11px] px-2 py-1 rounded-full transition-colors disabled:opacity-50"
               style={{ background: LAVENDER.bubble, color: LAVENDER.text }}
             >
               {question}

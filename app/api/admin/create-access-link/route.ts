@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sha256 } from '@/lib/security/hash';
-import { getNdaDocumentHash, ndaConfig } from '@/config/nda';
+import { getNdaConfigForRecipient, getNdaDocumentHash } from '@/config/nda';
 import { isValidBasicAuth } from '@/lib/security/basic-auth';
 
 type Body = {
@@ -51,15 +51,17 @@ export async function POST(request: NextRequest) {
     ).toISOString();
 
     const requireDocusign = body.requireDocusign !== false;
+    const normalizedCompany = (body.company ?? '').trim() || null;
+    const ndaCfg = getNdaConfigForRecipient({ email, company: normalizedCompany });
 
     const { error } = await supabaseAdmin.from('demo_access_tokens').insert({
       token_hash: tokenHash,
       demo_id: demoId,
       full_name: fullName,
-      company: (body.company ?? '').trim() || null,
+      company: normalizedCompany,
       email,
-      nda_version: ndaConfig.version,
-      nda_document_hash: getNdaDocumentHash(),
+      nda_version: ndaCfg.version,
+      nda_document_hash: getNdaDocumentHash({ email, company: normalizedCompany }),
       expires_at: expiresAt,
       max_views: requireDocusign ? 10 : 50,
       max_devices: 1,

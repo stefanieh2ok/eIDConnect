@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabaseAdmin
     .from('access_requests')
-    .select('id, full_name, email, company, status, created_at, reviewed_at, demo_access_token_id')
+    .select('id, full_name, email, company, status, created_at, reviewed_at, demo_access_token_id, email_provider, email_provider_id, email_status, email_sent_at, email_last_error')
     .order('created_at', { ascending: false });
 
   if (status && ['pending', 'approved', 'rejected'].includes(status)) {

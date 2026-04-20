@@ -12,6 +12,7 @@ import MeldungenSection from '@/components/Meldungen/MeldungenSection';
 import { GuidedTour } from '@/components/GuidedTour';
 import StimmzettelModal from '@/components/Modals/StimmzettelModal';
 import DemoIntroWalkthrough from '@/components/Intro/DemoIntroWalkthrough';
+import DemoExpectationBanner from '@/components/DemoExpectationBanner';
 import { AnredeGate } from '@/components/Intro/AnredeGate';
 import type { EbeneLevel, Location, Section } from '@/types';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
@@ -36,8 +37,15 @@ type BuergerAppProps = { variant?: 'fullscreen' | 'device' };
 export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) {
   const { state, dispatch } = useApp();
   const [showTour, setShowTour] = useState(false);
-  /** Produkt-Intro einmal vor eID/Anrede (nicht nach Login). */
-  const [preLoginIntroOpen, setPreLoginIntroOpen] = useState(false);
+  /** Produkt-Intro: zuerst, danach erst eID-Onboarding (LoginScreen). Lazy-Init vermeidet 1 Frame eID vor Intro. */
+  const [preLoginIntroOpen, setPreLoginIntroOpen] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    try {
+      return localStorage.getItem(PRODUCT_INTRO_DONE_KEY) !== 'true';
+    } catch {
+      return true;
+    }
+  });
   const [postLoginIntroOpen, setPostLoginIntroOpen] = useState(false);
   const isDevice = variant === 'device';
 
@@ -148,6 +156,27 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       : 'pointer-events-auto fixed inset-0 z-[500] overflow-hidden h-full w-full min-w-0';
 
   if (!state.isLoggedIn) {
+    // 1) Produkt-Intro zuerst (ohne eID/Login darunter) – verhindert „eID vor Intro + vor App“.
+    // 2) Danach Anrede → eID-Onboarding wie zuvor.
+    if (preLoginIntroOpen) {
+      return (
+        <div
+          className={`relative flex flex-col h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
+            isDevice ? '' : 'min-h-[100dvh]'
+          }`}
+        >
+          <div className={introOverlayShell}>
+            <DemoIntroWalkthrough
+              du={state.anrede !== 'sie'}
+              residenceLocation={state.residenceLocation}
+              onClose={finishProductIntro}
+              onFinish={finishProductIntro}
+            />
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div
         className={`relative flex flex-col h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
@@ -156,16 +185,6 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       >
         <AnredeGate position={isDevice ? 'absolute' : 'fixed'} />
         <LoginScreen renderFrame={!isDevice} />
-        {preLoginIntroOpen && state.anrede != null ? (
-          <div className={introOverlayShell}>
-            <DemoIntroWalkthrough
-              du={state.anrede === 'du'}
-              residenceLocation={state.residenceLocation}
-              onClose={finishProductIntro}
-              onFinish={finishProductIntro}
-            />
-          </div>
-        ) : null}
       </div>
     );
   }
@@ -207,6 +226,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
         className="scrollbar-hide flex-1 min-h-0 overflow-y-auto scroll-smooth"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
+        <DemoExpectationBanner />
         <div className="px-3 pt-3 pb-6">
           {renderSection()}
           <SecurityFaqFooter />

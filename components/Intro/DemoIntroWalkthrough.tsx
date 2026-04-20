@@ -8,6 +8,7 @@ import { VOTING_DATA } from '@/data/constants';
 import { INTRO_OVERLAY_HEADLINE, INTRO_OVERLAY_STEPS } from '@/data/introOverlayMarketing';
 import { INTRO_SCREENSHOTS } from '@/data/introScreenshots';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
+import { adaptIntroAddress } from '@/lib/introAddress';
 import type { Location, VotingCard as VotingCardModel } from '@/types';
 
 type Props = {
@@ -426,7 +427,7 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
         <div className={isAbstimmenStep ? 'space-y-2' : 'space-y-3'}>
           <p className="text-[12px] font-bold leading-snug text-white/95">{step.title}</p>
           <div className={isAbstimmenStep ? 'space-y-1.5' : 'space-y-2.5'}>
-            {(isAbstimmenStep ? step.body.replace(/\n\n+/g, '\n') : step.body)
+            {adaptIntroAddress(isAbstimmenStep ? step.body.replace(/\n\n+/g, '\n') : step.body, du)
               .split(/\n\n+/)
               .map((block) => block.trim())
               .filter(Boolean)

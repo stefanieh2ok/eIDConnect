@@ -1,6 +1,7 @@
 import { ClaraAnalysis, ClaraPreferences } from '@/types/clara';
 import { VotingCard } from '@/types';
 import type { AddressMode } from '@/lib/clara-system-prompt';
+import { ensureStructuredClaraResponse } from '@/lib/clara-response-format';
 
 /**
  * Clara KI-Service (Client-seitig)
@@ -44,19 +45,41 @@ export class ClaraAI {
       ? this.calculateThematicRelevance(card)
       : 50;
 
-    const reasoning = this.personalizationEnabled
+    let reasoning = this.personalizationEnabled
       ? this.generateNeutralReasoning(card, personalMatch)
       : this.t(
           'Neutrale Übersicht: Clara gibt keine Abstimmungsempfehlung. Ich kann dir die sachlichen Pro- und Contra-Argumente zusammenfassen, damit du dir eine eigene Meinung bilden kannst.',
           'Neutrale Übersicht: Clara gibt keine Abstimmungsempfehlung. Ich kann Ihnen die sachlichen Pro- und Contra-Argumente zusammenfassen, damit Sie sich eine eigene Meinung bilden können.',
         );
+    if (card.quickFacts?.length) {
+      reasoning = `${reasoning} Demo-Zahlen (aus Karteninhalt): ${card.quickFacts.join(' · ')}.`;
+    }
 
-    const pros = this.personalizationEnabled
-      ? this.generateContextualPros(card)
-      : ['KI-gestützte Zusammenfassung: Mögliche sachliche Vorteile der Maßnahme'];
-    const cons = this.personalizationEnabled
-      ? this.generateContextualCons(card)
-      : ['KI-gestützte Zusammenfassung: Mögliche sachliche Gegenargumente'];
+    const fromCardPro = card.kiAnalysis?.pros?.map((p) => p.text).filter(Boolean) ?? [];
+    const fromCardCon = card.kiAnalysis?.cons?.map((c) => c.text).filter(Boolean) ?? [];
+
+    const pros =
+      this.personalizationEnabled
+        ? this.generateContextualPros(card)
+        : fromCardPro.length > 0
+          ? fromCardPro
+          : [
+              this.t(
+                'In dieser Demo-Karte sind keine gesonderten Pro-Texte hinterlegt.',
+                'In dieser Demo-Karte sind keine gesonderten Pro-Texte hinterlegt.',
+              ),
+            ];
+    const cons =
+      this.personalizationEnabled
+        ? this.generateContextualCons(card)
+        : fromCardCon.length > 0
+          ? fromCardCon
+          : [
+              this.t(
+                'In dieser Demo-Karte sind keine gesonderten Contra-Texte hinterlegt.',
+                'In dieser Demo-Karte sind keine gesonderten Contra-Texte hinterlegt.',
+              ),
+            ];
     const confidence = this.personalizationEnabled
       ? this.calculateConfidence(personalMatch, card)
       : 60;
@@ -207,11 +230,11 @@ export class ClaraAI {
       const raw = String(data.response || '');
       const enforced = this.enforceSafeOutput(raw);
       this.lastChatSafeMode = enforced.safeModeUsed;
-      return enforced.text;
+      return ensureStructuredClaraResponse(enforced.text, this.addressMode);
     } catch (error) {
       console.error('Clara Chat API Fehler:', error);
       this.lastChatSafeMode = true;
-      return this.getFallbackResponse(userMessage);
+      return ensureStructuredClaraResponse(this.getFallbackResponse(userMessage), this.addressMode);
     }
   }
 
@@ -305,7 +328,13 @@ export class ClaraAI {
       if (!response.ok) throw new Error('API-Fehler');
 
       const data = await response.json();
-      const analysis = data.analysis;
+      const analysis = data.analysis ?? {};
+
+      const prosList = Array.isArray(analysis.pros) ? analysis.pros.filter((p: unknown) => typeof p === 'string') : [];
+      const consList = Array.isArray(analysis.cons) ? analysis.cons.filter((p: unknown) => typeof p === 'string') : [];
+      const altList = Array.isArray(analysis.alternativePerspectives)
+        ? analysis.alternativePerspectives.filter((p: unknown) => typeof p === 'string')
+        : [];
 
       const intro = this.personalizationEnabled
         ? this.t(
@@ -314,18 +343,24 @@ export class ClaraAI {
           )
         : `KI-gestützte Zusammenfassung für „${card.title}" – ohne personalisierte Sachthemen.`;
 
+      const reasoningText = typeof analysis.reasoning === 'string' ? analysis.reasoning : '';
+      const fallbackFromCard = this.analyzeVotingCard(card);
+      const prosOut = prosList.length ? prosList : fallbackFromCard.pros;
+      const consOut = consList.length ? consList : fallbackFromCard.cons;
+      const altOut = altList.length ? altList : fallbackFromCard.alternativePerspectives;
+
       return `${intro}
 
-${analysis.reasoning}
+${reasoningText || fallbackFromCard.reasoning}
 
 Sachliche Pro-Argumente:
-${analysis.pros.map((pro: string) => `• ${pro}`).join('\n')}
+${prosOut.map((pro: string) => `• ${pro}`).join('\n')}
 
 Sachliche Contra-Argumente:
-${analysis.cons.map((con: string) => `• ${con}`).join('\n')}
+${consOut.map((con: string) => `• ${con}`).join('\n')}
 
 Weitere Perspektiven:
-${analysis.alternativePerspectives.map((p: string) => `• ${p}`).join('\n')}
+${altOut.map((p: string) => `• ${p}`).join('\n')}
 
 Dies ist eine KI-gestützte Zusammenfassung. Clara gibt keine Abstimmungsempfehlung. ${this.t('Bitte prüfe die offiziellen Quellen.', 'Bitte prüfen Sie die offiziellen Quellen.')}`;
     } catch (error) {

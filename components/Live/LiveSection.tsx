@@ -292,7 +292,7 @@ const LiveSection: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center p-4 border-b" style={{ borderColor: 'var(--gov-border)' }}>
-              <span className="text-sm font-bold text-[#1A2B45]">Clara – KI-Analyse</span>
+              <span className="text-sm font-bold text-[#1A2B45]">Clara – Digitale Assistentin</span>
               <button onClick={() => setShowClaraChat(false)} className="p-1.5 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100">✕</button>
             </div>
             <div className="flex-1 overflow-auto p-4">

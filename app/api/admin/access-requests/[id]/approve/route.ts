@@ -4,6 +4,8 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { createAccessToken } from '@/lib/access-request-approve';
 const DEFAULT_FROM =
   process.env.SEND_ACCESS_EMAIL_FROM || 'HookAI Demo <onboarding@resend.dev>';
+const RESEND_TESTMODE_HINT =
+  'Resend-Testmodus aktiv: E-Mails an externe Tester werden blockiert. Bitte Resend-Domain verifizieren und SEND_ACCESS_EMAIL_FROM setzen.';
 
 function escapeHtml(s: string): string {
   return s
@@ -122,28 +124,72 @@ export async function POST(
           subject: 'Dein HookAI Demo-Zugang wurde freigegeben',
           html: `
           <p>Hallo ${escapeHtml(req.full_name)},</p>
-          <p>Dein Zugang wurde freigegeben. Hier ist dein personalisierter Link:</p>
+          <p>dein Zugang wurde freigegeben. Hier ist dein personalisierter Link zur App:</p>
           <p><a href="${escapeHtml(tokenResult.accessUrl)}" style="word-break: break-all;">${escapeHtml(
             tokenResult.accessUrl
           )}</a></p>
-          <p>Bitte öffne den Link in deinem Browser. Nach deiner Zustimmung zur Vertraulichkeitsvereinbarung gelangst du in die Demo.</p>
-          <p>Mit freundlichen Grüßen<br />Stefanie Hook</p>
+          <p>Bitte öffne den Link im Browser deines Geräts. Der Link führt zuerst zur Vertraulichkeitsvereinbarung und danach direkt in die Demo-App.</p>
+          <p>Mit freundlichen Grüßen,<br />Stefanie Hook</p>
         `,
         }),
       });
       const text = await res.text();
+      let providerId: string | undefined;
+      try {
+        const parsed = JSON.parse(text) as { id?: string };
+        providerId = parsed?.id;
+      } catch {
+        providerId = undefined;
+      }
       if (res.ok) {
         emailSent = true;
+        await supabaseAdmin
+          .from('access_requests')
+          .update({
+            email_provider: 'resend',
+            email_provider_id: providerId ?? null,
+            email_status: 'sent',
+            email_sent_at: new Date().toISOString(),
+            email_last_error: null,
+          })
+          .eq('id', id);
       } else {
-        emailError = text || `HTTP ${res.status}`;
+        const isResendTestModeBlock =
+          res.status === 403 &&
+          text.toLowerCase().includes('only send testing emails to your own email');
+        emailError = isResendTestModeBlock ? RESEND_TESTMODE_HINT : text || `HTTP ${res.status}`;
         console.error('Approve email failed:', res.status, text);
+        await supabaseAdmin
+          .from('access_requests')
+          .update({
+            email_provider: 'resend',
+            email_provider_id: providerId ?? null,
+            email_status: 'failed',
+            email_last_error: emailError,
+          })
+          .eq('id', id);
       }
     } catch (mailErr) {
       emailError = mailErr instanceof Error ? mailErr.message : String(mailErr);
       console.error('Approve email failed:', mailErr);
+      await supabaseAdmin
+        .from('access_requests')
+        .update({
+          email_provider: 'resend',
+          email_status: 'failed',
+          email_last_error: emailError,
+        })
+        .eq('id', id);
     }
   } else {
     emailError = 'RESEND_API_KEY ist nicht gesetzt (Environment Variables prüfen).';
+    await supabaseAdmin
+      .from('access_requests')
+      .update({
+        email_status: 'failed',
+        email_last_error: emailError,
+      })
+      .eq('id', id);
   }
 
   return NextResponse.json({

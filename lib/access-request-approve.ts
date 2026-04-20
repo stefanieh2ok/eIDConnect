@@ -5,7 +5,7 @@
 import { randomBytes } from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sha256 } from '@/lib/security/hash';
-import { getNdaDocumentHash, ndaConfig } from '@/config/nda';
+import { getNdaConfigForRecipient, getNdaDocumentHash } from '@/config/nda';
 
 const DEMO_ID = process.env.DEMO_ACCESS_DEFAULT_ID || 'eidconnect-v1';
 const EXPIRES_IN_DAYS = 14;
@@ -36,6 +36,11 @@ export async function createAccessToken(
     Date.now() + EXPIRES_IN_DAYS * 24 * 60 * 60 * 1000
   ).toISOString();
 
+  const ndaCfg = getNdaConfigForRecipient({
+    email: input.email,
+    company: input.company ?? null,
+  });
+
   const { data: inserted, error } = await supabaseAdmin
     .from('demo_access_tokens')
     .insert({
@@ -44,8 +49,11 @@ export async function createAccessToken(
       full_name: input.fullName.trim(),
       company: input.company?.trim() ?? null,
       email: input.email.trim(),
-      nda_version: ndaConfig.version,
-      nda_document_hash: getNdaDocumentHash(),
+      nda_version: ndaCfg.version,
+      nda_document_hash: getNdaDocumentHash({
+        email: input.email,
+        company: input.company ?? null,
+      }),
       expires_at: expiresAt,
       max_views: MAX_VIEWS,
       max_devices: MAX_DEVICES,

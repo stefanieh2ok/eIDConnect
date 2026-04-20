@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { ListChecks } from 'lucide-react';
 import { WAHLEN_DATA } from '@/data/constants';
+import { collectSourceLinks, hasVerifiedPrimarySource } from '@/lib/stimmzettelSources';
 
 /* Clara-Farben (wie Clara-Chat / Floating-Button) */
 const CLARA_BG = '#F5F0FF';
@@ -329,47 +330,26 @@ interface ClaraInfoModalProps {
   onOpenChat: (context?: string) => void;
 }
 
-type SourceLink = { label: string; url: string };
-
-function collectSourceLinks(data: any): SourceLink[] {
-  const out: SourceLink[] = [];
-  const push = (label: string, url?: unknown) => {
-    const u = typeof url === 'string' ? url.trim() : '';
-    if (!u) return;
-    if (!/^https?:\/\//i.test(u)) return;
-    if (out.some((x) => x.url === u)) return;
-    out.push({ label, url: u });
-  };
-
-  // Prefer explicit sources if provided by data.
-  if (data && Array.isArray(data.sources)) {
-    for (const s of data.sources) {
-      if (s && typeof s === 'object') {
-        const label = typeof s.label === 'string' ? s.label : 'Quelle';
-        push(label, (s as any).url);
+function SourceTrustBadge({ data, du }: { data: unknown; du: boolean }) {
+  const ok = hasVerifiedPrimarySource(data);
+  return (
+    <span
+      className={`inline-block max-w-full rounded px-1.5 py-0.5 text-[9px] font-semibold leading-tight sm:text-[10px] ${
+        ok ? 'bg-emerald-100 text-emerald-900' : 'bg-amber-100 text-amber-900'
+      }`}
+      title={
+        ok
+          ? du
+            ? 'Mindestens eine verifizierbare Primärquelle (Link) hinterlegt'
+            : 'Mindestens eine verifizierbare Primärquelle (Link) hinterlegt'
+          : du
+            ? 'Keine verifizierbare Primärquelle in der Demo – bitte offizielle Stellen prüfen'
+            : 'Keine verifizierbare Primärquelle in der Demo – bitte offizielle Stellen prüfen'
       }
-    }
-  }
-
-  // Accept URLs stored inside `quellen` as well (demo data / non-standard fields).
-  // Example format: "[1] https://.../document.pdf"
-  if (data && Array.isArray(data.quellen)) {
-    for (const q of data.quellen) {
-      if (typeof q !== 'string') continue;
-      const match = q.match(/https?:\/\/[^\s)]+/i);
-      if (!match) continue;
-      const url = match[0];
-      const label = q.replace(url, '').replace(/\s+/g, ' ').trim();
-      push(label || 'Quelle', url);
-    }
-  }
-
-  // Fallbacks used in `data/wahlen-deutschland.ts` (verifiable links).
-  push('Wikipedia', data?.wikipediaUrl);
-  push('Bundestag/Parlament', data?.parlamentUrl);
-  push('abgeordnetenwatch', data?.abgeordnetenwatchUrl);
-  push('Offizielle Website', data?.socialMedia?.website);
-  return out;
+    >
+      {ok ? 'Primärquelle' : 'nicht verifiziert'}
+    </span>
+  );
 }
 
 // Clara Info Bottom Sheet Modal – bleibt innerhalb des iPhone-Screens (safe area, scrollbarer Inhalt)
@@ -716,6 +696,9 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       <div className="mt-0.5 text-xs text-gray-700 sm:mt-1 sm:text-sm">
                         {kandidat.parteiLang || partyFullName(kandidat.partei)}
                       </div>
+                      <div className="mt-1">
+                        <SourceTrustBadge data={kandidat} du={du} />
+                      </div>
                     </div>
                   </label>
                   {showAux ? (
@@ -763,6 +746,9 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       <div className="text-base font-bold text-gray-900 sm:text-lg">{partei.kuerzel}</div>
                       <div className="text-xs text-gray-700 sm:text-sm">
                         {partyFullName(partei.kuerzel) || partei.name}
+                      </div>
+                      <div className="mt-1">
+                        <SourceTrustBadge data={partei} du={du} />
                       </div>
                     </div>
                   </label>
@@ -874,6 +860,9 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                         {kandidat.beruf}
                         {typeof kandidat.alter === 'number' ? ` • ${kandidat.alter} Jahre` : ''}
                       </div>
+                      <div className="mt-1">
+                        <SourceTrustBadge data={kandidat} du={du} />
+                      </div>
                     </div>
                   </label>
                   {showAux ? (
@@ -973,6 +962,9 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       <div className="flex-1 min-w-0">
                         <div className="text-base font-bold text-gray-900 sm:text-lg">{partei.kuerzel}</div>
                         <div className="text-xs text-gray-700 sm:text-sm">{partyFullName(partei.kuerzel) || partei.name}</div>
+                        <div className="mt-1">
+                          <SourceTrustBadge data={partei} du={du} />
+                        </div>
                       </div>
                     </label>
                     {showAux ? (
@@ -993,9 +985,15 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-700">
-                In der Demo sind für diese Kreiswahl aktuell nur Basisdaten hinterlegt.
-              </p>
+              <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+                <p className="font-semibold">Demo-Hinweis</p>
+                <p>
+                  {t(
+                    'Für diese Kreiswahl sind in der Demo noch keine Listen mit Primärquellen hinterlegt. In der App würdest du hier die Kreislisten mit offiziellen Verweisen sehen.',
+                    'Für diese Kreiswahl sind in der Demo noch keine Listen mit Primärquellen hinterlegt. In der App würden Sie hier die Kreislisten mit offiziellen Verweisen sehen.',
+                  )}
+                </p>
+              </div>
             )}
           </div>
 
@@ -1017,6 +1015,9 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                         </div>
                         <div className="mt-0.5 text-xs text-gray-700 sm:mt-1 sm:text-sm">
                           {kandidat.parteiLang || partyFullName(kandidat.partei)}
+                        </div>
+                        <div className="mt-1">
+                          <SourceTrustBadge data={kandidat} du={du} />
                         </div>
                       </div>
                     </div>
@@ -1135,6 +1136,9 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                         ]
                           .filter(Boolean)
                           .join(' • ')}
+                      </div>
+                      <div className="mt-1">
+                        <SourceTrustBadge data={kandidat} du={du} />
                       </div>
                     </div>
                   </label>

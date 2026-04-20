@@ -280,11 +280,13 @@ function plzRoughLocation(p: string): Location {
  */
 export function resolveDemoLocation(plz: string, city: string): Location {
   const p = normalizePlz(plz);
+  // Bekannte Demo-PLZ zuerst (verhindert falsche Zuordnung z. B. bei Tippfehlern im Ortsfeld).
+  if (p === '66459') return 'kirkel';
+
   const fromName = locationFromCityToken(city);
   // Manuelle Ortsangabe soll Vorrang haben (z. B. City geändert, PLZ noch von vorher).
   if (fromName && fromName !== 'saarland') return fromName;
   if (fromName === 'saarland') return 'saarland';
-  if (p === '66459') return 'kirkel';
 
   const county = inferCountyIfMissing({ plz: p, city: city.trim() || undefined });
   const slKreis = inferSaarlandKreisFromCity(city);

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sha256 } from '@/lib/security/hash';
-import { getNdaDocumentHash, ndaConfig } from '@/config/nda';
+import { getNdaConfigForRecipient, getNdaDocumentHash } from '@/config/nda';
 import { isValidBasicAuth } from '@/lib/security/basic-auth';
 
 type CreateTokenPayload = {
@@ -50,14 +50,23 @@ export async function POST(request: NextRequest) {
       Date.now() + expiresInDays * 24 * 60 * 60 * 1000
     ).toISOString();
 
+    const normalizedCompany = body.company?.trim() ?? null;
+    const ndaCfg = getNdaConfigForRecipient({
+      email: body.email.trim(),
+      company: normalizedCompany,
+    });
+
     const { error } = await supabaseAdmin.from('demo_access_tokens').insert({
       token_hash: tokenHash,
       demo_id: body.demoId,
       full_name: body.fullName.trim(),
-      company: body.company?.trim() ?? null,
+      company: normalizedCompany,
       email: body.email.trim(),
-      nda_version: ndaConfig.version,
-      nda_document_hash: getNdaDocumentHash(),
+      nda_version: ndaCfg.version,
+      nda_document_hash: getNdaDocumentHash({
+        email: body.email.trim(),
+        company: normalizedCompany,
+      }),
       expires_at: expiresAt,
       max_views: body.maxViews ?? 10,
       max_devices: body.maxDevices ?? 1,
@@ -73,6 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     const baseUrl =
+      process.env.ACCESS_LINK_BASE_URL ||
       process.env.NEXT_PUBLIC_APP_URL ||
       (request.headers.get('x-forwarded-proto') && request.headers.get('host')
         ? `${request.headers.get('x-forwarded-proto')}://${request.headers.get('host')}`
