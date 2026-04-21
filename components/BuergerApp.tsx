@@ -48,8 +48,15 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
    * Die korrekte Entscheidung treffen wir in einem `useLayoutEffect` weiter unten –
    * das läuft synchron vor dem Paint, also ohne sichtbares Aufflackern.
    */
-  const [preLoginIntroOpen, setPreLoginIntroOpen] = useState(true);
-  const [postLoginIntroOpen, setPostLoginIntroOpen] = useState(false);
+  // Einführungs-Flow (State Clarity): Anrede (Schritt 1) → eID/LoginScreen
+  // (Schritt 2) → Walkthrough (Schritte 3–8, inkl. Politikbarometer als
+  // letztem Schritt) → App. Der Walkthrough läuft jetzt ausschließlich POST-
+  // Login und zeigt dort die sechs Vorschau-Screens inkl. finaler Themenwahl.
+  //
+  // `postLoginIntroOpen` startet IMMER `true`, damit Server-HTML und Client-
+  // Hydration deckungsgleich bleiben. Die eigentliche Entscheidung fällt in
+  // einem useLayoutEffect weiter unten anhand des PRODUCT_INTRO_DONE_KEY.
+  const [postLoginIntroOpen, setPostLoginIntroOpen] = useState(true);
   const isDevice = variant === 'device';
 
   const SECTION_LEVELS: Record<Section, EbeneLevel[]> = {
@@ -93,7 +100,6 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       localStorage.removeItem('eidconnect_product_intro_done_v3');
       localStorage.removeItem(PRODUCT_INTRO_DONE_KEY);
 
-      setPreLoginIntroOpen(true);
       setPostLoginIntroOpen(true);
 
       params.delete('resetIntro');
@@ -105,27 +111,27 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     }
   }, []);
 
-  // Intro vor Onboarding: solange nicht eingeloggt und Flag nicht gesetzt.
-  // `useLayoutEffect` läuft SYNCHRON nach dem Commit, aber vor dem Browser-Paint –
-  // damit der korrekte Zweig (Intro vs. LoginScreen) ohne sichtbares Aufflackern steht,
-  // gleichzeitig aber kein Hydration-Mismatch entsteht.
+  // Walkthrough nur dann sichtbar, wenn er noch nicht abgeschlossen ist.
+  // `useLayoutEffect` läuft synchron vor dem Paint, daher kein sichtbares
+  // Aufflackern und trotzdem kein Hydration-Mismatch.
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
-    if (state.isLoggedIn) return;
     try {
       const done = localStorage.getItem(PRODUCT_INTRO_DONE_KEY) === 'true';
-      setPreLoginIntroOpen(!done);
+      setPostLoginIntroOpen(!done);
     } catch {
-      setPreLoginIntroOpen(true);
+      setPostLoginIntroOpen(true);
     }
-  }, [state.isLoggedIn]);
+  }, []);
 
-  // Intro erneut öffnen (Einstellungen): je nach Zustand nur der sichtbare Overlay-Zweig rendert.
+  // Walkthrough erneut öffnen (z. B. aus Einstellungen): Flag löschen, Overlay einblenden.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const onOpen = () => {
+      try {
+        localStorage.removeItem(PRODUCT_INTRO_DONE_KEY);
+      } catch {}
       setPostLoginIntroOpen(true);
-      setPreLoginIntroOpen(true);
     };
     window.addEventListener('eidconnect:open-intro', onOpen as any);
     return () => window.removeEventListener('eidconnect:open-intro', onOpen as any);
@@ -152,7 +158,6 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     try {
       localStorage.setItem(PRODUCT_INTRO_DONE_KEY, 'true');
     } catch {}
-    setPreLoginIntroOpen(false);
     setPostLoginIntroOpen(false);
   };
 
@@ -162,27 +167,8 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       : 'pointer-events-auto fixed inset-0 z-[500] overflow-hidden h-full w-full min-w-0';
 
   if (!state.isLoggedIn) {
-    // 1) Produkt-Intro zuerst (ohne eID/Login darunter) – verhindert „eID vor Intro + vor App“.
-    // 2) Danach Anrede → eID-Onboarding wie zuvor.
-    if (preLoginIntroOpen) {
-      return (
-        <div
-          className={`relative flex flex-col h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
-            isDevice ? '' : 'min-h-[100dvh]'
-          }`}
-        >
-          <div className={introOverlayShell}>
-            <DemoIntroWalkthrough
-              du={state.anrede !== 'sie'}
-              residenceLocation={state.residenceLocation}
-              onClose={finishProductIntro}
-              onFinish={finishProductIntro}
-            />
-          </div>
-        </div>
-      );
-    }
-
+    // Einführungs-Schritte 1 (Ansprache) + 2 (eID) laufen VOR dem Walkthrough,
+    // damit die globale „Schritt X von 8"-Zählung chronologisch stimmt.
     return (
       <div
         className={`relative flex flex-col h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${

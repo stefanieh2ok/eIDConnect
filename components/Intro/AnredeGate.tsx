@@ -3,6 +3,13 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
+import {
+  INTRO_ANREDE_LEADIN_DU,
+  INTRO_ANREDE_LEADIN_SIE,
+  INTRO_GLOBAL_FRAMING,
+  INTRO_GLOBAL_PILL_LABEL,
+  INTRO_TOTAL_STEPS,
+} from '@/data/introOverlayMarketing';
 import type { Anrede } from '@/types';
 
 type Props = {
@@ -105,12 +112,32 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
             '0 28px 80px rgba(0, 20, 60, 0.38), 0 6px 18px rgba(0, 20, 60, 0.18), 0 0 0 1px rgba(10, 25, 60, 0.06) inset',
         }}
       >
-        <div className="px-4 pt-4 pb-3 border-b border-neutral-200 sm:px-5 sm:pt-5 sm:pb-4">
+        {/* Meta-Ebene: Einführungs-Kontext + Schritt 1/8 (konsistent zu Walkthrough/LoginScreen). */}
+        <div className="border-b border-neutral-200/70 bg-[#F3F6FC] px-4 pt-3 pb-2 sm:px-5">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-[#003366]/80">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-flex items-center rounded-full bg-[#003366] px-2 py-[2px] text-white">
+                {INTRO_GLOBAL_PILL_LABEL}
+              </span>
+              <span className="text-[#003366]/70 tracking-normal normal-case font-medium">
+                {INTRO_GLOBAL_FRAMING}
+              </span>
+            </span>
+            <span className="text-[10px] font-semibold tabular-nums text-neutral-500">
+              Schritt 1 von {INTRO_TOTAL_STEPS}
+            </span>
+          </div>
+        </div>
+
+        <div className="px-4 pt-3 pb-3 border-b border-neutral-200 sm:px-5 sm:pt-4 sm:pb-4">
           <div className="text-[10px] font-extrabold tracking-wide text-[#003366] sm:text-[11px]">{APP_DISPLAY_NAME}</div>
           <h2 className="mt-1 text-base font-black text-neutral-900 sm:text-lg">Wie möchten Sie angesprochen werden?</h2>
           <p className="mt-1.5 text-[11px] leading-snug text-neutral-600 sm:text-[12px]">
             Bitte wählen Sie einmalig <span className="font-semibold text-neutral-800">Sie</span> oder{' '}
             <span className="font-semibold text-neutral-800">Du</span>. Das Intro und alle Hinweise passen sich an.
+          </p>
+          <p className="mt-2 text-[11px] leading-snug text-neutral-700 sm:text-[12px]">
+            {pending === 'du' ? INTRO_ANREDE_LEADIN_DU : INTRO_ANREDE_LEADIN_SIE}
           </p>
         </div>
 

@@ -5,10 +5,22 @@ import OriginalStimmzettel from '@/components/Voting/OriginalStimmzettel';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
 import { VOTING_DATA } from '@/data/constants';
-import { INTRO_OVERLAY_HEADLINE, INTRO_OVERLAY_STEPS } from '@/data/introOverlayMarketing';
+import {
+  INTRO_CLOSING_TEXT_DU,
+  INTRO_CLOSING_TEXT_SIE,
+  INTRO_FINISH_CTA_LABEL,
+  INTRO_GLOBAL_FRAMING,
+  INTRO_GLOBAL_PILL_LABEL,
+  INTRO_OVERLAY_FRAMING_LINES,
+  INTRO_OVERLAY_HEADLINE,
+  INTRO_OVERLAY_STEPS,
+  INTRO_SKIP_LABEL,
+  INTRO_TOTAL_STEPS,
+} from '@/data/introOverlayMarketing';
 import { INTRO_SCREENSHOTS } from '@/data/introScreenshots';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
 import { adaptIntroAddress } from '@/lib/introAddress';
+import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
 import type { Location, VotingCard as VotingCardModel } from '@/types';
 
 type Props = {
@@ -18,6 +30,13 @@ type Props = {
   onClose: () => void;
   onFinish: () => void;
 };
+
+/**
+ * Versatz, mit dem der interne Walkthrough-Index in den globalen 8-Schritt-Zähler
+ * übersetzt wird. Die Einführung startet konzeptionell mit Ansprache (1) und
+ * eID (2); danach folgt der Walkthrough: Abstimmen (3) … Politikbarometer (8).
+ */
+const GLOBAL_STEP_OFFSET = 2;
 
 const INTRO_KOMMUNE_VOTE_KEYS = new Set<string>([
   'kirkel',
@@ -99,7 +118,11 @@ function BallotScroll({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Gleiche Abstimmungskarte wie in der App inkl. Daumen-Buttons; Pro/Contra standardmäßig eingeklappt. */
+/**
+ * Abstimmungskarte wie in der App. In der Einführung sind die Daumen-Buttons
+ * bewusst ohne Feedback (Framing-only): der Zustand „Vorschau" wird aus-
+ * schließlich in der Overlay-Chrome kommuniziert, NICHT im Screen selbst.
+ */
 function IntroAbstimmenPreview({ card }: { card: VotingCardModel }) {
   return (
     <div className="relative w-full min-w-0 max-w-full">
@@ -307,7 +330,12 @@ function PraemienIntroPreview() {
   );
 }
 
-export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClose, onFinish }: Props) {
+export default function DemoIntroWalkthrough({
+  du: _du,
+  residenceLocation,
+  onClose,
+  onFinish,
+}: Props) {
   const communeKey = introCommuneVoteKey(residenceLocation);
   const communeName = COMMUNE_DISPLAY[communeKey] ?? communeKey;
   const previewCard = VOTING_DATA[communeKey]?.cards?.[0] ?? VOTING_DATA.kirkel.cards[0];
@@ -318,15 +346,20 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
   const step = steps[idx];
   const isLast = idx >= steps.length - 1;
   const isAbstimmenStep = step.id === 'abstimmen';
-  // Für "abstimmen" KEIN inneres max-height-Clipping mehr: die Voting-Daumen wurden
-  // auf iPhone-Frames am unteren Rand abgeschnitten. Der äußere Overlay-Container
-  // scrollt bereits (flex-1 + overflow-y-auto), daher kann die Vorschau frei fließen.
+  const isPolitikbarometerStep = step.id === 'politikbarometer';
+  const globalStepNumber = idx + 1 + GLOBAL_STEP_OFFSET;
+
+  // Barometer und Abstimmen dürfen die volle Höhe einnehmen (sonst werden die
+  // Daumen bzw. die Slider am unteren Rand abgeschnitten). Der äußere Overlay-
+  // Container scrollt bereits.
   const previewMaxHeight =
     step.id === 'praemien'
       ? 'min(70vh, 560px)'
-      : step.id === 'abstimmen'
+      : step.id === 'abstimmen' || step.id === 'politikbarometer'
         ? undefined
         : 'min(62vh, 500px)';
+
+  const framingLine = INTRO_OVERLAY_FRAMING_LINES[step.id];
 
   const preview = useMemo(() => {
     switch (step.id) {
@@ -374,10 +407,17 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
         );
       case 'praemien':
         return <PraemienIntroPreview />;
+      case 'politikbarometer':
+        return <PolitikBarometerPanel du={du} variant="compact" />;
       default:
         return null;
     }
   }, [step.id, previewCard, communeName, du]);
+
+  const closingText = du ? INTRO_CLOSING_TEXT_DU : INTRO_CLOSING_TEXT_SIE;
+
+  // aria-live Ansage: wird von Screenreadern bei jedem Schritt-Wechsel gelesen.
+  const liveAnnouncement = `Einführung, Schritt ${globalStepNumber} von ${INTRO_TOTAL_STEPS} – ${step.title}. ${framingLine}`;
 
   return (
     <div
@@ -390,39 +430,87 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
       }}
       role="dialog"
       aria-modal="true"
+      aria-label="Einführung"
     >
-      {/* Kopfzeile: Marke + eine klare Hauptzeile auf allen Folien */}
-      <div className="flex flex-shrink-0 items-start justify-between gap-3 px-3 pb-2 pt-3 sm:px-4">
-        <div className="min-w-0 pr-1">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-white/50">{APP_DISPLAY_NAME}</p>
-          <h2 className="mt-2 text-[16px] font-extrabold leading-[1.2] tracking-tight text-white sm:text-[17px]">
-            {INTRO_OVERLAY_HEADLINE}
-          </h2>
-        </div>
-        <button
-          type="button"
-          aria-label="Einführung schließen"
-          onClick={onClose}
-          className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-base leading-none text-white/90 hover:bg-white/15"
-        >
-          ×
-        </button>
+      {/* Versteckte Live-Region für Screenreader: Statuswechsel werden bei jedem
+          Schritt-Wechsel angekündigt, ohne dass etwas UI-seitig sichtbar wird. */}
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {liveAnnouncement}
       </div>
 
-      <div className="flex flex-shrink-0 items-center justify-between gap-2 border-b border-white/[0.07] px-3 pb-3 sm:px-4">
+      {/* --- META-EBENE 1: globaler Einführungs-Kontext (persistent) ---
+          Bewusst oben über der eigentlichen Screen-Headline platziert, damit Tester
+          auf jedem Schritt sofort verstehen: dies ist Einführung, Beispielansichten,
+          Nutzung beginnt danach. */}
+      <div className="flex flex-shrink-0 items-start justify-between gap-3 border-b border-white/[0.08] px-3 pb-2.5 pt-3 sm:px-4">
+        <div className="min-w-0 pr-1">
+          <div className="flex flex-wrap items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/70">
+            <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-[2px] text-white/95">
+              {INTRO_GLOBAL_PILL_LABEL}
+            </span>
+            <span className="text-white/60">{INTRO_GLOBAL_FRAMING}</span>
+          </div>
+          <p className="mt-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/45">
+            {APP_DISPLAY_NAME}
+          </p>
+        </div>
+        <div className="flex flex-shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={onFinish}
+            className="text-[10px] font-semibold text-white/70 underline-offset-2 hover:text-white hover:underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/60"
+          >
+            {INTRO_SKIP_LABEL}
+          </button>
+          <button
+            type="button"
+            aria-label="Einführung schließen"
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10 text-base leading-none text-white/90 hover:bg-white/15"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+
+      {/* --- META-EBENE 2: Schritt-Counter (1/8 … 8/8) + Progress --- */}
+      <div className="flex flex-shrink-0 items-center justify-between gap-2 border-b border-white/[0.07] px-3 pb-2.5 pt-2 sm:px-4">
         <div className="text-[10px] font-semibold tabular-nums text-white/70">
-          Schritt {idx + 1} von {steps.length}
+          Schritt {globalStepNumber} von {INTRO_TOTAL_STEPS}
         </div>
-        <div className="flex gap-1">
-          {steps.map((s, i) => (
-            <span
-              key={s.id}
-              className={`h-1 rounded-full transition-[width,opacity] duration-200 ${
-                i === idx ? 'w-5 bg-white' : 'w-2 bg-white/30'
-              }`}
-            />
-          ))}
+        <div className="flex gap-1" aria-hidden>
+          {Array.from({ length: INTRO_TOTAL_STEPS }, (_, i) => {
+            const done = i < GLOBAL_STEP_OFFSET;
+            const active = i === globalStepNumber - 1;
+            return (
+              <span
+                key={i}
+                className={`h-1 rounded-full transition-[width,opacity] duration-200 ${
+                  active ? 'w-5 bg-white' : done ? 'w-2 bg-white/55' : 'w-2 bg-white/25'
+                }`}
+              />
+            );
+          })}
         </div>
+      </div>
+
+      {/* --- META-EBENE 3: Framing-Zeile für den aktuellen Screen --- */}
+      <div className="flex-shrink-0 border-b border-white/[0.05] bg-white/[0.03] px-3 py-2 sm:px-4">
+        <p className="text-[10.5px] leading-snug text-white/75">
+          <span className="font-semibold uppercase tracking-[0.12em] text-white/55">Meta · </span>
+          {framingLine}
+        </p>
+      </div>
+
+      {/* Headline des Walkthroughs bleibt, ist aber deutlich vom Meta-Rahmen getrennt. */}
+      <div className="flex-shrink-0 px-3 pt-2.5 pb-1 sm:px-4">
+        <h2 className="text-[16px] font-extrabold leading-[1.2] tracking-tight text-white sm:text-[17px]">
+          {INTRO_OVERLAY_HEADLINE}
+        </h2>
       </div>
 
       {/* Inhalt: Abschnitt, Fließtext, Vorschau */}
@@ -456,6 +544,20 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
           </div>
         </div>
 
+        {/* Abschluss-Text auf dem letzten Screen – als Meta-Ebene oberhalb des Buttons. */}
+        {isLast ? (
+          <div className="mt-4 rounded-xl border border-white/15 bg-white/[0.06] px-3 py-2.5">
+            <p className="text-[11px] leading-relaxed text-white/90">{closingText}</p>
+          </div>
+        ) : null}
+
+        {/* Barometer-Schritt: kurzer Meta-Hinweis unter dem Panel, damit klar bleibt,
+            dass Einstellungen gespeichert werden – aber erst ab Nutzung greifen. */}
+        {isPolitikbarometerStep && !isLast ? (
+          <p className="mt-3 text-[10.5px] leading-snug text-white/65">
+            Hinweis: Ihre Auswahl wird für die App übernommen und lässt sich jederzeit in den Einstellungen anpassen.
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-shrink-0 gap-2 border-t border-white/10 bg-[rgba(12,18,32,0.96)] px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-4">
@@ -474,7 +576,7 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
           onClick={() => (isLast ? onFinish() : setIdx((p) => Math.min(steps.length - 1, p + 1)))}
           className="btn-gov-primary btn-gov-primary--flex min-h-[44px] min-w-0 flex-1 text-[11px] font-extrabold"
         >
-          {isLast ? 'Einführung abschließen' : 'Weiter'}
+          {isLast ? INTRO_FINISH_CTA_LABEL : 'Weiter'}
         </button>
       </div>
     </div>

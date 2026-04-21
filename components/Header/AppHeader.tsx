@@ -433,10 +433,21 @@ const AppHeader: React.FC = () => {
     >
       {/* ── Row 1: Brand + Punkte ── */}
       <div className="flex items-center justify-between px-4 pt-1 pb-2">
-        <div>
+        <div className="flex items-center gap-2">
           <div className="text-sm font-bold text-[#003366] tracking-wide leading-none">
             {APP_DISPLAY_NAME}
           </div>
+          {/* Persistenter Demo-Hinweis: Macht auch NACH der Einführung klar,
+              dass es sich um eine Testumgebung handelt — verhindert Missver-
+              ständnisse bei weitergeleiteten Screenshots. */}
+          <span
+            className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-1.5 py-[1px] text-[8.5px] font-extrabold uppercase tracking-[0.14em] text-amber-900"
+            title="Testumgebung — keine Live-Daten"
+            aria-label="Testumgebung — keine Live-Daten"
+          >
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
+            Demo
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <button

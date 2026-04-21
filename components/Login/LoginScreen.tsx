@@ -2,11 +2,15 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { THEME_NAMES } from '@/data/constants';
 import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
-import type { UserPreferences } from '@/types';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
+import {
+  INTRO_EID_FRAMING,
+  INTRO_GLOBAL_FRAMING,
+  INTRO_GLOBAL_PILL_LABEL,
+  INTRO_TOTAL_STEPS,
+} from '@/data/introOverlayMarketing';
 
 const KIRKEL_STREET = 'Hauptstraße 1';
 const KIRKEL_PLZ = '66459';
@@ -20,23 +24,22 @@ const loginNavNextClass =
   'btn-gov-primary btn-gov-primary--flex min-h-[44px] min-w-0 flex-1 text-sm font-bold';
 
 /**
- * Onboarding: 2 Schritte (Anrede kommt vorab über AnredeGate nach NDA)
- * 1) eID-Demo / Adresse + Clara
- * 2) Politik-Barometer (optional)
+ * Login-Screen = Einführungs-Schritt 2 von 8 (eID · Beispiel).
+ *
+ * Das frühere „Politik-Barometer" (Schritt 2 des alten LoginScreen-Flows) ist
+ * jetzt Bestandteil des Walkthroughs (Schritt 8 von 8), damit die Tester zuerst
+ * die App-Bereiche kennenlernen und sich erst am Ende für Themen entscheiden.
  */
-type LoginStep = 1 | 2;
-
 type LoginScreenProps = {
   /**
-   * Wenn die App bereits im iPhone-Rahmen läuft (Demo „device“-Variante),
-   * dann darf LoginScreen keinen zweiten iPhoneFrame rendern.
+   * Wenn die App bereits im iPhone-Rahmen läuft (Demo „device"-Variante),
+   * dann darf LoginScreen keinen zweiten IphoneFrame rendern.
    */
   renderFrame?: boolean;
 };
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
   const { state, dispatch } = useApp();
-  const [step, setStep] = useState<LoginStep>(1);
 
   const reopenProductIntro = useCallback(() => {
     try {
@@ -58,10 +61,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
   );
 
   useEffect(() => {
-    if (step !== 1) return;
     if (state.residenceLocation === 'kirkel') return;
     persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
-  }, [step, state.residenceLocation, persistDemoFields]);
+  }, [state.residenceLocation, persistDemoFields]);
 
   const applyEidKirkelDemo = () => {
     persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
@@ -69,22 +71,18 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
 
   const handleEidDemoClick = () => {
     cancelOnboardingSpotlight();
-    setStep(2);
-    // UI-Flow zuerst sichtbar weiterführen; eID-Daten danach synchronisieren.
-    // So wirkt der Button nie "tot", selbst wenn der Sync verzögert ist.
-    window.setTimeout(() => {
-      try {
-        applyEidKirkelDemo();
-      } catch {
-        /* noop: Weiter-Navigation bleibt stabil */
-      }
-    }, 0);
+    // eID-Daten setzen und direkt einloggen; das frühere Politik-Barometer-
+    // Zwischenformular liegt jetzt als letzter Walkthrough-Schritt.
+    try {
+      applyEidKirkelDemo();
+    } catch {
+      /* noop */
+    }
+    dispatch({ type: 'SET_LOGGED_IN', payload: true });
   };
 
-  /** Onboarding-Spotlight: eID → Weiter → Checkbox → Zur Demo-App */
-  type OnboardingSpotlight = 'off' | 'eid' | 'weiter' | 'baro_check' | 'demo';
+  type OnboardingSpotlight = 'off' | 'eid' | 'weiter';
   const [onboardingSpotlight, setOnboardingSpotlight] = useState<OnboardingSpotlight>('off');
-  const [barometerCheckHint, setBarometerCheckHint] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -92,20 +90,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
       setOnboardingSpotlight('off');
       return;
     }
-    if (step === 1) setOnboardingSpotlight('eid');
-    if (step === 2) setOnboardingSpotlight('baro_check');
-  }, [step]);
-
-  useEffect(() => {
-    if (onboardingSpotlight !== 'baro_check') return;
-    setBarometerCheckHint(true);
-    const t = window.setTimeout(() => setBarometerCheckHint(false), 1100);
-    return () => window.clearTimeout(t);
-  }, [onboardingSpotlight]);
+    setOnboardingSpotlight('eid');
+  }, []);
 
   const cancelOnboardingSpotlight = useCallback(() => {
     setOnboardingSpotlight('off');
-    setBarometerCheckHint(false);
   }, []);
 
   const onOnboardingSpotlightAnimationEnd = useCallback((e: React.AnimationEvent<HTMLElement>) => {
@@ -115,29 +104,18 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
     setOnboardingSpotlight((prev) => {
       if (prev === 'eid') return 'weiter';
       if (prev === 'weiter') return 'off';
-      if (prev === 'baro_check') return 'demo';
-      if (prev === 'demo') return 'off';
       return prev;
     });
   }, []);
 
-  const handlePreferenceChange = (key: keyof UserPreferences, value: number) => {
-    dispatch({ type: 'SET_PREFERENCES', payload: { [key]: value } });
-  };
-
-  const applyPreset = (preset: Partial<UserPreferences>) => {
-    dispatch({ type: 'SET_PREFERENCES', payload: preset });
-  };
-
   const handleProceedToApp = () => {
+    try {
+      applyEidKirkelDemo();
+    } catch {
+      /* noop */
+    }
     dispatch({ type: 'SET_LOGGED_IN', payload: true });
   };
-
-  const sliderTrackStyle = (value: number) =>
-    ({
-      background: `linear-gradient(to right, #1e40af 0%, #1e40af ${value}%, #dbe4f0 ${value}%, #dbe4f0 100%)`,
-      accentColor: '#1e40af',
-    }) as const;
 
   const content = (
     <div
@@ -150,251 +128,95 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
         boxShadow: '0 16px 48px rgba(0,40,100,0.10), inset 0 1px 0 rgba(255,255,255,0.60)',
       }}
     >
-          <div className="flex-shrink-0 px-6 pt-6 pb-4 text-center">
+          {/* --- Meta-Ebene: Einführungs-Pill + Schritt 2/8 + Framing-Zeile --- */}
+          <div className="flex-shrink-0 border-b border-neutral-200/70 bg-[#F3F6FC] px-5 pt-3 pb-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-[#003366]/80">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-flex items-center rounded-full bg-[#003366] px-2 py-[2px] text-white">
+                  {INTRO_GLOBAL_PILL_LABEL}
+                </span>
+                <span className="text-[#003366]/70 tracking-normal normal-case font-medium">
+                  {INTRO_GLOBAL_FRAMING}
+                </span>
+              </span>
+              <span className="text-[10px] font-semibold tabular-nums text-neutral-500">
+                Schritt 2 von {INTRO_TOTAL_STEPS}
+              </span>
+            </div>
+            <p className="mt-1.5 text-[10.5px] leading-snug text-[#003366]/80">
+              <span className="font-semibold uppercase tracking-[0.12em] text-[#003366]/55">Meta · </span>
+              {INTRO_EID_FRAMING}
+            </p>
+          </div>
+
+          <div className="flex-shrink-0 px-6 pt-4 pb-3 text-center">
             <h1 className="text-2xl font-extrabold leading-none tracking-tight" style={{ color: 'var(--gov-primary)' }}>
               {APP_DISPLAY_NAME}
             </h1>
             <p className="mt-1.5 text-[11px] tracking-wide" style={{ color: 'var(--gov-muted)' }}>
               Informieren · Mitreden · Mitgestalten
             </p>
-            <div className="mt-4 flex justify-center gap-2">
-              {([1, 2, 3] as const).map((s) => (
-                <div
-                  key={s}
-                  className={`h-1 rounded-full transition-all duration-400 ${
-                    s === step ? 'w-6' : 'w-3'
-                  }`}
-                  style={{
-                    background: 'var(--gov-primary)',
-                    opacity: s === step ? 1 : s < step ? 0.38 : 0.16,
-                  }}
-                />
-              ))}
-            </div>
           </div>
 
           <div
             className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pb-2"
             style={{ overscrollBehavior: 'contain' }}
           >
-            {step === 1 && (
-              <div className="space-y-4">
-                <div
-                  className="rounded-2xl px-4 py-3"
-                  style={{
-                    background: 'rgba(255,255,255,0.80)',
-                    border: '1px solid var(--gov-border)',
-                  }}
-                >
-                  <h2 className="text-base font-bold" style={{ color: 'var(--gov-heading)' }}>
-                    Anmeldung mit eID (Demo)
-                  </h2>
-                  <p className="mt-1 text-[11px] leading-relaxed" style={{ color: 'var(--gov-body)' }}>
-                    {du
-                      ? 'MVP-Flow: eID setzt automatisch Kirkel (66459) mit Saarpfalz-Kreis. Keine manuelle Adresseingabe erforderlich.'
-                      : 'MVP-Flow: eID setzt automatisch Kirkel (66459) mit Saarpfalz-Kreis. Keine manuelle Adresseingabe erforderlich.'}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={handleEidDemoClick}
-                    onAnimationEnd={onOnboardingSpotlightAnimationEnd}
-                    className={`btn-gov-primary mt-3 ${onboardingSpotlight === 'eid' ? 'onboarding-heartbeat' : ''}`}
-                  >
-                    eID auslesen (Demo) – Kirkel
-                  </button>
-                  <p className="mt-2 text-[10px]" style={{ color: 'var(--gov-muted)' }}>
-                    <span className="font-semibold" style={{ color: 'var(--gov-heading)' }}>
-                      Aktuell:
-                    </span>{' '}
-                    Hauptstraße 1, 66459 Kirkel
-                    {demoWahlkreis ? <span> · Zuständigkeit: {demoWahlkreis}</span> : null}
-                  </p>
-                </div>
-
-              </div>
-            )}
-
-            {step === 2 && (
+            <div className="space-y-4">
               <div
                 className="rounded-2xl px-4 py-3"
                 style={{
-                  background: 'var(--gov-surface)',
+                  background: 'rgba(255,255,255,0.80)',
                   border: '1px solid var(--gov-border)',
-                  boxShadow: '0 1px 4px rgba(0,51,102,0.06)',
                 }}
               >
-                <h2 className="mb-1 text-base font-bold" style={{ color: 'var(--gov-heading)' }}>
-                  {du ? 'Politik-Barometer' : 'Politik-Barometer'}
+                <h2 className="text-base font-bold" style={{ color: 'var(--gov-heading)' }}>
+                  Anmeldung mit eID (Demo)
                 </h2>
-                <p className="text-[11px] leading-relaxed" style={{ color: 'var(--gov-muted)' }}>
+                <p className="mt-1 text-[11px] leading-relaxed" style={{ color: 'var(--gov-body)' }}>
                   {du
-                    ? 'Optional: Schieberegler helfen Clara, Inhalte für dich einzuordnen. Überspringen geht mit „Zur Demo-App“.'
-                    : 'Optional: Schieberegler helfen Clara, Inhalte für Sie einzuordnen. Überspringen geht mit „Zur Demo-App“.'}
+                    ? 'MVP-Flow: eID setzt automatisch Kirkel (66459) mit Saarpfalz-Kreis. Keine manuelle Adresseingabe erforderlich.'
+                    : 'MVP-Flow: eID setzt automatisch Kirkel (66459) mit Saarpfalz-Kreis. Keine manuelle Adresseingabe erforderlich.'}
                 </p>
-
-                <label
-                  className={`relative mt-3 flex cursor-pointer items-start gap-3 rounded-xl border bg-white px-3 py-2.5 ${
-                    onboardingSpotlight === 'baro_check' ? 'onboarding-heartbeat' : ''
-                  }`}
-                  style={{ borderColor: 'var(--gov-border)' }}
+                <button
+                  type="button"
+                  onClick={handleEidDemoClick}
                   onAnimationEnd={onOnboardingSpotlightAnimationEnd}
+                  className={`btn-gov-primary mt-3 ${onboardingSpotlight === 'eid' ? 'onboarding-heartbeat' : ''}`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={state.consentClaraPersonalization}
-                    onChange={(e) =>
-                      dispatch({
-                        type: 'SET_CONSENT_CLARA_PERSONALIZATION',
-                        payload: e.target.checked,
-                      })
-                    }
-                    className="mt-0.5 h-4 w-4 flex-shrink-0 rounded"
-                    style={{ accentColor: 'var(--gov-btn)' }}
-                  />
-                  {barometerCheckHint ? (
-                    <span
-                      className="absolute left-3 top-2.5 inline-flex h-5 w-5 items-center justify-center rounded-md bg-emerald-600 text-[12px] font-black text-white shadow-sm"
-                      aria-hidden
-                    >
-                      ✓
-                    </span>
-                  ) : null}
-                  <span className="text-[11px] leading-snug" style={{ color: 'var(--gov-body)' }}>
-                    {du
-                      ? 'Ich erlaube Clara, der neutralen KI-Agentin, meine Politik-Schwerpunkte für personalisierte Analysen zu nutzen.'
-                      : 'Einwilligung: Clara, die neutrale KI-Agentin, darf Ihre Politik-Schwerpunkte für personalisierte Analysen verwenden.'}
-                  </span>
-                </label>
-
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {(
-                    [
-                      {
-                        id: 'neutral',
-                        label: 'Neutral',
-                        values: { umwelt: 50, finanzen: 50, bildung: 50, digital: 50, soziales: 50, sicherheit: 50 },
-                      },
-                      {
-                        id: 'klima',
-                        label: 'Klima',
-                        values: { umwelt: 80, finanzen: 45, bildung: 55, digital: 50, soziales: 55, sicherheit: 45 },
-                      },
-                      {
-                        id: 'wirtschaft',
-                        label: 'Wirtschaft',
-                        values: { umwelt: 45, finanzen: 80, bildung: 55, digital: 60, soziales: 45, sicherheit: 55 },
-                      },
-                      {
-                        id: 'sicherheit',
-                        label: 'Sicherheit',
-                        values: { umwelt: 45, finanzen: 55, bildung: 50, digital: 55, soziales: 45, sicherheit: 80 },
-                      },
-                    ] as const
-                  ).map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => applyPreset(p.values)}
-                      disabled={!state.consentClaraPersonalization}
-                      className="rounded-full border px-3 py-1 text-[11px] font-semibold transition"
-                      style={{
-                        borderColor: 'var(--gov-border)',
-                        background: state.consentClaraPersonalization ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.60)',
-                        color: 'var(--gov-heading)',
-                        opacity: state.consentClaraPersonalization ? 1 : 0.55,
-                        cursor: state.consentClaraPersonalization ? 'pointer' : 'not-allowed',
-                      }}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="mt-4 space-y-3.5">
-                  {Object.entries(THEME_NAMES).map(([key, name]) => (
-                    <div key={key}>
-                      <div className="mb-1.5 flex justify-between">
-                        <span className="text-[11px] font-medium" style={{ color: 'var(--gov-heading)' }}>
-                          {name}
-                        </span>
-                        <span className="text-[11px] font-bold tabular-nums" style={{ color: 'var(--gov-heading)' }}>
-                          {state.preferences[key as keyof UserPreferences]}%
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min={0}
-                        max={100}
-                        step={5}
-                        value={state.preferences[key as keyof UserPreferences]}
-                        onChange={(e) => handlePreferenceChange(key as keyof UserPreferences, Number(e.target.value))}
-                        disabled={!state.consentClaraPersonalization}
-                        aria-label={`${name} Priorität`}
-                        className="w-full h-2 rounded-full"
-                        style={{
-                          ...sliderTrackStyle(state.preferences[key as keyof UserPreferences]),
-                          opacity: state.consentClaraPersonalization ? 1 : 0.55,
-                          cursor: state.consentClaraPersonalization ? 'pointer' : 'not-allowed',
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
-                {!state.consentClaraPersonalization && (
-                  <p className="mt-3 text-[10px] leading-snug" style={{ color: 'var(--gov-muted)' }}>
-                    Hinweis: Schieberegler werden erst genutzt, wenn die Einwilligung aktiviert ist.
-                  </p>
-                )}
+                  eID auslesen (Demo) – Kirkel
+                </button>
+                <p className="mt-2 text-[10px]" style={{ color: 'var(--gov-muted)' }}>
+                  <span className="font-semibold" style={{ color: 'var(--gov-heading)' }}>
+                    Aktuell:
+                  </span>{' '}
+                  Hauptstraße 1, 66459 Kirkel
+                  {demoWahlkreis ? <span> · Zuständigkeit: {demoWahlkreis}</span> : null}
+                </p>
               </div>
-            )}
+            </div>
           </div>
 
           <div
             className="flex-shrink-0 space-y-2 px-5 pb-6 pt-3"
             style={{ borderTop: '1px solid var(--gov-border)' }}
           >
-            {step === 1 && (
-              <div className="flex gap-2">
-                <button type="button" onClick={reopenProductIntro} className={loginNavBackClass}>
-                  Zurück
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    cancelOnboardingSpotlight();
-                    setStep(2);
-                  }}
-                  onAnimationEnd={onOnboardingSpotlightAnimationEnd}
-                  className={`${loginNavNextClass}${onboardingSpotlight === 'weiter' ? ' onboarding-heartbeat' : ''}`}
-                >
-                  Weiter
-                </button>
-              </div>
-            )}
-            {step === 2 && (
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep(1);
-                  }}
-                  className={loginNavBackClass}
-                >
-                  Zurück
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    cancelOnboardingSpotlight();
-                    handleProceedToApp();
-                  }}
-                  onAnimationEnd={onOnboardingSpotlightAnimationEnd}
-                  className={`${loginNavNextClass}${onboardingSpotlight === 'demo' ? ' onboarding-heartbeat' : ''}`}
-                >
-                  Zur Demo-App
-                </button>
-              </div>
-            )}
+            <div className="flex gap-2">
+              <button type="button" onClick={reopenProductIntro} className={loginNavBackClass}>
+                Zurück
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  cancelOnboardingSpotlight();
+                  handleProceedToApp();
+                }}
+                onAnimationEnd={onOnboardingSpotlightAnimationEnd}
+                className={`${loginNavNextClass}${onboardingSpotlight === 'weiter' ? ' onboarding-heartbeat' : ''}`}
+              >
+                Weiter
+              </button>
+            </div>
           </div>
     </div>
   );
@@ -406,7 +228,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
           <div className="relative z-0 flex min-h-0 h-full w-full flex-col">{content}</div>
         </IphoneFrame>
       ) : (
-        // Im device-Kontext gibt es bereits einen iPhone-Rahmen. Nur der Content ist nötig.
         <div className="h-full w-full min-w-0 flex flex-col">{content}</div>
       )}
     </div>
