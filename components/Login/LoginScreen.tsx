@@ -7,9 +7,8 @@ import { APP_DISPLAY_NAME } from '@/lib/branding';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
 import {
   INTRO_EID_FRAMING_SHORT,
-  INTRO_GLOBAL_PILL_LABEL,
-  INTRO_TOTAL_STEPS,
 } from '@/data/introOverlayMarketing';
+import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 
 const KIRKEL_STREET = 'Hauptstraße 1';
 const KIRKEL_PLZ = '66459';
@@ -131,19 +130,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
               Einheitlicher dunkler Streifen über allen 8 Einführungs-Screens.
               Auf Step 2 (eID) kommt die knappe Sicherheits-/Vertrauens-Zeile
               in gleichem Font direkt unter die Pill-Zeile. */}
-          <div className="intro-meta-strip flex-shrink-0">
-            <div className="flex items-center justify-between gap-2">
-              <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-[2px] text-[9px] font-semibold uppercase tracking-[0.14em] text-white/95">
-                {INTRO_GLOBAL_PILL_LABEL}
-              </span>
-              <span className="text-[10px] font-semibold tabular-nums text-white/70">
-                Schritt 2 von {INTRO_TOTAL_STEPS}
-              </span>
-            </div>
-            <p className="mt-1 text-[10.5px] leading-snug text-white/65">
-              {INTRO_EID_FRAMING_SHORT}
-            </p>
-          </div>
+          <IntroMetaStrip
+            stepNumber={2}
+            metaFramingLine={INTRO_EID_FRAMING_SHORT}
+            onSkip={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
+            onClose={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
+          />
 
           <div className="flex-shrink-0 px-6 pt-4 pb-3 text-center">
             <h1 className="text-2xl font-extrabold leading-none tracking-tight" style={{ color: 'var(--gov-primary)' }}>

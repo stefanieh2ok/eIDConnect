@@ -148,6 +148,30 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     return () => window.removeEventListener('eidconnect:open-intro', onOpen as any);
   }, []);
 
+  // Globaler Skip: „Einführung überspringen" / × aus AnredeGate oder
+  // LoginScreen. Sie laufen vor dem Login, haben also selbst keinen Zugriff auf
+  // das Intro-Flag. Wir fangen das hier zentral ein und beenden den kompletten
+  // Einführungs-Flow: Default-Anrede setzen, einloggen, Flag speichern.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onSkipAll = () => {
+      try {
+        localStorage.setItem(PRODUCT_INTRO_DONE_KEY, 'true');
+      } catch {}
+      if (state.anrede == null) {
+        dispatch({ type: 'SET_ANREDE', payload: 'sie' });
+      }
+      if (!state.isLoggedIn) {
+        dispatch({ type: 'SET_LOGGED_IN', payload: true });
+      }
+      setPostLoginIntroOpen(false);
+      setIntroOptInAnswered(true);
+    };
+    window.addEventListener('eidconnect:skip-intro-all', onSkipAll as any);
+    return () =>
+      window.removeEventListener('eidconnect:skip-intro-all', onSkipAll as any);
+  }, [dispatch, state.anrede, state.isLoggedIn]);
+
   // Default-Filter (passendste Ebene zum Wohnort) bei Section-Wechsel
   useEffect(() => {
     const residencePath = residencePathForLocation(state.residenceLocation);

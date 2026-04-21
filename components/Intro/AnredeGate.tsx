@@ -6,9 +6,8 @@ import { APP_DISPLAY_NAME } from '@/lib/branding';
 import {
   INTRO_ANREDE_LEADIN_DU,
   INTRO_ANREDE_LEADIN_SIE,
-  INTRO_GLOBAL_PILL_LABEL,
-  INTRO_TOTAL_STEPS,
 } from '@/data/introOverlayMarketing';
+import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import type { Anrede } from '@/types';
 
 type Props = {
@@ -129,19 +128,14 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
           WebkitOverflowScrolling: 'touch',
         }}
       >
-        {/* Meta-Ebene: Einführungs-Pill + Schritt 1/8.
-            Einheitlicher dunkler Streifen (siehe LoginScreen & Walkthrough).
-            Framing-Texte bewusst entfernt: nur Pill + Step-Counter. */}
-        <div className="intro-meta-strip">
-          <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-[2px] text-[9px] font-semibold uppercase tracking-[0.14em] text-white/95">
-              {INTRO_GLOBAL_PILL_LABEL}
-            </span>
-            <span className="text-[10px] font-semibold tabular-nums text-white/70">
-              Schritt 1 von {INTRO_TOTAL_STEPS}
-            </span>
-          </div>
-        </div>
+        {/* Einheitlicher Dark-Meta-Streifen (siehe <IntroMetaStrip>).
+            Skip/× feuern das globale eidconnect:skip-intro-all-Event, das
+            BuergerApp zentral abarbeitet (Default-Anrede, Login, Flag). */}
+        <IntroMetaStrip
+          stepNumber={1}
+          onSkip={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
+          onClose={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
+        />
 
         <div className="px-4 pt-3 pb-3 border-b border-neutral-200 sm:px-5 sm:pt-4 sm:pb-4">
           <div className="text-[10px] font-extrabold tracking-wide text-[#003366] sm:text-[11px]">{APP_DISPLAY_NAME}</div>

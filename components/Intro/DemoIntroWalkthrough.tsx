@@ -9,14 +9,12 @@ import {
   INTRO_CLOSING_TEXT_DU,
   INTRO_CLOSING_TEXT_SIE,
   INTRO_FINISH_CTA_LABEL,
-  INTRO_GLOBAL_PILL_LABEL,
   INTRO_OVERLAY_FRAMING_LINES,
   INTRO_OVERLAY_HEADLINE,
   INTRO_OVERLAY_STEPS,
-  INTRO_POLITIKBAROMETER_FRAMING_SHORT,
-  INTRO_SKIP_LABEL,
   INTRO_TOTAL_STEPS,
 } from '@/data/introOverlayMarketing';
+import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { INTRO_SCREENSHOTS } from '@/data/introScreenshots';
 import { adaptIntroAddress } from '@/lib/introAddress';
 import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
@@ -441,58 +439,15 @@ export default function DemoIntroWalkthrough({
         {liveAnnouncement}
       </div>
 
-      {/* --- META-Streifen: Pill + Schritt X/8 + Controls (Skip/Schließen) ---
-          Einheitliches Design über alle 8 Einführungs-Screens. Framing-Texte
-          sind komplett entfernt — mit einer Ausnahme: auf dem Politikbarometer-
-          Step wird eine knappe, nicht-Profiling Kurzzeile angezeigt, damit die
-          Panel-Sektion (Checkboxen + Einwilligung) nicht als Interessen-Tracking
-          missverstanden wird. Gleicher Font, nur leicht gedimmt. */}
-      <div className="intro-meta-strip flex-shrink-0">
-        <div className="flex items-center justify-between gap-2">
-          <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-[2px] text-[9px] font-semibold uppercase tracking-[0.14em] text-white/95">
-            {INTRO_GLOBAL_PILL_LABEL}
-          </span>
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-semibold tabular-nums text-white/70">
-              Schritt {globalStepNumber} von {INTRO_TOTAL_STEPS}
-            </span>
-            <button
-              type="button"
-              onClick={onFinish}
-              className="text-[10px] font-semibold text-white/70 underline-offset-2 hover:text-white hover:underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/60"
-            >
-              {INTRO_SKIP_LABEL}
-            </button>
-            <button
-              type="button"
-              aria-label="Einführung schließen"
-              onClick={onClose}
-              className="flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-white/10 text-xs leading-none text-white/90 hover:bg-white/15"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-        <div className="mt-1.5 flex gap-1" aria-hidden>
-          {Array.from({ length: INTRO_TOTAL_STEPS }, (_, i) => {
-            const done = i < GLOBAL_STEP_OFFSET;
-            const active = i === globalStepNumber - 1;
-            return (
-              <span
-                key={i}
-                className={`h-1 rounded-full transition-[width,opacity] duration-200 ${
-                  active ? 'w-5 bg-white' : done ? 'w-2 bg-white/55' : 'w-2 bg-white/25'
-                }`}
-              />
-            );
-          })}
-        </div>
-        {step.id === 'politikbarometer' ? (
-          <p className="mt-1.5 text-[10.5px] leading-snug text-white/65">
-            {INTRO_POLITIKBAROMETER_FRAMING_SHORT}
-          </p>
-        ) : null}
-      </div>
+      {/* --- META-Streifen: identischer Dark-Header auf allen 8 Screens ---
+          Inhalt (Pill, globale Caps, App-Name, Schritt X/8 + Progress-Dots,
+          optionale „META · …"-Zeile) kommt aus <IntroMetaStrip>. */}
+      <IntroMetaStrip
+        stepNumber={globalStepNumber}
+        onSkip={onFinish}
+        onClose={onClose}
+        metaFramingLine={framingLine}
+      />
 
       {/* Headline des Walkthroughs bleibt, ist aber deutlich vom Meta-Rahmen getrennt. */}
       <div className="flex-shrink-0 px-3 pt-2.5 pb-1 sm:px-4">

@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef } from 'react';
 import {
-  INTRO_GLOBAL_PILL_LABEL,
   INTRO_OPT_IN_HINT_DU,
   INTRO_OPT_IN_HINT_SIE,
   INTRO_OPT_IN_LEAD_DU,
@@ -15,6 +14,7 @@ import {
   INTRO_OPT_IN_TITLE_SIE,
   INTRO_OPT_IN_TOPICS,
 } from '@/data/introOverlayMarketing';
+import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 
 type Props = {
   du: boolean;
@@ -80,17 +80,15 @@ export default function IntroOptInGate({ du, onStart, onSkip }: Props) {
           WebkitOverflowScrolling: 'touch',
         }}
       >
-        {/* Dunkler Meta-Streifen — konsistent zu AnredeGate/LoginScreen/Walkthrough. */}
-        <div className="intro-meta-strip">
-          <div className="flex items-center justify-between gap-2">
-            <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-[2px] text-[9px] font-semibold uppercase tracking-[0.14em] text-white/95">
-              {INTRO_GLOBAL_PILL_LABEL}
-            </span>
-            <span className="text-[10px] font-semibold tabular-nums text-white/70">
-              Überblick
-            </span>
-          </div>
-        </div>
+        {/* Einheitlicher Dark-Meta-Streifen — kein Schritt-Zähler, da Opt-in-
+            Gate zwischen Schritt 2 und 3 liegt. Skip/× nutzen die Gate-eigenen
+            Handler („Direkt zur App" = Skip/× verwerfen den Walkthrough). */}
+        <IntroMetaStrip
+          stepNumber={null}
+          stepLabel="Auswahl"
+          onSkip={onSkip}
+          onClose={onSkip}
+        />
 
         <div className="px-5 pt-4 pb-3 sm:px-6">
           <h2 className="text-base font-black leading-snug text-neutral-900 sm:text-lg">{title}</h2>
