@@ -74,8 +74,16 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
   useEffect(() => {
     if (!open) return;
     // Beim Öffnen: Hintergrund-Scroll sperren, damit nichts durchscheint oder ruckelt.
-    const prevOverflow = typeof document !== 'undefined' ? document.body.style.overflow : '';
-    if (typeof document !== 'undefined') document.body.style.overflow = 'hidden';
+    // Wichtig: Nur wenn die Gate wirklich global (fixed) liegt. Bei `absolute`
+    // (Device-Mockup im AppStage auf Desktop) würde ein body-Overflow-Lock die
+    // vertikale Scrollleiste togglen – Viewport wird ~15 px breiter → AppStage
+    // rechnet den Desktop-Scale neu → sichtbares „Springen" des iPhone-Rahmens.
+    const shouldLockBody = position === 'fixed';
+    const prevOverflow =
+      shouldLockBody && typeof document !== 'undefined' ? document.body.style.overflow : '';
+    if (shouldLockBody && typeof document !== 'undefined') {
+      document.body.style.overflow = 'hidden';
+    }
     // Fokus auf den ersten interaktiven Knopf im Dialog legen.
     const t = window.setTimeout(() => {
       const el = dialogRef.current?.querySelector<HTMLButtonElement>('button[aria-pressed], button[type="button"]');
@@ -83,9 +91,11 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
     }, 40);
     return () => {
       window.clearTimeout(t);
-      if (typeof document !== 'undefined') document.body.style.overflow = prevOverflow;
+      if (shouldLockBody && typeof document !== 'undefined') {
+        document.body.style.overflow = prevOverflow;
+      }
     };
-  }, [open]);
+  }, [open, position]);
 
   if (!open) return null;
 

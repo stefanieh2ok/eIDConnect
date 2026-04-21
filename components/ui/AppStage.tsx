@@ -35,28 +35,46 @@ export function AppStage({
     const root = rootRef.current;
     if (!root) return;
 
+    let rafId: number | null = null;
+    let lastScale = -1;
+
     const computeScale = () => {
       const rect = root.getBoundingClientRect();
       const isDesktop = window.matchMedia(`(min-width: ${DESKTOP_PREVIEW_MIN_WIDTH_PX}px)`).matches;
+      let next: number;
       if (!isDesktop) {
-        setDesktopScale(1);
-        return;
+        next = 1;
+      } else {
+        const availableWidth = Math.max(0, rect.width - 48);
+        const availableHeight = Math.max(0, rect.height - 48);
+        const scaleX = availableWidth / stageWidthPx;
+        const scaleY = availableHeight / stageHeightPx;
+        const finalScale = Math.min(scaleX, scaleY, 1) * DESKTOP_PRESENTATION_FACTOR;
+        next = Number.isFinite(finalScale) && finalScale > 0 ? finalScale : 1;
       }
-      const availableWidth = Math.max(0, rect.width - 48);
-      const availableHeight = Math.max(0, rect.height - 48);
-      const scaleX = availableWidth / stageWidthPx;
-      const scaleY = availableHeight / stageHeightPx;
-      const finalScale = Math.min(scaleX, scaleY, 1) * DESKTOP_PRESENTATION_FACTOR;
-      setDesktopScale(Number.isFinite(finalScale) && finalScale > 0 ? finalScale : 1);
+      // Mikro-Jitter durch sub-pixel Breiten-Änderungen (z. B. Scrollbar-Gutter,
+      // Browser-UI) vermeiden: erst ab 0.3 % Differenz neu rendern.
+      if (Math.abs(next - lastScale) < 0.003) return;
+      lastScale = next;
+      setDesktopScale(next);
     };
 
-    const ro = new ResizeObserver(computeScale);
+    const scheduleCompute = () => {
+      if (rafId != null) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = null;
+        computeScale();
+      });
+    };
+
+    const ro = new ResizeObserver(scheduleCompute);
     ro.observe(root);
     computeScale();
-    window.addEventListener('resize', computeScale);
+    window.addEventListener('resize', scheduleCompute);
     return () => {
+      if (rafId != null) window.cancelAnimationFrame(rafId);
       ro.disconnect();
-      window.removeEventListener('resize', computeScale);
+      window.removeEventListener('resize', scheduleCompute);
     };
   }, [stageWidthPx, stageHeightPx]);
 

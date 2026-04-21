@@ -433,6 +433,14 @@ html {
   color: var(--gov-body, #374151);
   background-color: var(--gov-surface, #F7F9FC);
   -webkit-text-size-adjust: 100%;
+  /*
+   * Scrollbar-Gutter stabil halten, damit modale Overlays (AnredeGate,
+   * Stimmzettel-Modal, Intro) nicht durch body.overflow=hidden die Scrollleiste
+   * ausblenden und damit den Viewport um ~15px breiter machen. Sonst sieht man
+   * auf Desktop ein sichtbares „Springen" des iPhone-Rahmens, weil AppStage
+   * seinen Scale neu berechnet, wenn der Viewport-Wert kippt.
+   */
+  scrollbar-gutter: stable;
 }
 body {
   color: var(--gov-body, #374151);
