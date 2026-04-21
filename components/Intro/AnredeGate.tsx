@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
 import type { Anrede } from '@/types';
@@ -56,17 +56,54 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
     setOpen(false);
   }, [pending]);
 
+  // Fokus in den Dialog ziehen, ESC schließt nichts destruktiv – Nutzer muss aktiv wählen.
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    // Beim Öffnen: Hintergrund-Scroll sperren, damit nichts durchscheint oder ruckelt.
+    const prevOverflow = typeof document !== 'undefined' ? document.body.style.overflow : '';
+    if (typeof document !== 'undefined') document.body.style.overflow = 'hidden';
+    // Fokus auf den ersten interaktiven Knopf im Dialog legen.
+    const t = window.setTimeout(() => {
+      const el = dialogRef.current?.querySelector<HTMLButtonElement>('button[aria-pressed], button[type="button"]');
+      el?.focus({ preventScroll: true });
+    }, 40);
+    return () => {
+      window.clearTimeout(t);
+      if (typeof document !== 'undefined') document.body.style.overflow = prevOverflow;
+    };
+  }, [open]);
+
   if (!open) return null;
 
   return (
-    <div className={shellClass} role="dialog" aria-modal="true" aria-label="Anrede wählen">
+    <div
+      className={shellClass}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Anrede wählen"
+    >
       {variant === 'overlay' ? (
-        <div className="absolute inset-0 bg-black/45" aria-hidden />
+        <div
+          className="absolute inset-0"
+          aria-hidden
+          style={{
+            // Backdrop: dunkler Scrim + iOS-artiger Blur/Saturate.
+            // Damit sind Inhalte dahinter weder lesbar noch identifizierbar.
+            background: 'rgba(8, 16, 34, 0.62)',
+            backdropFilter: 'blur(8px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(8px) saturate(140%)',
+          }}
+        />
       ) : null}
 
       <div
-        className="relative w-full max-w-[360px] overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl sm:max-w-[400px]"
-        style={{ boxShadow: '0 22px 70px rgba(0,40,100,0.26)' }}
+        ref={dialogRef}
+        className="relative w-full max-w-[360px] overflow-hidden rounded-3xl bg-white sm:max-w-[400px] anredegate-sheet"
+        style={{
+          boxShadow:
+            '0 28px 80px rgba(0, 20, 60, 0.38), 0 6px 18px rgba(0, 20, 60, 0.18), 0 0 0 1px rgba(10, 25, 60, 0.06) inset',
+        }}
       >
         <div className="px-4 pt-4 pb-3 border-b border-neutral-200 sm:px-5 sm:pt-5 sm:pb-4">
           <div className="text-[10px] font-extrabold tracking-wide text-[#003366] sm:text-[11px]">{APP_DISPLAY_NAME}</div>
@@ -86,18 +123,24 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
                   key={a}
                   type="button"
                   onClick={() => pick(a)}
-                  className={`relative btn-gov-choice overflow-hidden py-5 sm:py-6 ${
-                    active ? 'ring-2 ring-white ring-offset-2 ring-offset-white/90 scale-[1.02]' : ''
-                  }`}
+                  className="relative btn-gov-choice overflow-hidden py-5 sm:py-6"
                   aria-pressed={active}
                 >
                   {active ? (
-                    <span className="absolute right-2.5 top-2.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white text-[#003366] text-sm font-black shadow-sm">
+                    <span
+                      className="absolute right-2.5 top-2.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-black text-white"
+                      style={{ background: 'var(--gov-primary, #003366)' }}
+                      aria-hidden
+                    >
                       ✓
                     </span>
                   ) : null}
-                  <span className="mb-1 text-xl font-extrabold text-white sm:text-2xl">{a === 'sie' ? 'Sie' : 'Du'}</span>
-                  <span className="text-xs text-white/85">{a === 'sie' ? 'Förmlich' : 'Persönlich'}</span>
+                  <span className="btn-gov-choice__label mb-1 text-xl font-extrabold sm:text-2xl">
+                    {a === 'sie' ? 'Sie' : 'Du'}
+                  </span>
+                  <span className="text-[11px] text-neutral-500">
+                    {a === 'sie' ? 'Förmlich' : 'Persönlich'}
+                  </span>
                 </button>
               );
             })}

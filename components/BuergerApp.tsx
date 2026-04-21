@@ -14,6 +14,7 @@ import StimmzettelModal from '@/components/Modals/StimmzettelModal';
 import DemoIntroWalkthrough from '@/components/Intro/DemoIntroWalkthrough';
 import DemoExpectationBanner from '@/components/DemoExpectationBanner';
 import { AnredeGate } from '@/components/Intro/AnredeGate';
+import ClaraDock from '@/components/Clara/ClaraDock';
 import type { EbeneLevel, Location, Section } from '@/types';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
 
@@ -37,15 +38,17 @@ type BuergerAppProps = { variant?: 'fullscreen' | 'device' };
 export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) {
   const { state, dispatch } = useApp();
   const [showTour, setShowTour] = useState(false);
-  /** Produkt-Intro: zuerst, danach erst eID-Onboarding (LoginScreen). Lazy-Init vermeidet 1 Frame eID vor Intro. */
-  const [preLoginIntroOpen, setPreLoginIntroOpen] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    try {
-      return localStorage.getItem(PRODUCT_INTRO_DONE_KEY) !== 'true';
-    } catch {
-      return true;
-    }
-  });
+  /**
+   * Produkt-Intro: zuerst, danach erst eID-Onboarding (LoginScreen).
+   *
+   * Start IMMER mit `true`, damit Server-HTML und Client-Hydration deckungsgleich sind
+   * (sonst Hydration-Mismatch: Server rendert Intro, Client rendert LoginScreen, wenn
+   * das Flag schon im localStorage steht).
+   *
+   * Die korrekte Entscheidung treffen wir in einem `useLayoutEffect` weiter unten –
+   * das läuft synchron vor dem Paint, also ohne sichtbares Aufflackern.
+   */
+  const [preLoginIntroOpen, setPreLoginIntroOpen] = useState(true);
   const [postLoginIntroOpen, setPostLoginIntroOpen] = useState(false);
   const isDevice = variant === 'device';
 
@@ -102,8 +105,11 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     }
   }, []);
 
-  // Intro vor Onboarding: solange nicht eingeloggt und Flag nicht gesetzt
-  useEffect(() => {
+  // Intro vor Onboarding: solange nicht eingeloggt und Flag nicht gesetzt.
+  // `useLayoutEffect` läuft SYNCHRON nach dem Commit, aber vor dem Browser-Paint –
+  // damit der korrekte Zweig (Intro vs. LoginScreen) ohne sichtbares Aufflackern steht,
+  // gleichzeitig aber kein Hydration-Mismatch entsteht.
+  useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
     if (state.isLoggedIn) return;
     try {
@@ -227,7 +233,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <DemoExpectationBanner />
-        <div className="px-3 pt-3 pb-6">
+        <div className="px-3 pt-3 pb-24">
           {renderSection()}
           <SecurityFaqFooter />
         </div>
@@ -235,6 +241,9 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
 
       {/* Scroll-to-top (erscheint ab 200px Scroll) */}
       <ScrollToTopButton />
+
+      {/* Clara-Dock: globaler, dezenter Einstieg in Chat + Voice (immer erreichbar) */}
+      <ClaraDock />
 
       {/* Stimmzettel-Modal (Wahlen → "Stimmzettel ansehen") */}
       <StimmzettelModal />
@@ -269,10 +278,10 @@ function ScrollToTopButton() {
       onClick={() =>
         document.getElementById('main-scroll')?.scrollTo({ top: 0, behavior: 'smooth' })
       }
-      className="fixed z-50 w-10 h-10 rounded-full text-white shadow-lg flex items-center justify-center"
+      className="absolute z-[45] w-9 h-9 rounded-full text-white shadow-lg flex items-center justify-center"
       style={{
-        bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))',
-        right: '1rem',
+        bottom: 'calc(3.75rem + env(safe-area-inset-bottom, 0px))',
+        right: '0.75rem',
         background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)',
       }}
       aria-label="Nach oben"

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { EbeneLevel } from '@/types';
 
 export type CalendarGeoScope = 'all' | EbeneLevel;
@@ -28,6 +29,12 @@ export function CalendarScopeFilter({ value, availableLevels, onChange }: Props)
   const [open, setOpen] = useState(false);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const [anchor, setAnchor] = useState<{ left: number; top: number; width: number } | null>(null);
+  const [portalNode, setPortalNode] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    setPortalNode(document.body);
+  }, []);
 
   const options = useMemo(() => {
     const opts: CalendarGeoScope[] = ['all'];
@@ -44,6 +51,21 @@ export function CalendarScopeFilter({ value, availableLevels, onChange }: Props)
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const reposition = () => {
+      const r = btnRef.current?.getBoundingClientRect();
+      if (!r) return;
+      setAnchor({ left: r.left, top: r.bottom, width: r.width });
+    };
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
+    return () => {
+      window.removeEventListener('scroll', reposition, true);
+      window.removeEventListener('resize', reposition);
+    };
+  }, [open]);
 
   return (
     <>
@@ -63,44 +85,50 @@ export function CalendarScopeFilter({ value, availableLevels, onChange }: Props)
         Filter
       </button>
 
-      {open && anchor && (
-        <>
-          <div className="fixed inset-0 z-[60]" onClick={() => setOpen(false)} aria-hidden="true" />
-          <div
-            className="fixed z-[61] rounded-xl border border-neutral-200 bg-white/96 py-1 shadow-xl backdrop-blur-xl"
-            style={{
-              top: anchor.top + 6,
-              left: clamp(anchor.left + anchor.width - 180, 8, window.innerWidth - 188),
-              width: 180,
-            }}
-            role="menu"
-            aria-label="Kalender Ebenen auswählen"
-          >
-            {options.map((opt) => {
-              const selected = value === opt;
-              return (
-                <button
-                  key={opt}
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    onChange(opt);
-                    setOpen(false);
-                  }}
-                  className="w-full px-3 py-2 text-left text-[11px] text-neutral-800 hover:bg-neutral-100/80"
-                  style={{ fontWeight: selected ? 700 : 600 }}
-                >
-                  <span className="flex items-center justify-between">
-                    <span>{LABEL[opt]}</span>
-                    {selected ? <span className="text-neutral-500">✓</span> : <span className="w-3" />}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
+      {open && anchor && portalNode
+        ? createPortal(
+            <>
+              <div
+                className="fixed inset-0 z-[1000]"
+                onClick={() => setOpen(false)}
+                aria-hidden="true"
+              />
+              <div
+                className="fixed z-[1001] rounded-xl border border-neutral-200 bg-white py-1 shadow-xl"
+                style={{
+                  top: anchor.top + 6,
+                  left: clamp(anchor.left + anchor.width - 180, 8, window.innerWidth - 188),
+                  width: 180,
+                }}
+                role="menu"
+                aria-label="Kalender Ebenen auswählen"
+              >
+                {options.map((opt) => {
+                  const selected = value === opt;
+                  return (
+                    <button
+                      key={opt}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        onChange(opt);
+                        setOpen(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-[12px] text-neutral-800 hover:bg-neutral-100"
+                      style={{ fontWeight: selected ? 700 : 600 }}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>{LABEL[opt]}</span>
+                        {selected ? <span className="text-neutral-500">✓</span> : <span className="w-3" />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>,
+            portalNode,
+          )
+        : null}
     </>
   );
 }
-

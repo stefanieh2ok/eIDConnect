@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '@/context/AppContext';
 import type { EbeneLevel, Location, Section } from '@/types';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
@@ -72,8 +73,15 @@ const FILTER_HEARTBEAT_SESSION_KEY = 'eidconnect_filter_heartbeat_shown';
 export function SectionLevelFilterIcon({ section }: Props) {
   const { state, dispatch } = useApp();
   const [open, setOpen] = useState(false);
+  const [portalNode, setPortalNode] = useState<HTMLElement | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const [anchor, setAnchor] = useState<{ left: number; top: number; width: number } | null>(null);
+
+  // Portal-Target erst nach Mount setzen, damit SSR nicht versucht document.body zu lesen.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    setPortalNode(document.body);
+  }, []);
   /** Kurzer CI-„Herzschlag“ nur bei Abstimmen, einmal pro Browser-Sitzung, solange Nutzer den Filter noch nicht geöffnet hat. */
   const [heartbeat, setHeartbeat] = useState(false);
 
@@ -109,6 +117,22 @@ export function SectionLevelFilterIcon({ section }: Props) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  // Wenn geöffnet: bei Scroll/Resize Position nachführen, damit Menü am Button bleibt.
+  useEffect(() => {
+    if (!open) return;
+    const reposition = () => {
+      const r = btnRef.current?.getBoundingClientRect();
+      if (!r) return;
+      setAnchor({ left: r.left, top: r.bottom, width: r.width });
+    };
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
+    return () => {
+      window.removeEventListener('scroll', reposition, true);
+      window.removeEventListener('resize', reposition);
+    };
+  }, [open]);
 
   const enabled = availableLevels.length > 1;
 
@@ -176,51 +200,58 @@ export function SectionLevelFilterIcon({ section }: Props) {
         Filter
       </button>
 
-      {enabled && open && anchor && (
-        <>
-          <div className="fixed inset-0 z-[60]" onClick={() => setOpen(false)} aria-hidden="true" />
-          <div
-            className="fixed z-[61] rounded-xl border border-neutral-200 bg-white/96 py-1 shadow-xl backdrop-blur-xl"
-            style={{
-              top: anchor.top + 6,
-              left: clamp(anchor.left + anchor.width - 180, 8, window.innerWidth - 188),
-              width: 180,
-            }}
-            role="menu"
-            aria-label="Ebenen auswählen"
-          >
-            {availableLevels.map((level) => {
-              const cfg = LEVEL_CONFIG[level as EbeneLevel];
-              const isSelected = currentLevel === level;
-              const disabled = !availableLevels.includes(level as EbeneLevel);
-              return (
-                <button
-                  key={level}
-                  type="button"
-                  role="menuitem"
-                  disabled={disabled}
-                  onClick={() => {
-                    dispatch({
-                      type: 'SET_ACTIVE_LOCATION',
-                      payload: activeLocationForLevel(state.residenceLocation, level as EbeneLevel),
-                    });
-                    setOpen(false);
-                  }}
-                  className="w-full px-3 py-2 text-left text-[11px] text-neutral-800 hover:bg-neutral-100/80 disabled:opacity-50"
-                  style={{
-                    fontWeight: isSelected ? 700 : 600,
-                  }}
-                >
-                  <span className="flex items-center justify-between">
-                    <span>{cfg.label}</span>
-                    {isSelected ? <span className="text-neutral-500">✓</span> : <span className="w-3" />}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
+      {enabled && open && anchor && portalNode
+        ? createPortal(
+            <>
+              <div
+                className="fixed inset-0 z-[1000]"
+                onClick={() => setOpen(false)}
+                aria-hidden="true"
+              />
+              <div
+                className="fixed z-[1001] rounded-xl border border-neutral-200 bg-white py-1 shadow-xl"
+                style={{
+                  top: anchor.top + 6,
+                  left: clamp(anchor.left + anchor.width - 180, 8, window.innerWidth - 188),
+                  width: 180,
+                }}
+                role="menu"
+                aria-label="Ebenen auswählen"
+              >
+                {availableLevels.map((level) => {
+                  const cfg = LEVEL_CONFIG[level as EbeneLevel];
+                  const isSelected = currentLevel === level;
+                  const disabled = !availableLevels.includes(level as EbeneLevel);
+                  return (
+                    <button
+                      key={level}
+                      type="button"
+                      role="menuitem"
+                      disabled={disabled}
+                      onClick={() => {
+                        dispatch({
+                          type: 'SET_ACTIVE_LOCATION',
+                          payload: activeLocationForLevel(state.residenceLocation, level as EbeneLevel),
+                        });
+                        setOpen(false);
+                      }}
+                      className="w-full px-3 py-2 text-left text-[12px] text-neutral-800 hover:bg-neutral-100 disabled:opacity-50"
+                      style={{
+                        fontWeight: isSelected ? 700 : 600,
+                      }}
+                    >
+                      <span className="flex items-center justify-between">
+                        <span>{cfg.label}</span>
+                        {isSelected ? <span className="text-neutral-500">✓</span> : <span className="w-3" />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>,
+            portalNode,
+          )
+        : null}
     </>
   );
 }

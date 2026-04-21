@@ -6,17 +6,13 @@ import { VOTING_DATA } from '@/data/constants';
 import { VoteType, AbstimmungTab } from '@/types';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
-import ClaraChat from '@/components/Clara/ClaraChat';
 import ClaraVoiceInterface from '@/components/Clara/ClaraVoiceInterface';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { SectionLevelFilterIcon, selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
-import ClaraInfoBox from '@/components/Clara/ClaraInfoBox';
 
 const LiveSection: React.FC = () => {
   const { state, dispatch } = useApp();
   const [abstimmungTab, setAbstimmungTab] = useState<AbstimmungTab>('aktuell');
-  const [showClaraChat, setShowClaraChat] = useState(false);
-  const [claraPrompt, setClaraPrompt] = useState<string>('');
   const [showClaraVoice, setShowClaraVoice] = useState(false);
   const [activeNow, setActiveNow] = useState(3_847_291);
   const [showStats, setShowStats] = useState(false);
@@ -186,38 +182,12 @@ const LiveSection: React.FC = () => {
             )}
           </div>
 
-          {/* ── Clara / KI Bereich am Ende (unter Karte + Controls) ── */}
-          <div className="mt-3">
-            <button
-              type="button"
-              onClick={() => dispatch({ type: 'TOGGLE_KI_ANALYSIS' })}
-              className="w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center transition-all hover:brightness-110 active:scale-[0.98]"
-              style={{
-                background: state.showKIAnalysis
-                  ? 'linear-gradient(160deg, #2D0B6B 0%, #5B21B6 45%, #7C3AED 75%, #A78BFA 100%)'
-                  : 'linear-gradient(160deg, #4C1D95 0%, #6D28D9 35%, #7C3AED 60%, #8B5CF6 80%, #A78BFA 100%)',
-                color: '#fff',
-                boxShadow: state.showKIAnalysis
-                  ? '0 2px 10px rgba(91,33,182,0.50), inset 0 1px 0 rgba(255,255,255,0.15)'
-                  : '0 2px 14px rgba(109,40,217,0.45), inset 0 1px 0 rgba(255,255,255,0.20)',
-                border: '1px solid rgba(196,181,253,0.25)',
-              }}
-            >
-              {state.showKIAnalysis ? 'Clara ausblenden' : 'Clara-KI Analyse'}
-            </button>
-
-            {state.showKIAnalysis && (
-              <div className="mt-3">
-                <ClaraInfoBox
-                  card={currentCard}
-                  onOpenChat={(prompt?: string) => {
-                    setClaraPrompt(prompt || '');
-                    setShowClaraChat(true);
-                  }}
-                />
-              </div>
-            )}
-          </div>
+          {/*
+            Hinweis: Clara ist jetzt global ausschliesslich ueber das ClaraDock am
+            unteren Rand erreichbar (Text-Chat + Voice). Die ehemals hier platzierte
+            ClaraInfoBox + "Clara-KI Analyse"-Toggle wurden entfernt, um doppelte
+            Einstiegspunkte zu vermeiden (UX-Direktive: ein Clara-Ort).
+          */}
         </>
       )}
 
@@ -281,33 +251,9 @@ const LiveSection: React.FC = () => {
         </div>
       )}
 
-      {/* Clara Chat Modal */}
-      {showClaraChat && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50"
-          onClick={() => setShowClaraChat(false)}
-        >
-          <div
-            className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl max-w-lg w-full max-h-[80dvh] overflow-hidden flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center p-4 border-b" style={{ borderColor: 'var(--gov-border)' }}>
-              <span className="text-sm font-bold text-[#1A2B45]">Clara – Digitale Assistentin</span>
-              <button onClick={() => setShowClaraChat(false)} className="p-1.5 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100">✕</button>
-            </div>
-            <div className="flex-1 overflow-auto p-4">
-              <ClaraChat
-                level="bund"
-                onPointsEarned={() => {}}
-                selectedWahl={null}
-                initialPrompt={claraPrompt}
-                autoSendInitialPrompt={Boolean(claraPrompt)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Hinweis: Clara-Chat & Voice liegen jetzt global im ClaraDock (unten in der App),
+          damit es nur einen einzigen Clara-Gesprächsort gibt. Die Karten-InfoBox triggert
+          den Dock-Chat per CustomEvent ("clara:open-chat") – kein zweites Modal mehr. */}
       <ClaraVoiceInterface
         isOpen={showClaraVoice}
         onClose={() => setShowClaraVoice(false)}

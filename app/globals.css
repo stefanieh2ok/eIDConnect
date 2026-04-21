@@ -229,38 +229,54 @@
   min-width: 0;
 }
 
+/*
+ * Auswahl-Button (z. B. Sie/Du): helles Grau, Text in Navy; bei Auswahl (aria-pressed="true")
+ * weißer Hintergrund mit 2 px Governikus-Blau-Rahmen. Der primäre „Weiter"-Button daneben
+ * bleibt dadurch klar als einzige Aktion erkennbar (Hierarchie sekundär → primär).
+ */
 .btn-gov-choice {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 100%;
-  border-radius: 1rem;
-  padding: 1.5rem 1rem;
-  border: 1px solid rgba(0, 51, 102, 0.35);
-  color: var(--gov-btn-text);
-  background: linear-gradient(135deg, var(--gov-primary) 0%, var(--gov-primary-mid) 100%);
-  box-shadow: 0 2px 10px rgba(0, 51, 102, 0.18);
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  border-radius: 0.875rem;
+  padding: 1.25rem 1rem;
+  border: 1.5px solid #E5E7EB; /* neutral-200 */
+  color: #1A2B45; /* Gov-Heading Navy */
+  background: #F3F4F6; /* neutral-100 */
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease,
+    transform 0.12s ease;
 }
 .btn-gov-choice:hover {
-  border-color: rgba(0, 51, 102, 0.45);
-  filter: brightness(1.06);
-  box-shadow: 0 4px 14px rgba(0, 51, 102, 0.22);
+  background: #E5E7EB;
+  border-color: #CBD5E1;
 }
 .btn-gov-choice:focus-visible {
   outline: 2px solid var(--gov-primary-mid);
   outline-offset: 2px;
 }
+.btn-gov-choice:active {
+  transform: scale(0.985);
+}
+.btn-gov-choice[aria-pressed='true'] {
+  background: #ffffff;
+  border-color: var(--gov-primary, #003366);
+  border-width: 2px;
+  color: var(--gov-primary, #003366);
+  box-shadow:
+    0 0 0 3px rgba(0, 51, 102, 0.12),
+    0 2px 8px rgba(0, 51, 102, 0.10);
+}
+.btn-gov-choice[aria-pressed='true'] .btn-gov-choice__label {
+  color: var(--gov-primary, #003366);
+}
 
 /* PersoApp-ähnlich: gleiche Rundung, ruhige Schatten für alle primären Flächen */
 .btn-gov-primary,
-.btn-gov-on-dark-secondary,
-.btn-gov-choice {
+.btn-gov-on-dark-secondary {
   border-radius: 0.875rem;
-}
-.btn-gov-choice {
-  box-shadow: 0 1px 3px rgba(0, 51, 102, 0.07);
 }
 .btn-gov-primary {
   box-shadow: 0 2px 10px rgba(0, 51, 102, 0.16);
@@ -390,6 +406,27 @@
 /* Scrollbar verstecken (für Filter-Leisten) */
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* AnredeGate: dezentes Fade+Scale-In (iOS/Regierungs-Look) */
+@keyframes anredegate-sheet-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.anredegate-sheet {
+  animation: anredegate-sheet-in 220ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+  will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anredegate-sheet {
+    animation: none;
+  }
+}
 
 /* Basis: Governikus Corporate Design */
 html {
