@@ -866,6 +866,41 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/*
+ * Intro-/Overlay-Shell: Fullscreen-Overlay, das iOS-Safari sauber behandelt.
+ *
+ * Problem ohne diese Klasse: `fixed inset-0` + `h-full` löst auf iOS zu 100vh
+ * auf (Layout-Viewport) – der untere Rand liegt HINTER der Safari-URL-Leiste,
+ * die unten eingeblendet wird. Dadurch wird der „Weiter"-Button verdeckt.
+ *
+ * Mit `100dvh` (Dynamic Viewport) passt sich die Höhe korrekt an, wenn die
+ * Safari-URL-Leiste sichtbar ist; `safe-area-inset-*` respektiert zusätzlich
+ * Notch/Home-Indicator auf iPhones.
+ */
+.intro-safe-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* Fallback für ältere Browser ohne dvh-Support */
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  /* Safari Home-Indicator/Notch aussparen, damit der Inhalt nicht darunter rutscht */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/*
+ * Bottom-Action-Bar für Overlays (Zurück/Weiter). Sorgt zuverlässig dafür,
+ * dass der primäre Button nicht unter iOS-Safari-URL-Leiste oder Home-Indicator
+ * verschwindet. Wird an `.flex-shrink-0` Footer-Zeilen ergänzt.
+ */
+.intro-action-bar-pad {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
+}
+
 /* Hide scrollbar but keep scroll (Footer-Nav) */
 .scrollbar-hide {
   -ms-overflow-style: none;

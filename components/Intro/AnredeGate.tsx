@@ -43,7 +43,13 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
 
   const shellClass = useMemo(() => {
     if (variant === 'inline') return 'w-full';
-    const base = `${position} inset-0 z-[600] flex items-center justify-center p-3 sm:p-4`;
+    // iOS Safari: Bei `position: fixed` die Höhe explizit an `100dvh` binden,
+    // damit die Auswahlbuttons + „Weiter" nicht unter der URL-Leiste verschwinden.
+    // Bei `absolute` (im iPhone-Frame/Device-Mockup) genügt `inset: 0`.
+    const base =
+      position === 'fixed'
+        ? 'intro-safe-overlay z-[600] flex items-center justify-center p-3 sm:p-4'
+        : 'absolute inset-0 z-[600] flex items-center justify-center p-3 sm:p-4';
     return base;
   }, [variant, position]);
 
@@ -106,10 +112,12 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
 
       <div
         ref={dialogRef}
-        className="relative w-full max-w-[360px] overflow-hidden rounded-3xl bg-white sm:max-w-[400px] anredegate-sheet"
+        className="relative w-full max-w-[360px] overflow-y-auto overscroll-contain rounded-3xl bg-white sm:max-w-[400px] anredegate-sheet"
         style={{
+          maxHeight: 'calc(100dvh - 1.5rem)',
           boxShadow:
             '0 28px 80px rgba(0, 20, 60, 0.38), 0 6px 18px rgba(0, 20, 60, 0.18), 0 0 0 1px rgba(10, 25, 60, 0.06) inset',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {/* Meta-Ebene: Einführungs-Kontext + Schritt 1/8 (konsistent zu Walkthrough/LoginScreen). */}

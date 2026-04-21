@@ -198,7 +198,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
           </div>
 
           <div
-            className="flex-shrink-0 space-y-2 px-5 pb-6 pt-3"
+            className="flex-shrink-0 space-y-2 px-5 pt-3 intro-action-bar-pad"
             style={{ borderTop: '1px solid var(--gov-border)' }}
           >
             <div className="flex gap-2">
@@ -222,7 +222,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
   );
 
   return (
-    <div className={renderFrame ? 'fixed inset-0 z-[80]' : 'relative z-[80] h-full w-full min-w-0'}>
+    // iOS Safari: `intro-safe-overlay` (100dvh) verhindert, dass der
+    // „Weiter"-Button der eID-Demo hinter der Safari-URL-Leiste verschwindet.
+    <div className={renderFrame ? 'intro-safe-overlay z-[80]' : 'relative z-[80] h-full w-full min-w-0'}>
       {renderFrame ? (
         <IphoneFrame>
           <div className="relative z-0 flex min-h-0 h-full w-full flex-col">{content}</div>

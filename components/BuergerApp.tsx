@@ -161,10 +161,13 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     setPostLoginIntroOpen(false);
   };
 
+  // Wichtig (iOS Safari): im Non-Device-Modus `intro-safe-overlay` verwenden –
+  // das bindet die Höhe an `100dvh`, damit der Walkthrough-Footer nicht hinter
+  // der Safari-URL-Leiste verschwindet („Weiter"-Button sichtbar halten).
   const introOverlayShell =
     isDevice
       ? 'pointer-events-auto absolute inset-0 z-[500] min-h-0 h-full w-full min-w-0 overflow-hidden'
-      : 'pointer-events-auto fixed inset-0 z-[500] overflow-hidden h-full w-full min-w-0';
+      : 'pointer-events-auto intro-safe-overlay z-[500]';
 
   if (!state.isLoggedIn) {
     // Einführungs-Schritte 1 (Ansprache) + 2 (eID) laufen VOR dem Walkthrough,

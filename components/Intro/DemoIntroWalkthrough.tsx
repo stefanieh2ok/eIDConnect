@@ -560,7 +560,7 @@ export default function DemoIntroWalkthrough({
         ) : null}
       </div>
 
-      <div className="flex flex-shrink-0 gap-2 border-t border-white/10 bg-[rgba(12,18,32,0.96)] px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2.5 sm:px-4">
+      <div className="flex flex-shrink-0 gap-2 border-t border-white/10 bg-[rgba(12,18,32,0.96)] px-3 pt-2.5 intro-action-bar-pad sm:px-4">
         <button
           type="button"
           onClick={() => {
