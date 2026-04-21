@@ -118,18 +118,25 @@ export default function ClaraDock() {
   return (
     <>
       <div
-        className="pointer-events-none absolute inset-x-0 z-[40] flex justify-center"
+        // z-[80]: liegt ueber allem Section-Content (Wahlen/Meldungen/Kalender
+        // haben Cards + Badges, die frueher mit z-[40] optisch konkurriert
+        // haben), aber unter globalen Modals (Filter z-[90], Chat z-[130],
+        // app-overlay-root z-[120], Intro z-[500]).
+        className="pointer-events-none absolute inset-x-0 z-[80] flex justify-center"
         style={{
-          bottom: 'calc(0.5rem + env(safe-area-inset-bottom, 0px))',
+          bottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))',
         }}
         aria-hidden={chatOpen || voiceOpen}
       >
         <div
-          className="pointer-events-auto flex h-11 items-center gap-1 rounded-full border border-white/60 bg-white/70 px-1.5 shadow-[0_8px_24px_rgba(0,40,120,0.18)] backdrop-blur-xl"
+          // Kraeftigerer Schatten + etwas satterer Hintergrund, damit die
+          // Pille auf hellem Section-Content (Wahlen-Cards, Meldungen-Liste,
+          // Kalender-Kacheln) verlaesslich auffaellt und nicht "verschwindet".
+          className="pointer-events-auto flex h-11 items-center gap-1 rounded-full border bg-white px-1.5 shadow-[0_10px_28px_rgba(76,29,149,0.28),0_2px_6px_rgba(15,23,42,0.10)] backdrop-blur-xl"
           style={{
-            borderColor: 'rgba(124, 58, 237, 0.25)',
+            borderColor: 'rgba(124, 58, 237, 0.35)',
             background:
-              'linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(245,240,255,0.72) 100%)',
+              'linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(243,232,255,0.90) 100%)',
           }}
           role="toolbar"
           aria-label="Clara – KI-Assistentin (neutral, keine Wahlempfehlung)"

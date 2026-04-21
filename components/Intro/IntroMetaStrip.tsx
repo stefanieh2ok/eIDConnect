@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { APP_DISPLAY_NAME } from '@/lib/branding';
 import {
   INTRO_GLOBAL_FRAMING,
   INTRO_GLOBAL_PILL_LABEL,
@@ -24,21 +23,18 @@ type Props = {
   onClose?: () => void;
   /**
    * Optionaler „META · …"-Satz: Screen-spezifische Framing-Zeile (z. B.
-   * „Beispielansicht der eID — ohne echte Datenübertragung."). Wird klein und
-   * dezent unter den Progress-Dots gerendert, damit sie die Meta-Ebene nicht
-   * optisch zerschneidet.
+   * „So funktioniert später der Einstieg per eID — hier nur als Beispiel,
+   * ohne echte Datenübertragung."). Wird als letzte Zeile des Meta-Streifens
+   * gerendert, damit der Tester sofort weiss, was auf dem Screen gezeigt wird.
    */
   metaFramingLine?: string;
 };
 
 /**
- * Einheitlicher dunkler Meta-Streifen über allen Intro-Screens (1 von 8 …
- * 8 von 8 + Opt-in-Gate). Strikt visuell identisch — nur Inhalte variieren
- * (Schritt-Label, optionales Framing, Skip/Schließen-Buttons).
- *
- * Nicht in .intro-meta-strip verschoben, weil dieses CSS-Utility nur den
- * dunklen Hintergrund + Padding beisteuert; die inhaltliche Struktur gehört
- * zur React-Ebene, damit Prop-Variationen sauber abgebildet werden.
+ * Heller Meta-Streifen oberhalb aller Intro-Screens (Schritt 1 … 8 + Opt-in).
+ * Der Streifen selbst ist hell/weiss, darunter folgt der dunkle Intro-Body.
+ * Der Kontrast signalisiert: die Meta-Informationen (Pill, Schritt-Zaehler,
+ * Framing-Text) sind vom eigentlichen Intro-Content strikt getrennt.
  */
 export default function IntroMetaStrip({
   stepNumber,
@@ -49,56 +45,55 @@ export default function IntroMetaStrip({
 }: Props) {
   const stepText =
     stepNumber != null
-      ? `Schritt ${stepNumber} von ${INTRO_TOTAL_STEPS}`
+      ? `SCHRITT ${stepNumber} VON ${INTRO_TOTAL_STEPS}`
       : (stepLabel ?? '');
 
   return (
     <div className="intro-meta-strip flex-shrink-0">
-      {/* Zeile 1: Pill links · Skip-Link + Schließen rechts. */}
-      <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-[2px] text-[9px] font-semibold uppercase tracking-[0.14em] text-white/95">
-          {INTRO_GLOBAL_PILL_LABEL}
-        </span>
-        <div className="flex items-center gap-2.5">
-          {onSkip ? (
-            <button
-              type="button"
-              onClick={onSkip}
-              className="text-[10px] font-semibold text-white/70 underline-offset-2 hover:text-white hover:underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/60"
-            >
-              {INTRO_SKIP_LABEL}
-            </button>
-          ) : null}
-          {onClose ? (
-            <button
-              type="button"
-              aria-label="Einführung schließen"
-              onClick={onClose}
-              className="flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-white/10 text-xs leading-none text-white/90 hover:bg-white/15"
-            >
-              ×
-            </button>
-          ) : null}
+      {/* Zeile 1: Pill + inline-Framing-Satz links, Skip/Schliessen rechts.
+          Der Framing-Satz steht bewusst in normaler Satzschreibweise (nicht in
+          ALL CAPS), damit er lesbar bleibt und nicht optisch "schreit". */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-start gap-2">
+          <span
+            className="inline-flex flex-shrink-0 items-center rounded-full px-2.5 py-[3px] text-[10px] font-bold uppercase tracking-[0.14em] text-white"
+            style={{ background: 'var(--gov-primary, #003366)' }}
+          >
+            {INTRO_GLOBAL_PILL_LABEL}
+          </span>
+          <p className="min-w-0 flex-1 text-[11px] leading-snug text-[#0F172A]">
+            {INTRO_GLOBAL_FRAMING}
+          </p>
         </div>
+        {(onSkip || onClose) ? (
+          <div className="flex flex-shrink-0 items-center gap-2">
+            {onSkip ? (
+              <button
+                type="button"
+                onClick={onSkip}
+                className="text-[10px] font-semibold text-[#1E293B]/70 underline-offset-2 hover:text-[#0F172A] hover:underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-[#003366]"
+              >
+                {INTRO_SKIP_LABEL}
+              </button>
+            ) : null}
+            {onClose ? (
+              <button
+                type="button"
+                aria-label="Einführung schließen"
+                onClick={onClose}
+                className="flex h-6 w-6 items-center justify-center rounded-full border border-[#0F172A]/15 bg-white text-xs leading-none text-[#0F172A] hover:bg-[#0F172A]/5"
+              >
+                ×
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
-      {/* Zeile 2: globale Framing-Caps „BEISPIELANSICHTEN · DIE APP-NUTZUNG
-          BEGINNT DANACH." — bewusst prominent, damit Tester auf jedem Screen
-          sehen, dass hier eine Einführung läuft. */}
-      <p className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.14em] leading-snug text-white/85">
-        {INTRO_GLOBAL_FRAMING}
-      </p>
-
-      {/* Zeile 3: App-Name als dezenter Absender. Gleiche Typoklasse, nur
-          leichter gedimmt — damit der Block nicht visuell zerfällt. */}
-      <p className="text-[10px] font-bold uppercase tracking-[0.14em] leading-snug text-white/55">
-        {APP_DISPLAY_NAME}
-      </p>
-
-      {/* Zeile 4: Schritt X/8 links · Progress-Dots rechts. */}
+      {/* Zeile 2: Schritt-Zaehler + Progress-Dots. */}
       <div className="mt-1.5 flex items-center justify-between gap-3">
         {stepText ? (
-          <span className="text-[10px] font-semibold tabular-nums text-white/70">
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] tabular-nums text-[#1E293B]/80">
             {stepText}
           </span>
         ) : (
@@ -114,7 +109,11 @@ export default function IntroMetaStrip({
               <span
                 key={i}
                 className={`h-1 rounded-full transition-[width,opacity] duration-200 ${
-                  active ? 'w-5 bg-white' : done ? 'w-2 bg-white/55' : 'w-2 bg-white/25'
+                  active
+                    ? 'w-5 bg-[#003366]'
+                    : done
+                      ? 'w-2 bg-[#003366]/55'
+                      : 'w-2 bg-[#0F172A]/20'
                 }`}
               />
             );
@@ -122,13 +121,13 @@ export default function IntroMetaStrip({
         </div>
       </div>
 
-      {/* Zeile 5 (optional): kurze Screen-spezifische META-Zeile, damit Tester
-          sofort wissen, was auf diesem Screen gezeigt wird. Dezent gehalten,
-          gleicher Font wie oben, damit es keinen typografischen Bruch gibt. */}
+      {/* Zeile 3 (optional): „META · …"-Satz fuer die Screen-spezifische
+          Framing-Zeile. Gleicher Font wie die Zeilen darueber, damit kein
+          typografischer Bruch entsteht. */}
       {metaFramingLine ? (
-        <p className="mt-1.5 text-[10.5px] leading-snug text-white/65">
-          <span className="font-semibold uppercase tracking-[0.1em] text-white/50">
-            Meta ·{' '}
+        <p className="mt-1.5 text-[11px] leading-snug text-[#1E293B]/85">
+          <span className="font-bold uppercase tracking-[0.12em] text-[#003366]">
+            META ·{' '}
           </span>
           {metaFramingLine}
         </p>

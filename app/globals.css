@@ -916,11 +916,15 @@ body {
  * egal ob der darunterliegende Screen hell (AnredeGate/LoginScreen)
  * oder dunkel (Walkthrough) ist.
  */
+/* Heller Meta-Streifen oberhalb aller Intro-Screens. Bewusst hell, waehrend
+ * der Body darunter dunkel ist - dadurch entsteht ein klarer visueller
+ * Abschluss zwischen Einfuehrungs-Marginalien (Pill, Schritt, Framing) und
+ * dem eigentlichen Intro-Inhalt. */
 .intro-meta-strip {
-  background: #0C1220;
-  color: rgba(255, 255, 255, 0.92);
+  background: #FFFFFF;
+  color: #0F172A;
   padding: 0.55rem 0.9rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.10);
 }
 @media (min-width: 640px) {
   .intro-meta-strip {
