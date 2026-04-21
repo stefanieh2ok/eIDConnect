@@ -29,9 +29,22 @@ export const INTRO_ANREDE_LEADIN_SIE =
 export const INTRO_ANREDE_LEADIN_DU =
   'Vor dem Start der App folgt eine kurze Einführung (ca. 90 Sekunden) anhand von Beispielansichten. Im Anschluss nutzt Du die App selbstständig.';
 
-/** Framing-Zeile über Screen 2 (eID). */
+/** Framing-Zeile über Screen 2 (eID). Lange Fassung — wird ausschließlich von
+ *  Screenreadern über die aria-live-Region vorgelesen. */
 export const INTRO_EID_FRAMING =
   'So funktioniert später der Einstieg per eID — hier nur als Beispiel, ohne echte Datenübertragung.';
+
+/** Sichtbare Kurzfassung von INTRO_EID_FRAMING. Bewusst knapp, damit sie in
+ *  den dunklen Meta-Streifen (siehe .intro-meta-strip) passt, ohne zu wirken
+ *  wie eine zweite Textebene. Gleicher Font, nur leicht gedimmt (~white/65). */
+export const INTRO_EID_FRAMING_SHORT =
+  'Beispielansicht der eID — ohne echte Datenübertragung.';
+
+/** Sichtbare Kurzfassung der Politikbarometer-Framing-Zeile.
+ *  Ziel: Compliance-sensitive Sichtbarkeit des Nicht-Profiling-Claims,
+ *  ohne die volle Satzlänge von INTRO_OVERLAY_FRAMING_LINES.politikbarometer. */
+export const INTRO_POLITIKBAROMETER_FRAMING_SHORT =
+  'Themen priorisieren für Hinweise & Termine — kein Profiling.';
 
 /** Abschluss-Text (letzter Walkthrough-Screen, oberhalb des Buttons). */
 export const INTRO_CLOSING_TEXT_SIE =
@@ -44,6 +57,52 @@ export const INTRO_FINISH_CTA_LABEL = 'Einführung beenden · App starten';
 
 /** Skip-Link-Label (nur im Walkthrough sichtbar). */
 export const INTRO_SKIP_LABEL = 'Einführung überspringen';
+
+/* ──────────────────────────────────────────────────────────────────────────
+ * Opt-in-Gate nach Login (Phase B)
+ *
+ * Nach Login (Schritt 2 eID erfolgreich) fragt die App aktiv nach:
+ * „Möchtest Du/Sie jetzt eine kurze Einführung sehen, oder direkt in die App?"
+ *
+ * Damit ist die State-Clarity maximal deutlich: Tester müssen das Wort
+ * „Einführung" nicht aus einer Pill ableiten, sondern entscheiden selbst.
+ * Wer die App schon kennt, springt direkt rein.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+/** Große Headline des Opt-in-Gates. */
+export const INTRO_OPT_IN_TITLE_SIE = 'Kurze App-Einführung ansehen?';
+export const INTRO_OPT_IN_TITLE_DU = 'Kurze App-Einführung ansehen?';
+
+/** Einleitender Satz unter der Headline. */
+export const INTRO_OPT_IN_LEAD_SIE =
+  'In rund 60 Sekunden lernen Sie die wichtigsten Bereiche der App kennen — als Beispielansichten, ohne echte Datenaktion.';
+export const INTRO_OPT_IN_LEAD_DU =
+  'In rund 60 Sekunden lernst Du die wichtigsten Bereiche der App kennen — als Beispielansichten, ohne echte Datenaktion.';
+
+/** Aufzählung der Bereiche, die im Walkthrough gezeigt werden. */
+export const INTRO_OPT_IN_TOPICS = [
+  'Abstimmen',
+  'Wahlen',
+  'Kalender',
+  'Meldungen',
+  'Prämien',
+  'Politikbarometer',
+] as const;
+
+/** Primärer Button: startet den Walkthrough (Schritte 3–8). */
+export const INTRO_OPT_IN_START_LABEL = 'Einführung starten';
+/** Zusatz unter dem Primär-Button: Rahmung in Sekunden/Schritten. */
+export const INTRO_OPT_IN_START_SUBLABEL = '6 Schritte · ca. 60 Sek.';
+
+/** Sekundärer Button: direkt in die App. */
+export const INTRO_OPT_IN_SKIP_LABEL_SIE = 'Direkt zur App';
+export const INTRO_OPT_IN_SKIP_LABEL_DU = 'Direkt zur App';
+
+/** Hinweis unter den Buttons: Einführung bleibt nachträglich zugänglich. */
+export const INTRO_OPT_IN_HINT_SIE =
+  'Sie können die Einführung später jederzeit über die Einstellungen erneut öffnen.';
+export const INTRO_OPT_IN_HINT_DU =
+  'Du kannst die Einführung später jederzeit über die Einstellungen erneut öffnen.';
 
 /** @deprecated Nutzen Sie INTRO_OVERLAY_HEADLINE; nur für ältere Imports. */
 export const INTRO_OVERVIEW_SHORT_TITLE = INTRO_OVERLAY_HEADLINE;

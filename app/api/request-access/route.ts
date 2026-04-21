@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { sendAccessEmailForRequest } from '@/lib/send-access-email';
 
 const MAX_PENDING_PER_EMAIL = 2;
 const SETUP_LINK = '/setup';
+// Mindestabstand zwischen zwei Self-Service-Resends pro E-Mail-Adresse.
+// Verhindert, dass Scripte oder Ungeduld das Resend-Flood erzeugen.
+const SELF_SERVICE_RESEND_COOLDOWN_MS = 60 * 1000; // 1 Minute
 
 function isTableMissingError(err: { message?: string; code?: string } | null): boolean {
   if (!err) return false;
@@ -44,6 +48,147 @@ function jsonError(
   );
 }
 
+type ExistingApprovedResult = {
+  id: string;
+  full_name: string | null;
+  email: string;
+  company: string | null;
+  email_sent_at: string | null;
+} | null;
+
+/**
+ * Prueft, ob zur angegebenen E-Mail bereits eine freigegebene Anfrage
+ * existiert. Wenn ja, wird direkt ein neuer Zugangslink erstellt und dem
+ * Tester per E-Mail geschickt. Gibt in dem Fall eine NextResponse zurueck,
+ * die der POST-Handler direkt als Antwort nutzen kann. Bei Unbekannt / Nur-
+ * Pending / Nur-Rejected wird null zurueckgegeben, damit der normale Insert-
+ * Pfad weiterlaeuft.
+ */
+async function tryAutoResendExistingApproved(params: {
+  request: NextRequest;
+  email: string;
+  fullName: string;
+  company: string | null;
+}): Promise<NextResponse | null> {
+  const { request, email, fullName, company } = params;
+
+  // Neueste Anfrage mit Status "approved" zu dieser E-Mail finden.
+  let latest: ExistingApprovedResult = null;
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('access_requests')
+      .select('id, full_name, email, company, email_sent_at')
+      .eq('email', email)
+      .eq('status', 'approved')
+      .order('reviewed_at', { ascending: false })
+      .limit(1);
+    if (error) {
+      const isMissingColumn =
+        error.code === '42703' || /does not exist/i.test(error.message ?? '');
+      if (isMissingColumn) {
+        // Migration 011 fehlt -> Abfrage ohne email_sent_at retryen.
+        const retry = await supabaseAdmin
+          .from('access_requests')
+          .select('id, full_name, email, company')
+          .eq('email', email)
+          .eq('status', 'approved')
+          .order('reviewed_at', { ascending: false })
+          .limit(1);
+        if (retry.error || !retry.data || retry.data.length === 0) {
+          latest = null;
+        } else {
+          const row = retry.data[0];
+          latest = {
+            id: row.id,
+            full_name: row.full_name ?? null,
+            email: row.email,
+            company: row.company ?? null,
+            email_sent_at: null,
+          };
+        }
+      } else {
+        console.error('Self-Service-Resend: Supabase-Fehler beim Lookup', error);
+        return null; // Nicht blockieren - normaler Flow uebernimmt.
+      }
+    } else if (data && data.length > 0) {
+      const row = data[0] as {
+        id: string;
+        full_name: string | null;
+        email: string;
+        company: string | null;
+        email_sent_at: string | null;
+      };
+      latest = row;
+    }
+  } catch (e) {
+    console.error('Self-Service-Resend: Lookup-Exception', e);
+    return null;
+  }
+
+  if (!latest) return null; // Nie freigegeben -> normaler Pfad.
+
+  // Cooldown: wenn in den letzten 60s schon einmal gemailt wurde, hoeflich
+  // drosseln. Das verhindert Resend-Flood durch wiederholtes Formular-Submit.
+  if (latest.email_sent_at) {
+    const last = new Date(latest.email_sent_at).getTime();
+    if (Number.isFinite(last) && Date.now() - last < SELF_SERVICE_RESEND_COOLDOWN_MS) {
+      return NextResponse.json({
+        success: true,
+        resent: true,
+        cooldown: true,
+        message:
+          'Wir haben dir gerade einen neuen Zugangslink geschickt. Bitte pruefe dein Postfach (auch Spam / Werbung). Wenn nichts ankommt, in 1 Minute erneut versuchen.',
+      });
+    }
+  }
+
+  const baseUrl =
+    process.env.ACCESS_LINK_BASE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    request.nextUrl.origin;
+
+  const result = await sendAccessEmailForRequest({
+    accessRequestId: latest.id,
+    fullName: latest.full_name?.trim() || fullName,
+    email: latest.email,
+    company: latest.company ?? company ?? null,
+    baseUrl,
+    intent: 'self-service-resend',
+  });
+
+  if ('error' in result) {
+    console.error('Self-Service-Resend: Token-Erstellung fehlgeschlagen', result.error);
+    // Wir brechen hier ab und lassen den normalen Flow NICHT weiterlaufen -
+    // sonst haetten wir eine stille Doppel-Anfrage. Der Tester sieht eine
+    // klare Meldung und kann sich an uns wenden.
+    return jsonError(
+      'Dein Zugang ist bereits freigegeben. Der neue Link konnte aber gerade nicht erstellt werden. Bitte in Kuerze erneut versuchen oder uns direkt kontaktieren.',
+      503,
+      { detail: result.error }
+    );
+  }
+
+  if (result.emailSent) {
+    return NextResponse.json({
+      success: true,
+      resent: true,
+      message:
+        'Du bist bereits freigegeben - wir haben dir gerade einen neuen Zugangslink per E-Mail geschickt. Bitte pruefe dein Postfach (auch Spam / Werbung).',
+    });
+  }
+
+  // Mail-Provider hat blockiert (Resend-Sandbox / ungueltiger Key etc.).
+  // Wir haben aber trotzdem einen gueltigen Access-Token erzeugt. Den Link
+  // geben wir NICHT an den Client zurueck (Sicherheit: wer das Formular
+  // ausfuellt, muss nicht zwangslaeufig der Inbox-Besitzer sein). Stattdessen
+  // freundliche Fehlermeldung mit Hint an den Admin-Kanal.
+  return jsonError(
+    'Dein Zugang ist bereits freigegeben, aber der automatische Mail-Versand ist aktuell blockiert. Bitte kurz melden - dann schicken wir dir den Link persoenlich.',
+    503,
+    { detail: result.emailError }
+  );
+}
+
 export async function POST(request: NextRequest) {
   try {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -71,6 +216,19 @@ export async function POST(request: NextRequest) {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return jsonError('Bitte gib eine gültige E-Mail-Adresse an.', 400);
     }
+
+    // Self-Service-Resend: Wenn diese E-Mail schon einmal freigegeben wurde,
+    // erzeugt dieser Endpoint direkt einen frischen Zugangslink und mailt ihn
+    // an den Tester zurueck - ohne dass der Admin noch einmal klicken muss
+    // und ohne dass der Tester im Postfach nach der alten Mail suchen muss.
+    // Fuer neue E-Mails bleibt der bisherige "pending" -> Admin-Review-Flow.
+    const existingResendResponse = await tryAutoResendExistingApproved({
+      request,
+      email,
+      fullName,
+      company,
+    });
+    if (existingResendResponse) return existingResendResponse;
 
     let count = 0;
     try {

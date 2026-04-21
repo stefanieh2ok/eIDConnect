@@ -9,16 +9,15 @@ import {
   INTRO_CLOSING_TEXT_DU,
   INTRO_CLOSING_TEXT_SIE,
   INTRO_FINISH_CTA_LABEL,
-  INTRO_GLOBAL_FRAMING,
   INTRO_GLOBAL_PILL_LABEL,
   INTRO_OVERLAY_FRAMING_LINES,
   INTRO_OVERLAY_HEADLINE,
   INTRO_OVERLAY_STEPS,
+  INTRO_POLITIKBAROMETER_FRAMING_SHORT,
   INTRO_SKIP_LABEL,
   INTRO_TOTAL_STEPS,
 } from '@/data/introOverlayMarketing';
 import { INTRO_SCREENSHOTS } from '@/data/introScreenshots';
-import { APP_DISPLAY_NAME } from '@/lib/branding';
 import { adaptIntroAddress } from '@/lib/introAddress';
 import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
 import type { Location, VotingCard as VotingCardModel } from '@/types';
@@ -442,47 +441,39 @@ export default function DemoIntroWalkthrough({
         {liveAnnouncement}
       </div>
 
-      {/* --- META-EBENE 1: globaler Einführungs-Kontext (persistent) ---
-          Bewusst oben über der eigentlichen Screen-Headline platziert, damit Tester
-          auf jedem Schritt sofort verstehen: dies ist Einführung, Beispielansichten,
-          Nutzung beginnt danach. */}
-      <div className="flex flex-shrink-0 items-start justify-between gap-3 border-b border-white/[0.08] px-3 pb-2.5 pt-3 sm:px-4">
-        <div className="min-w-0 pr-1">
-          <div className="flex flex-wrap items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/70">
-            <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-[2px] text-white/95">
-              {INTRO_GLOBAL_PILL_LABEL}
+      {/* --- META-Streifen: Pill + Schritt X/8 + Controls (Skip/Schließen) ---
+          Einheitliches Design über alle 8 Einführungs-Screens. Framing-Texte
+          sind komplett entfernt — mit einer Ausnahme: auf dem Politikbarometer-
+          Step wird eine knappe, nicht-Profiling Kurzzeile angezeigt, damit die
+          Panel-Sektion (Checkboxen + Einwilligung) nicht als Interessen-Tracking
+          missverstanden wird. Gleicher Font, nur leicht gedimmt. */}
+      <div className="intro-meta-strip flex-shrink-0">
+        <div className="flex items-center justify-between gap-2">
+          <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-[2px] text-[9px] font-semibold uppercase tracking-[0.14em] text-white/95">
+            {INTRO_GLOBAL_PILL_LABEL}
+          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-semibold tabular-nums text-white/70">
+              Schritt {globalStepNumber} von {INTRO_TOTAL_STEPS}
             </span>
-            <span className="text-white/60">{INTRO_GLOBAL_FRAMING}</span>
+            <button
+              type="button"
+              onClick={onFinish}
+              className="text-[10px] font-semibold text-white/70 underline-offset-2 hover:text-white hover:underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/60"
+            >
+              {INTRO_SKIP_LABEL}
+            </button>
+            <button
+              type="button"
+              aria-label="Einführung schließen"
+              onClick={onClose}
+              className="flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-white/10 text-xs leading-none text-white/90 hover:bg-white/15"
+            >
+              ×
+            </button>
           </div>
-          <p className="mt-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-white/45">
-            {APP_DISPLAY_NAME}
-          </p>
         </div>
-        <div className="flex flex-shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={onFinish}
-            className="text-[10px] font-semibold text-white/70 underline-offset-2 hover:text-white hover:underline focus-visible:outline focus-visible:outline-1 focus-visible:outline-white/60"
-          >
-            {INTRO_SKIP_LABEL}
-          </button>
-          <button
-            type="button"
-            aria-label="Einführung schließen"
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10 text-base leading-none text-white/90 hover:bg-white/15"
-          >
-            ×
-          </button>
-        </div>
-      </div>
-
-      {/* --- META-EBENE 2: Schritt-Counter (1/8 … 8/8) + Progress --- */}
-      <div className="flex flex-shrink-0 items-center justify-between gap-2 border-b border-white/[0.07] px-3 pb-2.5 pt-2 sm:px-4">
-        <div className="text-[10px] font-semibold tabular-nums text-white/70">
-          Schritt {globalStepNumber} von {INTRO_TOTAL_STEPS}
-        </div>
-        <div className="flex gap-1" aria-hidden>
+        <div className="mt-1.5 flex gap-1" aria-hidden>
           {Array.from({ length: INTRO_TOTAL_STEPS }, (_, i) => {
             const done = i < GLOBAL_STEP_OFFSET;
             const active = i === globalStepNumber - 1;
@@ -496,14 +487,11 @@ export default function DemoIntroWalkthrough({
             );
           })}
         </div>
-      </div>
-
-      {/* --- META-EBENE 3: Framing-Zeile für den aktuellen Screen --- */}
-      <div className="flex-shrink-0 border-b border-white/[0.05] bg-white/[0.03] px-3 py-2 sm:px-4">
-        <p className="text-[10.5px] leading-snug text-white/75">
-          <span className="font-semibold uppercase tracking-[0.12em] text-white/55">Meta · </span>
-          {framingLine}
-        </p>
+        {step.id === 'politikbarometer' ? (
+          <p className="mt-1.5 text-[10.5px] leading-snug text-white/65">
+            {INTRO_POLITIKBAROMETER_FRAMING_SHORT}
+          </p>
+        ) : null}
       </div>
 
       {/* Headline des Walkthroughs bleibt, ist aber deutlich vom Meta-Rahmen getrennt. */}

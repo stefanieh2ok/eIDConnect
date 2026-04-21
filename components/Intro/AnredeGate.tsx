@@ -6,7 +6,6 @@ import { APP_DISPLAY_NAME } from '@/lib/branding';
 import {
   INTRO_ANREDE_LEADIN_DU,
   INTRO_ANREDE_LEADIN_SIE,
-  INTRO_GLOBAL_FRAMING,
   INTRO_GLOBAL_PILL_LABEL,
   INTRO_TOTAL_STEPS,
 } from '@/data/introOverlayMarketing';
@@ -130,18 +129,15 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
           WebkitOverflowScrolling: 'touch',
         }}
       >
-        {/* Meta-Ebene: Einführungs-Kontext + Schritt 1/8 (konsistent zu Walkthrough/LoginScreen). */}
-        <div className="border-b border-neutral-200/70 bg-[#F3F6FC] px-4 pt-3 pb-2 sm:px-5">
-          <div className="flex flex-wrap items-center justify-between gap-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-[#003366]/80">
-            <span className="flex items-center gap-1.5">
-              <span className="inline-flex items-center rounded-full bg-[#003366] px-2 py-[2px] text-white">
-                {INTRO_GLOBAL_PILL_LABEL}
-              </span>
-              <span className="text-[#003366]/70 tracking-normal normal-case font-medium">
-                {INTRO_GLOBAL_FRAMING}
-              </span>
+        {/* Meta-Ebene: Einführungs-Pill + Schritt 1/8.
+            Einheitlicher dunkler Streifen (siehe LoginScreen & Walkthrough).
+            Framing-Texte bewusst entfernt: nur Pill + Step-Counter. */}
+        <div className="intro-meta-strip">
+          <div className="flex items-center justify-between gap-2">
+            <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-[2px] text-[9px] font-semibold uppercase tracking-[0.14em] text-white/95">
+              {INTRO_GLOBAL_PILL_LABEL}
             </span>
-            <span className="text-[10px] font-semibold tabular-nums text-neutral-500">
+            <span className="text-[10px] font-semibold tabular-nums text-white/70">
               Schritt 1 von {INTRO_TOTAL_STEPS}
             </span>
           </div>

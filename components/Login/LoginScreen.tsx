@@ -6,8 +6,7 @@ import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
 import {
-  INTRO_EID_FRAMING,
-  INTRO_GLOBAL_FRAMING,
+  INTRO_EID_FRAMING_SHORT,
   INTRO_GLOBAL_PILL_LABEL,
   INTRO_TOTAL_STEPS,
 } from '@/data/introOverlayMarketing';
@@ -128,24 +127,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
         boxShadow: '0 16px 48px rgba(0,40,100,0.10), inset 0 1px 0 rgba(255,255,255,0.60)',
       }}
     >
-          {/* --- Meta-Ebene: Einführungs-Pill + Schritt 2/8 + Framing-Zeile --- */}
-          <div className="flex-shrink-0 border-b border-neutral-200/70 bg-[#F3F6FC] px-5 pt-3 pb-2">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-[#003366]/80">
-              <span className="flex items-center gap-1.5">
-                <span className="inline-flex items-center rounded-full bg-[#003366] px-2 py-[2px] text-white">
-                  {INTRO_GLOBAL_PILL_LABEL}
-                </span>
-                <span className="text-[#003366]/70 tracking-normal normal-case font-medium">
-                  {INTRO_GLOBAL_FRAMING}
-                </span>
+          {/* --- Meta-Ebene: Einführungs-Pill + Schritt 2/8 + Kurzzeile ---
+              Einheitlicher dunkler Streifen über allen 8 Einführungs-Screens.
+              Auf Step 2 (eID) kommt die knappe Sicherheits-/Vertrauens-Zeile
+              in gleichem Font direkt unter die Pill-Zeile. */}
+          <div className="intro-meta-strip flex-shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-[2px] text-[9px] font-semibold uppercase tracking-[0.14em] text-white/95">
+                {INTRO_GLOBAL_PILL_LABEL}
               </span>
-              <span className="text-[10px] font-semibold tabular-nums text-neutral-500">
+              <span className="text-[10px] font-semibold tabular-nums text-white/70">
                 Schritt 2 von {INTRO_TOTAL_STEPS}
               </span>
             </div>
-            <p className="mt-1.5 text-[10.5px] leading-snug text-[#003366]/80">
-              <span className="font-semibold uppercase tracking-[0.12em] text-[#003366]/55">Meta · </span>
-              {INTRO_EID_FRAMING}
+            <p className="mt-1 text-[10.5px] leading-snug text-white/65">
+              {INTRO_EID_FRAMING_SHORT}
             </p>
           </div>
 

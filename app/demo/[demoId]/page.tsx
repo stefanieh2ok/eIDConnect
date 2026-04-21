@@ -8,7 +8,10 @@ type PageProps = {
 
 export default async function DemoPage({ params }: PageProps) {
   const { demoId } = await params;
-  const session = await getActiveDemoSession();
+  // demoId mitgeben, damit ein gueltiger Admin-Direktzugang-Cookie
+  // (ADMIN_DEMO_COOKIE, gesetzt via /api/admin/open-demo bzw. enter-demo)
+  // auch dann zaehlt, wenn keine normale Tester-Session existiert.
+  const session = await getActiveDemoSession(demoId);
 
   if (!session || session.demoId !== demoId) {
     redirect('/access/denied');

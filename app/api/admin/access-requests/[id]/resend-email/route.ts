@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { isValidBasicAuth } from '@/lib/security/basic-auth';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { createAccessToken } from '@/lib/access-request-approve';
+import { updateAccessRequestEmailTracking } from '@/lib/access-request-email-tracking';
 
 const DEFAULT_FROM =
   process.env.SEND_ACCESS_EMAIL_FROM || 'HookAI Demo <onboarding@resend.dev>';
@@ -131,53 +132,41 @@ export async function POST(
       }
       if (res.ok) {
         emailSent = true;
-        await supabaseAdmin
-          .from('access_requests')
-          .update({
-            email_provider: 'resend',
-            email_provider_id: providerId ?? null,
-            email_status: 'sent',
-            email_sent_at: new Date().toISOString(),
-            email_last_error: null,
-          })
-          .eq('id', id);
+        await updateAccessRequestEmailTracking(id, {
+          email_provider: 'resend',
+          email_provider_id: providerId ?? null,
+          email_status: 'sent',
+          email_sent_at: new Date().toISOString(),
+          email_last_error: null,
+        });
       } else {
         const isResendTestModeBlock =
           res.status === 403 &&
           text.toLowerCase().includes('only send testing emails to your own email');
         emailError = isResendTestModeBlock ? RESEND_TESTMODE_HINT : text || `HTTP ${res.status}`;
         console.error('Resend-email failed:', res.status, text);
-        await supabaseAdmin
-          .from('access_requests')
-          .update({
-            email_provider: 'resend',
-            email_provider_id: providerId ?? null,
-            email_status: 'failed',
-            email_last_error: emailError,
-          })
-          .eq('id', id);
+        await updateAccessRequestEmailTracking(id, {
+          email_provider: 'resend',
+          email_provider_id: providerId ?? null,
+          email_status: 'failed',
+          email_last_error: emailError,
+        });
       }
     } catch (mailErr) {
       emailError = mailErr instanceof Error ? mailErr.message : String(mailErr);
       console.error('Resend-email failed:', mailErr);
-      await supabaseAdmin
-        .from('access_requests')
-        .update({
-          email_provider: 'resend',
-          email_status: 'failed',
-          email_last_error: emailError,
-        })
-        .eq('id', id);
+      await updateAccessRequestEmailTracking(id, {
+        email_provider: 'resend',
+        email_status: 'failed',
+        email_last_error: emailError,
+      });
     }
   } else {
     emailError = 'RESEND_API_KEY ist nicht gesetzt (Environment Variables prüfen).';
-    await supabaseAdmin
-      .from('access_requests')
-      .update({
-        email_status: 'failed',
-        email_last_error: emailError,
-      })
-      .eq('id', id);
+    await updateAccessRequestEmailTracking(id, {
+      email_status: 'failed',
+      email_last_error: emailError,
+    });
   }
 
   return NextResponse.json({

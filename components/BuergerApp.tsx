@@ -13,6 +13,7 @@ import { GuidedTour } from '@/components/GuidedTour';
 import StimmzettelModal from '@/components/Modals/StimmzettelModal';
 import DemoIntroWalkthrough from '@/components/Intro/DemoIntroWalkthrough';
 import DemoExpectationBanner from '@/components/DemoExpectationBanner';
+import IntroOptInGate from '@/components/Intro/IntroOptInGate';
 import { AnredeGate } from '@/components/Intro/AnredeGate';
 import ClaraDock from '@/components/Clara/ClaraDock';
 import type { EbeneLevel, Location, Section } from '@/types';
@@ -57,6 +58,14 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
   // Hydration deckungsgleich bleiben. Die eigentliche Entscheidung fällt in
   // einem useLayoutEffect weiter unten anhand des PRODUCT_INTRO_DONE_KEY.
   const [postLoginIntroOpen, setPostLoginIntroOpen] = useState(true);
+  /**
+   * Opt-in-Gate nach Login (Phase B): Tester entscheidet explizit, ob er den
+   * Walkthrough (Schritte 3–8) sehen möchte oder direkt in die App springt.
+   *
+   * Nicht persistent: pro Session einmal, beim Re-Open der Einführung
+   * (z. B. über Einstellungen) wird die Frage wieder gestellt.
+   */
+  const [introOptInAnswered, setIntroOptInAnswered] = useState(false);
   const isDevice = variant === 'device';
 
   const SECTION_LEVELS: Record<Section, EbeneLevel[]> = {
@@ -124,7 +133,8 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     }
   }, []);
 
-  // Walkthrough erneut öffnen (z. B. aus Einstellungen): Flag löschen, Overlay einblenden.
+  // Walkthrough erneut öffnen (z. B. aus Einstellungen): Flag löschen, Overlay
+  // einblenden und Opt-in-Gate zurücksetzen, damit die Frage erneut gestellt wird.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const onOpen = () => {
@@ -132,6 +142,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
         localStorage.removeItem(PRODUCT_INTRO_DONE_KEY);
       } catch {}
       setPostLoginIntroOpen(true);
+      setIntroOptInAnswered(false);
     };
     window.addEventListener('eidconnect:open-intro', onOpen as any);
     return () => window.removeEventListener('eidconnect:open-intro', onOpen as any);
@@ -159,6 +170,19 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       localStorage.setItem(PRODUCT_INTRO_DONE_KEY, 'true');
     } catch {}
     setPostLoginIntroOpen(false);
+    // Beim nächsten Re-Open (eidconnect:open-intro) soll die Opt-in-Frage wieder
+    // erscheinen; der onOpen-Handler setzt den State explizit zurück.
+    setIntroOptInAnswered(true);
+  };
+
+  /** Opt-in: Tester möchte den Walkthrough sehen — Gate schließen, Walkthrough zeigen. */
+  const startWalkthroughFromGate = () => {
+    setIntroOptInAnswered(true);
+  };
+
+  /** Opt-out: Tester will direkt in die App — Gate schließen, Intro als erledigt markieren. */
+  const skipWalkthroughFromGate = () => {
+    finishProductIntro();
   };
 
   // Wichtig (iOS Safari): im Non-Device-Modus `intro-safe-overlay` verwenden –
@@ -207,12 +231,20 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       <div id="app-overlay-root" className="pointer-events-none absolute inset-0 z-[120]" />
       {postLoginIntroOpen && state.anrede != null ? (
         <div className={introOverlayShell}>
-          <DemoIntroWalkthrough
-            du={state.anrede === 'du'}
-            residenceLocation={state.residenceLocation}
-            onClose={finishProductIntro}
-            onFinish={finishProductIntro}
-          />
+          {introOptInAnswered ? (
+            <DemoIntroWalkthrough
+              du={state.anrede === 'du'}
+              residenceLocation={state.residenceLocation}
+              onClose={finishProductIntro}
+              onFinish={finishProductIntro}
+            />
+          ) : (
+            <IntroOptInGate
+              du={state.anrede === 'du'}
+              onStart={startWalkthroughFromGate}
+              onSkip={skipWalkthroughFromGate}
+            />
+          )}
         </div>
       ) : null}
       {/* Gesamte Navigation + Filter im Header */}

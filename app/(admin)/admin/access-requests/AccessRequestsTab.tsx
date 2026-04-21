@@ -306,6 +306,19 @@ export default function AccessRequestsTab() {
       <p className="text-sm text-gray-600">
         Anfragen von der Startseite „Zugang anfordern“. Nach deiner Freigabe wird der Zugang erstellt und der Link automatisch per E-Mail an die Person geschickt.
       </p>
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-blue-200 bg-blue-50/60 p-3 text-sm text-blue-900">
+        <span>
+          Schnellzugriff: Demo direkt ansehen — ohne NDA, ohne Anmeldung.
+        </span>
+        <a
+          href="/api/admin/open-demo"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ml-auto rounded-lg bg-blue-600 px-3 py-1.5 font-medium text-white hover:bg-blue-700"
+        >
+          Demo jetzt öffnen
+        </a>
+      </div>
       <EmailConfigBanner config={emailConfig} configError={emailConfigError} reload={loadEmailConfig} />
       
       <div className="flex gap-2">
@@ -465,7 +478,19 @@ export default function AccessRequestsTab() {
                     {r.status === 'pending' ? 'Offen' : r.status === 'approved' ? 'Freigegeben' : 'Abgelehnt'}
                   </span>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {/* Direkter Zugriff fuer den Admin: Demo ohne NDA / Anmeldung.
+                      Oeffnet /api/admin/open-demo in neuem Tab, Basic Auth der
+                      aktuellen Admin-Session wird vom Browser mitgeschickt. */}
+                  <a
+                    href="/api/admin/open-demo"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`Demo direkt fuer ${r.full_name} ansehen – ohne NDA, ohne Anmeldung`}
+                    className="rounded-lg border border-blue-600 bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    Demo öffnen
+                  </a>
                   {r.status === 'pending' && (
                     <>
                       <button

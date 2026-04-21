@@ -909,6 +909,25 @@ body {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
 }
 
+/*
+ * Einheitlicher Meta-Streifen für alle 8 Einführungs-Screens
+ * (AnredeGate = 1/8, LoginScreen = 2/8, Walkthrough = 3–8/8).
+ * Dunkel-navy Hintergrund, weißer Text: gleicher Look oben,
+ * egal ob der darunterliegende Screen hell (AnredeGate/LoginScreen)
+ * oder dunkel (Walkthrough) ist.
+ */
+.intro-meta-strip {
+  background: #0C1220;
+  color: rgba(255, 255, 255, 0.92);
+  padding: 0.55rem 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+@media (min-width: 640px) {
+  .intro-meta-strip {
+    padding: 0.6rem 1.1rem;
+  }
+}
+
 /* Hide scrollbar but keep scroll (Footer-Nav) */
 .scrollbar-hide {
   -ms-overflow-style: none;

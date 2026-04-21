@@ -122,6 +122,9 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
             <p className="text-sm font-medium text-neutral-700">
               Noch keinen Link? Hier können Sie einen Zugang anfordern
             </p>
+            <p className="text-xs text-neutral-500 -mt-2">
+              Bereits registriert? Einfach E-Mail erneut eintragen – wir schicken Ihnen sofort einen neuen Zugangslink.
+            </p>
             <form onSubmit={handleRequestAccess} className="space-y-3">
               <input
                 type="text"

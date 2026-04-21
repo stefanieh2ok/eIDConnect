@@ -1057,10 +1057,16 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
               <button
                 onClick={() => handleStimmzettelClick(wahl)}
                 className="w-full py-3 rounded-xl font-semibold transition-opacity"
+                // Amtlicher Stimmzettel-Look: Gelb wie auf Papier-Stimmzetteln.
+                // - Teilnahmeberechtigt: kräftiges Amtsgelb (#FBBF24) mit dunkelblau-
+                //   grauem Text (#0A2540). Hoher Kontrast (AA-konform).
+                // - Nicht teilnahmeberechtigt / nur Vorschau: weiches Cream-Yellow
+                //   (#FEF3C7) mit warmem Braun (#78350F). Weiterhin klar als Stimm-
+                //   zettel-Kontext erkennbar, aber visuell zurückgenommen.
                 style={
                   canParticipate
-                    ? { background: 'var(--gov-btn)', color: '#fff' }
-                    : { background: '#EEF2F7', color: '#334155' }
+                    ? { background: '#FBBF24', color: '#0A2540' }
+                    : { background: '#FEF3C7', color: '#78350F' }
                 }
               >
                 {canParticipate

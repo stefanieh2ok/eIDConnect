@@ -16,16 +16,35 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status'); // pending | approved | rejected | leer = alle
 
-  let query = supabaseAdmin
-    .from('access_requests')
-    .select('id, full_name, email, company, status, created_at, reviewed_at, demo_access_token_id, email_provider, email_provider_id, email_status, email_sent_at, email_last_error')
-    .order('created_at', { ascending: false });
+  // Robust gegen fehlende Migration 011 (email_* Spalten). Wir probieren zuerst
+  // den vollen Spalten-Satz; bei 42703 (undefined_column) fallen wir auf den
+  // Minimal-Satz zurueck, damit die Liste und damit der Freigabe-Flow immer
+  // funktionieren. Das UI behandelt fehlende email_*-Felder ohnehin als null.
+  const FULL_COLS =
+    'id, full_name, email, company, status, created_at, reviewed_at, demo_access_token_id, email_provider, email_provider_id, email_status, email_sent_at, email_last_error';
+  const MIN_COLS =
+    'id, full_name, email, company, status, created_at, reviewed_at, demo_access_token_id';
 
-  if (status && ['pending', 'approved', 'rejected'].includes(status)) {
-    query = query.eq('status', status);
+  const runQuery = async (cols: string) => {
+    let q = supabaseAdmin
+      .from('access_requests')
+      .select(cols)
+      .order('created_at', { ascending: false });
+    if (status && ['pending', 'approved', 'rejected'].includes(status)) {
+      q = q.eq('status', status);
+    }
+    return q;
+  };
+
+  let { data, error } = await runQuery(FULL_COLS);
+  if (error && (error.code === '42703' || /does not exist/i.test(error.message ?? ''))) {
+    console.warn(
+      'Access-requests list: email_* Spalten fehlen (Migration 011 nicht ausgefuehrt) - fallback auf Minimal-Select.'
+    );
+    const retry = await runQuery(MIN_COLS);
+    data = retry.data;
+    error = retry.error;
   }
-
-  const { data, error } = await query;
 
   if (error) {
     console.error('Access-requests list failed:', error);
