@@ -67,10 +67,24 @@ const StimmzettelModal: React.FC = () => {
 
   return (
     <>
-      <div className="fixed inset-0 z-[99998] flex items-center justify-center p-4" style={{
+      <div className="intro-safe-overlay z-[99998] flex items-center justify-center p-4" style={{
         background: 'linear-gradient(135deg, #E8F0F8 0%, #D0DCE8 50%, #B8C8D8 100%)'
       }}>
-        <div className="relative" style={{width: '393px', height: '852px'}}>
+        {/*
+         * iPhone-Mockup-Rahmen: Auf Desktop 393×852 (iPhone 15 Pro Maße),
+         * auf echten iPhones/Smartphones schrumpft der Rahmen mit `min(...)` auf
+         * den tatsaechlich verfuegbaren Viewport – sonst wird der untere Teil
+         * (inkl. „Teilnahme in Demo bestaetigen"-Button) von der Safari-URL-
+         * Leiste abgeschnitten.
+         */}
+        <div
+          className="relative"
+          style={{
+            width: 'min(393px, calc(100vw - 2rem))',
+            height: 'min(852px, calc(100dvh - 2rem))',
+            maxHeight: '100dvh',
+          }}
+        >
           {/* iPhone Notch – gleiche Größe wie Hauptapp */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-8 bg-black rounded-b-3xl z-50" />
 
@@ -88,8 +102,13 @@ const StimmzettelModal: React.FC = () => {
               <div className="w-14 flex-shrink-0"></div>
             </div>
             
-            {/* Content Area – Scrollbar in Akzentfarbe für gute Sichtbarkeit */}
-            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden stimmzettel-scroll" style={{paddingBottom: '24px'}}>
+            {/* Content Area – Scrollbar in Akzentfarbe für gute Sichtbarkeit.
+                Safe-Area + großzügiger Bottom-Pad, damit der primaere „Teilnahme in
+                Demo bestaetigen"-Button zuverlaessig erreichbar bleibt. */}
+            <div
+              className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden stimmzettel-scroll"
+              style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 24px)' }}
+            >
               <div className="p-4 max-w-full">
                 {voteSuccess ? (
                   <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
@@ -124,10 +143,17 @@ const StimmzettelModal: React.FC = () => {
 
       {/* Clara Chat Modal - iPhone Format */}
       {showClaraChat && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4" style={{
+        <div className="intro-safe-overlay z-[99999] flex items-center justify-center p-4" style={{
           background: 'linear-gradient(135deg, #E8F0F8 0%, #D0DCE8 50%, #B8C8D8 100%)'
         }}>
-          <div className="relative" style={{width: '393px', height: '852px'}}>
+          <div
+            className="relative"
+            style={{
+              width: 'min(393px, calc(100vw - 2rem))',
+              height: 'min(852px, calc(100dvh - 2rem))',
+              maxHeight: '100dvh',
+            }}
+          >
             {/* iPhone Notch – gleiche Größe wie Hauptapp */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-8 bg-black rounded-b-3xl z-50" />
 
