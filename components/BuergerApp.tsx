@@ -207,9 +207,12 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
   };
 
   return (
+    // Wichtig: gleiche Flex-/Size-Klassen wie in den nicht-eingeloggten Zweigen (s.o.),
+    // sonst ändert sich beim Login das Wrapper-Verhältnis und der gescalte iPhone-Frame
+    // „springt" sichtbar. Nur Farbe/app-body wird hinzugefügt.
     <div
-      className={`relative flex flex-col app-body bg-[#F7F9FC] ${
-        isDevice ? 'h-full min-h-0 flex-1 overflow-hidden' : 'min-h-[100dvh]'
+      className={`relative flex flex-col app-body bg-[#F7F9FC] h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
+        isDevice ? '' : 'min-h-[100dvh]'
       }`}
     >
       <div id="app-overlay-root" className="pointer-events-none absolute inset-0 z-[120]" />

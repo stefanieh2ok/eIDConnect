@@ -318,11 +318,14 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
   const step = steps[idx];
   const isLast = idx >= steps.length - 1;
   const isAbstimmenStep = step.id === 'abstimmen';
+  // Für "abstimmen" KEIN inneres max-height-Clipping mehr: die Voting-Daumen wurden
+  // auf iPhone-Frames am unteren Rand abgeschnitten. Der äußere Overlay-Container
+  // scrollt bereits (flex-1 + overflow-y-auto), daher kann die Vorschau frei fließen.
   const previewMaxHeight =
     step.id === 'praemien'
       ? 'min(70vh, 560px)'
       : step.id === 'abstimmen'
-        ? 'min(74vh, 640px)'
+        ? undefined
         : 'min(62vh, 500px)';
 
   const preview = useMemo(() => {
@@ -444,8 +447,10 @@ export default function DemoIntroWalkthrough({ du: _du, residenceLocation, onClo
 
         <div className={`${isAbstimmenStep ? 'mt-2.5' : 'mt-4'} rounded-xl border border-neutral-200/95 bg-white p-2.5 shadow-sm`}>
           <div
-            className="hide-scrollbar flex-shrink-0 overflow-x-hidden overflow-y-auto overscroll-contain"
-            style={{ maxHeight: previewMaxHeight }}
+            className={`hide-scrollbar flex-shrink-0 overflow-x-hidden overscroll-contain ${
+              previewMaxHeight ? 'overflow-y-auto' : 'overflow-y-visible'
+            }`}
+            style={previewMaxHeight ? { maxHeight: previewMaxHeight } : undefined}
           >
             <div key={step.id}>{preview}</div>
           </div>
