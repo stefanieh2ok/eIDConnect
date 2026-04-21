@@ -117,13 +117,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
 
   const content = (
     <div
-      className="mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] sm:mx-2 relative"
+      className="intro-dark-body mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] sm:mx-2 relative"
       style={{
-        background: 'rgba(255,255,255,0.86)',
         backdropFilter: 'blur(18px)',
         WebkitBackdropFilter: 'blur(18px)',
-        border: '1px solid var(--gov-border)',
-        boxShadow: '0 16px 48px rgba(0,40,100,0.10), inset 0 1px 0 rgba(255,255,255,0.60)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        boxShadow: '0 16px 48px rgba(0, 20, 60, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
       }}
     >
           {/* --- Meta-Ebene: Einführungs-Pill + Schritt 2/8 + Kurzzeile ---
@@ -138,10 +137,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
           />
 
           <div className="flex-shrink-0 px-6 pt-4 pb-3 text-center">
-            <h1 className="text-2xl font-extrabold leading-none tracking-tight" style={{ color: 'var(--gov-primary)' }}>
+            <h1 className="text-2xl font-extrabold leading-none tracking-tight text-white">
               {APP_DISPLAY_NAME}
             </h1>
-            <p className="mt-1.5 text-[11px] tracking-wide" style={{ color: 'var(--gov-muted)' }}>
+            <p className="mt-1.5 text-[11px] tracking-wide text-white/65">
               Informieren · Mitreden · Mitgestalten
             </p>
           </div>
@@ -154,14 +153,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
               <div
                 className="rounded-2xl px-4 py-3"
                 style={{
-                  background: 'rgba(255,255,255,0.80)',
-                  border: '1px solid var(--gov-border)',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
                 }}
               >
-                <h2 className="text-base font-bold" style={{ color: 'var(--gov-heading)' }}>
+                <h2 className="text-base font-bold text-white">
                   Anmeldung mit eID (Demo)
                 </h2>
-                <p className="mt-1 text-[11px] leading-relaxed" style={{ color: 'var(--gov-body)' }}>
+                <p className="mt-1 text-[11px] leading-relaxed text-white/75">
                   {du
                     ? 'MVP-Flow: eID setzt automatisch Kirkel (66459) mit Saarpfalz-Kreis. Keine manuelle Adresseingabe erforderlich.'
                     : 'MVP-Flow: eID setzt automatisch Kirkel (66459) mit Saarpfalz-Kreis. Keine manuelle Adresseingabe erforderlich.'}
@@ -174,8 +173,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                 >
                   eID auslesen (Demo) – Kirkel
                 </button>
-                <p className="mt-2 text-[10px]" style={{ color: 'var(--gov-muted)' }}>
-                  <span className="font-semibold" style={{ color: 'var(--gov-heading)' }}>
+                <p className="mt-2 text-[10px] text-white/65">
+                  <span className="font-semibold text-white/90">
                     Aktuell:
                   </span>{' '}
                   Hauptstraße 1, 66459 Kirkel
@@ -187,7 +186,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
 
           <div
             className="flex-shrink-0 space-y-2 px-5 pt-3 intro-action-bar-pad"
-            style={{ borderTop: '1px solid var(--gov-border)' }}
+            style={{ borderTop: '1px solid rgba(255, 255, 255, 0.10)' }}
           >
             <div className="flex gap-2">
               <button type="button" onClick={reopenProductIntro} className={loginNavBackClass}>

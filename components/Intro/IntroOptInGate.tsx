@@ -72,11 +72,11 @@ export default function IntroOptInGate({ du, onStart, onSkip }: Props) {
 
       <div
         ref={dialogRef}
-        className="relative w-full max-w-[360px] overflow-y-auto overscroll-contain rounded-3xl bg-white sm:max-w-[400px] anredegate-sheet"
+        className="intro-dark-body relative w-full max-w-[360px] overflow-y-auto overscroll-contain rounded-3xl sm:max-w-[400px] anredegate-sheet"
         style={{
           maxHeight: 'calc(100dvh - 1.5rem)',
           boxShadow:
-            '0 28px 80px rgba(0, 20, 60, 0.38), 0 6px 18px rgba(0, 20, 60, 0.18), 0 0 0 1px rgba(10, 25, 60, 0.06) inset',
+            '0 28px 80px rgba(0, 20, 60, 0.45), 0 6px 18px rgba(0, 20, 60, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.06) inset',
           WebkitOverflowScrolling: 'touch',
         }}
       >
@@ -91,8 +91,8 @@ export default function IntroOptInGate({ du, onStart, onSkip }: Props) {
         />
 
         <div className="px-5 pt-4 pb-3 sm:px-6">
-          <h2 className="text-base font-black leading-snug text-neutral-900 sm:text-lg">{title}</h2>
-          <p className="mt-1.5 text-[12px] leading-snug text-neutral-700 sm:text-[12.5px]">{lead}</p>
+          <h2 className="text-base font-black leading-snug text-white sm:text-lg">{title}</h2>
+          <p className="mt-1.5 text-[12px] leading-snug text-white/75 sm:text-[12.5px]">{lead}</p>
 
           <ul
             className="mt-3 flex flex-wrap gap-1.5"
@@ -101,7 +101,7 @@ export default function IntroOptInGate({ du, onStart, onSkip }: Props) {
             {INTRO_OPT_IN_TOPICS.map((topic) => (
               <li
                 key={topic}
-                className="inline-flex items-center rounded-full border border-neutral-200 bg-neutral-50 px-2 py-[3px] text-[10.5px] font-medium text-neutral-700"
+                className="inline-flex items-center rounded-full border border-white/15 bg-white/10 px-2 py-[3px] text-[10.5px] font-medium text-white/85"
               >
                 {topic}
               </li>
@@ -127,12 +127,12 @@ export default function IntroOptInGate({ du, onStart, onSkip }: Props) {
           <button
             type="button"
             onClick={onSkip}
-            className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-[#003366] transition hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            className="mt-2 w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm font-semibold text-white/90 transition hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400"
           >
             {skipLabel}
           </button>
 
-          <p className="mt-3 text-center text-[10.5px] leading-snug text-neutral-500">{hint}</p>
+          <p className="mt-3 text-center text-[10.5px] leading-snug text-white/55">{hint}</p>
         </div>
       </div>
     </div>

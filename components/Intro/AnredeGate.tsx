@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { APP_DISPLAY_NAME } from '@/lib/branding';
 import {
   INTRO_ANREDE_LEADIN_DU,
   INTRO_ANREDE_LEADIN_SIE,
@@ -120,11 +119,11 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
 
       <div
         ref={dialogRef}
-        className="relative w-full max-w-[360px] overflow-y-auto overscroll-contain rounded-3xl bg-white sm:max-w-[400px] anredegate-sheet"
+        className="intro-dark-body relative w-full max-w-[360px] overflow-y-auto overscroll-contain rounded-3xl sm:max-w-[400px] anredegate-sheet"
         style={{
           maxHeight: 'calc(100dvh - 1.5rem)',
           boxShadow:
-            '0 28px 80px rgba(0, 20, 60, 0.38), 0 6px 18px rgba(0, 20, 60, 0.18), 0 0 0 1px rgba(10, 25, 60, 0.06) inset',
+            '0 28px 80px rgba(0, 20, 60, 0.45), 0 6px 18px rgba(0, 20, 60, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.06) inset',
           WebkitOverflowScrolling: 'touch',
         }}
       >
@@ -137,14 +136,13 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
           onClose={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
         />
 
-        <div className="px-4 pt-3 pb-3 border-b border-neutral-200 sm:px-5 sm:pt-4 sm:pb-4">
-          <div className="text-[10px] font-extrabold tracking-wide text-[#003366] sm:text-[11px]">{APP_DISPLAY_NAME}</div>
-          <h2 className="mt-1 text-base font-black text-neutral-900 sm:text-lg">Wie möchten Sie angesprochen werden?</h2>
-          <p className="mt-1.5 text-[11px] leading-snug text-neutral-600 sm:text-[12px]">
-            Bitte wählen Sie einmalig <span className="font-semibold text-neutral-800">Sie</span> oder{' '}
-            <span className="font-semibold text-neutral-800">Du</span>. Das Intro und alle Hinweise passen sich an.
+        <div className="px-4 pt-3 pb-3 border-b border-white/10 sm:px-5 sm:pt-4 sm:pb-4">
+          <h2 className="text-base font-black leading-snug text-white sm:text-lg">Wie möchten Sie angesprochen werden?</h2>
+          <p className="mt-1.5 text-[11px] leading-snug text-white/70 sm:text-[12px]">
+            Bitte wählen Sie einmalig <span className="font-semibold text-white/90">Sie</span> oder{' '}
+            <span className="font-semibold text-white/90">Du</span>. Das Intro und alle Hinweise passen sich an.
           </p>
-          <p className="mt-2 text-[11px] leading-snug text-neutral-700 sm:text-[12px]">
+          <p className="mt-2 text-[11px] leading-snug text-white/80 sm:text-[12px]">
             {pending === 'du' ? INTRO_ANREDE_LEADIN_DU : INTRO_ANREDE_LEADIN_SIE}
           </p>
         </div>

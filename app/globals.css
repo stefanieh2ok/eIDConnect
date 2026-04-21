@@ -928,6 +928,21 @@ body {
   }
 }
 
+/* Einheitlicher Dark-Body fuer alle Intro-Screens (AnredeGate, LoginScreen,
+ * IntroOptInGate, DemoIntroWalkthrough). Zieht den Navy/Slate-Verlauf vom
+ * Walkthrough auf alle anderen Intro-Screens, damit der gesamte Einfuehrungs-
+ * flow visuell konsistent und deutlich von der eigentlichen App (die hell
+ * ist) abgegrenzt ist. */
+.intro-dark-body {
+  background: linear-gradient(
+    165deg,
+    rgba(15, 23, 42, 0.98) 0%,
+    rgba(30, 41, 59, 0.95) 45%,
+    rgba(15, 23, 42, 0.99) 100%
+  );
+  color: rgba(255, 255, 255, 0.92);
+}
+
 /* Hide scrollbar but keep scroll (Footer-Nav) */
 .scrollbar-hide {
   -ms-overflow-style: none;
