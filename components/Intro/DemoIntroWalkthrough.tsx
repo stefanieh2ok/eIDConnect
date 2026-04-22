@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useOptionalIntroOverlay } from '@/components/Intro/IntroOverlay';
 import OriginalStimmzettel from '@/components/Voting/OriginalStimmzettel';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
@@ -9,8 +10,8 @@ import {
   INTRO_CLOSING_TEXT_DU,
   INTRO_CLOSING_TEXT_SIE,
   INTRO_FINISH_CTA_LABEL,
-  INTRO_OVERLAY_FRAMING_LINES,
   INTRO_OVERLAY_HEADLINE,
+  introOverlayFramingLine,
   INTRO_OVERLAY_STEPS,
   INTRO_TOTAL_STEPS,
 } from '@/data/introOverlayMarketing';
@@ -68,7 +69,7 @@ const COMMUNE_DISPLAY: Record<string, string> = {
 
 const noopVote = () => {};
 const noopKi = () => {};
-const noopDrag = () => {};
+const noopDrag = (_x?: number, _y?: number) => {};
 
 /** PNG unter public/intro/ optional; sonst eingebaute Vorschau (siehe data/introScreenshots.ts). */
 function IntroScreenshotOrPreview({
@@ -135,7 +136,8 @@ function IntroAbstimmenPreview({ card }: { card: VotingCardModel }) {
           <VotingCard
             card={card}
             canVote
-            dragOffset={0}
+            dragOffsetX={0}
+            dragOffsetY={0}
             isDragging={false}
             onDragStart={noopDrag}
             onDragMove={noopDrag}
@@ -356,7 +358,7 @@ export default function DemoIntroWalkthrough({
         ? undefined
         : 'min(62vh, 500px)';
 
-  const framingLine = INTRO_OVERLAY_FRAMING_LINES[step.id];
+  const framingLine = introOverlayFramingLine(step.id, du);
 
   const preview = useMemo(() => {
     switch (step.id) {
@@ -412,6 +414,43 @@ export default function DemoIntroWalkthrough({
   }, [step.id, previewCard, communeName, du]);
 
   const closingText = du ? INTRO_CLOSING_TEXT_DU : INTRO_CLOSING_TEXT_SIE;
+  const intro = useOptionalIntroOverlay();
+
+  useEffect(() => {
+    if (!intro) return;
+    if (!intro.readAloud) {
+      intro.stopIntroSpeech();
+      return;
+    }
+    const bodyForSpeech = adaptIntroAddress(
+      isAbstimmenStep ? step.body.replace(/\n\n+/g, '\n') : step.body,
+      du,
+    )
+      .replace(/\n+/g, ' ')
+      .trim();
+    const meta = framingLine ? ` Kurz: ${framingLine}` : '';
+    let text = `Schritt ${globalStepNumber} von ${INTRO_TOTAL_STEPS}. ${step.title}. ${bodyForSpeech}${meta}`;
+    if (isLast) {
+      text += ` ${closingText.replace(/\n+/g, ' ').trim()}`;
+    }
+    intro.speakIntro(text);
+    return () => {
+      intro.stopIntroSpeech();
+    };
+  }, [
+    intro,
+    intro?.readAloud,
+    idx,
+    globalStepNumber,
+    step.id,
+    step.title,
+    step.body,
+    du,
+    isAbstimmenStep,
+    isLast,
+    closingText,
+    framingLine,
+  ]);
 
   // aria-live Ansage: wird von Screenreadern bei jedem Schritt-Wechsel gelesen.
   const liveAnnouncement = `Einführung, Schritt ${globalStepNumber} von ${INTRO_TOTAL_STEPS} – ${step.title}. ${framingLine}`;
@@ -487,19 +526,28 @@ export default function DemoIntroWalkthrough({
           </div>
         </div>
 
-        {/* Abschluss-Text auf dem letzten Screen – als Meta-Ebene oberhalb des Buttons. */}
-        {isLast ? (
-          <div className="mt-4 rounded-xl border border-white/15 bg-white/[0.06] px-3 py-2.5">
-            <p className="text-[11px] leading-relaxed text-white/90">{closingText}</p>
-          </div>
+        {/* Barometer: Hinweis zu gespeicherten Einstellungen (vor Abschlusstext am letzten Schritt). */}
+        {isPolitikbarometerStep ? (
+          <p className="mt-3 text-[10.5px] leading-snug text-white/65">
+            {du
+              ? 'Hinweis: Deine Auswahl wird für die App übernommen und lässt sich jederzeit in den Einstellungen anpassen.'
+              : 'Hinweis: Ihre Auswahl wird für die App übernommen und lässt sich jederzeit in den Einstellungen anpassen.'}
+          </p>
         ) : null}
 
-        {/* Barometer-Schritt: kurzer Meta-Hinweis unter dem Panel, damit klar bleibt,
-            dass Einstellungen gespeichert werden – aber erst ab Nutzung greifen. */}
-        {isPolitikbarometerStep && !isLast ? (
-          <p className="mt-3 text-[10.5px] leading-snug text-white/65">
-            Hinweis: Ihre Auswahl wird für die App übernommen und lässt sich jederzeit in den Einstellungen anpassen.
-          </p>
+        {/* Abschluss-Text auf dem letzten Screen – als Meta-Ebene oberhalb des Buttons. */}
+        {isLast ? (
+          <div className="mt-4 space-y-2 rounded-xl border border-white/15 bg-white/[0.06] px-3 py-2.5">
+            {closingText
+              .split(/\n\n+/)
+              .map((block) => block.trim())
+              .filter(Boolean)
+              .map((para, i) => (
+                <p key={i} className="text-[11px] leading-relaxed text-white/90 [text-wrap:pretty]">
+                  {para}
+                </p>
+              ))}
+          </div>
         ) : null}
       </div>
 

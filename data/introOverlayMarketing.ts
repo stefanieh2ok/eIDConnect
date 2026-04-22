@@ -23,11 +23,43 @@ export const INTRO_GLOBAL_FRAMING = 'Beispielansichten · Die App-Nutzung beginn
 /** Label des globalen Pills. */
 export const INTRO_GLOBAL_PILL_LABEL = 'Einführung';
 
+/**
+ * Kurze Begrüßung durch Clara (eine Einführung, optional Vorlesen = gleiche Stimme/Engine).
+ * Sichtbar im Opt-in-Gate; nicht als zweiter, separater „Clara-Modus“.
+ */
+export const INTRO_CLARA_WELCOME_LINES_DU = [
+  'Hallo, ich bin Clara.',
+  'Ich zeige dir kurz, wie diese Demo aufgebaut ist.',
+  'Du bekommst einen Überblick über die wichtigsten Funktionen und kannst danach alles selbst erkunden.',
+  'Wenn du möchtest, begleite ich dich Schritt für Schritt durch die App.',
+] as const;
+
+export const INTRO_CLARA_WELCOME_LINES_SIE = [
+  'Hallo, ich bin Clara.',
+  'Ich zeige Ihnen kurz, wie diese Demo aufgebaut ist.',
+  'Sie bekommen einen Überblick über die wichtigsten Funktionen und können danach alles selbst erkunden.',
+  'Wenn Sie möchten, begleite ich Sie Schritt für Schritt durch die App.',
+] as const;
+
+export function introClaraWelcomePlain(du: boolean): string {
+  return (du ? INTRO_CLARA_WELCOME_LINES_DU : INTRO_CLARA_WELCOME_LINES_SIE).join(' ');
+}
+
 /** Einstiegs-Erklärung auf Screen 1 (Ansprache) – mit Zeit-Anker. */
 export const INTRO_ANREDE_LEADIN_SIE =
   'Vor dem Start der App folgt eine kurze Einführung (ca. 90 Sekunden) anhand von Beispielansichten. Im Anschluss nutzen Sie die App selbstständig.';
 export const INTRO_ANREDE_LEADIN_DU =
   'Vor dem Start der App folgt eine kurze Einführung (ca. 90 Sekunden) anhand von Beispielansichten. Im Anschluss nutzt Du die App selbstständig.';
+
+/** TTS-Öffnung Schritt 1 (Anrede) — hängt von der Fokus-/Vorschau-Auswahl (Du vs. Sie) ab. */
+export const INTRO_ANREDE_SPOKEN_OPENING_SIE =
+  'Schritt 1 von 8. Wie möchten Sie angesprochen werden? Bitte wählen Sie einmalig Sie oder Du. Das Intro passt sich an.';
+export const INTRO_ANREDE_SPOKEN_OPENING_DU =
+  'Schritt 1 von 8. Möchtest du per Du oder per Sie angesprochen werden? Wähle bitte einmalig. Das Intro passt sich an.';
+
+/** MVP-Hinweis für Vorlesen auf dem Login (Schritt 2) — sachlich, gleich in beiden Anreden. */
+export const INTRO_EID_SPOKEN_MVP =
+  'M V P Ablauf: eID setzt automatisch Kirkel, Postleitzahl sechs sechs vier fünf neun. Keine manuelle Adresseingabe nötig.';
 
 /** Framing-Zeile über Screen 2 (eID). Lange Fassung — wird ausschließlich von
  *  Screenreadern über die aria-live-Region vorgelesen. */
@@ -42,15 +74,21 @@ export const INTRO_EID_FRAMING_SHORT =
 
 /** Sichtbare Kurzfassung der Politikbarometer-Framing-Zeile.
  *  Ziel: Compliance-sensitive Sichtbarkeit des Nicht-Profiling-Claims,
- *  ohne die volle Satzlänge von INTRO_OVERLAY_FRAMING_LINES.politikbarometer. */
+ *  ohne die volle Satzlänge von INTRO_OVERLAY_FRAMING_LINES_SIE.politikbarometer. */
 export const INTRO_POLITIKBAROMETER_FRAMING_SHORT =
   'Themen priorisieren für Hinweise & Termine — kein Profiling.';
 
 /** Abschluss-Text (letzter Walkthrough-Screen, oberhalb des Buttons). */
 export const INTRO_CLOSING_TEXT_SIE =
-  'Das war die Einführung. Jetzt beginnt die eigentliche Nutzung mit echten Inhalten und Ihren eigenen Auswahlmöglichkeiten.';
+  'Das war die kurze Einführung.\n\n' +
+  'Sie können jetzt alle Bereiche der App selbst erkunden.\n\n' +
+  'Wenn Sie möchten, können Sie die Einführung jederzeit erneut starten.\n\n' +
+  'Ich unterstütze Sie auch während der Nutzung jederzeit.';
 export const INTRO_CLOSING_TEXT_DU =
-  'Das war die Einführung. Jetzt beginnt die eigentliche Nutzung mit echten Inhalten und Deinen eigenen Auswahlmöglichkeiten.';
+  'Das war die kurze Einführung.\n\n' +
+  'Du kannst jetzt alle Bereiche der App selbst erkunden.\n\n' +
+  'Wenn du möchtest, kannst du die Einführung jederzeit erneut starten.\n\n' +
+  'Ich unterstütze dich auch während der Nutzung jederzeit.';
 
 /** Label der Schluss-CTA auf dem letzten Walkthrough-Screen. */
 export const INTRO_FINISH_CTA_LABEL = 'Einführung beenden · App starten';
@@ -132,61 +170,68 @@ export const INTRO_OVERLAY_STEPS: IntroOverlayStepCopy[] = [
     id: 'abstimmen',
     title: '1) Abstimmen',
     body:
-      'Unter „Abstimmen“ sehen Sie politische und kommunale Themen auf einen Blick.\n\n' +
-      'Sie erhalten Pro- und Contra-Argumente, können sich Hintergründe von Clara, der neutralen KI-Assistentin, einordnen lassen und anschließend Ihr Meinungsbild abgeben – inklusive der Option „Enthalten“.',
+      'Hier können Sie aktuelle Themen ansehen und Ihre Meinung abgeben.\n\n' +
+      'Sie können zwischen „Dafür“, „Dagegen“ oder „Enthaltung“ wählen.\n\n' +
+      'Zu jedem Thema finden Sie zusätzliche Informationen zur Orientierung.\n\n' +
+      'Wenn Sie am Prämiensystem teilnehmen, erhalten Sie für jede Teilnahme Punkte.',
     bullets: [
-      { n: 1, title: 'Pro & Contra', text: 'Die wichtigsten Argumente werden verständlich und ausgewogen aufbereitet.' },
-      { n: 2, title: 'Clara', text: 'Neutrale Einordnung und verständliche Hintergründe auf Anfrage.' },
-      { n: 3, title: 'Meinungsbild', text: 'Positionen können schnell und nachvollziehbar erfasst werden.' },
+      { n: 1, title: 'Position wählen', text: 'Dafür, Dagegen oder Enthaltung — je nach Ihrer Einschätzung.' },
+      { n: 2, title: 'Zusatzinfos', text: 'Pro Thema gibt es weiterführende Informationen zur Einordnung.' },
+      { n: 3, title: 'Prämiensystem (freiwillig)', text: 'Bei aktivierter Teilnahme: Punkte für Ihre Beiträge.' },
     ],
   },
   {
     id: 'wahlen',
     title: '2) Wahlen',
     body:
-      'Unter „Wahlen“ erleben Sie einen digital unterstützten Wahlprozess mit klarer Nutzerführung.\n\n' +
-      'Sie sehen den digitalen Stimmzettel, erhalten Orientierung zu Erst- und Zweitstimme und können Parteiprogramme sowie quellenbasierte Informationen zu Kandidierenden direkt aufrufen.',
+      'In diesem Bereich finden Sie verschiedene Wahlen.\n\n' +
+      'Sie können sich Stimmzettel ansehen sowie Informationen zu Kandidaten und Programmen abrufen.\n\n' +
+      'Die angezeigten Ergebnisse dienen in dieser Demo zur Veranschaulichung.\n\n' +
+      'Sie ersetzen keine offiziellen Wahlergebnisse.',
     bullets: [
-      { n: 1, title: 'Erststimme', text: 'Wahl einer Person im jeweiligen Wahlkreis.' },
-      { n: 2, title: 'Zweitstimme', text: 'Stimme für die Landesliste einer Partei.' },
-      { n: 3, title: 'Informationen', text: 'Programme und Kandidierendenprofile sind direkt abrufbar.' },
+      { n: 1, title: 'Wahlen & Stimmzettel', text: 'Verschiedene Wahlen und digitale Stimmzettel in einem Bereich.' },
+      { n: 2, title: 'Kandidaten & Programme', text: 'Informationen zum Nachlesen, wo die Demo sie bereitstellt.' },
+      { n: 3, title: 'Hinweis', text: 'Dargestellte Ergebnisse: nur Veranschaulichung, keine offizielle Wahlquelle.' },
     ],
   },
   {
     id: 'kalender',
     title: '3) Kalender',
     body:
-      'Unter „Kalender“ finden Sie Wahlen, Abstimmungen, Fristen und Veranstaltungen an einem Ort.\n\n' +
-      'Alle Termine sind übersichtlich gebündelt und lassen sich nach Zeitraum, Thema und Relevanz filtern.',
+      'Im Kalender sehen Sie anstehende Wahlen und Abstimmungen auf einen Blick.\n\n' +
+      'Sie können nach Bereichen und Zeiträumen filtern.\n\n' +
+      'So behalten Sie den Überblick über relevante Termine.',
     bullets: [
-      { n: 1, title: 'Übersicht', text: 'Alle relevanten Termine an einem Ort.' },
-      { n: 2, title: 'Filter', text: 'Auswahl nach Thema, Zeitraum und Relevanz.' },
-      { n: 3, title: 'Orientierung', text: 'Politische und kommunale Ereignisse schnell erfassen.' },
+      { n: 1, title: 'Auf einen Blick', text: 'Anstehende Wahlen und Abstimmungen zentral sichtbar.' },
+      { n: 2, title: 'Filter', text: 'Einschränkung nach Bereich und Zeitraum.' },
+      { n: 3, title: 'Überblick', text: 'Relevante Termine bleiben greifbar.' },
     ],
   },
   {
     id: 'meldungen',
     title: '4) Meldungen',
     body:
-      'Unter „Meldungen“ erfassen Sie Hinweise, Mängel und Anliegen direkt für Ihre Kommune.\n\n' +
-      'Sie wählen die passende Kategorie, ergänzen Ort, Beschreibung und Fotos und leiten Ihr Anliegen strukturiert an die zuständige Stelle weiter.',
+      'Hier können Sie Anliegen, Hinweise oder Probleme digital melden.\n\n' +
+      'Ihre Meldung wird strukturiert erfasst und an die zuständige Stelle weitergeleitet.\n\n' +
+      'Sie können jederzeit nachvollziehen, was mit Ihrer Meldung passiert.',
     bullets: [
-      { n: 1, title: 'Kategorie', text: 'Die Auswahl unterstützt die richtige Zuordnung in der Verwaltung.' },
-      { n: 2, title: 'Nachverfolgung', text: 'Bearbeitungsstände bleiben transparent einsehbar.' },
-      { n: 3, title: 'Kommune', text: 'Anliegen werden an die zuständige Stelle weitergeleitet.' },
+      { n: 1, title: 'Digital melden', text: 'Anliegen, Hinweise oder Mängel strukturiert erfassen.' },
+      { n: 2, title: 'Weiterleitung', text: 'Zuständige Stelle erhält die Angaben in geordneter Form.' },
+      { n: 3, title: 'Nachvollziehbar', text: 'Status und Fortschritt der Meldung bleiben einsehbar.' },
     ],
   },
   {
     id: 'praemien',
     title: '5) Punkte sammeln und Prämien erhalten',
     body:
-      'Die Teilnahme am Prämienprogramm ist freiwillig und wird erst nach Ihrer ausdrücklichen Zustimmung aktiviert.\n\n' +
-      'Punkte für aktive Beteiligung werden nur im dafür erforderlichen Umfang verarbeitet.\n\n' +
-      'Prämien und Einlöseangebote werden erst angezeigt, wenn Sie dem Programm ausdrücklich zustimmen.',
+      'Sie können freiwillig am Prämiensystem teilnehmen.\n\n' +
+      'Für bestimmte Aktionen, wie zum Beispiel Abstimmungen, erhalten Sie Punkte.\n\n' +
+      'Die Teilnahme ist optional und kann jederzeit aktiviert oder deaktiviert werden.\n\n' +
+      'Gesammelte Punkte können Sie im jeweiligen Bereich für lokale Prämien einsetzen.',
     bullets: [
-      { n: 1, title: 'Freiwillig', text: 'Teilnahme standardmäßig deaktiviert (Privacy by default).' },
-      { n: 2, title: 'Datensparsam', text: 'Verarbeitung nur im erforderlichen Umfang.' },
-      { n: 3, title: 'Widerrufbar', text: 'Einwilligung jederzeit in den Einstellungen widerrufbar.' },
+      { n: 1, title: 'Freiwillig', text: 'Prämiensystem optional — ohne Verpflichtung nutzbar.' },
+      { n: 2, title: 'Punkte', text: 'Bei definierten Aktionen (z. B. Abstimmungen) Punkte sammeln.' },
+      { n: 3, title: 'Steuerung & Einlösen', text: 'Jederzeit aktivieren oder deaktivieren; Punkte für lokale Prämien einsetzen.' },
     ],
   },
   {
@@ -206,14 +251,35 @@ export const INTRO_OVERLAY_STEPS: IntroOverlayStepCopy[] = [
 /**
  * Eine kurze Framing-Zeile pro Walkthrough-Screen – erscheint als Meta-Ebene
  * in der Overlay-Chrome, nicht als Screen-Content.
+ * Abstimmen & Politikbarometer: getrennte Du/Sie-Varianten; übrige Schritte neutral.
  */
-export const INTRO_OVERLAY_FRAMING_LINES: Record<IntroOverlayStepId, string> = {
-  abstimmen: 'So werden laufende Abstimmungen mit Pro- und Contra-Argumenten dargestellt.',
-  wahlen: 'So ist der digitale Stimmzettel mit Programmen und Kandidierenden aufgebaut.',
-  kalender: 'So bündelt der Kalender Wahlen, Fristen und Termine an einem Ort.',
-  meldungen: 'So übermitteln Sie später strukturierte Anliegen an Ihre Kommune.',
-  praemien:
-    'So sieht das freiwillige Punkte- und Prämienprogramm aus — aktiv nur nach ausdrücklicher Zustimmung.',
+export const INTRO_OVERLAY_FRAMING_LINES_SIE: Record<IntroOverlayStepId, string> = {
+  abstimmen:
+    'So sehen Sie aktuelle Themen, wählen eine Position (Dafür, Dagegen, Enthaltung) und finden dazu weitere Informationen.',
+  wahlen:
+    'Stimmzettel und Kandidateninfos in der Demo — Ergebnisanzeigen nur beispielhaft, nicht rechtsverbindlich.',
+  kalender: 'Wahlen und Abstimmungen im Kalender — filtern und relevante Termine im Blick behalten.',
+  meldungen: 'Meldung erfassen, an die zuständige Stelle leiten, Bearbeitung nachvollziehen.',
+  praemien: 'Freiwilliges Prämiensystem — Punkte bei Aktionen, jederzeit einstellbar, Einlösung im jeweiligen Bereich.',
   politikbarometer:
     'Sie legen fest, welche Themen Ihnen wichtig sind — die App weist Sie auf passende Abstimmungen hin und nimmt Termine in Ihren Kalender auf.',
 };
+
+export const INTRO_OVERLAY_FRAMING_LINES_DU: Record<IntroOverlayStepId, string> = {
+  abstimmen:
+    'So siehst du aktuelle Themen, wählst eine Position (Dafür, Dagegen, Enthaltung) und findest dazu weitere Informationen.',
+  wahlen:
+    'Stimmzettel und Kandidateninfos in der Demo — Ergebnisanzeigen nur beispielhaft, nicht rechtsverbindlich.',
+  kalender: 'Wahlen und Abstimmungen im Kalender — filtern und relevante Termine im Blick behalten.',
+  meldungen: 'Meldung erfassen, an die zuständige Stelle leiten, Bearbeitung nachvollziehen.',
+  praemien: 'Freiwilliges Prämiensystem — Punkte bei Aktionen, jederzeit einstellbar, Einlösung im jeweiligen Bereich.',
+  politikbarometer:
+    'Du legst fest, welche Themen dir wichtig sind — die App weist dich auf passende Abstimmungen hin und übernimmt relevante Termine in deinen Kalender.',
+};
+
+export function introOverlayFramingLine(id: IntroOverlayStepId, du: boolean): string {
+  return du ? INTRO_OVERLAY_FRAMING_LINES_DU[id] : INTRO_OVERLAY_FRAMING_LINES_SIE[id];
+}
+
+/** @deprecated Verwenden Sie introOverlayFramingLine(id, du) — dies ist die Sie-Variante. */
+export const INTRO_OVERLAY_FRAMING_LINES = INTRO_OVERLAY_FRAMING_LINES_SIE;

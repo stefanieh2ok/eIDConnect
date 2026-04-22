@@ -9,8 +9,8 @@ import LeaderboardSection from '@/components/Leaderboard/LeaderboardSection';
 import ElectionsSection from '@/components/Elections/ElectionsSection';
 import CalendarSection from '@/components/Calendar/CalendarSection';
 import MeldungenSection from '@/components/Meldungen/MeldungenSection';
-import { GuidedTour } from '@/components/GuidedTour';
 import StimmzettelModal from '@/components/Modals/StimmzettelModal';
+import IntroOverlay from '@/components/Intro/IntroOverlay';
 import DemoIntroWalkthrough from '@/components/Intro/DemoIntroWalkthrough';
 import DemoExpectationBanner from '@/components/DemoExpectationBanner';
 import IntroOptInGate from '@/components/Intro/IntroOptInGate';
@@ -21,24 +21,10 @@ import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeL
 
 // Produkteinführung (4 Screens) vor Login/Onboarding — eigenes Flag, nicht mit eID/Anrede vermischen.
 const PRODUCT_INTRO_DONE_KEY = 'eidconnect_product_intro_done_v4';
-const TOUR_DONE_KEY  = 'eidconnect_tour_done';
-
-const TOUR_STEPS = [
-  {
-    id: 'header-nav',
-    targetId: 'tour-voting-btn',
-    title: 'Navigation',
-    body: 'Alle Bereiche der App sind direkt im Menü erreichbar.',
-    switchToTab: 'live',
-    position: 'bottom' as const,
-  },
-];
-
 type BuergerAppProps = { variant?: 'fullscreen' | 'device' };
 
 export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) {
   const { state, dispatch } = useApp();
-  const [showTour, setShowTour] = useState(false);
   /**
    * Produkt-Intro: zuerst, danach erst eID-Onboarding (LoginScreen).
    *
@@ -217,21 +203,6 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       ? 'pointer-events-auto absolute inset-0 z-[500] min-h-0 h-full w-full min-w-0 overflow-hidden'
       : 'pointer-events-auto intro-safe-overlay z-[500]';
 
-  if (!state.isLoggedIn) {
-    // Einführungs-Schritte 1 (Ansprache) + 2 (eID) laufen VOR dem Walkthrough,
-    // damit die globale „Schritt X von 8"-Zählung chronologisch stimmt.
-    return (
-      <div
-        className={`relative flex flex-col h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
-          isDevice ? '' : 'min-h-[100dvh]'
-        }`}
-      >
-        <AnredeGate position={isDevice ? 'absolute' : 'fixed'} />
-        <LoginScreen renderFrame={!isDevice} />
-      </div>
-    );
-  }
-
   const renderSection = () => {
     switch (state.activeSection) {
       case 'live':        return <LiveSection />;
@@ -243,15 +214,29 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     }
   };
 
+  // Ein <IntroOverlay> für gesamte App: Schritte 1–2 (vor Login) und 3–8 (Walkthrough)
+  // teilen sich denselben Vorlesen-Zustand (Kanal: Text vs. Stimme, kein separater Modus).
   return (
-    // Wichtig: gleiche Flex-/Size-Klassen wie in den nicht-eingeloggten Zweigen (s.o.),
-    // sonst ändert sich beim Login das Wrapper-Verhältnis und der gescalte iPhone-Frame
-    // „springt" sichtbar. Nur Farbe/app-body wird hinzugefügt.
-    <div
-      className={`relative flex flex-col app-body bg-[#F7F9FC] h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
-        isDevice ? '' : 'min-h-[100dvh]'
-      }`}
-    >
+    <IntroOverlay>
+      {!state.isLoggedIn ? (
+        <div
+          className={`relative flex flex-col h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
+            isDevice ? '' : 'min-h-[100dvh]'
+          }`}
+        >
+          <AnredeGate position={isDevice ? 'absolute' : 'fixed'} />
+          <LoginScreen renderFrame={!isDevice} />
+        </div>
+      ) : (
+        <>
+          {/* Wichtig: gleiche Flex-/Size-Klassen wie in den nicht-eingeloggten Zweigen (s.o.),
+              sonst ändert sich beim Login das Wrapper-Verhältnis und der gescalte iPhone-Frame
+              „springt" sichtbar. Nur Farbe/app-body wird hinzugefügt. */}
+          <div
+            className={`relative flex flex-col app-body bg-[#F7F9FC] h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
+              isDevice ? '' : 'min-h-[100dvh]'
+            }`}
+          >
       <div id="app-overlay-root" className="pointer-events-none absolute inset-0 z-[120]" />
       {postLoginIntroOpen && state.anrede != null ? (
         <div className={introOverlayShell}>
@@ -296,16 +281,10 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       {/* Stimmzettel-Modal (Wahlen → "Stimmzettel ansehen") */}
       <StimmzettelModal />
 
-      {showTour && (
-        <GuidedTour
-          steps={TOUR_STEPS}
-          onComplete={() => {
-            localStorage.setItem(TOUR_DONE_KEY, 'true');
-            setShowTour(false);
-          }}
-        />
+          </div>
+        </>
       )}
-    </div>
+    </IntroOverlay>
   );
 }
 

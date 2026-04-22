@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useClaraVoice } from '@/hooks/useClaraVoice';
+import { useApp } from '@/context/AppContext';
 
 /* Lavendel/Violett – spaciger Farbverlauf mit Tiefe */
 const SPACY_GRADIENT = 'linear-gradient(160deg, #4C1D95 0%, #6D28D9 25%, #7C3AED 45%, #8B5CF6 65%, #A78BFA 85%, #C4B5FD 100%)';
@@ -15,17 +16,23 @@ interface ClaraFloatingButtonProps {
 }
 
 const ClaraFloatingButton: React.FC<ClaraFloatingButtonProps> = ({ onOpenClara, position = 'fixed' }) => {
+  const { state } = useApp();
   const [showGreeting, setShowGreeting] = useState(false);
   const { voiceState, speak } = useClaraVoice();
   const posClass = position === 'absolute' ? 'absolute bottom-0 right-0' : 'fixed bottom-24 right-4';
+  const du = state.anrede === 'du';
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowGreeting(true);
-      speak("Hallo! Ich bin Clara, deine digitale Assistentin für demokratische Orientierung. Chatte oder sprich mit mir.");
+      speak(
+        du
+          ? 'Hallo! Ich bin Clara, deine digitale Assistentin für demokratische Orientierung. Chatte oder sprich mit mir.'
+          : 'Hallo! Ich bin Clara, Ihre digitale Assistentin für demokratische Orientierung. Chatten oder sprechen Sie mit mir.',
+      );
     }, 3000);
     return () => clearTimeout(timer);
-  }, [speak]);
+  }, [speak, du]);
 
   useEffect(() => {
     if (showGreeting) {

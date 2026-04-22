@@ -2,11 +2,10 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import {
-  INTRO_ANREDE_LEADIN_DU,
-  INTRO_ANREDE_LEADIN_SIE,
-} from '@/data/introOverlayMarketing';
+import { INTRO_ANREDE_LEADIN_DU, INTRO_ANREDE_LEADIN_SIE } from '@/data/introOverlayMarketing';
+import { introAnredeGateSpoken } from '@/lib/introSpokenTts';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
+import { useOptionalIntroOverlay } from '@/components/Intro/IntroOverlay';
 import type { Anrede } from '@/types';
 
 type Props = {
@@ -94,6 +93,20 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
     };
   }, [open, position]);
 
+  const duMode = pending === 'du';
+  const leadIn = duMode ? INTRO_ANREDE_LEADIN_DU : INTRO_ANREDE_LEADIN_SIE;
+  const intro = useOptionalIntroOverlay();
+
+  useEffect(() => {
+    if (!open || !intro) return;
+    if (!intro.readAloud) {
+      intro.stopIntroSpeech();
+      return;
+    }
+    intro.speakIntro(introAnredeGateSpoken(duMode));
+    return () => intro.stopIntroSpeech();
+  }, [open, intro, intro?.readAloud, duMode]);
+
   if (!open) return null;
 
   return (
@@ -142,9 +155,7 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
             Bitte wählen Sie einmalig <span className="font-semibold text-white/90">Sie</span> oder{' '}
             <span className="font-semibold text-white/90">Du</span>. Das Intro und alle Hinweise passen sich an.
           </p>
-          <p className="mt-2 text-[11px] leading-snug text-white/80 sm:text-[12px]">
-            {pending === 'du' ? INTRO_ANREDE_LEADIN_DU : INTRO_ANREDE_LEADIN_SIE}
-          </p>
+          <p className="mt-2 text-[11px] leading-snug text-white/80 sm:text-[12px]">{leadIn}</p>
         </div>
 
         <div className="px-4 py-4 sm:px-5 sm:py-5">

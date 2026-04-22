@@ -1,0 +1,114 @@
+{
+  "du": [
+    {
+      "step": 1,
+      "id": "anrede",
+      "title": "Willkommen",
+      "tts": "Schritt 1 von 8. Möchtest du per Du oder per Sie angesprochen werden? Wähle bitte einmalig. Das Intro passt sich an. Vor dem Start der App folgt eine kurze Einführung (ca. 90 Sekunden) anhand von Beispielansichten. Im Anschluss nutzt Du die App selbstständig."
+    },
+    {
+      "step": 2,
+      "id": "eid",
+      "title": "eID anmelden",
+      "tts": "Schritt 2 von 8. eID Demo Connect. Informieren, Mitreden, Mitgestalten. Beispielansicht der eID — ohne echte Datenübertragung. Anmeldung mit eID, Demo. M V P Ablauf: eID setzt automatisch Kirkel, Postleitzahl sechs sechs vier fünf neun. Keine manuelle Adresseingabe nötig. Du meldest dich über die Schaltfläche mit der Demo-eID an."
+    },
+    {
+      "step": null,
+      "id": "opt_in",
+      "title": "Kurze App-Einführung?",
+      "tts": "Hallo, ich bin Clara. Ich zeige dir kurz, wie diese Demo aufgebaut ist. Du bekommst einen Überblick über die wichtigsten Funktionen und kannst danach alles selbst erkunden. Wenn du möchtest, begleite ich dich Schritt für Schritt durch die App. Kurze App-Einführung ansehen? In rund 60 Sekunden lernst Du die wichtigsten Bereiche der App kennen — als Beispielansichten, ohne echte Datenaktion. Du kannst die Einführung später jederzeit über die Einstellungen erneut öffnen."
+    },
+    {
+      "step": 3,
+      "id": "abstimmen",
+      "title": "Abstimmen",
+      "tts": "Schritt 3 von 8. 1) Abstimmen. Hier kannst du aktuelle Themen ansehen und deine Meinung abgeben. Du kannst zwischen „Dafür“, „Dagegen“ oder „Enthaltung“ wählen. Zu jedem Thema findest du zusätzliche Informationen zur Orientierung. Wenn du am Prämiensystem teilnimmst, erhältst du für jede Teilnahme Punkte. Kurz: So siehst du aktuelle Themen, wählst eine Position (Dafür, Dagegen, Enthaltung) und findest dazu weitere Informationen."
+    },
+    {
+      "step": 4,
+      "id": "wahlen",
+      "title": "Wahlen",
+      "tts": "Schritt 4 von 8. 2) Wahlen. In diesem Bereich findest du verschiedene Wahlen. Du kannst dir Stimmzettel ansehen sowie Informationen zu Kandidaten und Programmen abrufen. Die angezeigten Ergebnisse dienen in dieser Demo zur Veranschaulichung. Sie ersetzen keine offiziellen Wahlergebnisse. Kurz: Stimmzettel und Kandidateninfos in der Demo — Ergebnisanzeigen nur beispielhaft, nicht rechtsverbindlich."
+    },
+    {
+      "step": 5,
+      "id": "kalender",
+      "title": "Kalender",
+      "tts": "Schritt 5 von 8. 3) Kalender. Im Kalender siehst du anstehende Wahlen und Abstimmungen auf einen Blick. Du kannst nach Bereichen und Zeiträumen filtern. So behältst du den Überblick über relevante Termine. Kurz: Wahlen und Abstimmungen im Kalender — filtern und relevante Termine im Blick behalten."
+    },
+    {
+      "step": 6,
+      "id": "meldungen",
+      "title": "Meldungen",
+      "tts": "Schritt 6 von 8. 4) Meldungen. Hier kannst du Anliegen, Hinweise oder Probleme digital melden. Deine Meldung wird strukturiert erfasst und an die zuständige Stelle weitergeleitet. Du kannst jederzeit nachvollziehen, was mit deiner Meldung passiert. Kurz: Meldung erfassen, an die zuständige Stelle leiten, Bearbeitung nachvollziehen."
+    },
+    {
+      "step": 7,
+      "id": "praemien",
+      "title": "Punkte sammeln und Prämien erhalten",
+      "tts": "Schritt 7 von 8. 5) Punkte sammeln und Prämien erhalten. Du kannst freiwillig am Prämiensystem teilnehmen. Für bestimmte Aktionen, wie zum Beispiel Abstimmungen, erhältst du Punkte. Die Teilnahme ist optional und kann jederzeit aktiviert oder deaktiviert werden. Gesammelte Punkte kannst du im jeweiligen Bereich für lokale Prämien einsetzen. Kurz: Freiwilliges Prämiensystem — Punkte bei Aktionen, jederzeit einstellbar, Einlösung im jeweiligen Bereich."
+    },
+    {
+      "step": 8,
+      "id": "politikbarometer",
+      "title": "Politikbarometer",
+      "tts": "Schritt 8 von 8. 6) Politikbarometer. Im „Politikbarometer\" legst du fest, welche Themen dir wichtig sind. Die App weist dich anschließend auf passende Abstimmungen hin und trägt relevante Termine in deinen Kalender ein. Die Nutzung ist freiwillig und jederzeit anpassbar. Kurz: Du legst fest, welche Themen dir wichtig sind — die App weist dich auf passende Abstimmungen hin und übernimmt relevante Termine in deinen Kalender. Das war die kurze Einführung. Du kannst jetzt alle Bereiche der App selbst erkunden. Wenn du möchtest, kannst du die Einführung jederzeit erneut starten. Ich unterstütze dich auch während der Nutzung jederzeit."
+    }
+  ],
+  "sie": [
+    {
+      "step": 1,
+      "id": "anrede",
+      "title": "Willkommen",
+      "tts": "Schritt 1 von 8. Wie möchten Sie angesprochen werden? Bitte wählen Sie einmalig Sie oder Du. Das Intro passt sich an. Vor dem Start der App folgt eine kurze Einführung (ca. 90 Sekunden) anhand von Beispielansichten. Im Anschluss nutzen Sie die App selbstständig."
+    },
+    {
+      "step": 2,
+      "id": "eid",
+      "title": "eID anmelden",
+      "tts": "Schritt 2 von 8. eID Demo Connect. Informieren, Mitreden, Mitgestalten. Beispielansicht der eID — ohne echte Datenübertragung. Anmeldung mit eID, Demo. M V P Ablauf: eID setzt automatisch Kirkel, Postleitzahl sechs sechs vier fünf neun. Keine manuelle Adresseingabe nötig. Sie melden sich über die Schaltfläche mit der Demo-eID an."
+    },
+    {
+      "step": null,
+      "id": "opt_in",
+      "title": "Kurze App-Einführung?",
+      "tts": "Hallo, ich bin Clara. Ich zeige Ihnen kurz, wie diese Demo aufgebaut ist. Sie bekommen einen Überblick über die wichtigsten Funktionen und können danach alles selbst erkunden. Wenn Sie möchten, begleite ich Sie Schritt für Schritt durch die App. Kurze App-Einführung ansehen? In rund 60 Sekunden lernen Sie die wichtigsten Bereiche der App kennen — als Beispielansichten, ohne echte Datenaktion. Sie können die Einführung später jederzeit über die Einstellungen erneut öffnen."
+    },
+    {
+      "step": 3,
+      "id": "abstimmen",
+      "title": "Abstimmen",
+      "tts": "Schritt 3 von 8. 1) Abstimmen. Hier können Sie aktuelle Themen ansehen und Ihre Meinung abgeben. Sie können zwischen „Dafür“, „Dagegen“ oder „Enthaltung“ wählen. Zu jedem Thema finden Sie zusätzliche Informationen zur Orientierung. Wenn Sie am Prämiensystem teilnehmen, erhalten Sie für jede Teilnahme Punkte. Kurz: So sehen Sie aktuelle Themen, wählen eine Position (Dafür, Dagegen, Enthaltung) und finden dazu weitere Informationen."
+    },
+    {
+      "step": 4,
+      "id": "wahlen",
+      "title": "Wahlen",
+      "tts": "Schritt 4 von 8. 2) Wahlen. In diesem Bereich finden Sie verschiedene Wahlen. Sie können sich Stimmzettel ansehen sowie Informationen zu Kandidaten und Programmen abrufen. Die angezeigten Ergebnisse dienen in dieser Demo zur Veranschaulichung. Sie ersetzen keine offiziellen Wahlergebnisse. Kurz: Stimmzettel und Kandidateninfos in der Demo — Ergebnisanzeigen nur beispielhaft, nicht rechtsverbindlich."
+    },
+    {
+      "step": 5,
+      "id": "kalender",
+      "title": "Kalender",
+      "tts": "Schritt 5 von 8. 3) Kalender. Im Kalender sehen Sie anstehende Wahlen und Abstimmungen auf einen Blick. Sie können nach Bereichen und Zeiträumen filtern. So behalten Sie den Überblick über relevante Termine. Kurz: Wahlen und Abstimmungen im Kalender — filtern und relevante Termine im Blick behalten."
+    },
+    {
+      "step": 6,
+      "id": "meldungen",
+      "title": "Meldungen",
+      "tts": "Schritt 6 von 8. 4) Meldungen. Hier können Sie Anliegen, Hinweise oder Probleme digital melden. Ihre Meldung wird strukturiert erfasst und an die zuständige Stelle weitergeleitet. Sie können jederzeit nachvollziehen, was mit Ihrer Meldung passiert. Kurz: Meldung erfassen, an die zuständige Stelle leiten, Bearbeitung nachvollziehen."
+    },
+    {
+      "step": 7,
+      "id": "praemien",
+      "title": "Punkte sammeln und Prämien erhalten",
+      "tts": "Schritt 7 von 8. 5) Punkte sammeln und Prämien erhalten. Sie können freiwillig am Prämiensystem teilnehmen. Für bestimmte Aktionen, wie zum Beispiel Abstimmungen, erhalten Sie Punkte. Die Teilnahme ist optional und kann jederzeit aktiviert oder deaktiviert werden. Gesammelte Punkte können Sie im jeweiligen Bereich für lokale Prämien einsetzen. Kurz: Freiwilliges Prämiensystem — Punkte bei Aktionen, jederzeit einstellbar, Einlösung im jeweiligen Bereich."
+    },
+    {
+      "step": 8,
+      "id": "politikbarometer",
+      "title": "Politikbarometer",
+      "tts": "Schritt 8 von 8. 6) Politikbarometer. Im „Politikbarometer\" legen Sie fest, welche Themen Ihnen wichtig sind. Die App weist Sie anschließend auf passende Abstimmungen hin und trägt relevante Termine in Ihren Kalender ein. Die Nutzung ist freiwillig und jederzeit anpassbar. Kurz: Sie legen fest, welche Themen Ihnen wichtig sind — die App weist Sie auf passende Abstimmungen hin und nimmt Termine in Ihren Kalender auf. Das war die kurze Einführung. Sie können jetzt alle Bereiche der App selbst erkunden. Wenn Sie möchten, können Sie die Einführung jederzeit erneut starten. Ich unterstütze Sie auch während der Nutzung jederzeit."
+    }
+  ]
+}

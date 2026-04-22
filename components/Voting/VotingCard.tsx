@@ -18,10 +18,13 @@ function enforceFactDetail(text: string): string {
 interface VotingCardProps {
   card: VotingCardType;
   canVote: boolean;
-  dragOffset: number;
+  /** Horizontaler Wisch-Offset (Dafür/Dagegen). */
+  dragOffsetX: number;
+  /** Vertikaler Wisch-Offset (Enthalten / Rückgängig). */
+  dragOffsetY: number;
   isDragging: boolean;
-  onDragStart: (clientX: number) => void;
-  onDragMove: (clientX: number) => void;
+  onDragStart: (clientX: number, clientY: number) => void;
+  onDragMove: (clientX: number, clientY: number) => void;
   onDragEnd: () => void;
   onVote: (voteType: VoteType) => void;
   /** Produkt-Intro: kompakter Prozent-Balken ohne Icons/Labels. */
@@ -32,7 +35,8 @@ const VotingCard: React.FC<VotingCardProps> = memo(
   ({
     card,
     canVote,
-    dragOffset,
+    dragOffsetX,
+    dragOffsetY,
     isDragging,
     onDragStart,
     onDragMove,
@@ -52,17 +56,19 @@ const VotingCard: React.FC<VotingCardProps> = memo(
           WebkitBackdropFilter: 'blur(16px)',
           border: '1px solid var(--gov-border, #D6E0EE)',
           boxShadow: '0 4px 24px rgba(0,40,100,0.10)',
-          transform: `translateX(${dragOffset}px) rotate(${dragOffset * 0.025}deg)`,
-          opacity: isDragging ? 0.93 : 1,
+          transform: `translate(${dragOffsetX}px, ${dragOffsetY}px) rotate(${dragOffsetX * 0.025}deg)`,
+          opacity: isDragging
+            ? Math.max(0.55, 1 - (Math.abs(dragOffsetX) + Math.abs(dragOffsetY)) / 500)
+            : 1,
           transition: isDragging ? 'none' : 'transform 0.25s ease, opacity 0.2s',
           cursor: canVote ? 'grab' : 'default',
         }}
-        onMouseDown={(e) => canVote && onDragStart(e.clientX)}
-        onMouseMove={(e) => canVote && onDragMove(e.clientX)}
+        onMouseDown={(e) => canVote && onDragStart(e.clientX, e.clientY)}
+        onMouseMove={(e) => canVote && onDragMove(e.clientX, e.clientY)}
         onMouseUp={() => canVote && onDragEnd()}
         onMouseLeave={() => canVote && onDragEnd()}
-        onTouchStart={(e) => canVote && onDragStart(e.touches[0].clientX)}
-        onTouchMove={(e) => canVote && onDragMove(e.touches[0].clientX)}
+        onTouchStart={(e) => canVote && onDragStart(e.touches[0].clientX, e.touches[0].clientY)}
+        onTouchMove={(e) => canVote && onDragMove(e.touches[0].clientX, e.touches[0].clientY)}
         onTouchEnd={() => canVote && onDragEnd()}
       >
         {/* ── Header-Streifen (Governikus Dunkelblau) ── */}
@@ -110,34 +116,74 @@ const VotingCard: React.FC<VotingCardProps> = memo(
           </p>
         </div>
 
-        {/* ── Live-Balken ── */}
+        {/* ── Live-Abstimmungsbarometer: Verlauf rot → grau → grün (wie Daumen: Dagegen · Enthalten · Dafür) ── */}
         <div className="px-4 pb-2">
-          <div className={`flex rounded-full overflow-hidden ${introBarIcons ? 'h-7' : 'h-6'}`} style={{ background: '#EEF2F8' }}>
+          <div
+            className="rounded-full p-[1.5px]"
+            style={{
+              background: 'linear-gradient(90deg, #dc2626 0%, #94a3b8 50%, #16a34a 100%)',
+            }}
+            title="Dagegen · Enthalten · Dafür"
+          >
             <div
-              className="flex items-center justify-center text-white text-[10px] font-bold"
-              style={{ width: `${card.yes}%`, background: '#22c55e' }}
+              className={`flex w-full min-w-0 overflow-hidden rounded-full ${introBarIcons ? 'h-7' : 'h-6'}`}
+              style={{ background: 'rgba(15, 23, 42, 0.04)' }}
             >
-              {card.yes}%
-            </div>
-            <div
-              className="flex items-center justify-center text-white text-[10px] font-bold"
-              style={{ width: `${card.no}%`, background: '#ef4444' }}
-            >
-              {card.no}%
-            </div>
-            {card.abstain > 0 && (
               <div
-                className="flex items-center justify-center text-[10px] font-medium"
-                style={{ width: `${card.abstain}%`, background: '#CBD5E1', color: '#64748B' }}
+                className="flex min-w-0 items-center justify-center text-[10px] font-bold text-white shadow-sm"
+                style={{
+                  width: `${card.no}%`,
+                  background: 'linear-gradient(180deg, #f87171 0%, #dc2626 45%, #b91c1c 100%)',
+                }}
               >
-                {card.abstain}%
+                {card.no > 0 ? `${card.no}%` : ''}
               </div>
-            )}
+              <div
+                className="flex min-w-0 items-center justify-center text-[10px] font-semibold"
+                style={{
+                  width: `${card.abstain}%`,
+                  background: 'linear-gradient(180deg, #e2e8f0 0%, #94a3b8 50%, #64748b 100%)',
+                  color: 'rgba(15, 23, 42, 0.9)',
+                }}
+              >
+                {card.abstain > 0 ? `${card.abstain}%` : ''}
+              </div>
+              <div
+                className="flex min-w-0 items-center justify-center text-[10px] font-bold text-white shadow-sm"
+                style={{
+                  width: `${card.yes}%`,
+                  background: 'linear-gradient(180deg, #4ade80 0%, #22c55e 45%, #15803d 100%)',
+                }}
+              >
+                {card.yes > 0 ? `${card.yes}%` : ''}
+              </div>
+            </div>
           </div>
           <div className="flex justify-between mt-1">
-            <span className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--gov-muted)' }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block" />
-              {card.votes.toLocaleString('de-DE')} Stimmen
+            <span className="flex min-w-0 items-center gap-1.5 text-[10px]" style={{ color: 'var(--gov-muted)' }}>
+              {!introBarIcons && (
+                <>
+                  <span
+                    className="h-1 w-5 shrink-0 rounded-full"
+                    style={{
+                      background: 'linear-gradient(90deg, #ef4444, #94a3b8, #10b981)',
+                    }}
+                    aria-hidden
+                    title="Dagegen · Enthalten · Dafür"
+                  />
+                  <span className="inline-flex items-center gap-0.5" aria-hidden>
+                    <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  </span>
+                </>
+              )}
+              <span>
+                {card.votes.toLocaleString('de-DE')} Stimmen
+                {!introBarIcons && (
+                  <span className="ml-0.5 text-[9px] opacity-85">(dagegen · enthalten · dafür)</span>
+                )}
+              </span>
             </span>
             <span className="text-[10px] font-bold" style={{ color: 'var(--gov-primary-mid, #0055A4)' }}>
               +{card.points} Demo-Punkte

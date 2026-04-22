@@ -7,6 +7,7 @@ import {
   INTRO_SKIP_LABEL,
   INTRO_TOTAL_STEPS,
 } from '@/data/introOverlayMarketing';
+import { IntroReadAloudToggle } from '@/components/Intro/IntroOverlay';
 
 type Props = {
   /**
@@ -120,6 +121,8 @@ export default function IntroMetaStrip({
           })}
         </div>
       </div>
+
+      <IntroReadAloudToggle />
 
       {/* Zeile 3 (optional): „META · …"-Satz fuer die Screen-spezifische
           Framing-Zeile. Gleicher Font wie die Zeilen darueber, damit kein

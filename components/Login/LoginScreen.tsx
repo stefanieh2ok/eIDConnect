@@ -5,10 +5,10 @@ import { useApp } from '@/context/AppContext';
 import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
-import {
-  INTRO_EID_FRAMING_SHORT,
-} from '@/data/introOverlayMarketing';
+import { INTRO_EID_FRAMING_SHORT } from '@/data/introOverlayMarketing';
+import { introEidLoginSpoken } from '@/lib/introSpokenTts';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
+import { useOptionalIntroOverlay } from '@/components/Intro/IntroOverlay';
 
 const KIRKEL_STREET = 'Hauptstraße 1';
 const KIRKEL_PLZ = '66459';
@@ -62,6 +62,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
     if (state.residenceLocation === 'kirkel') return;
     persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
   }, [state.residenceLocation, persistDemoFields]);
+
+  const intro = useOptionalIntroOverlay();
+  useEffect(() => {
+    if (state.anrede == null || !intro) return;
+    if (typeof document !== 'undefined' && document.querySelector('[role="dialog"][aria-label="Anrede wählen"]')) {
+      return;
+    }
+    if (!intro.readAloud) {
+      intro.stopIntroSpeech();
+      return;
+    }
+    intro.speakIntro(introEidLoginSpoken(du, APP_DISPLAY_NAME));
+    return () => intro.stopIntroSpeech();
+  }, [state.anrede, intro, intro?.readAloud, du]);
 
   const applyEidKirkelDemo = () => {
     persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);

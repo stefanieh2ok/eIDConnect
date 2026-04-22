@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { VOTING_DATA } from '@/data/constants';
 import { VoteType, AbstimmungTab } from '@/types';
@@ -10,12 +10,24 @@ import ClaraVoiceInterface from '@/components/Clara/ClaraVoiceInterface';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { SectionLevelFilterIcon, selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
 
+const SWIPE_THRESHOLD_PX = 100;
+
 const LiveSection: React.FC = () => {
   const { state, dispatch } = useApp();
   const [abstimmungTab, setAbstimmungTab] = useState<AbstimmungTab>('aktuell');
   const [showClaraVoice, setShowClaraVoice] = useState(false);
   const [activeNow, setActiveNow] = useState(3_847_291);
   const [showStats, setShowStats] = useState(false);
+
+  const [swipe, setSwipe] = useState({ x: 0, y: 0 });
+  const [cardDragging, setCardDragging] = useState(false);
+  const swipeRef = useRef({ x: 0, y: 0 });
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const pointerActiveRef = useRef(false);
+  const pendingAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingVoteMetaRef = useRef<{ fromIndex: number; points: number } | null>(null);
+  const completedVoteStack = useRef<Array<{ previousIndex: number; points: number }>>([]);
+  const overlayTouchYRef = useRef(0);
 
   const loc = state.activeLocation;
   const currentData =
@@ -33,43 +45,104 @@ const LiveSection: React.FC = () => {
     return () => clearInterval(id);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (pendingAdvanceRef.current) clearTimeout(pendingAdvanceRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    completedVoteStack.current = [];
+    if (pendingAdvanceRef.current) {
+      clearTimeout(pendingAdvanceRef.current);
+      pendingAdvanceRef.current = null;
+    }
+    if (pendingVoteMetaRef.current) {
+      const pts = pendingVoteMetaRef.current.points;
+      pendingVoteMetaRef.current = null;
+      dispatch({ type: 'DEMO_REVERT_VOTE', payload: { points: pts } });
+    }
+  }, [loc, dispatch]);
+
+  const performUndo = useCallback(() => {
+    if (pendingAdvanceRef.current && pendingVoteMetaRef.current) {
+      clearTimeout(pendingAdvanceRef.current);
+      pendingAdvanceRef.current = null;
+      const { points } = pendingVoteMetaRef.current;
+      pendingVoteMetaRef.current = null;
+      dispatch({ type: 'DEMO_REVERT_VOTE', payload: { points } });
+      return;
+    }
+    const last = completedVoteStack.current.pop();
+    if (last) {
+      dispatch({ type: 'SET_CURRENT_CARD_INDEX', payload: last.previousIndex });
+      dispatch({ type: 'DEMO_REVERT_VOTE', payload: { points: last.points } });
+    }
+  }, [dispatch]);
+
   const handleVote = useCallback(
     (voteType: VoteType) => {
-      if (!currentCard) return;
-      dispatch({ type: 'HANDLE_VOTE', payload: { voteType, card: currentCard, points: currentCard.points } });
-      setTimeout(() => {
+      if (!currentData?.canVote || !currentCard) return;
+      if (pendingAdvanceRef.current) return;
+      const fromIndex = state.currentCardIndex;
+      const points = currentCard.points;
+      pendingVoteMetaRef.current = { fromIndex, points };
+
+      dispatch({ type: 'HANDLE_VOTE', payload: { voteType, card: currentCard, points } });
+
+      pendingAdvanceRef.current = setTimeout(() => {
         dispatch({ type: 'SET_VOTE_RESULT', payload: null });
-        dispatch({
-          type: 'SET_CURRENT_CARD_INDEX',
-          payload: state.currentCardIndex < totalCards - 1 ? state.currentCardIndex + 1 : 0,
-        });
+        const next = fromIndex < totalCards - 1 ? fromIndex + 1 : 0;
+        dispatch({ type: 'SET_CURRENT_CARD_INDEX', payload: next });
         if (state.showKIAnalysis) dispatch({ type: 'TOGGLE_KI_ANALYSIS' });
+        completedVoteStack.current.push({ previousIndex: fromIndex, points });
+        pendingVoteMetaRef.current = null;
+        pendingAdvanceRef.current = null;
       }, 2200);
     },
-    [currentCard, totalCards, state.currentCardIndex, state.showKIAnalysis, dispatch]
+    [currentCard, currentData?.canVote, totalCards, state.currentCardIndex, state.showKIAnalysis, dispatch]
   );
 
-  const handleDragStart = useCallback(
-    (clientX: number) => {
-      dispatch({ type: 'SET_IS_DRAGGING', payload: true });
-      dispatch({ type: 'SET_DRAG_START', payload: clientX });
+  const handleCardDragStart = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!currentData?.canVote) return;
+      pointerActiveRef.current = true;
+      setCardDragging(true);
+      dragStartRef.current = { x: clientX, y: clientY };
+      swipeRef.current = { x: 0, y: 0 };
+      setSwipe({ x: 0, y: 0 });
     },
-    [dispatch]
+    [currentData?.canVote]
   );
-  const handleDragMove = useCallback(
-    (clientX: number) => {
-      if (!state.isDragging) return;
-      dispatch({ type: 'SET_DRAG_OFFSET', payload: clientX - state.dragStart });
-    },
-    [state.isDragging, state.dragStart, dispatch]
-  );
-  const handleDragEnd = useCallback(() => {
-    dispatch({ type: 'SET_IS_DRAGGING', payload: false });
-    if (Math.abs(state.dragOffset) > 100) {
-      handleVote(state.dragOffset > 0 ? 'for' : 'against');
+
+  const handleCardDragMove = useCallback((clientX: number, clientY: number) => {
+    if (!pointerActiveRef.current) return;
+    const x = clientX - dragStartRef.current.x;
+    const y = clientY - dragStartRef.current.y;
+    swipeRef.current = { x, y };
+    setSwipe({ x, y });
+  }, []);
+
+  const handleCardDragEnd = useCallback(() => {
+    if (!pointerActiveRef.current) return;
+    pointerActiveRef.current = false;
+    setCardDragging(false);
+    const { x: dx, y: dy } = swipeRef.current;
+    swipeRef.current = { x: 0, y: 0 };
+    setSwipe({ x: 0, y: 0 });
+
+    const ax = Math.abs(dx);
+    const ay = Math.abs(dy);
+    if (Math.max(ax, ay) < SWIPE_THRESHOLD_PX) return;
+
+    if (ax > ay) {
+      handleVote(dx > 0 ? 'for' : 'against');
+    } else if (dy < 0) {
+      handleVote('abstain');
+    } else {
+      performUndo();
     }
-    dispatch({ type: 'RESET_DRAG' });
-  }, [state.dragOffset, handleVote, dispatch]);
+  }, [handleVote, performUndo]);
 
   return (
     <div className="flex flex-col gap-2">
@@ -139,11 +212,12 @@ const LiveSection: React.FC = () => {
           <VotingCard
             card={currentCard}
             canVote={currentData.canVote}
-            dragOffset={state.dragOffset}
-            isDragging={state.isDragging}
-            onDragStart={handleDragStart}
-            onDragMove={handleDragMove}
-            onDragEnd={handleDragEnd}
+            dragOffsetX={swipe.x}
+            dragOffsetY={swipe.y}
+            isDragging={cardDragging}
+            onDragStart={handleCardDragStart}
+            onDragMove={handleCardDragMove}
+            onDragEnd={handleCardDragEnd}
             onVote={handleVote}
           />
 
@@ -219,27 +293,40 @@ const LiveSection: React.FC = () => {
                 <div className="text-[10px] text-gray-400 mb-2">
                   {ergebnis.datum} · {ergebnis.votes.toLocaleString('de-DE')} Stimmen
                 </div>
-                <div className="flex h-6 rounded-full overflow-hidden">
-                  <div
-                    className="bg-green-500 flex items-center justify-center text-white text-[10px] font-bold"
-                    style={{ width: `${ergebnis.yes}%` }}
-                  >
-                    {ergebnis.yes}%
-                  </div>
-                  <div
-                    className="bg-red-500 flex items-center justify-center text-white text-[10px] font-bold"
-                    style={{ width: `${ergebnis.no}%` }}
-                  >
-                    {ergebnis.no}%
-                  </div>
-                  {ergebnis.abstain > 0 && (
+                <div
+                  className="rounded-full p-[1.5px]"
+                  style={{ background: 'linear-gradient(90deg, #dc2626 0%, #94a3b8 50%, #16a34a 100%)' }}
+                >
+                  <div className="flex h-6 w-full min-w-0 overflow-hidden rounded-full" style={{ background: 'rgba(15, 23, 42, 0.04)' }}>
                     <div
-                      className="bg-gray-300 flex items-center justify-center text-gray-600 text-[10px]"
-                      style={{ width: `${ergebnis.abstain}%` }}
+                      className="flex min-w-0 items-center justify-center text-[10px] font-bold text-white"
+                      style={{
+                        width: `${ergebnis.no}%`,
+                        background: 'linear-gradient(180deg, #f87171 0%, #dc2626 45%, #b91c1c 100%)',
+                      }}
                     >
-                      {ergebnis.abstain}%
+                      {ergebnis.no > 0 ? `${ergebnis.no}%` : ''}
                     </div>
-                  )}
+                    <div
+                      className="flex min-w-0 items-center justify-center text-[10px] font-semibold"
+                      style={{
+                        width: `${ergebnis.abstain}%`,
+                        background: 'linear-gradient(180deg, #e2e8f0 0%, #94a3b8 50%, #64748b 100%)',
+                        color: 'rgba(15, 23, 42, 0.9)',
+                      }}
+                    >
+                      {ergebnis.abstain > 0 ? `${ergebnis.abstain}%` : ''}
+                    </div>
+                    <div
+                      className="flex min-w-0 items-center justify-center text-[10px] font-bold text-white"
+                      style={{
+                        width: `${ergebnis.yes}%`,
+                        background: 'linear-gradient(180deg, #4ade80 0%, #22c55e 45%, #15803d 100%)',
+                      }}
+                    >
+                      {ergebnis.yes > 0 ? `${ergebnis.yes}%` : ''}
+                    </div>
+                  </div>
                 </div>
               </div>
             ))
@@ -265,6 +352,13 @@ const LiveSection: React.FC = () => {
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-6"
           style={{ background: 'rgba(0,20,60,0.55)', backdropFilter: 'blur(6px)' }}
+          onTouchStart={(e) => {
+            overlayTouchYRef.current = e.touches[0].clientY;
+          }}
+          onTouchEnd={(e) => {
+            const y = e.changedTouches[0].clientY;
+            if (y - overlayTouchYRef.current > 48) performUndo();
+          }}
         >
           <div
             className="max-w-xs w-full text-center rounded-3xl p-7"
@@ -307,6 +401,16 @@ const LiveSection: React.FC = () => {
             <p className="mt-3 text-[10px] text-white/70">
               Punkte zeigen nur Aktivitaet in der Demo, keine rechtliche Wirkung.
             </p>
+            <button
+              type="button"
+              className="mt-4 w-full rounded-xl border border-white/25 py-2.5 text-xs font-semibold text-white/90 hover:bg-white/10"
+              onClick={(e) => {
+                e.stopPropagation();
+                performUndo();
+              }}
+            >
+              Rückgängig (löscht diese Demo-Abstimmung)
+            </button>
           </div>
         </div>
       )}

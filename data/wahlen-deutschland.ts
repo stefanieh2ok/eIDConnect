@@ -1255,19 +1255,42 @@ const KT_SAARPFALZ: Wahl = {
   wahlkreis: 'Saarpfalz-Kreis',
   level: 'kreis',
   location: 'saarpfalz',
+  // Aktueller Landrat: Frank John (SPD) seit 02.06.2025 (Nachfolger von Theophil Gallo).
+  // Gewählt in der Stichwahl am 23.06.2024 mit 60,63 % gegen Klaus-Ludwig Fess (CDU, 39,37 %).
+  // Quellen:
+  //  - Wikipedia: https://de.wikipedia.org/wiki/Frank_John
+  //  - Saarbrücker Zeitung (24.06.2024): „Der Saarpfalz-Kreis wählte den künftigen Landrat mit klarem Ergebnis"
   kandidaten: [
+    {
+      name: 'Frank John',
+      partei: 'SPD',
+      emoji: '👨‍💼',
+      alter: 53,
+      beruf: 'Landrat Saarpfalz-Kreis',
+      positionen: ['Regionalentwicklung', 'Tourismus Biosphäre Bliesgau', 'Bildung', 'Soziale Infrastruktur'],
+      claraInfo:
+        'Landrat des Saarpfalz-Kreises seit 02.06.2025 (Nachfolger von Theophil Gallo) [1]. Gewann die Landrats-Stichwahl am 23.06.2024 mit 60,63 % gegen Klaus-Ludwig Fess (CDU, 39,37 %) [2]. Zuvor von 2009 bis 2024 Bürgermeister der Gemeinde Kirkel [1].',
+      quellen: [
+        '[1] Wikipedia: Frank John',
+        '[2] Saarbrücker Zeitung (24.06.2024) – „Der Saarpfalz-Kreis wählte den künftigen Landrat mit klarem Ergebnis"',
+      ],
+      wikipediaUrl: 'https://de.wikipedia.org/wiki/Frank_John',
+      socialMedia: { website: 'https://www.saarpfalz-kreis.de' },
+      standDatum: '2026-04-20',
+    },
     {
       name: 'Theophil Gallo',
       partei: 'SPD',
       emoji: '👨‍💼',
-      alter: 63,
-      beruf: 'Landrat',
+      alter: 65,
+      beruf: 'Ehem. Landrat Saarpfalz-Kreis (2012–2025)',
       positionen: ['Soziale Infrastruktur', 'Wirtschaft', 'Tourismus', 'Bildung'],
-      claraInfo: 'Landrat des Saarpfalz-Kreises seit 2012 [1]. Engagiert im Bereich Tourismus und Biosphäre Bliesgau.',
-      quellen: ['[1] saarpfalz-kreis.de'],
+      claraInfo:
+        'Landrat des Saarpfalz-Kreises von 2012 bis 02.06.2025. Nachfolger im Amt: Frank John (SPD) [1].',
+      quellen: ['[1] Wikipedia: Frank John / saarpfalz-kreis.de'],
       wikipediaUrl: 'https://de.wikipedia.org/wiki/Theophil_Gallo',
       socialMedia: { website: 'https://www.saarpfalz-kreis.de' },
-      standDatum: '2026-01-24',
+      standDatum: '2026-04-20',
     },
   ],
   parteien: [
@@ -1277,7 +1300,9 @@ const KT_SAARPFALZ: Wahl = {
   ],
 };
 
-// Kommune (Demo-Ort): Kirkel – Kommunalwahltermin (Ergebniszahlen nicht in dieser Demo hinterlegt)
+// Kommune (Demo-Ort): Kirkel – Gemeinderatswahl 09.06.2024
+// Quelle: Landeswahlleiter Saarland, amtliches Endergebnis vom 03.07.2024
+// https://wahlergebnis.saarland.de/GRW/ergebnisse_gemeinde_45115.html
 const KW_KIRKEL_2024: Wahl = {
   id: 'kw-kirkel-2024',
   name: 'Gemeinderatswahl Kirkel 2024',
@@ -1286,12 +1311,102 @@ const KW_KIRKEL_2024: Wahl = {
   level: 'kommune',
   location: 'kirkel',
   kandidaten: [],
-  parteien: [],
-  // Keine Prozent-/Sitzangaben ohne hinterlegte verifizierte Quelle in der Demo.
+  parteien: [
+    { name: 'CDU', programm: 'Wirtschaftsstandort, Infrastruktur, Sicherheit.' },
+    { name: 'SPD', programm: 'Soziale Infrastruktur, Bildung, bezahlbares Wohnen.' },
+    { name: 'FDP', programm: 'Wirtschaftsfreundliche Politik, Bürgerbeteiligung.' },
+    { name: 'GRÜNE', programm: 'Klimaschutz, Biosphäre Bliesgau, Mobilitätswende.' },
+    { name: 'DIE LINKE', programm: 'Soziale Gerechtigkeit, Kommunales Wohnen.' },
+  ],
   ergebnis: {
     status: 'abgeschlossen',
-    wahlbeteiligung: 0,
-    parteien: [],
+    wahlbeteiligung: 76.7,
+    parteien: [
+      { partei: 'CDU', prozent: 37.9, sitze: 13 },
+      { partei: 'SPD', prozent: 37.7, sitze: 13 },
+      { partei: 'FDP', prozent: 10.0, sitze: 3 },
+      { partei: 'GRÜNE', prozent: 9.6, sitze: 3 },
+      { partei: 'DIE LINKE', prozent: 4.7, sitze: 1 },
+    ],
+  },
+};
+
+// Kommune: Kirkel – Bürgermeisterwahl 09.06.2024 (ohne Stichwahl)
+// Quellen:
+//  - Saarländischer Rundfunk (SR.de): https://www.sr.de/sr/home/nachrichten/dossiers/wahlen/kommunal_europawahlen_2024/kommunalwahlen_2024_saarland_buergermeisterwahl_kirkel_100.html
+//  - Saarbrücker Zeitung: https://www.saarbruecker-zeitung.de/saarland/saar-pfalz-kreis/kirkel/kirkel-waehlt-einen-neuen-buergermeister_aid-114207451
+//  - Gemeinde Kirkel: https://www.kirkel.de/rathaus-service/buergermeister
+const BW_KIRKEL_2024: Wahl = {
+  id: 'bw-kirkel-2024',
+  name: 'Bürgermeisterwahl Kirkel 2024',
+  datum: '09.06.2024',
+  wahlkreis: 'Kirkel',
+  level: 'kommune',
+  location: 'kirkel',
+  kandidaten: [
+    {
+      name: 'Dominik Hochlenert',
+      partei: 'CDU',
+      emoji: '👨‍💼',
+      alter: 42,
+      beruf: 'Bürgermeister, Verwaltungsfachwirt',
+      positionen: ['Kita-Ausbau', 'Sanierung Kirkeler Halle', 'Ortskern-Belebung', 'Digitale Verwaltung'],
+      claraInfo:
+        'Seit 01.10.2024 Bürgermeister der Gemeinde Kirkel [1]. CDU. Gewann die Bürgermeisterwahl am 09.06.2024 mit 58,39 % bereits im ersten Wahlgang gegen Dennis Jahnke (SPD) und Karsten Betz (FDP) [2][3]. Verwaltungsfachwirt mit über 20 Jahren Dienst im Kirkeler Rathaus [4].',
+      quellen: [
+        '[1] kirkel.de – Bürgermeister',
+        '[2] SR.de – Bürgermeisterwahl Kirkel 2024',
+        '[3] Saarbrücker Zeitung (09.06.2024) – „Kirkel wählt einen neuen Bürgermeister"',
+        '[4] Saarbrücker Zeitung (12.03.2025) – Bürgermeister-Steckbrief Dominik Hochlenert',
+      ],
+      socialMedia: { website: 'https://www.kirkel.de' },
+      standDatum: '2026-04-20',
+    },
+    {
+      name: 'Dennis Jahnke',
+      partei: 'SPD',
+      emoji: '👨‍💼',
+      alter: 29,
+      beruf: 'SPD-Fraktionssprecher Gemeinderat Kirkel',
+      positionen: ['Bildung', 'Vereinsleben', 'Bezahlbares Wohnen', 'Kommunale Finanzen'],
+      claraInfo:
+        'SPD-Kandidat bei der Bürgermeisterwahl Kirkel 2024 (31,68 %) [1][2]. Seit 2019 Fraktionssprecher der SPD im Gemeinderat Kirkel [2].',
+      quellen: [
+        '[1] SR.de – Bürgermeisterwahl Kirkel 2024',
+        '[2] Saarbrücker Zeitung (28.05.2024) – Kandidatenvorstellung Dennis Jahnke',
+      ],
+      standDatum: '2026-04-20',
+    },
+    {
+      name: 'Carsten Betz',
+      partei: 'FDP',
+      emoji: '👨‍💼',
+      alter: 0,
+      beruf: 'FDP-Kandidat Bürgermeisterwahl Kirkel 2024',
+      positionen: ['Wirtschaft', 'Bürgerbeteiligung', 'Verwaltungsmodernisierung'],
+      claraInfo:
+        'FDP-Kandidat bei der Bürgermeisterwahl Kirkel 2024 (9,93 %) [1][2].',
+      quellen: [
+        '[1] SR.de – Bürgermeisterwahl Kirkel 2024',
+        '[2] Saarbrücker Zeitung (09.06.2024) – „Kirkel wählt einen neuen Bürgermeister"',
+      ],
+      standDatum: '2026-04-20',
+    },
+  ],
+  parteien: [
+    { name: 'CDU', programm: 'Kandidat Dominik Hochlenert – Verwaltungsmodernisierung, Infrastruktur, Familien.' },
+    { name: 'SPD', programm: 'Kandidat Dennis Jahnke – Bildung, Vereinsleben, bezahlbares Wohnen.' },
+    { name: 'FDP', programm: 'Kandidat Carsten Betz – Wirtschaft, Bürgerbeteiligung.' },
+  ],
+  ergebnis: {
+    status: 'abgeschlossen',
+    wahlbeteiligung: 76.7,
+    parteien: [
+      { partei: 'CDU (Hochlenert)', prozent: 58.39 },
+      { partei: 'SPD (Jahnke)', prozent: 31.68 },
+      { partei: 'FDP (Betz)', prozent: 9.93 },
+    ],
+    koalition: 'Dominik Hochlenert (CDU) im Amt seit 01.10.2024',
   },
 };
 
@@ -1802,6 +1917,7 @@ export const WAHLEN_DEUTSCHLAND: Wahl[] = [
   KT_BERGSTRASSE,
   KT_SAARPFALZ,
   KW_KIRKEL_2024,
+  BW_KIRKEL_2024,
   KT_RV_SAARBRUECKEN,
   KT_MERZIG_WADERN,
   KT_NEUNKIRCHEN_SL,

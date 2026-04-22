@@ -4,6 +4,7 @@ import ClaraVoiceInterface from './ClaraVoiceInterface';
 import { ClaraAI } from '@/services/claraAI';
 import { ensureStructuredClaraResponse, parseClaraStructuredResponse } from '@/lib/clara-response-format';
 import type { AddressMode } from '@/lib/clara-system-prompt';
+import { claraChatWelcomeContent } from '@/data/claraChatWelcome';
 
 const LAVENDER = {
   bg: 'linear-gradient(180deg, #F5F0FF 0%, #EDE9FE 50%, #F3E8FF 100%)',
@@ -74,12 +75,10 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
     {
       id: '1',
       type: 'clara',
-      content: isFormal
-        ? 'Hallo! Ich bin Clara, Ihre digitale Assistentin für demokratische Orientierung in eID Beteiligung. Ich informiere neutral und auf Basis offizieller Quellen – ohne Beratung oder Wahlempfehlung. Sie können mich z. B. zu Wahlprogrammen, Kandidaten, Beteiligungsverfahren oder dem Wahlsystem fragen.'
-        : 'Hallo! Ich bin Clara, deine digitale Assistentin für demokratische Orientierung in eID Beteiligung. Ich informiere neutral und auf Basis offizieller Quellen – ohne Beratung oder Wahlempfehlung. Du kannst mich z. B. zu Wahlprogrammen, Kandidaten, Beteiligungsverfahren oder dem Wahlsystem fragen.',
+      content: claraChatWelcomeContent(isFormal),
       timestamp: new Date(),
-      sources: ['eID Beteiligung / Clara (KI-gestützt, EU AI Act)']
-    }
+      sources: ['eID Beteiligung / Clara (KI-gestützt, EU AI Act)'],
+    },
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -420,8 +419,7 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
       {/* Wichtig: Neutral, keine Beratung, nur Quellen */}
       <div className="px-3 pb-3 flex-shrink-0">
         <div className="rounded-lg p-2 text-[10px] leading-snug" style={{ background: LAVENDER.bubble, color: LAVENDER.text, border: `1px solid ${LAVENDER.border}` }}>
-          <strong>Neutral:</strong> Keine Wahlempfehlung. {t('Bitte prüfe offizielle Quellen.', 'Bitte prüfen Sie offizielle Quellen.')}{' '}
-          {t('Eingaben werden nur für diese Funktion verarbeitet.', 'Eingaben werden nur für diese Funktion verarbeitet.')}
+          Eingaben werden nur für diese Funktion verarbeitet.
         </div>
       </div>
 

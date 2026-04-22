@@ -21,8 +21,8 @@ const VotingControls: React.FC<VotingControlsProps> = ({ canVote, onVote }) => {
         boxShadow: '0 2px 12px rgba(0,51,102,0.08)',
       }}
     >
-      <p className="mb-3 text-center text-[10px] font-semibold" style={{ color: 'var(--gov-muted)' }}>
-        Tippen zum Abstimmen (oder Karte wischen)
+      <p className="mb-3 text-center text-[10px] font-semibold leading-snug" style={{ color: 'var(--gov-muted)' }}>
+        Tippen oder Karte wischen: rechts Dafür · links Dagegen · hoch Enthalten · runter Rückgängig
       </p>
       <div className="flex items-end justify-center gap-4">
         <button

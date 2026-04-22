@@ -168,6 +168,8 @@ type AppAction =
   | { type: 'SET_VOTE_RESULT'; payload: VoteResult | null }
   | { type: 'HANDLE_VOTE'; payload: { voteType: VoteType; card: any; points: number } }
   | { type: 'RESET_DRAG' }
+  /** Hebt die letzte Demo-Abstimmung für Punkte/Zähler rückgängig (Karte zurück / vor Advance). */
+  | { type: 'DEMO_REVERT_VOTE'; payload: { points: number } }
   | { type: 'RECORD_ELECTION_VOTE'; payload: string }
   | { type: 'HYDRATE_VOTED_ELECTIONS'; payload: string[] }
   | { type: 'SET_CONSENT_CLARA_PERSONALIZATION'; payload: boolean }
@@ -313,6 +315,23 @@ function appReducer(state: AppState, action: AppAction): AppState {
     }
     case 'RESET_DRAG':
       return { ...state, dragOffset: 0, isDragging: false };
+    case 'DEMO_REVERT_VOTE': {
+      if (!state.canVote) {
+        return { ...state, voteResult: null };
+      }
+      const reverted = action.payload.points || 0;
+      const scopeKey = state.activeAdministrativeScope;
+      return {
+        ...state,
+        voteResult: null,
+        participationPoints: Math.max(0, state.participationPoints - reverted),
+        participationVoteCount: Math.max(0, state.participationVoteCount - 1),
+        participationByLevel: {
+          ...state.participationByLevel,
+          [scopeKey]: Math.max(0, (state.participationByLevel[scopeKey] || 0) - 1),
+        },
+      };
+    }
     case 'RECORD_ELECTION_VOTE': {
       if (!state.canVote) return state;
       const id = action.payload;

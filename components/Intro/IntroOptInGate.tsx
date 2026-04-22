@@ -2,6 +2,9 @@
 
 import React, { useEffect, useRef } from 'react';
 import {
+  INTRO_CLARA_WELCOME_LINES_DU,
+  INTRO_CLARA_WELCOME_LINES_SIE,
+  introClaraWelcomePlain,
   INTRO_OPT_IN_HINT_DU,
   INTRO_OPT_IN_HINT_SIE,
   INTRO_OPT_IN_LEAD_DU,
@@ -15,6 +18,7 @@ import {
   INTRO_OPT_IN_TOPICS,
 } from '@/data/introOverlayMarketing';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
+import { useOptionalIntroOverlay } from '@/components/Intro/IntroOverlay';
 
 type Props = {
   du: boolean;
@@ -52,6 +56,17 @@ export default function IntroOptInGate({ du, onStart, onSkip }: Props) {
   const lead = du ? INTRO_OPT_IN_LEAD_DU : INTRO_OPT_IN_LEAD_SIE;
   const skipLabel = du ? INTRO_OPT_IN_SKIP_LABEL_DU : INTRO_OPT_IN_SKIP_LABEL_SIE;
   const hint = du ? INTRO_OPT_IN_HINT_DU : INTRO_OPT_IN_HINT_SIE;
+
+  const intro = useOptionalIntroOverlay();
+  useEffect(() => {
+    if (!intro) return;
+    if (!intro.readAloud) {
+      intro.stopIntroSpeech();
+      return;
+    }
+    intro.speakIntro(`${introClaraWelcomePlain(du)} ${title} ${lead} ${hint}`);
+    return () => intro.stopIntroSpeech();
+  }, [intro, intro?.readAloud, title, lead, hint]);
 
   return (
     <div
@@ -91,6 +106,20 @@ export default function IntroOptInGate({ du, onStart, onSkip }: Props) {
         />
 
         <div className="px-5 pt-4 pb-3 sm:px-6">
+          <div
+            className="mb-4 rounded-2xl border border-violet-400/30 bg-gradient-to-b from-violet-950/50 to-slate-900/40 px-3.5 py-3 sm:px-4"
+            aria-label="Clara: Begrüßung"
+          >
+            <p className="text-[10px] font-bold uppercase tracking-wider text-violet-200/90">Clara</p>
+            <div className="mt-2 space-y-1.5 text-[12px] leading-relaxed text-white/90 sm:text-[12.5px]">
+              {(du ? INTRO_CLARA_WELCOME_LINES_DU : INTRO_CLARA_WELCOME_LINES_SIE).map((line) => (
+                <p key={line} className="[text-wrap:pretty]">
+                  {line}
+                </p>
+              ))}
+            </div>
+          </div>
+
           <h2 className="text-base font-black leading-snug text-white sm:text-lg">{title}</h2>
           <p className="mt-1.5 text-[12px] leading-snug text-white/75 sm:text-[12.5px]">{lead}</p>
 
