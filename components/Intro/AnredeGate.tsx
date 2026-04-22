@@ -132,7 +132,7 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
 
       <div
         ref={dialogRef}
-        className="intro-dark-body relative w-full max-w-[360px] overflow-y-auto overscroll-contain rounded-3xl sm:max-w-[400px] anredegate-sheet"
+        className="intro-dark-body hide-scrollbar relative w-full max-w-[360px] overflow-y-auto overscroll-contain rounded-3xl sm:max-w-[400px] anredegate-sheet"
         style={{
           maxHeight: 'calc(100dvh - 1.5rem)',
           boxShadow:

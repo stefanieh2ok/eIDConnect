@@ -909,26 +909,20 @@ body {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
 }
 
-/*
- * Einheitlicher Meta-Streifen für alle 8 Einführungs-Screens
- * (AnredeGate = 1/8, LoginScreen = 2/8, Walkthrough = 3–8/8).
- * Dunkel-navy Hintergrund, weißer Text: gleicher Look oben,
- * egal ob der darunterliegende Screen hell (AnredeGate/LoginScreen)
- * oder dunkel (Walkthrough) ist.
- */
-/* Heller Meta-Streifen oberhalb aller Intro-Screens. Bewusst hell, waehrend
- * der Body darunter dunkel ist - dadurch entsteht ein klarer visueller
- * Abschluss zwischen Einfuehrungs-Marginalien (Pill, Schritt, Framing) und
- * dem eigentlichen Intro-Inhalt. */
+/* Kompakte Leiste am oberen Rand des Intro-Dialogs: kein weisses Feld mehr,
+ * optisch ein Teil von .intro-dark-body (kein Kontrast-„Header-Klotz", kein
+ * Platz für ueberlappende Framing-Texte). */
 .intro-meta-strip {
-  background: #FFFFFF;
-  color: #0F172A;
-  padding: 0.55rem 0.9rem;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.10);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.92);
+  padding: 0.35rem 0.6rem 0.45rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  max-width: 100%;
+  overflow-x: hidden;
 }
 @media (min-width: 640px) {
   .intro-meta-strip {
-    padding: 0.6rem 1.1rem;
+    padding: 0.4rem 0.75rem 0.5rem;
   }
 }
 
@@ -945,6 +939,8 @@ body {
     rgba(15, 23, 42, 0.99) 100%
   );
   color: rgba(255, 255, 255, 0.92);
+  /* Eine durchgängige Sans-Schrift (vgl. PersoApp) — erbt in der Regel Inter vom body. */
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* Hide scrollbar but keep scroll (Footer-Nav) */

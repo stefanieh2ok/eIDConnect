@@ -94,34 +94,36 @@ export const IntroOverlay = IntroOverlayRoot;
 export default IntroOverlayRoot;
 
 /** Optional: nur sichtbar, wenn <IntroOverlay> den Baum umschließt. */
-export function IntroReadAloudToggle() {
+type ReadAloudToggleProps = { /** Auf dunklem Intro-Hintergrund (z. B. oberer Balken) */ theme?: 'light' | 'dark' };
+
+export function IntroReadAloudToggle({ theme = 'light' }: ReadAloudToggleProps = {}) {
   const ctx = useOptionalIntroOverlay();
   if (!ctx) return null;
 
   const { readAloud, setReadAloud } = ctx;
+  const onDark = theme === 'dark';
 
   return (
-    <div className="mt-2 flex items-center justify-end border-t border-[#0F172A]/10 pt-2">
-      <button
-        type="button"
-        role="switch"
-        aria-checked={readAloud}
-        aria-label={readAloud ? 'Vorlesen ist aktiv' : 'Vorlesen ist aus'}
-        onClick={() => setReadAloud(!readAloud)}
-        className="inline-flex max-w-full items-center gap-2 rounded-lg border border-[#0F172A]/12 bg-white/90 px-2.5 py-1.5 text-left text-[10px] font-semibold text-[#1E293B] shadow-sm transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#003366]"
-      >
-        {readAloud ? (
-          <Volume2 className="h-3.5 w-3.5 shrink-0 text-[#003366]" aria-hidden />
-        ) : (
-          <VolumeX className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden />
-        )}
-        <span className="leading-snug">
-          Vorlesen aktivieren
-          <span className="mt-0.5 block text-[9px] font-normal text-[#64748B]">
-            {readAloud ? 'Clara liest die Schritte mit' : 'Aus: nur Anzeige'}
-          </span>
-        </span>
-      </button>
-    </div>
+    <button
+      type="button"
+      role="switch"
+      aria-checked={readAloud}
+      aria-label={readAloud ? 'Vorlesen deaktivieren' : 'Vorlesen aktivieren'}
+      onClick={() => setReadAloud(!readAloud)}
+      className={
+        onDark
+          ? 'inline-flex min-w-0 max-w-[10.5rem] items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2 py-1 text-left text-[10px] font-semibold text-white/95 shadow-sm backdrop-blur-sm transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/50 sm:max-w-none sm:text-[11px]'
+          : 'inline-flex min-w-0 max-w-[10.5rem] items-center gap-1.5 rounded-lg border border-[#0F172A]/12 bg-white/95 px-2 py-1 text-left text-[10px] font-semibold text-[#1E293B] shadow-sm transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#003366] sm:max-w-none sm:text-[11px]'
+      }
+    >
+      {readAloud ? (
+        <Volume2 className={`h-3.5 w-3.5 shrink-0 ${onDark ? 'text-sky-200' : 'text-[#003366]'}`} aria-hidden />
+      ) : (
+        <VolumeX className={`h-3.5 w-3.5 shrink-0 ${onDark ? 'text-white/50' : 'text-slate-400'}`} aria-hidden />
+      )}
+      <span className="min-w-0 leading-tight [overflow-wrap:anywhere]">
+        {readAloud ? 'Vorlesen deaktivieren' : 'Vorlesen aktivieren'}
+      </span>
+    </button>
   );
 }

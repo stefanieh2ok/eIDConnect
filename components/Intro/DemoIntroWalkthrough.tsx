@@ -108,7 +108,7 @@ function IntroScreenshotOrPreview({
 function BallotScroll({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="hide-scrollbar max-h-[min(56vh,24rem)] overflow-y-auto overflow-x-hidden rounded-xl border border-white/30 bg-white shadow-md"
+      className="hide-scrollbar max-h-[min(36vh,15rem)] overflow-y-auto overflow-x-hidden rounded-xl border border-white/30 bg-white shadow-md"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
       <div className="p-2 text-gray-900">{children}</div>
@@ -353,10 +353,12 @@ export default function DemoIntroWalkthrough({
   // Container scrollt bereits.
   const previewMaxHeight =
     step.id === 'praemien'
-      ? 'min(70vh, 560px)'
-      : step.id === 'abstimmen' || step.id === 'politikbarometer'
-        ? undefined
-        : 'min(62vh, 500px)';
+      ? 'min(52vh, 440px)'
+      : step.id === 'abstimmen'
+        ? 'min(46vh, 360px)'
+        : step.id === 'politikbarometer'
+          ? 'min(48vh, 400px)'
+          : 'min(44vh, 380px)';
 
   const framingLine = introOverlayFramingLine(step.id, du);
 
@@ -457,7 +459,7 @@ export default function DemoIntroWalkthrough({
 
   return (
     <div
-      className="relative z-10 flex min-h-0 h-full w-full max-w-[100%] min-w-0 flex-col overflow-hidden"
+      className="relative z-10 flex min-h-0 h-full w-full max-w-[100%] min-w-0 flex-col overflow-hidden font-sans antialiased [font-synthesis:none]"
       style={{
         background: 'linear-gradient(165deg, rgba(15,23,42,0.97) 0%, rgba(30,41,59,0.94) 45%, rgba(15,23,42,0.98) 100%)',
         backdropFilter: 'blur(12px)',
@@ -478,15 +480,7 @@ export default function DemoIntroWalkthrough({
         {liveAnnouncement}
       </div>
 
-      {/* --- META-Streifen: identischer Dark-Header auf allen 8 Screens ---
-          Inhalt (Pill, globale Caps, App-Name, Schritt X/8 + Progress-Dots,
-          optionale „META · …"-Zeile) kommt aus <IntroMetaStrip>. */}
-      <IntroMetaStrip
-        stepNumber={globalStepNumber}
-        onSkip={onFinish}
-        onClose={onClose}
-        metaFramingLine={framingLine}
-      />
+      <IntroMetaStrip stepNumber={globalStepNumber} onSkip={onFinish} onClose={onClose} />
 
       {/* Headline des Walkthroughs bleibt, ist aber deutlich vom Meta-Rahmen getrennt. */}
       <div className="flex-shrink-0 px-3 pt-2.5 pb-1 sm:px-4">
@@ -496,7 +490,7 @@ export default function DemoIntroWalkthrough({
       </div>
 
       {/* Inhalt: Abschnitt, Fließtext, Vorschau */}
-      <div className="hide-scrollbar min-h-0 flex-1 touch-pan-y overflow-y-auto overflow-x-hidden overscroll-contain px-3 pb-3 sm:px-4">
+      <div className="hide-scrollbar min-h-0 flex-1 touch-pan-y overflow-y-auto overflow-x-hidden overscroll-contain px-3 pb-2 sm:px-4">
         <div className={isAbstimmenStep ? 'space-y-2' : 'space-y-3'}>
           <p className="text-[12px] font-bold leading-snug text-white/95">{step.title}</p>
           <div className={isAbstimmenStep ? 'space-y-1.5' : 'space-y-2.5'}>
@@ -515,12 +509,10 @@ export default function DemoIntroWalkthrough({
           </div>
         </div>
 
-        <div className={`${isAbstimmenStep ? 'mt-2.5' : 'mt-4'} rounded-xl border border-neutral-200/95 bg-white p-2.5 shadow-sm`}>
+        <div className={`${isAbstimmenStep ? 'mt-2' : 'mt-3'} rounded-xl border border-neutral-200/95 bg-white p-2 shadow-sm`}>
           <div
-            className={`hide-scrollbar flex-shrink-0 overflow-x-hidden overscroll-contain ${
-              previewMaxHeight ? 'overflow-y-auto' : 'overflow-y-visible'
-            }`}
-            style={previewMaxHeight ? { maxHeight: previewMaxHeight } : undefined}
+            className="hide-scrollbar flex-shrink-0 overflow-x-hidden overscroll-contain overflow-y-auto"
+            style={{ maxHeight: previewMaxHeight }}
           >
             <div key={step.id}>{preview}</div>
           </div>
