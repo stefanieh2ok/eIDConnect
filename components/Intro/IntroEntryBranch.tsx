@@ -11,7 +11,7 @@ import {
   INTRO_SPOKEN_ENTRY_SIE,
 } from '@/data/introOverlayMarketing';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
-import { useOptionalIntroOverlay } from '@/components/Intro/IntroOverlay';
+import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 
 type Props = {
@@ -33,19 +33,20 @@ export function IntroEntryBranch({
   onDirectToApp,
   position = 'fixed',
 }: Props) {
-  const intro = useOptionalIntroOverlay();
+  /** Stabile API — nicht `useOptionalIntroOverlay()` (merged Objekt wechselt bei jedem TTS-Tick → Effect-Sturm). */
+  const speakApi = useIntroSpeakApi();
 
   useEffect(() => {
-    if (!open || !intro || !intro.readAloud) return;
+    if (!open || !speakApi || !speakApi.readAloud) return;
     const parts = du ? [...INTRO_SPOKEN_ENTRY_DU] : [...INTRO_SPOKEN_ENTRY_SIE];
     const t = window.setTimeout(() => {
-      intro.speakIntroParts(parts, 'intro-entry-1');
+      speakApi.speakIntroParts(parts, 'intro-entry-1');
     }, 200);
     return () => {
       clearTimeout(t);
-      intro?.stopIntroSpeech();
+      speakApi.stopIntroSpeech();
     };
-  }, [open, intro, intro?.readAloud, du]);
+  }, [open, speakApi, speakApi?.readAloud, du]);
 
   if (!open) return null;
 

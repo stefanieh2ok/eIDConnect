@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import Script from 'next/script';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
 import './globals.css';
 
@@ -68,13 +67,14 @@ export default function RootLayout({
             }
           `
         }} />
+        {/* Kein next/script beforeInteractive im App Router (nicht supported wie in pages/_document) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(typeof history!=='undefined'&&'scrollRestoration'in history)history.scrollRestoration='manual';}catch(e){}`,
+          }}
+        />
       </head>
-      <body className={inter.className}>
-        <Script id="history-scroll-restoration-manual" strategy="beforeInteractive">
-          {`try{if(typeof history!=='undefined'&&'scrollRestoration'in history)history.scrollRestoration='manual';}catch(e){}`}
-        </Script>
-        {children}
-      </body>
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }

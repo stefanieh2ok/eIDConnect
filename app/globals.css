@@ -929,7 +929,7 @@ body {
 
 /** Pre-Login-Gesamtshell: unteren Bereich im Gerät freihalten (Clara-Pille) */
 .clara-prelogin-shell-pad {
-  padding-bottom: min(11rem, 30svh);
+  padding-bottom: min(11rem, 30vh);
 }
 
 /* Politikbarometer: Schieberegler klar als aktiv lesbar (GovTech-Navy / kräftiges Blau). */
