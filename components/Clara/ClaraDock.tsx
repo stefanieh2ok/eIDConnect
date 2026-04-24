@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { MessageCircle, Mic, X } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { VOTING_DATA } from '@/data/constants';
@@ -35,10 +34,10 @@ type ClaraDockProps = {
    */
   toolbarZClassName?: string;
   /**
-   * Post-Login-Produkt-Walkthrough: Chat ohne zweites Header-/Voice-Band (nur globale Pille).
+   * Post-Login-Produkt-Walkthrough: kompaktes Mic oben rechts (wie Pre-Login); Chat per Event / Voice-UI.
    */
   walkthroughActive?: boolean;
-  /** Aktueller Walkthrough-Schritt (Kontext für Chat + reservierte Pille). */
+  /** Aktueller Walkthrough-Schritt (Kontext für Chat + Voice). */
   walkthroughStep?: { id: string; label: string } | null;
   /**
    * Zusatzabstand nach oben, z. B. über der Walkthrough-Fußleiste (Zurück/Weiter),
@@ -77,11 +76,9 @@ export default function ClaraDock({
   const [voiceOpeningSeed, setVoiceOpeningSeed] = useState<string | null>(null);
   const [externalPrompt, setExternalPrompt] = useState<string | null>(null);
   const [autoSend, setAutoSend] = useState(false);
-  const [walkthroughSlotEl, setWalkthroughSlotEl] = useState<HTMLElement | null>(null);
 
-  /** Vor Login (Anrede, Einstieg, eID): nur kompaktes Mic oben rechts — volle Pille bleibt in der App. */
-  const showPreloginMicOnly =
-    !walkthroughActive && preLoginVoicePhase !== null;
+  /** Pre-Login oder Walkthrough: nur Mic oben rechts — volle Pille nur in der normalen App. */
+  const showCompactMicOnly = walkthroughActive || preLoginVoicePhase !== null;
 
   const claraAiForVoice = useMemo(
     () =>
@@ -161,20 +158,6 @@ export default function ClaraDock({
       });
     };
   }, [walkthroughActive, chatOpen, voiceOpen]);
-
-  useLayoutEffect(() => {
-    if (!walkthroughActive) {
-      setWalkthroughSlotEl(null);
-      return;
-    }
-    const pick = () => {
-      const el = document.getElementById('walkthrough-clara-slot');
-      setWalkthroughSlotEl((prev) => (prev === el ? prev : el));
-    };
-    pick();
-    const raf = requestAnimationFrame(pick);
-    return () => cancelAnimationFrame(raf);
-  }, [walkthroughActive, walkthroughStep?.id]);
 
   const currentCard = useMemo(() => {
     if (state.activeSection !== 'live') return null;
@@ -266,22 +249,12 @@ export default function ClaraDock({
     </div>
   );
 
-  const dockedWalkthrough = Boolean(walkthroughActive && walkthroughSlotEl);
+  const compactMicPositionClass = overlayPosition === 'fixed' ? 'fixed' : 'absolute';
 
-  const pillInWalkthroughSlot =
-    dockedWalkthrough && walkthroughSlotEl
-      ? createPortal(
-          <div className="flex w-full justify-center py-1">{pillToolbar}</div>,
-          walkthroughSlotEl,
-        )
-      : null;
-
-  const preloginMicPositionClass = overlayPosition === 'fixed' ? 'fixed' : 'absolute';
-
-  const preloginMicOnlyControl =
-    showPreloginMicOnly && !voiceOpen && !chatOpen ? (
+  const compactMicOnlyControl =
+    showCompactMicOnly && !voiceOpen && !chatOpen ? (
       <div
-        className={`pointer-events-auto ${preloginMicPositionClass} z-[625]`}
+        className={`pointer-events-auto ${compactMicPositionClass} z-[625]`}
         style={{
           top: 'max(0.5rem, calc(env(safe-area-inset-top, 0px) + 0.35rem))',
           right: 'max(0.5rem, env(safe-area-inset-right, 0px))',
@@ -303,9 +276,8 @@ export default function ClaraDock({
       </div>
     ) : null;
 
-  /** Eingeloggte App: volle Pille unten; Walkthrough: Slot; Pre-Login: nur Mic oben rechts. */
-  const pillFloating =
-    !showPreloginMicOnly && (!walkthroughActive || !walkthroughSlotEl) ? (
+  /** Normale App (ohne Walkthrough, nach Login-Flow): volle Pille unten. */
+  const pillFloating = !showCompactMicOnly ? (
       <div
         className={`pointer-events-none absolute inset-x-0 flex justify-center ${toolbarZClassName}`}
         style={{
@@ -319,8 +291,7 @@ export default function ClaraDock({
 
   return (
     <>
-      {preloginMicOnlyControl}
-      {pillInWalkthroughSlot}
+      {compactMicOnlyControl}
       {pillFloating}
 
       {chatOpen && (

@@ -727,14 +727,8 @@ export default function DemoIntroWalkthrough({
 
       </div>
 
-      {/* Reservierter Streifen für Clara-Pille — Inhalt per Portal aus ClaraDock, nicht über die Vorschau gelegt. */}
-      <div
-        id="walkthrough-clara-slot"
-        className="relative z-20 flex min-h-[3.25rem] w-full shrink-0 items-center justify-center border-t border-white/10 bg-[rgba(12,18,32,0.92)] px-3 py-1 sm:px-4"
-        aria-hidden={false}
-      />
-
-      <div className="relative z-30 mt-0.5 flex flex-shrink-0 gap-2 border-t border-white/10 bg-[rgba(12,18,32,0.96)] px-3 pt-2.5 intro-action-bar-pad sm:px-4">
+      {/* Clara: kompaktes Mic oben rechts im Frame (ClaraDock), kein zusätzlicher Streifen über der Fußleiste. */}
+      <div className="relative z-30 flex flex-shrink-0 gap-2 border-t border-white/10 bg-[rgba(12,18,32,0.96)] px-3 pt-2.5 intro-action-bar-pad sm:px-4">
         <button
           type="button"
           onClick={() => {
