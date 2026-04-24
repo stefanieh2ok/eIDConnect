@@ -16,7 +16,7 @@ import React, {
   useState,
 } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
-import { useClaraVoice } from '@/hooks/useClaraVoice';
+import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 
 const SESSION_AUDIO = 'eidconnect_intro_audio_v1';
 
@@ -67,7 +67,7 @@ export function useOptionalIntroOverlay() {
 }
 
 function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
-  const { speak, speakParts, stopSpeaking, voiceState } = useClaraVoice();
+  const { speak, speakParts, stopSpeaking, voiceState } = useClaraVoiceContext();
   const isIntroSpeaking = voiceState.isSpeaking;
   const [readAloud, setReadAloudState] = useState(true);
   const lastNarrationKeyRef = useRef<string | null>(null);

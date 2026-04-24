@@ -24,6 +24,7 @@ import {
   defaultAdministrativeScope,
   locationForAdministrativeScope,
 } from '@/lib/resolveRegionFromAddress';
+import { ClaraVoiceProvider } from '@/components/Clara/ClaraVoiceContext';
 import { DEMO_POINTS_PER_MELDUNG, DEMO_POINTS_PER_WAHL } from '@/data/constants';
 
 export type RegistrationResidence = { plz: string; city: string };
@@ -521,7 +522,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
-      {children}
+      <ClaraVoiceProvider>{children}</ClaraVoiceProvider>
     </AppContext.Provider>
   );
 }

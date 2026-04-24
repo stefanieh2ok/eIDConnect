@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useClaraVoice } from '@/hooks/useClaraVoice';
+import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { useApp } from '@/context/AppContext';
 
 /* Lavendel/Violett – spaciger Farbverlauf mit Tiefe */
@@ -18,7 +18,7 @@ interface ClaraFloatingButtonProps {
 const ClaraFloatingButton: React.FC<ClaraFloatingButtonProps> = ({ onOpenClara, position = 'fixed' }) => {
   const { state } = useApp();
   const [showGreeting, setShowGreeting] = useState(false);
-  const { voiceState, speak } = useClaraVoice();
+  const { voiceState, speak } = useClaraVoiceContext();
   const posClass = position === 'absolute' ? 'absolute bottom-0 right-0' : 'fixed bottom-24 right-4';
   const du = state.anrede === 'du';
 

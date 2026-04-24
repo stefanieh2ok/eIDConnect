@@ -8,7 +8,7 @@ import { VOTING_DATA } from '@/data/constants';
 import ClaraChat from '@/components/Clara/ClaraChat';
 import ClaraVoiceInterface from '@/components/Clara/ClaraVoiceInterface';
 import type { PreLoginVoicePhase } from '@/components/Clara/ClaraVoiceInterface';
-import { useClaraVoice } from '@/hooks/useClaraVoice';
+import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { ClaraAI } from '@/services/claraAI';
 import { getVoiceOpenPromptAndDisplay } from '@/lib/claraVoiceOpenPrompts';
 
@@ -70,7 +70,7 @@ export default function ClaraDock({
   overlayPosition = 'absolute',
 }: ClaraDockProps) {
   const { state } = useApp();
-  const { speak: speakVoice } = useClaraVoice();
+  const { speak: speakVoice } = useClaraVoiceContext();
   const [chatOpen, setChatOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [voiceUiNonce, setVoiceUiNonce] = useState(0);
@@ -78,11 +78,10 @@ export default function ClaraDock({
   const [externalPrompt, setExternalPrompt] = useState<string | null>(null);
   const [autoSend, setAutoSend] = useState(false);
   const [walkthroughSlotEl, setWalkthroughSlotEl] = useState<HTMLElement | null>(null);
-  const [preloginSlotEl, setPreloginSlotEl] = useState<HTMLElement | null>(null);
 
-  const preloginWantsDock =
-    !walkthroughActive &&
-    (preLoginVoicePhase === 'anrede' || preLoginVoicePhase === 'entry');
+  /** Vor Login (Anrede, Einstieg, eID): nur kompaktes Mic oben rechts — volle Pille bleibt in der App. */
+  const showPreloginMicOnly =
+    !walkthroughActive && preLoginVoicePhase !== null;
 
   const claraAiForVoice = useMemo(
     () =>
@@ -177,20 +176,6 @@ export default function ClaraDock({
     return () => cancelAnimationFrame(raf);
   }, [walkthroughActive, walkthroughStep?.id]);
 
-  useLayoutEffect(() => {
-    if (!preloginWantsDock) {
-      setPreloginSlotEl(null);
-      return;
-    }
-    const pick = () => {
-      const el = document.getElementById('prelogin-clara-slot');
-      setPreloginSlotEl((prev) => (prev === el ? prev : el));
-    };
-    pick();
-    const raf = requestAnimationFrame(pick);
-    return () => cancelAnimationFrame(raf);
-  }, [preloginWantsDock, preLoginVoicePhase]);
-
   const currentCard = useMemo(() => {
     if (state.activeSection !== 'live') return null;
     const loc = state.activeLocation;
@@ -282,7 +267,6 @@ export default function ClaraDock({
   );
 
   const dockedWalkthrough = Boolean(walkthroughActive && walkthroughSlotEl);
-  const dockedPrelogin = Boolean(preloginWantsDock && preloginSlotEl);
 
   const pillInWalkthroughSlot =
     dockedWalkthrough && walkthroughSlotEl
@@ -292,17 +276,36 @@ export default function ClaraDock({
         )
       : null;
 
-  const pillInPreloginSlot =
-    dockedPrelogin && preloginSlotEl
-      ? createPortal(
-          <div className="flex w-full justify-center py-0.5">{pillToolbar}</div>,
-          preloginSlotEl,
-        )
-      : null;
+  const preloginMicPositionClass = overlayPosition === 'fixed' ? 'fixed' : 'absolute';
 
-  /** Anrede/Einstieg: nur eingebetteter Slot, nie schwebend — vermeidet Überlappung mit Primär-CTA. */
+  const preloginMicOnlyControl =
+    showPreloginMicOnly && !voiceOpen && !chatOpen ? (
+      <div
+        className={`pointer-events-auto ${preloginMicPositionClass} z-[625]`}
+        style={{
+          top: 'max(0.5rem, calc(env(safe-area-inset-top, 0px) + 0.35rem))',
+          right: 'max(0.5rem, env(safe-area-inset-right, 0px))',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => openVoiceSession()}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border bg-white/95 shadow-[0_4px_14px_rgba(76,29,149,0.22)] backdrop-blur-xl transition hover:brightness-[1.03] active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+          style={{
+            borderColor: 'rgba(124, 58, 237, 0.4)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(245,240,255,0.94) 100%)',
+          }}
+          aria-label="Clara Voice — Mikrofon"
+          title="Mit Clara sprechen"
+        >
+          <Mic className="text-[#4C1D95]" size={18} strokeWidth={2.2} aria-hidden="true" />
+        </button>
+      </div>
+    ) : null;
+
+  /** Eingeloggte App: volle Pille unten; Walkthrough: Slot; Pre-Login: nur Mic oben rechts. */
   const pillFloating =
-    !preloginWantsDock && (!walkthroughActive || !walkthroughSlotEl) ? (
+    !showPreloginMicOnly && (!walkthroughActive || !walkthroughSlotEl) ? (
       <div
         className={`pointer-events-none absolute inset-x-0 flex justify-center ${toolbarZClassName}`}
         style={{
@@ -316,8 +319,8 @@ export default function ClaraDock({
 
   return (
     <>
+      {preloginMicOnlyControl}
       {pillInWalkthroughSlot}
-      {pillInPreloginSlot}
       {pillFloating}
 
       {chatOpen && (

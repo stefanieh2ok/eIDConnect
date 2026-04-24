@@ -5,7 +5,7 @@ import { Volume2, VolumeX, Sparkles } from 'lucide-react';
 import { VotingCard } from '@/types';
 import { ClaraAI } from '@/services/claraAI';
 import { useApp } from '@/context/AppContext';
-import { useClaraVoice } from '@/hooks/useClaraVoice';
+import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 
 const LAVENDER = {
   bg: '#F5F0FF',
@@ -41,7 +41,7 @@ const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
   );
   const analysis = claraAI.analyzeVotingCard(card);
 
-  const { speak, stopSpeaking } = useClaraVoice();
+  const { speak, stopSpeaking } = useClaraVoiceContext();
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const handleSpeak = () => {

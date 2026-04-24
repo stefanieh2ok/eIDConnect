@@ -9,7 +9,7 @@ import {
   INTRO_ANREDE_UI_TITLE_SIE,
 } from '@/data/introOverlayMarketing';
 import { introAnredeGateSpokenParts } from '@/lib/introSpokenTts';
-import { useClaraVoice } from '@/hooks/useClaraVoice';
+import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useOptionalIntroOverlay } from '@/components/Intro/IntroOverlay';
@@ -28,7 +28,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
   const { state, dispatch } = useApp();
   const [pending, setPending] = useState<Anrede | null>(null);
   const intro = useOptionalIntroOverlay();
-  const { speakParts, stopSpeaking } = useClaraVoice();
+  const { speakParts, stopSpeaking } = useClaraVoiceContext();
   const anredeWelcomeRef = useRef(false);
   const lastReadAloud = useRef<boolean | null>(null);
 
@@ -227,15 +227,6 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
               </button>
             </div>
           </div>
-
-          {/*
-            Clara-Pille im Dokumentfluss (Portal-Ziel) — verhindert Überlappung mit „Weiter“,
-            die bei absolutem bottom + z-[620] je nach Viewport entstehen kann.
-          */}
-          <div
-            id="prelogin-clara-slot"
-            className="mt-3 flex min-h-[3.25rem] w-full shrink-0 items-center justify-center"
-          />
 
           <button
             type="button"

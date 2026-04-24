@@ -2,7 +2,7 @@
 
 import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Mic, MicOff, MessageCircle, X } from 'lucide-react';
-import { useClaraVoice } from '@/hooks/useClaraVoice';
+import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { ClaraAI } from '@/services/claraAI';
 import { useApp } from '@/context/AppContext';
 import {
@@ -70,7 +70,7 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
   const { state } = useApp();
   const [conversation, setConversation] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { voiceState, startListening, stopListening, speak, stopSpeaking } = useClaraVoice();
+  const { voiceState, startListening, stopListening, speak, stopSpeaking } = useClaraVoiceContext();
 
   const addressMode = state.anrede === 'sie' ? 'sie' : 'du';
   const eidVoicePrompt = useMemo(
