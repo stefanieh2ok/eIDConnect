@@ -230,7 +230,7 @@ export default function ClaraDock({
   const pillInWalkthroughSlot =
     walkthroughActive && walkthroughSlotEl
       ? createPortal(
-          <div className="flex w-full justify-center py-0.5">{pillToolbar}</div>,
+          <div className="flex w-full justify-center py-1">{pillToolbar}</div>,
           walkthroughSlotEl,
         )
       : null;

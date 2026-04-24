@@ -300,7 +300,7 @@ function IntroScreenshotOrPreview({
 function BallotScroll({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="hide-scrollbar max-h-[min(72dvh,36rem)] min-h-[16rem] overflow-y-auto overflow-x-hidden rounded-xl border border-white/30 bg-white shadow-md"
+      className="hide-scrollbar max-h-[min(100%,36rem)] min-h-[16rem] overflow-y-auto overflow-x-hidden rounded-xl border border-white/30 bg-white shadow-md"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
       <div className="p-2 text-gray-900">{children}</div>
@@ -412,7 +412,7 @@ function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
         <div className="mt-2 space-y-1 border-t border-neutral-100 pt-2">
           <p className="text-[9px] font-semibold text-[#1A2B45]">Auszug · gebündelt nach Ebene</p>
           <div
-            className="min-h-[11rem] max-h-[min(22rem,52dvh)] space-y-1 overflow-y-auto pr-0.5"
+            className="min-h-[11rem] max-h-60 space-y-1 overflow-y-auto pr-0.5"
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
             {rows.slice(0, 10).map((r) => (
@@ -449,17 +449,17 @@ function PraemienIntroPreview({ communeName }: { communeName: string }) {
   }, []);
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white text-left shadow-md">
+    <div className="flex min-h-0 max-h-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white text-left shadow-md">
       <div
-        className="rounded-t-xl p-3 text-white"
+        className="shrink-0 rounded-t-xl p-3 text-white"
         style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
       >
         <div className="text-sm font-bold leading-snug">Prämien</div>
         <div className="text-[10px] opacity-90">Teilnahme freiwillig · Auszug {communeName} & Region</div>
       </div>
-      <div className="space-y-2 p-3">
+      <div className="flex min-h-0 flex-1 flex-col space-y-2 overflow-hidden p-3">
         <label
-          className="relative flex cursor-default items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-[10px] text-neutral-800 onboarding-heartbeat"
+          className="relative flex shrink-0 cursor-default items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-[10px] text-neutral-800 onboarding-heartbeat"
           onAnimationEnd={(e) => {
             if (e.target !== e.currentTarget) return;
             const name = e.animationName || '';
@@ -475,10 +475,13 @@ function PraemienIntroPreview({ communeName }: { communeName: string }) {
           ) : null}
           <span>Ich möchte am freiwilligen Punkte- und Prämienprogramm teilnehmen.</span>
         </label>
-        <p className="text-[10px] text-neutral-600">
+        <p className="shrink-0 text-[10px] text-neutral-600">
           Nach Zustimmung sind Einlösen und Details wie in der App freigeschaltet — hier ein regionaler Vorgeschmack.
         </p>
-        <div className="max-h-[11.5rem] space-y-1.5 overflow-y-auto pr-0.5" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div
+          className="min-h-0 max-h-[11.5rem] flex-1 space-y-1.5 overflow-y-auto pr-0.5"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           <p className="text-[9px] font-bold uppercase tracking-wide text-[#1A2B45]">Lokale Prämien · Auszug</p>
           {praemienAuszug.map((p) => (
             <div
@@ -494,13 +497,13 @@ function PraemienIntroPreview({ communeName }: { communeName: string }) {
             </div>
           ))}
         </div>
-        <div className="rounded-lg border border-dashed border-[#BFD9FF] bg-[#F0F6FF] px-2.5 py-2 text-[9px] text-[#003366]">
+        <div className="shrink-0 rounded-lg border border-dashed border-[#BFD9FF] bg-[#F0F6FF] px-2.5 py-2 text-[9px] text-[#003366]">
           Vorschau: Freibad, Mobilität, Kino, Museum, Nahverkehr und lokale Partner — gebündelt wie im Prämien-Bereich der App.
         </div>
         <button
           type="button"
           disabled
-          className="w-full rounded-lg border border-neutral-200 bg-white py-2 text-[10px] font-semibold text-neutral-400"
+          className="w-full shrink-0 rounded-lg border border-neutral-200 bg-white py-2 text-[10px] font-semibold text-neutral-400"
         >
           Einlösen (nach Aktivierung in der App)
         </button>
@@ -585,7 +588,7 @@ export default function DemoIntroWalkthrough({
         return (
           <div className="min-h-0 w-full min-w-0 overflow-hidden rounded-xl border border-white/20 bg-[#F7F9FC]">
             <div
-              className="max-h-[min(68dvh,34rem)] min-h-[14rem] overflow-y-auto overscroll-contain p-2 sm:p-2.5"
+              className="max-h-[min(100%,34rem)] min-h-[14rem] overflow-y-auto overscroll-contain p-2 sm:p-2.5"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <MeldungenSection embeddedInWalkthrough />
@@ -686,26 +689,26 @@ export default function DemoIntroWalkthrough({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 pb-1 sm:px-4">
         <div className="mt-0 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <div
-            className={`relative min-h-0 w-full min-w-0 flex-1 rounded-2xl border border-white/12 bg-white p-1 shadow-none sm:p-1.5 ${
+            className={`relative flex min-h-0 w-full min-w-0 flex-1 flex-col rounded-2xl border border-white/12 bg-white p-1 shadow-none sm:p-1.5 ${
               isAbstimmenStep
-                ? 'intro-walkthrough-scroll flex flex-col overflow-y-auto overflow-x-hidden overscroll-contain'
-                : 'overflow-hidden'
+                ? 'intro-walkthrough-scroll overflow-x-hidden overflow-y-auto overscroll-contain'
+                : 'min-h-0 overflow-hidden'
             }`}
             style={
               isAbstimmenStep
                 ? {
                     minHeight: 0,
-                    /* Großzügiges Cap (Desktop); effektive Höhe begrenzt weiterhin das Flex-Layout unter Meta/Titel/Footer. */
-                    maxHeight: 'min(calc(100svh - 5rem), calc(100dvh - 5rem), 56rem)',
+                    /* Im Geräterahmen: an Elternhöhe koppeln, nicht an Viewport (dvh). */
+                    maxHeight: 'min(100%, 56rem)',
                   }
-                : { minHeight: 'min(78dvh, 40rem)' }
+                : { minHeight: 0, maxHeight: '100%' }
             }
           >
             <div
               className={
                 isAbstimmenStep
                   ? 'flex w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2'
-                  : 'intro-walkthrough-scroll hide-scrollbar flex h-full min-h-[min(70dvh,32rem)] w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2 sm:min-h-[min(72dvh,36rem)]'
+                  : 'intro-walkthrough-scroll hide-scrollbar flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2'
               }
             >
               <div
@@ -727,11 +730,11 @@ export default function DemoIntroWalkthrough({
       {/* Reservierter Streifen für Clara-Pille — Inhalt per Portal aus ClaraDock, nicht über die Vorschau gelegt. */}
       <div
         id="walkthrough-clara-slot"
-        className="relative z-20 flex min-h-[2.375rem] w-full shrink-0 items-center justify-center border-t border-white/10 bg-[rgba(12,18,32,0.92)] px-3 py-0.5 sm:px-4"
+        className="relative z-20 flex min-h-[3.25rem] w-full shrink-0 items-center justify-center border-t border-white/10 bg-[rgba(12,18,32,0.92)] px-3 py-1 sm:px-4"
         aria-hidden={false}
       />
 
-      <div className="relative z-30 flex flex-shrink-0 gap-2 border-t border-white/10 bg-[rgba(12,18,32,0.96)] px-3 pt-2.5 intro-action-bar-pad sm:px-4">
+      <div className="relative z-30 mt-0.5 flex flex-shrink-0 gap-2 border-t border-white/10 bg-[rgba(12,18,32,0.96)] px-3 pt-2.5 intro-action-bar-pad sm:px-4">
         <button
           type="button"
           onClick={() => {
