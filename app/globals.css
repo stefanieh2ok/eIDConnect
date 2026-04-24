@@ -910,44 +910,46 @@ body {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
 }
 
-/* Politikbarometer: Schieberegler klar als aktiv lesbar (Gov-Navy, sichtbarer Thumb). */
+/* Politikbarometer: Schieberegler klar als aktiv lesbar (GovTech-Navy / kräftiges Blau). */
 .politik-barometer-range {
   -webkit-appearance: none;
   appearance: none;
-  accent-color: #0c2d5c;
+  accent-color: #1d4ed8;
 }
 .politik-barometer-range::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 18px;
-  height: 18px;
-  margin-top: -5px;
+  width: 20px;
+  height: 20px;
+  margin-top: -6px;
   border-radius: 9999px;
-  background: linear-gradient(180deg, #0c4a8c 0%, #0c2d5c 100%);
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 55%, #0c4a8c 100%);
   border: 2px solid #fff;
   box-shadow:
-    0 0 0 1px rgba(12, 45, 92, 0.35),
-    0 2px 8px rgba(15, 23, 42, 0.22);
+    0 0 0 2px rgba(29, 78, 216, 0.35),
+    0 2px 10px rgba(15, 23, 42, 0.25);
   cursor: inherit;
 }
 .politik-barometer-range::-webkit-slider-runnable-track {
-  height: 8px;
+  height: 9px;
   border-radius: 9999px;
+  background: linear-gradient(180deg, #e2e8f0 0%, #cbd5e1 100%);
 }
 .politik-barometer-range::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 9999px;
-  background: linear-gradient(180deg, #0c4a8c 0%, #0c2d5c 100%);
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 55%, #0c4a8c 100%);
   border: 2px solid #fff;
   box-shadow:
-    0 0 0 1px rgba(12, 45, 92, 0.35),
-    0 2px 8px rgba(15, 23, 42, 0.22);
+    0 0 0 2px rgba(29, 78, 216, 0.35),
+    0 2px 10px rgba(15, 23, 42, 0.25);
   cursor: inherit;
 }
 .politik-barometer-range::-moz-range-track {
-  height: 8px;
+  height: 9px;
   border-radius: 9999px;
+  background: linear-gradient(180deg, #e2e8f0 0%, #cbd5e1 100%);
 }
 
 /* Kompakte Leiste am oberen Rand des Intro-Dialogs: kein weisses Feld mehr,

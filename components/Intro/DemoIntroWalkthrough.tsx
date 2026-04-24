@@ -76,70 +76,82 @@ function parseDeDeadline(s: string): { d: number; m: number; y: number } | null 
 
 type IntroCalRow = {
   level: 'bund' | 'land' | 'kreis' | 'kommune';
-  kind: 'abstimmung' | 'wahl';
+  kind: 'abstimmung' | 'wahl' | 'beteiligung';
   title: string;
   dateStr: string;
 };
 
+function communeLabel(key: string): string {
+  return (
+    {
+      kirkel: 'Kirkel',
+      viernheim: 'Viernheim',
+      frankfurt: 'Frankfurt am Main',
+      mannheim: 'Mannheim',
+      heidelberg: 'Heidelberg',
+      weinheim: 'Weinheim',
+      neustadt: 'Neustadt an der Weinstraße',
+      bremen: 'Bremen',
+      berlin: 'Berlin',
+      muenchen: 'München',
+    } as Record<string, string>
+  )[key] ?? key;
+}
+
 /** Termine aus VOTING_DATA / WAHLEN_DATA — gleiche inhaltliche Basis wie der Kalender der App. */
 function introCalendarRowsFromFixtures(communeKey: string): IntroCalRow[] {
   const rows: IntroCalRow[] = [];
+  const komName = communeLabel(communeKey);
   const communeData = VOTING_DATA[communeKey];
   if (communeData && 'cards' in communeData) {
-    for (const c of communeData.cards.slice(0, 3)) {
+    for (const c of communeData.cards.slice(0, 4)) {
+      const hall = /kirkel-halle|halle kirkel/i.test(c.title) || c.title.includes('Kirkel-Halle');
       rows.push({
         level: 'kommune',
-        kind: 'abstimmung',
-        title: c.title,
+        kind: hall ? 'beteiligung' : 'abstimmung',
+        title: hall ? `Bürgerbeteiligung · ${c.title}` : `${c.title} · ${komName}`,
         dateStr: c.deadline,
       });
     }
   }
-  const bundCard = VOTING_DATA.deutschland?.cards?.[0];
-  if (bundCard) {
+  const pushAbst = (level: IntroCalRow['level'], card: { title: string; deadline: string } | undefined) => {
+    if (!card) return;
     rows.push({
-      level: 'bund',
+      level,
       kind: 'abstimmung',
-      title: bundCard.title,
-      dateStr: bundCard.deadline,
+      title:
+        level === 'bund'
+          ? `${card.title} · Bund`
+          : level === 'land'
+            ? `${card.title} · Saarland`
+            : `${card.title} · Saarpfalz-Kreis`,
+      dateStr: card.deadline,
     });
-  }
-  const landCard = VOTING_DATA.saarland?.cards?.[0];
-  if (landCard) {
-    rows.push({
-      level: 'land',
-      kind: 'abstimmung',
-      title: landCard.title,
-      dateStr: landCard.deadline,
-    });
-  }
-  const kreisCard = VOTING_DATA.saarpfalz?.cards?.[0];
-  if (kreisCard) {
-    rows.push({
-      level: 'kreis',
-      kind: 'abstimmung',
-      title: kreisCard.title,
-      dateStr: kreisCard.deadline,
-    });
-  }
+  };
+  pushAbst('bund', VOTING_DATA.deutschland?.cards?.[0]);
+  pushAbst('bund', VOTING_DATA.deutschland?.cards?.[1]);
+  pushAbst('land', VOTING_DATA.saarland?.cards?.[0]);
+  pushAbst('land', VOTING_DATA.saarland?.cards?.[1]);
+  pushAbst('kreis', VOTING_DATA.saarpfalz?.cards?.[0]);
+  pushAbst('kreis', VOTING_DATA.saarpfalz?.cards?.[1]);
 
   const pickWahl = (id: string) => WAHLEN_DATA.find((w) => w.id === id);
   const btw = pickWahl('btw25');
   if (btw?.datum) {
-    rows.push({ level: 'bund', kind: 'wahl', title: btw.name, dateStr: btw.datum });
+    rows.push({ level: 'bund', kind: 'wahl', title: `Bundestagswahl · ${btw.name}`, dateStr: btw.datum });
   }
   const ltwSl = pickWahl('ltw-sl-2022');
   if (ltwSl?.datum) {
-    rows.push({ level: 'land', kind: 'wahl', title: ltwSl.name, dateStr: ltwSl.datum });
+    rows.push({ level: 'land', kind: 'wahl', title: `Landtagswahl Saarland · ${ltwSl.name}`, dateStr: ltwSl.datum });
   }
   const ktSp = pickWahl('kt-saarpfalz-2024');
   if (ktSp?.datum) {
-    rows.push({ level: 'kreis', kind: 'wahl', title: ktSp.name, dateStr: ktSp.datum });
+    rows.push({ level: 'kreis', kind: 'wahl', title: `Kreistag · ${ktSp.name}`, dateStr: ktSp.datum });
   }
   if (communeKey === 'kirkel') {
     const kw = pickWahl('kw-kirkel-2024');
     if (kw?.datum) {
-      rows.push({ level: 'kommune', kind: 'wahl', title: kw.name, dateStr: kw.datum });
+      rows.push({ level: 'kommune', kind: 'wahl', title: `Kommunalwahl · Kirkel · ${kw.name}`, dateStr: kw.datum });
     }
   }
 
@@ -271,9 +283,9 @@ function BallotScroll({ children }: { children: React.ReactNode }) {
  */
 function IntroAbstimmenPreview({ card }: { card: VotingCardModel }) {
   return (
-    <div className="relative w-full min-w-0 max-w-full origin-top scale-[0.94] [transform:translateZ(0)] sm:scale-[0.96]">
-      <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-none">
-        <div className="p-1.5 pb-2">
+    <div className="relative w-full min-w-0 max-w-full shrink-0 [transform:translateZ(0)]">
+      <div className="rounded-2xl border border-neutral-200 bg-white shadow-none">
+        <div className="p-1 sm:p-1.5 pb-2">
           <VotingCard
             card={card}
             canVote
@@ -288,7 +300,7 @@ function IntroAbstimmenPreview({ card }: { card: VotingCardModel }) {
             introProConExpanded={false}
             introCompact
           />
-          <VotingControls canVote onVote={noopVote} compact={false} />
+          <VotingControls canVote onVote={noopVote} introWalkthrough />
         </div>
       </div>
     </div>
@@ -322,7 +334,8 @@ function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
     );
   };
 
-  const kindLabel = (r: IntroCalRow) => (r.kind === 'wahl' ? 'Wahl' : 'Abstimmung');
+  const kindLabel = (r: IntroCalRow) =>
+    r.kind === 'wahl' ? 'Wahl' : r.kind === 'beteiligung' ? 'Beteiligung' : 'Abstimmung';
 
   const firstDowSun0 = new Date(previewYear, previewMonth - 1, 1).getDay();
   const startPad = (firstDowSun0 + 6) % 7;
@@ -337,7 +350,7 @@ function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
       >
         <span className="text-[12px] font-bold">Kalender</span>
         <span className="text-[10px] opacity-90">
-          März {previewYear} · Bund, Land, Kreis & Kommune
+          März {previewYear} · Kirkel, Saarland, Saarpfalz & Bund
         </span>
       </div>
       <div className="p-2">
@@ -368,7 +381,7 @@ function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
         <div className="mt-2 space-y-1 border-t border-neutral-100 pt-2">
           <p className="text-[9px] font-semibold text-[#1A2B45]">Auszug · gebündelt nach Ebene</p>
           <div className="max-h-[9.5rem] space-y-1 overflow-y-auto pr-0.5" style={{ WebkitOverflowScrolling: 'touch' }}>
-            {rows.slice(0, 7).map((r) => (
+            {rows.slice(0, 9).map((r) => (
               <div
                 key={`${r.kind}-${r.title}-${r.dateStr}`}
                 className="flex items-start gap-1.5 rounded-lg border border-neutral-200/90 bg-neutral-50/90 px-2 py-1.5 text-[9px] text-neutral-800"
@@ -558,6 +571,7 @@ export default function DemoIntroWalkthrough({
   const [idx, setIdx] = useState(0);
   const step = steps[idx];
   const isLast = idx >= steps.length - 1;
+  const isAbstimmenStep = step.id === 'abstimmen';
 
   const framingLine = introOverlayFramingLine(step.id, du);
   const clara = useMemo(() => claraBlockForStep(step.id, du), [step.id, du]);
@@ -643,8 +657,6 @@ export default function DemoIntroWalkthrough({
 
   const liveAnnouncement = `Bereich ${clara.label}. ${clara.line10s} ${framingLine || clara.short}`.trim();
 
-  const isAbstimmenStep = step.id === 'abstimmen';
-
   return (
     <div
       className="intro-dark-body relative z-10 flex min-h-0 h-full w-full max-w-[100%] min-w-0 flex-col overflow-hidden font-sans antialiased [font-synthesis:none] shadow-none"
@@ -664,21 +676,29 @@ export default function DemoIntroWalkthrough({
 
       <IntroMetaStrip stepNumber={null} onSkip={onFinish} onClose={onClose} />
 
-      <div className="flex-shrink-0 px-3 pb-1 pt-2.5 sm:px-4">
+      <div
+        className={`flex-shrink-0 px-3 sm:px-4 ${isAbstimmenStep ? 'pb-0.5 pt-1.5' : 'pb-1 pt-2.5'}`}
+      >
         <h2 className="text-[15px] font-extrabold leading-tight tracking-tight text-white sm:text-[16px]">
           Im Überblick · {clara.label}
         </h2>
-        <p className="mt-1.5 text-[11px] font-medium leading-snug text-sky-100/88 [text-wrap:pretty]">
+        <p
+          className={`font-medium text-sky-100/88 [text-wrap:pretty] ${
+            isAbstimmenStep ? 'mt-1 line-clamp-2 text-[10px] leading-snug' : 'mt-1.5 text-[11px] leading-snug'
+          }`}
+        >
           {clara.line10s}
         </p>
-        <div className="mt-1.5">
-          <WalkthroughInfoDetails
-            primaryLong={clara.long}
-            showOutro={isLast}
-            outroShort={du ? INTRO_OUTRO_SHORT_DU : INTRO_OUTRO_SHORT_SIE}
-            outroLong={du ? INTRO_OUTRO_DROPDOWN_DU : INTRO_OUTRO_DROPDOWN_SIE}
-          />
-        </div>
+        {!isAbstimmenStep ? (
+          <div className="mt-1.5">
+            <WalkthroughInfoDetails
+              primaryLong={clara.long}
+              showOutro={isLast}
+              outroShort={du ? INTRO_OUTRO_SHORT_DU : INTRO_OUTRO_SHORT_SIE}
+              outroLong={du ? INTRO_OUTRO_DROPDOWN_DU : INTRO_OUTRO_DROPDOWN_SIE}
+            />
+          </div>
+        ) : null}
       </div>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 pb-1 sm:px-4">
@@ -686,20 +706,24 @@ export default function DemoIntroWalkthrough({
           <div
             className={`relative min-h-0 w-full min-w-0 flex-1 rounded-2xl border border-white/12 bg-white p-1 shadow-none sm:p-1.5 ${
               isAbstimmenStep
-                ? 'flex flex-col overflow-y-auto overflow-x-hidden overscroll-contain'
+                ? 'intro-walkthrough-scroll flex flex-col overflow-y-auto overflow-x-hidden overscroll-contain'
                 : 'overflow-hidden'
             }`}
             style={
               isAbstimmenStep
-                ? { minHeight: 0, maxHeight: 'min(78dvh, 40rem)' }
+                ? {
+                    minHeight: 0,
+                    /* Großzügiges Cap (Desktop); effektive Höhe begrenzt weiterhin das Flex-Layout unter Meta/Titel/Footer. */
+                    maxHeight: 'min(calc(100svh - 5rem), calc(100dvh - 5rem), 56rem)',
+                  }
                 : { minHeight: 'min(78dvh, 40rem)' }
             }
           >
             <div
               className={
                 isAbstimmenStep
-                  ? 'flex w-full min-w-0 flex-col overflow-x-hidden pb-0.5'
-                  : 'hide-scrollbar flex h-full min-h-[min(70dvh,32rem)] w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain sm:min-h-[min(72dvh,36rem)]'
+                  ? 'flex w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-[4.5rem]'
+                  : 'intro-walkthrough-scroll hide-scrollbar flex h-full min-h-[min(70dvh,32rem)] w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-14 sm:min-h-[min(72dvh,36rem)]'
               }
             >
               <div
@@ -732,7 +756,10 @@ export default function DemoIntroWalkthrough({
         <button
           type="button"
           onClick={() => (isLast ? onFinish() : setIdx((p) => Math.min(steps.length - 1, p + 1)))}
-          className="btn-gov-primary btn-gov-primary--flex min-h-[44px] min-w-0 flex-1 text-[11px] font-extrabold"
+          className={
+            'btn-gov-primary btn-gov-primary--flex min-h-[44px] min-w-0 flex-1 text-[11px] font-extrabold ' +
+            (isLast ? 'whitespace-nowrap' : '')
+          }
         >
           {isLast ? INTRO_FINISH_CTA_LABEL : 'Weiter'}
         </button>

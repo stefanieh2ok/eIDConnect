@@ -59,9 +59,21 @@ interface ClaraProps {
   selectedWahl?: any;
   initialPrompt?: string;
   autoSendInitialPrompt?: boolean;
+  /**
+   * Im Clara-Dock-Sheet: kein zweites Header-Pattern, kein zusätzlicher „Sprechen“-Button
+   * (Sprache läuft über die Pille / globales Voice-Overlay) — vermeidet doppelte Voice-Zeilen.
+   */
+  embedVariant?: 'default' | 'dockSheet';
 }
 
-const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, initialPrompt, autoSendInitialPrompt = false }) => {
+const ClaraChat: React.FC<ClaraProps> = ({
+  level,
+  onPointsEarned,
+  selectedWahl,
+  initialPrompt,
+  autoSendInitialPrompt = false,
+  embedVariant = 'default',
+}) => {
   const { state } = useApp();
   const isFormal = state.anrede === 'sie';
   const t = (du: string, sie: string) => isFormal ? sie : du;
@@ -83,6 +95,7 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showVoice, setShowVoice] = useState(false);
+  const dockSheet = embedVariant === 'dockSheet';
   const [isSafeMode, setIsSafeMode] = useState(false);
   const [showCompliance, setShowCompliance] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -294,42 +307,57 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
 
   return (
     <div
-      className="flex h-full min-h-0 max-h-full w-full flex-col overflow-hidden rounded-xl border-2 shadow-xl"
-      style={{ borderColor: '#8B5CF6', boxShadow: '0 8px 32px rgba(124, 58, 237, 0.2)' }}
+      className={
+        'flex h-full min-h-0 max-h-full w-full flex-col overflow-hidden ' +
+        (dockSheet ? '' : 'rounded-xl border-2 shadow-xl')
+      }
+      style={
+        dockSheet
+          ? {}
+          : { borderColor: '#8B5CF6', boxShadow: '0 8px 32px rgba(124, 58, 237, 0.2)' }
+      }
     >
-      {/* Header – Neutralität + Quellen, kein Beraten */}
-      <div
-        className="p-2.5 rounded-t-xl text-white border-b border-white/20 flex-shrink-0"
-        style={{
-          background: LAVENDER.header,
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 20px rgba(76, 29, 149, 0.3)',
-        }}
-      >
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <h2 className="text-sm font-bold sm:text-base">Clara – Digitale Assistentin</h2>
-            <p className="text-[11px] opacity-95">Neutral • Quellenbasiert • EU AI Act</p>
+      {/* Header – im Dock-Sheet entfällt die Doppel-Leiste (äußeres Modal hat bereits Kontext). */}
+      {!dockSheet ? (
+        <div
+          className="p-2.5 rounded-t-xl text-white border-b border-white/20 flex-shrink-0"
+          style={{
+            background: LAVENDER.header,
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 20px rgba(76, 29, 149, 0.3)',
+          }}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h2 className="text-sm font-bold sm:text-base">Clara – Digitale Assistentin</h2>
+              <p className="text-[11px] opacity-95">Neutral • Quellenbasiert • EU AI Act</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowCompliance((prev) => !prev)}
+              className="rounded-md border border-white/40 px-2 py-1 text-[10px] font-semibold hover:bg-white/10"
+            >
+              {showCompliance ? 'Weniger' : 'Info'}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowCompliance((prev) => !prev)}
-            className="rounded-md border border-white/40 px-2 py-1 text-[10px] font-semibold hover:bg-white/10"
-          >
-            {showCompliance ? 'Weniger' : 'Info'}
-          </button>
+          {showCompliance && (
+            <p className="mt-1.5 text-[10px] leading-snug opacity-90">
+              <strong>Verfahren ja, Meinung nein.</strong> Clara gibt keine Wahlempfehlung, verweist auf offizielle Quellen
+              und verarbeitet Eingaben nur für die bereitgestellte Funktion.
+            </p>
+          )}
+          {isSafeMode && (
+            <p className="mt-1 rounded-md bg-amber-100/90 px-2 py-1 text-[10px] font-semibold text-amber-900">
+              Eingeschraenkter Modus: Clara beantwortet aktuell nur neutral und verfahrensorientiert.
+            </p>
+          )}
         </div>
-        {showCompliance && (
-          <p className="mt-1.5 text-[10px] leading-snug opacity-90">
-            <strong>Verfahren ja, Meinung nein.</strong> Clara gibt keine Wahlempfehlung, verweist auf offizielle Quellen
-            und verarbeitet Eingaben nur für die bereitgestellte Funktion.
-          </p>
-        )}
-        {isSafeMode && (
-          <p className="mt-1 rounded-md bg-amber-100/90 px-2 py-1 text-[10px] font-semibold text-amber-900">
+      ) : isSafeMode ? (
+        <div className="flex-shrink-0 border-b px-3 py-2" style={{ borderColor: LAVENDER.border, background: LAVENDER.bg }}>
+          <p className="rounded-md bg-amber-100/90 px-2 py-1 text-[10px] font-semibold text-amber-900">
             Eingeschraenkter Modus: Clara beantwortet aktuell nur neutral und verfahrensorientiert.
           </p>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       {/* Messages – scrollbar, nicht abgeschnitten */}
       <div
@@ -381,25 +409,27 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
       </div>
 
       {/* Quick Questions */}
-      <div className="px-3 py-2 border-t flex-shrink-0" style={{ borderColor: LAVENDER.border, background: LAVENDER.bg }}>
-        <div className="text-[11px] text-gray-500 mb-1.5">Schnellfragen:</div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {compactQuickQuestions.map((question, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => void sendMessageWithText(question)}
-              disabled={isTyping}
-              className="shrink-0 whitespace-nowrap text-[11px] px-2 py-1 rounded-full transition-colors disabled:opacity-50"
-              style={{ background: LAVENDER.bubble, color: LAVENDER.text }}
-            >
-              {question}
-            </button>
-          ))}
+      {!dockSheet ? (
+        <div className="px-3 py-2 border-t flex-shrink-0" style={{ borderColor: LAVENDER.border, background: LAVENDER.bg }}>
+          <div className="text-[11px] text-gray-500 mb-1.5">Schnellfragen:</div>
+          <div className="flex gap-1.5 overflow-x-auto pb-1">
+            {compactQuickQuestions.map((question, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => void sendMessageWithText(question)}
+                disabled={isTyping}
+                className="shrink-0 whitespace-nowrap text-[11px] px-2 py-1 rounded-full transition-colors disabled:opacity-50"
+                style={{ background: LAVENDER.bubble, color: LAVENDER.text }}
+              >
+                {question}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      {/* Input + Sprechen */}
+      {/* Input (+ optional Sprechen nur außerhalb Dock-Sheet) */}
       <div className="p-3 border-t flex-shrink-0" style={{ borderColor: LAVENDER.border }}>
         <div className="flex gap-2">
           <input
@@ -424,30 +454,37 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
           >
             Senden
           </button>
-          <button
-            onClick={() => setShowVoice(true)}
-            className="px-3 py-2.5 rounded-lg text-sm font-bold transition-all hover:shadow-lg"
-            style={{ ...IRIDESCENT_BUTTON, color: LAVENDER.text }}
+          {!dockSheet ? (
+            <button
+              type="button"
+              onClick={() => setShowVoice(true)}
+              className="px-3 py-2.5 rounded-lg text-sm font-bold transition-all hover:shadow-lg"
+              style={{ ...IRIDESCENT_BUTTON, color: LAVENDER.text }}
+            >
+              Sprechen
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      {!dockSheet ? (
+        <div className="px-3 pb-3 flex-shrink-0">
+          <div
+            className="rounded-lg p-2 text-[10px] leading-snug"
+            style={{ background: LAVENDER.bubble, color: LAVENDER.text, border: `1px solid ${LAVENDER.border}` }}
           >
-            Sprechen
-          </button>
+            Eingaben werden nur für diese Funktion verarbeitet.
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      {/* Wichtig: Neutral, keine Beratung, nur Quellen */}
-      <div className="px-3 pb-3 flex-shrink-0">
-        <div className="rounded-lg p-2 text-[10px] leading-snug" style={{ background: LAVENDER.bubble, color: LAVENDER.text, border: `1px solid ${LAVENDER.border}` }}>
-          Eingaben werden nur für diese Funktion verarbeitet.
-        </div>
-      </div>
-
-      {showVoice && (
+      {showVoice && !dockSheet ? (
         <ClaraVoiceInterface
           isOpen={showVoice}
           onClose={() => setShowVoice(false)}
           currentCard={null}
         />
-      )}
+      ) : null}
     </div>
   );
 };

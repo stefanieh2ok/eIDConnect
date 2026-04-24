@@ -31,6 +31,10 @@ type ClaraDockProps = {
    */
   toolbarZClassName?: string;
   /**
+   * Post-Login-Produkt-Walkthrough: Chat ohne zweites Header-/Voice-Band (nur globale Pille).
+   */
+  walkthroughActive?: boolean;
+  /**
    * Zusatzabstand nach oben, z. B. über der Walkthrough-Fußleiste (Zurück/Weiter),
    * damit die Pille nicht mit den Steuerknöpfen kollidiert.
    */
@@ -51,6 +55,7 @@ type ClaraDockProps = {
 
 export default function ClaraDock({
   toolbarZClassName = 'z-[80]',
+  walkthroughActive = false,
   extraBottomOffset = '0px',
   preLoginVoicePhase = null,
   onAnredeVoiceChoice,
@@ -94,6 +99,24 @@ export default function ClaraDock({
       setAutoSend(false);
     }
   }, [chatOpen]);
+
+  /** Walkthrough: Hintergrund-Scroll sperren, damit das Overlay keinen „Sprung“ auslöst. */
+  useEffect(() => {
+    if (!walkthroughActive) return;
+    if (!chatOpen && !voiceOpen) return;
+    const nodes = document.querySelectorAll<HTMLElement>('.intro-walkthrough-scroll');
+    const prev = nodes.length
+      ? Array.from(nodes).map((el) => ({ el, overflow: el.style.overflow }))
+      : [];
+    nodes.forEach((el) => {
+      el.style.overflow = 'hidden';
+    });
+    return () => {
+      prev.forEach(({ el, overflow }) => {
+        el.style.overflow = overflow;
+      });
+    };
+  }, [walkthroughActive, chatOpen, voiceOpen]);
 
   const currentCard = useMemo(() => {
     if (state.activeSection !== 'live') return null;
@@ -197,7 +220,7 @@ export default function ClaraDock({
 
       {chatOpen && (
         <div
-          className="absolute inset-0 z-[800] flex items-end justify-center overscroll-contain bg-black/45 p-2 sm:p-4"
+          className={`${overlayPosition === 'fixed' ? 'fixed' : 'absolute'} inset-0 z-[800] flex items-end justify-center overscroll-contain bg-black/45 p-2 sm:p-4`}
           role="dialog"
           aria-modal="true"
           aria-label="Clara – KI-Assistentin"
@@ -288,6 +311,7 @@ export default function ClaraDock({
                 selectedWahl={null}
                 initialPrompt={externalPrompt ?? initialPrompt}
                 autoSendInitialPrompt={autoSend}
+                embedVariant={walkthroughActive ? 'dockSheet' : 'default'}
               />
             </div>
           </div>

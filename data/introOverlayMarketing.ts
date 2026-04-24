@@ -257,6 +257,7 @@ export const INTRO_CLOSING_SPOKEN_SEGMENTS_DU: readonly string[] = [
   'Wenn du Unterstützung brauchst, bin ich weiterhin für dich da.',
 ];
 
+/** Letzter Walkthrough-Schritt (Politikbarometer): bewusst nur zwei Wörter — kein „Einführung beenden & …“. */
 export const INTRO_FINISH_CTA_LABEL = 'App starten';
 
 /** Skip-Link-Label (nur im Walkthrough sichtbar). */

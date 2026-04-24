@@ -39,8 +39,8 @@ export default function PolitikBarometerPanel({ du, variant = 'default' }: Props
 
   const sliderTrackStyle = (value: number) =>
     ({
-      background: `linear-gradient(to right, #0c2d5c 0%, #0c4a8c ${value}%, #c5d4e8 ${value}%, #e2e8f0 100%)`,
-      accentColor: '#0c2d5c',
+      background: `linear-gradient(to right, #0c4a8c 0%, #1d4ed8 ${value}%, #94a3b8 ${value}%, #e2e8f0 100%)`,
+      accentColor: '#1d4ed8',
     }) as const;
 
   return (

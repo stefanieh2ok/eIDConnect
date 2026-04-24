@@ -219,6 +219,12 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     setPostLoginIntroOpen(false);
   };
 
+  const walkthroughChrome =
+    state.isLoggedIn &&
+    postLoginIntroOpen &&
+    state.anrede != null &&
+    readWantsWalkthrough();
+
   // Wichtig (iOS Safari): im Non-Device-Modus `intro-safe-overlay` verwenden –
   // das bindet die Höhe an `100dvh`, damit der Walkthrough-Footer nicht hinter
   // der Safari-URL-Leiste verschwindet („Weiter"-Button sichtbar halten).
@@ -340,24 +346,11 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
         )}
         <ClaraDock
           toolbarZClassName={
-            !state.isLoggedIn ||
-            (state.isLoggedIn &&
-              postLoginIntroOpen &&
-              state.anrede != null &&
-              readWantsWalkthrough())
-              ? 'z-[620]'
-              : 'z-[80]'
+            !state.isLoggedIn || walkthroughChrome ? 'z-[620]' : 'z-[80]'
           }
-          extraBottomOffset={
-            !state.isLoggedIn ||
-            (state.isLoggedIn &&
-              postLoginIntroOpen &&
-              state.anrede != null &&
-              readWantsWalkthrough())
-              ? '9.25rem'
-              : '0px'
-          }
-          overlayPosition="absolute"
+          walkthroughActive={walkthroughChrome}
+          extraBottomOffset={!state.isLoggedIn || walkthroughChrome ? '10.75rem' : '0px'}
+          overlayPosition={walkthroughChrome && !isDevice ? 'fixed' : 'absolute'}
           preLoginVoicePhase={
             !state.isLoggedIn
               ? preLogin === 'anrede'
