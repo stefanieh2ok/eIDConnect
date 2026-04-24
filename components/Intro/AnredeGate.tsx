@@ -156,7 +156,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
 
       <div
         ref={dialogRef}
-        className="intro-dark-body hide-scrollbar relative w-full max-w-[360px] overflow-y-auto overscroll-contain rounded-3xl sm:max-w-[400px] anredegate-sheet"
+        className="clara-prelogin-shell-pad intro-dark-body hide-scrollbar anredegate-sheet relative w-full max-w-[360px] overflow-y-auto overscroll-contain rounded-3xl sm:max-w-[400px]"
         style={{
           maxHeight: 'calc(100dvh - 1.5rem)',
           boxShadow: 'none',

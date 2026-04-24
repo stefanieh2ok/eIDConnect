@@ -28,6 +28,7 @@ import {
   CLARA_DOCK_EXTRA_BOTTOM_ANREDE_ENTRY,
   CLARA_DOCK_EXTRA_BOTTOM_EID,
 } from '@/lib/claraDockSpacing';
+import { resetViewportScroll } from '@/lib/resetViewportScroll';
 import type { EbeneLevel, Location, Section } from '@/types';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
 
@@ -101,24 +102,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     if (typeof window === 'undefined') return;
     if (state.isLoggedIn) return;
     const reset = () => {
-      try {
-        if ('scrollRestoration' in window.history) {
-          window.history.scrollRestoration = 'manual';
-        }
-      } catch {
-        /* ignore */
-      }
-      try {
-        window.scrollTo(0, 0);
-      } catch {
-        /* jsdom: not implemented */
-      }
-      try {
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-      } catch {
-        /* ignore */
-      }
+      resetViewportScroll();
       const inner = document.getElementById('login-main-scroll');
       if (inner) inner.scrollTop = 0;
     };
@@ -370,8 +354,8 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
           extraBottomOffset={
             !state.isLoggedIn
               ? preLogin === 'anrede' || preLogin === 'entry'
-                ? '15.75rem'
-                : '12.25rem'
+                ? CLARA_DOCK_EXTRA_BOTTOM_ANREDE_ENTRY
+                : CLARA_DOCK_EXTRA_BOTTOM_EID
               : '0px'
           }
           overlayPosition={walkthroughChrome && !isDevice ? 'fixed' : 'absolute'}

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import Script from 'next/script';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
 import './globals.css';
 
@@ -69,6 +70,9 @@ export default function RootLayout({
         }} />
       </head>
       <body className={inter.className}>
+        <Script id="history-scroll-restoration-manual" strategy="beforeInteractive">
+          {`try{if(typeof history!=='undefined'&&'scrollRestoration'in history)history.scrollRestoration='manual';}catch(e){}`}
+        </Script>
         {children}
       </body>
     </html>

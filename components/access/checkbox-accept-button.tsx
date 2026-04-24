@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { resetViewportScroll } from '@/lib/resetViewportScroll';
 
 export function CheckboxAcceptButton({ token }: { token: string }) {
   const [accepted, setAccepted] = useState(false);
@@ -24,7 +25,8 @@ export function CheckboxAcceptButton({ token }: { token: string }) {
         return;
       }
       if (data.redirectTo) {
-        window.location.href = data.redirectTo;
+        resetViewportScroll();
+        window.location.href = data.redirectTo as string;
       }
     } catch {
       setError('Netzwerkfehler. Bitte erneut versuchen.');

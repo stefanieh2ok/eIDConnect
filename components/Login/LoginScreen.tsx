@@ -156,7 +156,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true, preLoginP
 
   const content = (
     <div
-      className="intro-dark-body mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] sm:mx-2 relative"
+      className="clara-prelogin-shell-pad intro-dark-body relative mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] sm:mx-2"
       style={{
         border: '1px solid rgba(255, 255, 255, 0.1)',
         boxShadow: '0 4px 24px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',

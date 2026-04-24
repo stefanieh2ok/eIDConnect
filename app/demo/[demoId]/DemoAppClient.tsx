@@ -8,6 +8,7 @@ import { ExternalLinkProvider } from '@/components/ExternalLink';
 import { AntiCopyLayer } from '@/components/security/AntiCopyLayer';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
 import { clearIntroSessionKeys } from '@/lib/introPreLoginPhase';
+import { resetViewportScroll } from '@/lib/resetViewportScroll';
 
 function DemoContent() {
   const pathRef = useRef<string>('');
@@ -75,24 +76,26 @@ export function DemoAppClient({
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
-    try {
-      if ('scrollRestoration' in window.history) {
-        window.history.scrollRestoration = 'manual';
-      }
-    } catch {
-      // ignore
-    }
-    try {
-      window.scrollTo(0, 0);
-    } catch {
-      /* jsdom: not implemented */
-    }
-    try {
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    } catch {
-      /* ignore */
-    }
+    const flush = () => {
+      resetViewportScroll();
+      const loginScroll = document.getElementById('login-main-scroll');
+      if (loginScroll) loginScroll.scrollTop = 0;
+      const mainScroll = document.getElementById('main-scroll');
+      if (mainScroll) mainScroll.scrollTop = 0;
+    };
+    flush();
+    const raf = requestAnimationFrame(flush);
+    return () => cancelAnimationFrame(raf);
+  }, [sessionId]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const t = window.setTimeout(() => resetViewportScroll(), 0);
+    const t2 = window.setTimeout(() => resetViewportScroll(), 120);
+    return () => {
+      clearTimeout(t);
+      clearTimeout(t2);
+    };
   }, [sessionId]);
 
   return (
