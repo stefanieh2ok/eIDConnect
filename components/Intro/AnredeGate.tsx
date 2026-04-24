@@ -158,7 +158,9 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
         ref={dialogRef}
         className="clara-prelogin-shell-pad intro-dark-body hide-scrollbar anredegate-sheet relative w-full max-w-[360px] overflow-y-auto overscroll-contain rounded-3xl sm:max-w-[400px]"
         style={{
-          maxHeight: 'calc(100dvh - 1.5rem)',
+          /* 100dvh allein: im Geräterahmen höher als der sichtbare Bereich → „über den Rand“.
+             100% begrenzt auf die Overlay-Höhe (Frame-Inhalt). */
+          maxHeight: 'min(calc(100dvh - 1.5rem), 100%)',
           boxShadow: 'none',
           WebkitOverflowScrolling: 'touch',
         }}

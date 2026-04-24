@@ -25,7 +25,9 @@ function DemoContent() {
   return (
     <AntiCopyLayer disableSelect className="flex min-h-0 flex-1 flex-col">
       <IphoneFrame fillContainer>
-        <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-b-[1.75rem] bg-[#F7F9FC]">
+        {/* Kein eigenes bottom-radius: der äußere IphoneFrame clippt mit overflow-hidden;
+           abweichender Radius wirkte wie „Auslauf“ unter dem Rahmen. */}
+        <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#F7F9FC]">
           <BuergerApp variant="device" />
         </div>
       </IphoneFrame>

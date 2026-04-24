@@ -63,7 +63,10 @@ export function IntroEntryBranch({
       aria-label="Einstieg Einführung"
     >
       <div className="absolute inset-0 bg-[#020712]" aria-hidden />
-      <div className="clara-prelogin-shell-pad intro-dark-body relative w-full max-w-[400px] overflow-hidden rounded-3xl border border-white/10 shadow-none sm:max-w-[440px]">
+      <div
+        className="clara-prelogin-shell-pad intro-dark-body relative w-full max-w-[400px] overflow-hidden rounded-3xl border border-white/10 shadow-none sm:max-w-[440px]"
+        style={{ maxHeight: 'min(calc(100dvh - 1.5rem), 100%)' }}
+      >
         <IntroMetaStrip stepNumber={null} onClose={onDirectToApp} onSkip={onDirectToApp} />
         <div className="border-b border-white/10 px-4 pb-3 pt-3 sm:px-6 sm:pt-4 sm:pb-4">
           <ClaraStepPanel
