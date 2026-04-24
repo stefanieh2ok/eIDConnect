@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '@/context/AppContext';
 import ClaraVoiceInterface from './ClaraVoiceInterface';
 import { ClaraAI } from '@/services/claraAI';
 import { ensureStructuredClaraResponse, parseClaraStructuredResponse } from '@/lib/clara-response-format';
 import type { AddressMode } from '@/lib/clara-system-prompt';
-import { claraChatWelcomeContent } from '@/data/claraChatWelcome';
+import { claraChatIntroWalkthroughWelcome, claraChatWelcomeContent } from '@/data/claraChatWelcome';
 
 const LAVENDER = {
   bg: 'linear-gradient(180deg, #F5F0FF 0%, #EDE9FE 50%, #F3E8FF 100%)',
@@ -64,6 +64,8 @@ interface ClaraProps {
    * (Sprache läuft über die Pille / globales Voice-Overlay) — vermeidet doppelte Voice-Zeilen.
    */
   embedVariant?: 'default' | 'dockSheet';
+  /** Produkt-Walkthrough: erste Nachricht ohne Standard-Begrüßung; API-Kontext pro Schritt. */
+  introWalkthrough?: { stepId: string; stepLabel: string } | null;
 }
 
 const ClaraChat: React.FC<ClaraProps> = ({
@@ -73,6 +75,7 @@ const ClaraChat: React.FC<ClaraProps> = ({
   initialPrompt,
   autoSendInitialPrompt = false,
   embedVariant = 'default',
+  introWalkthrough = null,
 }) => {
   const { state } = useApp();
   const isFormal = state.anrede === 'sie';
@@ -83,13 +86,19 @@ const ClaraChat: React.FC<ClaraProps> = ({
     [state.preferences, state.consentClaraPersonalization, addressMode],
   );
 
+  const welcomeForMode = introWalkthrough
+    ? claraChatIntroWalkthroughWelcome(isFormal, introWalkthrough.stepLabel)
+    : claraChatWelcomeContent(isFormal);
+
   const [messages, setMessages] = useState<ClaraMessage[]>([
     {
       id: '1',
       type: 'clara',
-      content: claraChatWelcomeContent(isFormal),
+      content: welcomeForMode,
       timestamp: new Date(),
-      sources: ['eID Beteiligung / Clara (KI-gestützt, EU AI Act)'],
+      sources: introWalkthrough
+        ? ['Einführung · Clara (neutral)']
+        : ['eID Beteiligung / Clara (KI-gestützt, EU AI Act)'],
     },
   ]);
   const [inputMessage, setInputMessage] = useState('');
@@ -102,13 +111,29 @@ const ClaraChat: React.FC<ClaraProps> = ({
   const messagesScrollRef = useRef<HTMLDivElement>(null);
   const lastAutoPromptRef = useRef<string>('');
 
+  const buildApiContext = useCallback(
+    (sectionContext: string) => {
+      if (introWalkthrough) {
+        return [
+          `Kontext: Produkt-Einführung (Walkthrough), Schritt „${introWalkthrough.stepLabel}" (${introWalkthrough.stepId}).`,
+          'Antworten: kurz, sachlich, neutral, nur zu Funktion, Begriffen und Bedienung dieses Schritts. Keine erneute Vorstellung, keine Wahlempfehlung.',
+          sectionContext,
+        ].join('\n');
+      }
+      return sectionContext;
+    },
+    [introWalkthrough],
+  );
+
   const scrollToBottom = () => {
     const sc = messagesScrollRef.current;
     if (sc) {
       sc.scrollTo({ top: sc.scrollHeight, behavior: 'smooth' });
       return;
     }
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (!dockSheet) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   };
 
   useEffect(() => {
@@ -140,10 +165,10 @@ const ClaraChat: React.FC<ClaraProps> = ({
       setIsTyping(true);
 
       try {
-        const context = selectedWahl
+        const sectionCtx = selectedWahl
           ? `Kontext: ${selectedWahl.name || 'Wahl'} (${selectedWahl.wahlkreis || ''}) · Ebene: ${level}`
           : `Ebene: ${level}`;
-        const apiAnswer = await claraAI.generateChatResponse(prompt, context);
+        const apiAnswer = await claraAI.generateChatResponse(prompt, buildApiContext(sectionCtx));
         setIsSafeMode(claraAI.wasLastChatSafeMode());
         const claraMessage: ClaraMessage = {
           id: (Date.now() + 1).toString(),
@@ -171,7 +196,7 @@ const ClaraChat: React.FC<ClaraProps> = ({
     };
 
     run();
-  }, [autoSendInitialPrompt, initialPrompt, selectedWahl, level, onPointsEarned, claraAI, addressMode]);
+  }, [autoSendInitialPrompt, initialPrompt, selectedWahl, level, onPointsEarned, claraAI, addressMode, buildApiContext]);
 
   // Lokaler Safe Fallback (keine politischen Einzelbehauptungen ohne verifizierte Quelle)
   const getClaraResponse = (question: string): { content: string; sources: string[] } => {
@@ -233,10 +258,10 @@ const ClaraChat: React.FC<ClaraProps> = ({
     setIsTyping(true);
 
     try {
-      const context = selectedWahl
+      const sectionCtx = selectedWahl
         ? `Kontext: ${selectedWahl.name || 'Wahl'} (${selectedWahl.wahlkreis || ''}) · Ebene: ${level}`
         : `Ebene: ${level}`;
-      const apiAnswer = await claraAI.generateChatResponse(messageText, context);
+      const apiAnswer = await claraAI.generateChatResponse(messageText, buildApiContext(sectionCtx));
       setIsSafeMode(claraAI.wasLastChatSafeMode());
       const claraMessage: ClaraMessage = {
         id: (Date.now() + 1).toString(),
@@ -442,7 +467,11 @@ const ClaraChat: React.FC<ClaraProps> = ({
             autoCapitalize="sentences"
             spellCheck={false}
             autoFocus={false}
-            placeholder={t('Frag Clara: Was sagt die SPD zum Thema Wohnen?', 'Fragen Sie Clara: Was sagt die SPD zum Thema Wohnen?')}
+            placeholder={
+              introWalkthrough
+                ? t('Frage zu diesem Schritt …', 'Frage zu diesem Schritt …')
+                : t('Frag Clara: Was sagt die SPD zum Thema Wohnen?', 'Fragen Sie Clara: Was sagt die SPD zum Thema Wohnen?')
+            }
             className="flex-1 p-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2"
             style={{ borderColor: LAVENDER.border, background: LAVENDER.bg }}
           />

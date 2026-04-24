@@ -39,8 +39,31 @@ export type IntroOverlayContextValue = {
 
 const IntroOverlayContext = createContext<IntroOverlayContextValue | null>(null);
 
+/**
+ * Nur Sprech-API + readAloud — **stabile Referenz**, solange sich nicht `readAloud`
+ * oder die Speak-Callbacks ändern. Wird **nicht** bei jedem TTS-`isSpeaking`-Tick neu erzeugt.
+ * Verhindert, dass Walkthrough-`useEffect`-Cleanups die Mehrteil-Wiedergabe abbrechen.
+ */
+type IntroSpeakApi = Pick<
+  IntroOverlayContextValue,
+  'readAloud' | 'setReadAloud' | 'speakIntro' | 'speakIntroParts' | 'stopIntroSpeech'
+>;
+const IntroSpeakApiContext = createContext<IntroSpeakApi | null>(null);
+const IntroIsSpeakingContext = createContext<boolean>(false);
+
+export function useIntroSpeakApi(): IntroSpeakApi | null {
+  return useContext(IntroSpeakApiContext);
+}
+
+export function useIntroIsSpeaking(): boolean {
+  return useContext(IntroIsSpeakingContext);
+}
+
 export function useOptionalIntroOverlay() {
-  return useContext(IntroOverlayContext);
+  const api = useContext(IntroSpeakApiContext);
+  const isIntroSpeaking = useContext(IntroIsSpeakingContext);
+  if (!api) return null;
+  return { ...api, isIntroSpeaking };
 }
 
 function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
@@ -133,19 +156,29 @@ function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
     [stopIntroSpeech],
   );
 
-  const value = useMemo(
+  const speakApi = useMemo(
     () => ({
       readAloud,
       setReadAloud,
-      isIntroSpeaking,
       speakIntro,
       speakIntroParts,
       stopIntroSpeech,
     }),
-    [readAloud, setReadAloud, isIntroSpeaking, speakIntro, speakIntroParts, stopIntroSpeech],
+    [readAloud, setReadAloud, speakIntro, speakIntroParts, stopIntroSpeech],
   );
 
-  return <IntroOverlayContext.Provider value={value}>{children}</IntroOverlayContext.Provider>;
+  const merged = useMemo(
+    () => ({ ...speakApi, isIntroSpeaking }),
+    [speakApi, isIntroSpeaking],
+  );
+
+  return (
+    <IntroSpeakApiContext.Provider value={speakApi}>
+      <IntroIsSpeakingContext.Provider value={isIntroSpeaking}>
+        <IntroOverlayContext.Provider value={merged}>{children}</IntroOverlayContext.Provider>
+      </IntroIsSpeakingContext.Provider>
+    </IntroSpeakApiContext.Provider>
+  );
 }
 
 export const IntroOverlay = IntroOverlayRoot;
@@ -155,10 +188,10 @@ type ReadAloudToggleProps = { theme?: 'light' | 'dark' };
 
 /** Kompaktes Text-Label für Vorlesen (Legacy; Header nutzt bevorzugt `IntroAudioStatusButton`). */
 export function IntroReadAloudToggle({ theme = 'light' }: ReadAloudToggleProps = {}) {
-  const ctx = useOptionalIntroOverlay();
-  if (!ctx) return null;
+  const api = useIntroSpeakApi();
+  if (!api) return null;
 
-  const { readAloud, setReadAloud } = ctx;
+  const { readAloud, setReadAloud } = api;
   const onDark = theme === 'dark';
 
   return (
@@ -193,7 +226,8 @@ type IntroAudioStatusTheme = 'dark' | 'light';
  * Kurz aufleuchtender Rand, wenn TTS startet (siehe `.intro-audio-status-pulse` in globals.css).
  */
 export function IntroAudioStatusButton({ theme = 'dark' }: { theme?: IntroAudioStatusTheme } = {}) {
-  const ctx = useOptionalIntroOverlay();
+  const api = useIntroSpeakApi();
+  const isIntroSpeaking = useIntroIsSpeaking();
   const [pulse, setPulse] = useState(false);
   const wasSpeakingRef = useRef(false);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -211,9 +245,9 @@ export function IntroAudioStatusButton({ theme = 'dark' }: { theme?: IntroAudioS
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
-  const speakingForPulse = ctx?.isIntroSpeaking ?? false;
+  const speakingForPulse = isIntroSpeaking;
   useEffect(() => {
-    if (!ctx) return;
+    if (!api) return;
     if (speakingForPulse && !wasSpeakingRef.current) {
       wasSpeakingRef.current = true;
       if (!reducedMotion) {
@@ -225,11 +259,11 @@ export function IntroAudioStatusButton({ theme = 'dark' }: { theme?: IntroAudioS
     if (!speakingForPulse) {
       wasSpeakingRef.current = false;
     }
-  }, [ctx, speakingForPulse, reducedMotion]);
+  }, [api, speakingForPulse, reducedMotion]);
 
-  if (!ctx) return null;
+  if (!api) return null;
 
-  const { readAloud, setReadAloud, isIntroSpeaking } = ctx;
+  const { readAloud, setReadAloud } = api;
   const onDark = theme === 'dark';
   const title = readAloud ? 'Audio ausschalten' : 'Audio einschalten';
   const activeRing =

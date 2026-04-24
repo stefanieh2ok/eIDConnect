@@ -32,7 +32,12 @@ function demoMeldungenForGemeinde(gemeinde: string) {
   ];
 }
 
-export default function MeldungenSection() {
+type MeldungenSectionProps = {
+  /** Eingebettet im Walkthrough: etwas kompaktere Abstände, gleiche Funktionalität. */
+  embeddedInWalkthrough?: boolean;
+};
+
+export default function MeldungenSection({ embeddedInWalkthrough = false }: MeldungenSectionProps) {
   const { state, dispatch } = useApp();
   const du = state.anrede === 'du';
   const gemeindeLoc = activeLocationForLevel(state.residenceLocation, 'kommune');
@@ -75,10 +80,12 @@ export default function MeldungenSection() {
   const selectedKat = KATEGORIEN.find((k) => k.id === kategorie);
 
   return (
-    <div>
-        <div className="flex items-start justify-between mb-3">
+    <div className={embeddedInWalkthrough ? 'walkthrough-meldungen-embed' : undefined}>
+        <div className={`flex items-start justify-between ${embeddedInWalkthrough ? 'mb-2' : 'mb-3'}`}>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Meldungen</h2>
+            <h2 className={embeddedInWalkthrough ? 'text-base font-semibold text-gray-900' : 'text-lg font-semibold text-gray-900'}>
+              Meldungen
+            </h2>
             <div className="mt-0.5 text-[11px] text-neutral-500">
               {selectionLabelForSection('meldungen', state.activeLocation, state.residenceLocation)}
             </div>
@@ -87,7 +94,7 @@ export default function MeldungenSection() {
       </div>
       {/* Header */}
       <div
-        className="rounded-2xl text-white p-5 mb-4"
+        className={embeddedInWalkthrough ? 'rounded-2xl text-white p-4 mb-3' : 'rounded-2xl text-white p-5 mb-4'}
         style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
       >
         <h2 className="text-base font-bold mb-1">Meldungen an {gemeinde}</h2>

@@ -55,6 +55,8 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
   const [preLogin, setPreLogin] = useState<PreLoginPhase>(() =>
     typeof window !== 'undefined' ? readPreLoginPhase() : 'anrede',
   );
+  /** Walkthrough-Schritt für Clara-Kontext (Pille + Chat). */
+  const [walkthroughStep, setWalkthroughStep] = useState<{ id: string; label: string } | null>(null);
   const isDevice = variant === 'device';
 
   const SECTION_LEVELS: Record<Section, EbeneLevel[]> = {
@@ -90,12 +92,18 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     setPreLogin(readPreLoginPhase());
   }, []);
 
-  /** NDA / Vor-Seite kann Scroll mitbringen; Anrede zentriert — ohne Rücksprung-„Sprung". */
+  /** NDA / Vor-Seite / Phasenwechsel: kein ererbter Fenster- oder Innen-Scroll → Layout-Sprung vermeiden. */
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
     if (state.isLoggedIn) return;
-    if (preLogin !== 'anrede') return;
     const reset = () => {
+      try {
+        if ('scrollRestoration' in window.history) {
+          window.history.scrollRestoration = 'manual';
+        }
+      } catch {
+        /* ignore */
+      }
       try {
         window.scrollTo(0, 0);
       } catch {
@@ -225,6 +233,10 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     state.anrede != null &&
     readWantsWalkthrough();
 
+  useEffect(() => {
+    if (!walkthroughChrome) setWalkthroughStep(null);
+  }, [walkthroughChrome]);
+
   // Wichtig (iOS Safari): im Non-Device-Modus `intro-safe-overlay` verwenden –
   // das bindet die Höhe an `100dvh`, damit der Walkthrough-Footer nicht hinter
   // der Safari-URL-Leiste verschwindet („Weiter"-Button sichtbar halten).
@@ -322,6 +334,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                     residenceLocation={state.residenceLocation}
                     onClose={finishProductIntro}
                     onFinish={finishProductIntro}
+                    onWalkthroughStepChange={setWalkthroughStep}
                   />
                 </div>
               ) : null}
@@ -349,7 +362,8 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
             !state.isLoggedIn || walkthroughChrome ? 'z-[620]' : 'z-[80]'
           }
           walkthroughActive={walkthroughChrome}
-          extraBottomOffset={!state.isLoggedIn || walkthroughChrome ? '10.75rem' : '0px'}
+          walkthroughStep={walkthroughChrome ? walkthroughStep : null}
+          extraBottomOffset={!state.isLoggedIn ? '10.75rem' : '0px'}
           overlayPosition={walkthroughChrome && !isDevice ? 'fixed' : 'absolute'}
           preLoginVoicePhase={
             !state.isLoggedIn

@@ -1,7 +1,10 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { useOptionalIntroOverlay } from '@/components/Intro/IntroOverlay';
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useApp } from '@/context/AppContext';
+import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
+import { activeLocationForLevel } from '@/lib/activeLocationForLevel';
+import MeldungenSection from '@/components/Meldungen/MeldungenSection';
 import OriginalStimmzettel from '@/components/Voting/OriginalStimmzettel';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
@@ -23,7 +26,26 @@ import { claraBlockForStep } from '@/data/introWalkthroughClara';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { INTRO_SCREENSHOTS } from '@/data/introScreenshots';
 import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
-import type { Location, VotingCard as VotingCardModel } from '@/types';
+import type { Location, Section, VotingCard as VotingCardModel } from '@/types';
+
+function walkthroughSectionForStep(stepId: string): Section {
+  switch (stepId) {
+    case 'abstimmen':
+      return 'live';
+    case 'wahlen':
+      return 'wahlen';
+    case 'kalender':
+      return 'kalender';
+    case 'meldungen':
+      return 'meldungen';
+    case 'praemien':
+      return 'leaderboard';
+    case 'politikbarometer':
+      return 'live';
+    default:
+      return 'live';
+  }
+}
 
 type Props = {
   du: boolean;
@@ -31,6 +53,8 @@ type Props = {
   residenceLocation: Location;
   onClose: () => void;
   onFinish: () => void;
+  /** Aktueller Walkthrough-Schritt für Clara-Kontext (Dock/Chat). */
+  onWalkthroughStepChange?: (step: { id: string; label: string }) => void;
 };
 
 const INTRO_KOMMUNE_VOTE_KEYS = new Set<string>([
@@ -102,6 +126,13 @@ function communeLabel(key: string): string {
 function introCalendarRowsFromFixtures(communeKey: string): IntroCalRow[] {
   const rows: IntroCalRow[] = [];
   const komName = communeLabel(communeKey);
+  /* Sichtbare, app-nahe Beispiele (gleiche Logik wie Meldungen-Demo). */
+  rows.push({
+    level: 'kommune',
+    kind: 'beteiligung',
+    title: `Beteiligung · Meldung Spielplatz Bürgerpark (${komName})`,
+    dateStr: '22.03.2026',
+  });
   const communeData = VOTING_DATA[communeKey];
   if (communeData && 'cards' in communeData) {
     for (const c of communeData.cards.slice(0, 4)) {
@@ -380,8 +411,11 @@ function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
         </div>
         <div className="mt-2 space-y-1 border-t border-neutral-100 pt-2">
           <p className="text-[9px] font-semibold text-[#1A2B45]">Auszug · gebündelt nach Ebene</p>
-          <div className="max-h-[9.5rem] space-y-1 overflow-y-auto pr-0.5" style={{ WebkitOverflowScrolling: 'touch' }}>
-            {rows.slice(0, 9).map((r) => (
+          <div
+            className="min-h-[11rem] max-h-[min(22rem,52dvh)] space-y-1 overflow-y-auto pr-0.5"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            {rows.slice(0, 10).map((r) => (
               <div
                 key={`${r.kind}-${r.title}-${r.dateStr}`}
                 className="flex items-start gap-1.5 rounded-lg border border-neutral-200/90 bg-neutral-50/90 px-2 py-1.5 text-[9px] text-neutral-800"
@@ -396,81 +430,6 @@ function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
               </div>
             ))}
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MeldungIntroPreview({ communeName }: { communeName: string }) {
-  const ortsteil =
-    communeName === 'Kirkel' ? 'Kirkel-Altstadt' : communeName === 'Viernheim' ? 'Stadtteil Zentrum' : `Ort ${communeName}`;
-  const fullReportText = `Spielplatz Bürgerpark ${ortsteil}: Auffällig viele Ratten an der Sandkiste und im Gebüsch – bitte Prüfung durch die Gemeinde und ggf. Hygienemaßnahmen.`;
-
-  const [typed, setTyped] = useState('');
-  const [typingDone, setTypingDone] = useState(false);
-
-  useEffect(() => {
-    const reduced =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduced) {
-      setTyped(fullReportText);
-      setTypingDone(true);
-      return;
-    }
-    setTyped('');
-    setTypingDone(false);
-    let i = 0;
-    const stepMs = 26;
-    const id = window.setInterval(() => {
-      i += 1;
-      setTyped(fullReportText.slice(0, i));
-      if (i >= fullReportText.length) {
-        setTypingDone(true);
-        window.clearInterval(id);
-      }
-    }, stepMs);
-    return () => window.clearInterval(id);
-  }, [fullReportText]);
-
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-white text-left shadow-md">
-      <div
-        className="rounded-t-xl p-4 text-white"
-        style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
-      >
-        <div className="text-sm font-bold">Meldungen an {communeName}</div>
-        <div className="text-[10px] opacity-90">Auswahl: Kommune</div>
-      </div>
-      <div className="p-3 space-y-2">
-        <p className="text-[11px] font-semibold text-[#1A2B45]">Thema: Spielplatz</p>
-        <div className="flex items-center gap-2">
-          <span className="rounded border border-[#BFD9FF] bg-[#E8F0FB] px-2 py-1 text-[10px] font-bold text-[#0055A4]">
-            P
-          </span>
-          <span className="text-xs font-semibold text-neutral-800">Spielplatz</span>
-        </div>
-        <div
-          className="min-h-[4.5rem] rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-[11px] leading-relaxed text-neutral-800"
-          aria-live="polite"
-        >
-          <span>{typed}</span>
-          {!typingDone ? (
-            <span
-              className="intro-typewriter-caret ml-0.5 inline-block h-[1.05em] w-0.5 align-[-0.15em] bg-[#1A2B45]"
-              aria-hidden
-            />
-          ) : null}
-        </div>
-        <p className="text-[10px] text-neutral-500">
-          Schäden und Hygienefragen sind mit Fotos und Ortsangabe erfassbar und werden strukturiert übermittelt.
-        </p>
-        <div className="rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-2 text-[10px] text-blue-900">
-          Foto-Upload: 2 Bilder angehängt
-        </div>
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-[10px] text-emerald-900">
-          Status: In Bearbeitung – zuständige Stelle informiert
         </div>
       </div>
     </div>
@@ -510,11 +469,8 @@ function PraemienIntroPreview({ communeName }: { communeName: string }) {
         >
           <input type="checkbox" readOnly tabIndex={-1} className="pointer-events-none mt-0.5" aria-hidden />
           {checkFlash ? (
-            <span
-              className="absolute left-2.5 top-2 inline-flex h-5 w-5 items-center justify-center rounded-md bg-emerald-600 text-[12px] font-black text-white shadow-sm"
-              aria-hidden
-            >
-              ✓
+            <span className="absolute left-2.5 top-1.5 rounded bg-emerald-600 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white shadow-sm">
+              ok
             </span>
           ) : null}
           <span>Ich möchte am freiwilligen Punkte- und Prämienprogramm teilnehmen.</span>
@@ -527,11 +483,8 @@ function PraemienIntroPreview({ communeName }: { communeName: string }) {
           {praemienAuszug.map((p) => (
             <div
               key={p.id}
-              className="flex items-start gap-2 rounded-lg border border-neutral-200/90 bg-[#F7F9FC] px-2 py-1.5 text-[10px]"
+              className="rounded-lg border border-neutral-200/90 bg-[#F7F9FC] px-2 py-1.5 text-[10px]"
             >
-              <span className="text-[14px] leading-none" aria-hidden>
-                {p.emoji}
-              </span>
               <div className="min-w-0 flex-1 leading-snug">
                 <div className="font-semibold text-neutral-900">{p.name}</div>
                 <div className="mt-0.5 text-[9px] text-neutral-600">
@@ -561,7 +514,9 @@ export default function DemoIntroWalkthrough({
   residenceLocation,
   onClose,
   onFinish,
+  onWalkthroughStepChange,
 }: Props) {
+  const { dispatch } = useApp();
   const communeKey = introCommuneVoteKey(residenceLocation);
   const communeName = COMMUNE_DISPLAY[communeKey] ?? communeKey;
   const previewCard = VOTING_DATA[communeKey]?.cards?.[0] ?? VOTING_DATA.kirkel.cards[0];
@@ -621,16 +576,21 @@ export default function DemoIntroWalkthrough({
           <IntroScreenshotOrPreview
             src={INTRO_SCREENSHOTS.kalender}
             alt="Bereich Kalender"
-            useScreenshot
+            useScreenshot={false}
           >
             <IntroKalenderPreview communeKey={communeKey} />
           </IntroScreenshotOrPreview>
         );
       case 'meldungen':
         return (
-          <IntroScreenshotOrPreview src={INTRO_SCREENSHOTS.meldungen} alt="Bereich Meldungen" useScreenshot>
-            <MeldungIntroPreview communeName={communeName} />
-          </IntroScreenshotOrPreview>
+          <div className="min-h-0 w-full min-w-0 overflow-hidden rounded-xl border border-white/20 bg-[#F7F9FC]">
+            <div
+              className="max-h-[min(68dvh,34rem)] min-h-[14rem] overflow-y-auto overscroll-contain p-2 sm:p-2.5"
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              <MeldungenSection embeddedInWalkthrough />
+            </div>
+          </div>
         );
       case 'praemien':
         return <PraemienIntroPreview communeName={communeName} />;
@@ -641,19 +601,41 @@ export default function DemoIntroWalkthrough({
     }
   }, [step.id, previewCard, communeName, du, communeKey]);
 
-  const intro = useOptionalIntroOverlay();
+  const speakApi = useIntroSpeakApi();
 
   useEffect(() => {
-    if (!intro) return;
+    const section = walkthroughSectionForStep(step.id);
+    dispatch({ type: 'SET_ACTIVE_SECTION', payload: section });
+    if (section === 'meldungen') {
+      dispatch({
+        type: 'SET_ACTIVE_LOCATION',
+        payload: activeLocationForLevel(residenceLocation, 'kommune'),
+      });
+    }
+  }, [step.id, dispatch, residenceLocation]);
+
+  useLayoutEffect(() => {
+    document.querySelectorAll<HTMLElement>('.intro-walkthrough-scroll').forEach((el) => {
+      el.scrollTop = 0;
+    });
+  }, [idx, step.id]);
+
+  useEffect(() => {
+    onWalkthroughStepChange?.({ id: step.id, label: clara.label });
+  }, [step.id, clara.label, onWalkthroughStepChange]);
+
+  useEffect(() => {
+    if (!speakApi) return;
+    if (!speakApi.readAloud) return;
     const speechKey = `walkthrough-${idx}-${step.id}`;
     const t = window.setTimeout(() => {
-      intro.speakIntroParts(speakParts, speechKey);
+      speakApi.speakIntroParts(speakParts, speechKey);
     }, 120);
     return () => {
       window.clearTimeout(t);
-      intro.stopIntroSpeech();
+      speakApi.stopIntroSpeech();
     };
-  }, [intro, intro?.readAloud, idx, step.id, speakParts]);
+  }, [speakApi, speakApi?.readAloud, idx, step.id, speakParts]);
 
   const liveAnnouncement = `Bereich ${clara.label}. ${clara.line10s} ${framingLine || clara.short}`.trim();
 
@@ -722,8 +704,8 @@ export default function DemoIntroWalkthrough({
             <div
               className={
                 isAbstimmenStep
-                  ? 'flex w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-[4.5rem]'
-                  : 'intro-walkthrough-scroll hide-scrollbar flex h-full min-h-[min(70dvh,32rem)] w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-14 sm:min-h-[min(72dvh,36rem)]'
+                  ? 'flex w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2'
+                  : 'intro-walkthrough-scroll hide-scrollbar flex h-full min-h-[min(70dvh,32rem)] w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2 sm:min-h-[min(72dvh,36rem)]'
               }
             >
               <div
@@ -741,6 +723,13 @@ export default function DemoIntroWalkthrough({
         </div>
 
       </div>
+
+      {/* Reservierter Streifen für Clara-Pille — Inhalt per Portal aus ClaraDock, nicht über die Vorschau gelegt. */}
+      <div
+        id="walkthrough-clara-slot"
+        className="relative z-20 flex min-h-[3.25rem] w-full shrink-0 items-center justify-center border-t border-white/10 bg-[rgba(12,18,32,0.92)] px-3 py-1 sm:px-4"
+        aria-hidden={false}
+      />
 
       <div className="relative z-30 flex flex-shrink-0 gap-2 border-t border-white/10 bg-[rgba(12,18,32,0.96)] px-3 pt-2.5 intro-action-bar-pad sm:px-4">
         <button

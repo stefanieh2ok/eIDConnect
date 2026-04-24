@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { MessageCircle, Mic, X } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { VOTING_DATA } from '@/data/constants';
@@ -34,6 +35,8 @@ type ClaraDockProps = {
    * Post-Login-Produkt-Walkthrough: Chat ohne zweites Header-/Voice-Band (nur globale Pille).
    */
   walkthroughActive?: boolean;
+  /** Aktueller Walkthrough-Schritt (Kontext für Chat + reservierte Pille). */
+  walkthroughStep?: { id: string; label: string } | null;
   /**
    * Zusatzabstand nach oben, z. B. über der Walkthrough-Fußleiste (Zurück/Weiter),
    * damit die Pille nicht mit den Steuerknöpfen kollidiert.
@@ -56,6 +59,7 @@ type ClaraDockProps = {
 export default function ClaraDock({
   toolbarZClassName = 'z-[80]',
   walkthroughActive = false,
+  walkthroughStep = null,
   extraBottomOffset = '0px',
   preLoginVoicePhase = null,
   onAnredeVoiceChoice,
@@ -67,6 +71,7 @@ export default function ClaraDock({
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [externalPrompt, setExternalPrompt] = useState<string | null>(null);
   const [autoSend, setAutoSend] = useState(false);
+  const [walkthroughSlotEl, setWalkthroughSlotEl] = useState<HTMLElement | null>(null);
 
   // Globale Schnittstelle: andere Komponenten (z. B. ClaraInfoBox am Stimmzettel)
   // öffnen über ein CustomEvent den einen Clara-Chat – kein zweites Modal, kein Duplikat.
@@ -118,6 +123,20 @@ export default function ClaraDock({
     };
   }, [walkthroughActive, chatOpen, voiceOpen]);
 
+  useLayoutEffect(() => {
+    if (!walkthroughActive) {
+      setWalkthroughSlotEl(null);
+      return;
+    }
+    const pick = () => {
+      const el = document.getElementById('walkthrough-clara-slot');
+      setWalkthroughSlotEl((prev) => (prev === el ? prev : el));
+    };
+    pick();
+    const raf = requestAnimationFrame(pick);
+    return () => cancelAnimationFrame(raf);
+  }, [walkthroughActive, walkthroughStep?.id]);
+
   const currentCard = useMemo(() => {
     if (state.activeSection !== 'live') return null;
     const loc = state.activeLocation;
@@ -129,21 +148,25 @@ export default function ClaraDock({
   }, [state.activeSection, state.activeLocation, state.currentCardIndex]);
 
   const contextChipLabel = useMemo(() => {
+    if (walkthroughActive && walkthroughStep) {
+      return `Einführung · ${walkthroughStep.label}`;
+    }
     const sectionLbl = SECTION_LABEL[state.activeSection] ?? 'Demo';
     if (currentCard?.title) return `${sectionLbl} · ${currentCard.title}`;
     return sectionLbl;
-  }, [state.activeSection, currentCard]);
+  }, [walkthroughActive, walkthroughStep, state.activeSection, currentCard]);
 
   const [useContext, setUseContext] = useState(true);
 
   const initialPrompt = useMemo(() => {
+    if (walkthroughActive && walkthroughStep) return '';
     if (!useContext) return '';
     if (currentCard?.title) {
       return `Ich bin gerade bei der Abstimmung "${currentCard.title}". Erkläre mir sachlich und neutral, worum es geht, welche Pro- und Contra-Argumente es gibt, und verweise auf überprüfbare Quellen.`;
     }
     const sectionLbl = SECTION_LABEL[state.activeSection] ?? 'der Demo';
     return `Ich bin gerade im Bereich "${sectionLbl}". Gib mir einen kurzen, neutralen Überblick und nenne nur überprüfbare Fakten.`;
-  }, [useContext, currentCard, state.activeSection]);
+  }, [walkthroughActive, walkthroughStep, useContext, currentCard, state.activeSection]);
 
   // Vorbereiteter Tiefenanalyse-Prompt zur aktuellen Abstimmungskarte (nur wenn eine Karte aktiv ist).
   const deepDivePromptForCurrentCard = useMemo(() => {
@@ -170,53 +193,63 @@ export default function ClaraDock({
     setUseContext(false);
   };
 
-  return (
-    <>
+  const pillToolbar = (
+    <div
+      className="pointer-events-auto flex h-11 items-center gap-1 rounded-full border bg-white px-1.5 shadow-[0_10px_28px_rgba(76,29,149,0.28),0_2px_6px_rgba(15,23,42,0.10)] backdrop-blur-xl"
+      style={{
+        borderColor: 'rgba(124, 58, 237, 0.35)',
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(243,232,255,0.90) 100%)',
+      }}
+      role="toolbar"
+      aria-label="Clara – KI-Assistentin (neutral, keine Wahlempfehlung)"
+    >
+      <button
+        type="button"
+        onClick={() => setChatOpen(true)}
+        className="inline-flex h-9 items-center gap-2 rounded-full px-3 text-[12px] font-semibold text-[#4C1D95] transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+        aria-label="Clara-Chat öffnen"
+      >
+        <MessageCircle size={16} strokeWidth={2.2} aria-hidden="true" />
+        <span>Frag Clara</span>
+      </button>
+      <span className="mx-0.5 h-5 w-px bg-[#7C3AED]/25" aria-hidden="true" />
+      <button
+        type="button"
+        onClick={() => setVoiceOpen(true)}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#4C1D95] transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+        aria-label="Mit Clara sprechen (Voice)"
+        title="Mit Clara sprechen"
+      >
+        <Mic size={16} strokeWidth={2.2} aria-hidden="true" />
+      </button>
+    </div>
+  );
+
+  const pillInWalkthroughSlot =
+    walkthroughActive && walkthroughSlotEl
+      ? createPortal(
+          <div className="flex w-full justify-center py-0.5">{pillToolbar}</div>,
+          walkthroughSlotEl,
+        )
+      : null;
+
+  const pillFloating =
+    !walkthroughActive || !walkthroughSlotEl ? (
       <div
-        // Standard z-[80]: im Pre-Login z. B. z-[620] per Prop über Anrede-Overlay.
         className={`pointer-events-none absolute inset-x-0 flex justify-center ${toolbarZClassName}`}
         style={{
           bottom: `calc(0.75rem + ${extraBottomOffset} + env(safe-area-inset-bottom, 0px))`,
         }}
         aria-hidden={chatOpen || voiceOpen}
       >
-        <div
-          // Kraeftigerer Schatten + etwas satterer Hintergrund, damit die
-          // Pille auf hellem Section-Content (Wahlen-Cards, Meldungen-Liste,
-          // Kalender-Kacheln) verlaesslich auffaellt und nicht "verschwindet".
-          className="pointer-events-auto flex h-11 items-center gap-1 rounded-full border bg-white px-1.5 shadow-[0_10px_28px_rgba(76,29,149,0.28),0_2px_6px_rgba(15,23,42,0.10)] backdrop-blur-xl"
-          style={{
-            borderColor: 'rgba(124, 58, 237, 0.35)',
-            background:
-              'linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(243,232,255,0.90) 100%)',
-          }}
-          role="toolbar"
-          aria-label="Clara – KI-Assistentin (neutral, keine Wahlempfehlung)"
-        >
-          <button
-            type="button"
-            onClick={() => setChatOpen(true)}
-            className="inline-flex h-9 items-center gap-2 rounded-full px-3 text-[12px] font-semibold text-[#4C1D95] transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
-            aria-label="Clara-Chat öffnen"
-          >
-            <MessageCircle size={16} strokeWidth={2.2} aria-hidden="true" />
-            <span>Frag Clara</span>
-          </button>
-          <span
-            className="mx-0.5 h-5 w-px bg-[#7C3AED]/25"
-            aria-hidden="true"
-          />
-          <button
-            type="button"
-            onClick={() => setVoiceOpen(true)}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[#4C1D95] transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
-            aria-label="Mit Clara sprechen (Voice)"
-            title="Mit Clara sprechen"
-          >
-            <Mic size={16} strokeWidth={2.2} aria-hidden="true" />
-          </button>
-        </div>
+        {pillToolbar}
       </div>
+    ) : null;
+
+  return (
+    <>
+      {pillInWalkthroughSlot}
+      {pillFloating}
 
       {chatOpen && (
         <div
@@ -278,7 +311,7 @@ export default function ClaraDock({
                   <div className="truncate text-[11px] text-[#4C1D95]">{contextChipLabel}</div>
                 </div>
                 <div className="flex flex-shrink-0 items-center gap-1.5">
-                  {deepDivePromptForCurrentCard ? (
+                  {deepDivePromptForCurrentCard && !walkthroughActive ? (
                     <button
                       type="button"
                       onClick={startDeepDive}
@@ -306,12 +339,18 @@ export default function ClaraDock({
 
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <ClaraChat
+                key={walkthroughActive && walkthroughStep ? `wt-${walkthroughStep.id}` : 'clara-dock'}
                 level="bund"
                 onPointsEarned={() => {}}
                 selectedWahl={null}
                 initialPrompt={externalPrompt ?? initialPrompt}
                 autoSendInitialPrompt={autoSend}
                 embedVariant={walkthroughActive ? 'dockSheet' : 'default'}
+                introWalkthrough={
+                  walkthroughActive && walkthroughStep
+                    ? { stepId: walkthroughStep.id, stepLabel: walkthroughStep.label }
+                    : null
+                }
               />
             </div>
           </div>

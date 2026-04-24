@@ -18,3 +18,10 @@ export const CLARA_CHAT_WELCOME_LINES_SIE = [
 export function claraChatWelcomeContent(isFormal: boolean): string {
   return (isFormal ? CLARA_CHAT_WELCOME_LINES_SIE : CLARA_CHAT_WELCOME_LINES_DU).join('\n\n');
 }
+
+/** Chat aus der Clara-Pille während des Produkt-Walkthroughs — keine erneute Vorstellung. */
+export function claraChatIntroWalkthroughWelcome(isFormal: boolean, stepLabel: string): string {
+  return isFormal
+    ? `Frag mich etwas zu „${stepLabel}" in dieser Einführung. Kurze, neutrale Antworten zu Funktion und Bedienung — ohne erneute Vorstellung und ohne Wahlempfehlung.`
+    : `Frag mich etwas zu „${stepLabel}" in dieser Einführung. Kurze, neutrale Antworten zu Funktion und Bedienung — ohne erneute Vorstellung und ohne Wahlempfehlung.`;
+}

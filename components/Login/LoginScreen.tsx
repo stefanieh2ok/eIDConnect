@@ -16,7 +16,7 @@ import {
 import type { PreLoginPhase } from '@/lib/introPreLoginPhase';
 import { introEidLoginSpokenParts } from '@/lib/introSpokenTts';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
-import { useOptionalIntroOverlay } from '@/components/Intro/IntroOverlay';
+import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 
 const KIRKEL_STREET = 'Hauptstraße 1';
 const KIRKEL_PLZ = '66459';
@@ -73,14 +73,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true, preLoginP
     persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
   }, [state.residenceLocation, persistDemoFields]);
 
-  const intro = useOptionalIntroOverlay();
+  const introSpeak = useIntroSpeakApi();
   useEffect(() => {
-    if (state.anrede == null || !intro) return;
+    if (state.anrede == null || !introSpeak) return;
     if (preLoginPhase !== 'ok') {
       return;
     }
-    if (!intro.readAloud) {
-      intro.stopIntroSpeech();
+    if (!introSpeak.readAloud) {
+      introSpeak.stopIntroSpeech();
       return;
     }
     if (typeof document !== 'undefined' && document.querySelector('[role="dialog"][aria-label="Anrede wählen"]')) {
@@ -94,13 +94,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true, preLoginP
     }
     const parts = introEidLoginSpokenParts(du);
     const t = window.setTimeout(() => {
-      intro.speakIntroParts(parts, 'eid-demo-login');
+      introSpeak.speakIntroParts(parts, 'eid-demo-login');
     }, 450);
     return () => {
       window.clearTimeout(t);
-      intro.stopIntroSpeech();
+      introSpeak.stopIntroSpeech();
     };
-  }, [state.anrede, intro, intro?.readAloud, du, preLoginPhase]);
+  }, [state.anrede, introSpeak, introSpeak?.readAloud, du, preLoginPhase]);
 
   const applyEidKirkelDemo = () => {
     persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
