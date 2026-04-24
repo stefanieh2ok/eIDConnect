@@ -228,6 +228,15 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
             </div>
           </div>
 
+          {/*
+            Clara-Pille im Dokumentfluss (Portal-Ziel) — verhindert Überlappung mit „Weiter“,
+            die bei absolutem bottom + z-[620] je nach Viewport entstehen kann.
+          */}
+          <div
+            id="prelogin-clara-slot"
+            className="mt-3 flex min-h-[3.25rem] w-full shrink-0 items-center justify-center"
+          />
+
           <button
             type="button"
             disabled={pending == null}

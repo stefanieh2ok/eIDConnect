@@ -72,6 +72,11 @@ export default function ClaraDock({
   const [externalPrompt, setExternalPrompt] = useState<string | null>(null);
   const [autoSend, setAutoSend] = useState(false);
   const [walkthroughSlotEl, setWalkthroughSlotEl] = useState<HTMLElement | null>(null);
+  const [preloginSlotEl, setPreloginSlotEl] = useState<HTMLElement | null>(null);
+
+  const preloginWantsDock =
+    !walkthroughActive &&
+    (preLoginVoicePhase === 'anrede' || preLoginVoicePhase === 'entry');
 
   // Globale Schnittstelle: andere Komponenten (z. B. ClaraInfoBox am Stimmzettel)
   // öffnen über ein CustomEvent den einen Clara-Chat – kein zweites Modal, kein Duplikat.
@@ -136,6 +141,20 @@ export default function ClaraDock({
     const raf = requestAnimationFrame(pick);
     return () => cancelAnimationFrame(raf);
   }, [walkthroughActive, walkthroughStep?.id]);
+
+  useLayoutEffect(() => {
+    if (!preloginWantsDock) {
+      setPreloginSlotEl(null);
+      return;
+    }
+    const pick = () => {
+      const el = document.getElementById('prelogin-clara-slot');
+      setPreloginSlotEl((prev) => (prev === el ? prev : el));
+    };
+    pick();
+    const raf = requestAnimationFrame(pick);
+    return () => cancelAnimationFrame(raf);
+  }, [preloginWantsDock, preLoginVoicePhase]);
 
   const currentCard = useMemo(() => {
     if (state.activeSection !== 'live') return null;
@@ -227,16 +246,28 @@ export default function ClaraDock({
     </div>
   );
 
+  const dockedWalkthrough = Boolean(walkthroughActive && walkthroughSlotEl);
+  const dockedPrelogin = Boolean(preloginWantsDock && preloginSlotEl);
+
   const pillInWalkthroughSlot =
-    walkthroughActive && walkthroughSlotEl
+    dockedWalkthrough && walkthroughSlotEl
       ? createPortal(
           <div className="flex w-full justify-center py-1">{pillToolbar}</div>,
           walkthroughSlotEl,
         )
       : null;
 
+  const pillInPreloginSlot =
+    dockedPrelogin && preloginSlotEl
+      ? createPortal(
+          <div className="flex w-full justify-center py-0.5">{pillToolbar}</div>,
+          preloginSlotEl,
+        )
+      : null;
+
+  /** Anrede/Einstieg: nur eingebetteter Slot, nie schwebend — vermeidet Überlappung mit Primär-CTA. */
   const pillFloating =
-    !walkthroughActive || !walkthroughSlotEl ? (
+    !preloginWantsDock && (!walkthroughActive || !walkthroughSlotEl) ? (
       <div
         className={`pointer-events-none absolute inset-x-0 flex justify-center ${toolbarZClassName}`}
         style={{
@@ -251,6 +282,7 @@ export default function ClaraDock({
   return (
     <>
       {pillInWalkthroughSlot}
+      {pillInPreloginSlot}
       {pillFloating}
 
       {chatOpen && (

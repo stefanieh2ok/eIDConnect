@@ -77,6 +77,10 @@ export function IntroEntryBranch({
           />
         </div>
         <div className="intro-entry-bottom-room flex flex-col gap-2 px-4 pt-2 sm:px-6">
+          <div
+            id="prelogin-clara-slot"
+            className="flex min-h-[3.25rem] w-full shrink-0 items-center justify-center py-0.5"
+          />
           <button
             type="button"
             onClick={onStart}
