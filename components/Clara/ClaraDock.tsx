@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MessageCircle, Mic, X } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
@@ -8,6 +8,9 @@ import { VOTING_DATA } from '@/data/constants';
 import ClaraChat from '@/components/Clara/ClaraChat';
 import ClaraVoiceInterface from '@/components/Clara/ClaraVoiceInterface';
 import type { PreLoginVoicePhase } from '@/components/Clara/ClaraVoiceInterface';
+import { useClaraVoice } from '@/hooks/useClaraVoice';
+import { ClaraAI } from '@/services/claraAI';
+import { getVoiceOpenPromptAndDisplay } from '@/lib/claraVoiceOpenPrompts';
 
 /**
  * Globaler "Clara-Dock": schlanke, glasige Pille am unteren Rand der App.
@@ -67,8 +70,11 @@ export default function ClaraDock({
   overlayPosition = 'absolute',
 }: ClaraDockProps) {
   const { state } = useApp();
+  const { speak: speakVoice } = useClaraVoice();
   const [chatOpen, setChatOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
+  const [voiceUiNonce, setVoiceUiNonce] = useState(0);
+  const [voiceOpeningSeed, setVoiceOpeningSeed] = useState<string | null>(null);
   const [externalPrompt, setExternalPrompt] = useState<string | null>(null);
   const [autoSend, setAutoSend] = useState(false);
   const [walkthroughSlotEl, setWalkthroughSlotEl] = useState<HTMLElement | null>(null);
@@ -77,6 +83,35 @@ export default function ClaraDock({
   const preloginWantsDock =
     !walkthroughActive &&
     (preLoginVoicePhase === 'anrede' || preLoginVoicePhase === 'entry');
+
+  const claraAiForVoice = useMemo(
+    () =>
+      new ClaraAI(
+        state.preferences,
+        state.consentClaraPersonalization,
+        state.anrede === 'sie' ? 'sie' : 'du',
+      ),
+    [state.preferences, state.consentClaraPersonalization, state.anrede],
+  );
+
+  /** iOS Safari: TTS nur zuverlässig, wenn `speak` im selben Tap wie „Mic“ läuft — nicht in useEffect. */
+  const openVoiceSession = useCallback(() => {
+    const loggedInGreeting =
+      preLoginVoicePhase == null ? claraAiForVoice.generateVoiceGreeting() : '';
+    const { speakText, conversationLine } = getVoiceOpenPromptAndDisplay({
+      preLoginVoicePhase,
+      addressMode: state.anrede === 'sie' ? 'sie' : 'du',
+      loggedInGreetingPlain: loggedInGreeting,
+    });
+    speakVoice(speakText);
+    setVoiceOpeningSeed(conversationLine);
+    setVoiceUiNonce((n) => n + 1);
+    setVoiceOpen(true);
+  }, [speakVoice, preLoginVoicePhase, state.anrede, claraAiForVoice]);
+
+  useEffect(() => {
+    if (!voiceOpen) setVoiceOpeningSeed(null);
+  }, [voiceOpen]);
 
   // Globale Schnittstelle: andere Komponenten (z. B. ClaraInfoBox am Stimmzettel)
   // öffnen über ein CustomEvent den einen Clara-Chat – kein zweites Modal, kein Duplikat.
@@ -92,7 +127,7 @@ export default function ClaraDock({
       setChatOpen(true);
     };
     const onVoice = () => {
-      setVoiceOpen(true);
+      openVoiceSession();
     };
     window.addEventListener('clara:open-chat', onOpen as EventListener);
     window.addEventListener('clara:open-voice', onVoice as EventListener);
@@ -100,7 +135,7 @@ export default function ClaraDock({
       window.removeEventListener('clara:open-chat', onOpen as EventListener);
       window.removeEventListener('clara:open-voice', onVoice as EventListener);
     };
-  }, []);
+  }, [openVoiceSession]);
 
   useEffect(() => {
     if (!chatOpen) {
@@ -236,7 +271,7 @@ export default function ClaraDock({
       <span className="h-3.5 w-px shrink-0 bg-[#7C3AED]/25" aria-hidden="true" />
       <button
         type="button"
-        onClick={() => setVoiceOpen(true)}
+        onClick={() => openVoiceSession()}
         className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[#4C1D95] transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
         aria-label="Mit Clara sprechen (Voice)"
         title="Mit Clara sprechen"
@@ -399,6 +434,8 @@ export default function ClaraDock({
         onAnredeVoiceChoice={onAnredeVoiceChoice}
         onIntroEntryVoiceChoice={onIntroEntryVoiceChoice}
         backdropPosition={overlayPosition}
+        voiceOpenNonce={voiceUiNonce}
+        openingSeedLine={voiceOpeningSeed}
         onSwitchToChat={() => {
           setVoiceOpen(false);
           setChatOpen(true);

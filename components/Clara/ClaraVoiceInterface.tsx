@@ -11,27 +11,18 @@ import {
   matchAnredeFromSpeech,
   matchIntroEntryBranchFromSpeech,
 } from '@/lib/introVoiceIntents';
+import {
+  ANREDE_VOICE_PROMPT,
+  EID_VOICE_PROMPT_DU,
+  EID_VOICE_PROMPT_SIE,
+  ENTRY_VOICE_PROMPT_DU,
+  ENTRY_VOICE_PROMPT_SIE,
+} from '@/lib/claraVoiceOpenPrompts';
 
 const LAVENDER = { bg: '#F5F0FF', border: '#E6E6FA', text: '#6B5B95', header: '#9370DB', bubble: '#EDE8F5' };
 
 /** Pre-Login: kein App-Standard-Gruß; Werte siehe ClaraDock / BuergerApp. */
 export type PreLoginVoicePhase = 'anrede' | 'entry' | 'eid' | null;
-
-/** Kein vollständiger Begrüßungstext — nur Anrede-Wahl (Pre-Login). */
-const ANREDE_VOICE_PROMPT =
-  'Sag klar „Du" oder „Sie", je nachdem, wie du angesprochen werden möchtest. Oder wähle die Buttons im Fenster.';
-
-const ENTRY_VOICE_PROMPT_DU =
-  'Möchtest du die Einführung starten, oder direkt in die App? Sag zum Beispiel: Einführung starten, oder: direkt zur App. Oder nutz die Tasten oben.';
-
-const ENTRY_VOICE_PROMPT_SIE =
-  'Möchten Sie die Einführung starten, oder direkt in die App? Sagen Sie zum Beispiel: Einführung starten, oder: direkt zur App. Oder nutzen Sie die Tasten oben.';
-
-const EID_VOICE_PROMPT_DU =
-  'Im eID-Schritt kannst du Fragen dazu stellen, oder im Fenster mit dem Button fortfahren. Die ausführliche eID-Erläuterung findest du in der laufenden Einführung oben.';
-
-const EID_VOICE_PROMPT_SIE =
-  'Im eID-Schritt können Sie Fragen dazu stellen, oder im Fenster mit dem Button fortfahren. Die ausführliche eID-Erläuterung finden Sie in der laufenden Einführung oben.';
 
 interface ClaraVoiceInterfaceProps {
   isOpen: boolean;
@@ -43,6 +34,12 @@ interface ClaraVoiceInterfaceProps {
   onIntroEntryVoiceChoice?: (choice: 'start' | 'direct') => void;
   /** Optionaler Fallback: wenn Voice nicht funktioniert, in den Text-Chat wechseln. */
   onSwitchToChat?: () => void;
+  /**
+   * Begrüßung wird in ClaraDock per User-Geste gesprochen (iOS); hier nur Chat-Zeile setzen.
+   * `voiceOpenNonce` pro Öffnung erhöhen, damit der Effekt zuverlässig feuert.
+   */
+  voiceOpenNonce?: number;
+  openingSeedLine?: string | null;
   /**
    * `absolute`: Overlay an den nächsten `relative`-Vorfahren (z. B. App-/Device-Frame) — vermeidet
    * Viewport-Sprünge im Walkthrough. `fixed`: volles Browser-Fenster (z. B. LiveSection).
@@ -67,6 +64,8 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
   onIntroEntryVoiceChoice,
   onSwitchToChat,
   backdropPosition = 'fixed',
+  voiceOpenNonce = 0,
+  openingSeedLine = null,
 }) => {
   const { state } = useApp();
   const [conversation, setConversation] = useState<string[]>([]);
@@ -95,29 +94,13 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
     }
   }, [isOpen, preLoginVoicePhase]);
 
-  useEffect(() => {
-    if (isOpen && conversation.length === 0) {
-      if (preLoginVoicePhase === 'anrede') {
-        setConversation([`Clara: ${ANREDE_VOICE_PROMPT}`]);
-        speak(ANREDE_VOICE_PROMPT);
-        return;
-      }
-      if (preLoginVoicePhase === 'entry') {
-        const p = addressMode === 'sie' ? ENTRY_VOICE_PROMPT_SIE : ENTRY_VOICE_PROMPT_DU;
-        setConversation([`Clara: ${p}`]);
-        speak(p);
-        return;
-      }
-      if (preLoginVoicePhase === 'eid') {
-        setConversation([`Clara: ${eidVoicePrompt}`]);
-        speak(eidVoicePrompt);
-        return;
-      }
-      const greeting = claraAI.generateVoiceGreeting();
-      setConversation([greeting]);
-      speak(greeting);
+  /** Erste Zeile aus Parent (Dock): TTS läuft dort synchron zur Mic-Geste — wichtig für iOS Safari. */
+  useLayoutEffect(() => {
+    if (!isOpen || voiceOpenNonce < 1) return;
+    if (openingSeedLine != null && openingSeedLine.trim() !== '') {
+      setConversation([openingSeedLine]);
     }
-  }, [isOpen, conversation.length, preLoginVoicePhase, addressMode, eidVoicePrompt, claraAI, speak]);
+  }, [isOpen, voiceOpenNonce, openingSeedLine]);
 
   useEffect(() => {
     if (voiceState.transcript) {

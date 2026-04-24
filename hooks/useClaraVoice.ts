@@ -19,38 +19,20 @@ function pickGermanVoice(
   );
 }
 
-function withVoicesReady(run: (voices: SpeechSynthesisVoice[]) => void) {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-  const synth = window.speechSynthesis;
-  const voices = synth.getVoices();
-  if (voices.length > 0) {
-    run(voices);
-    return;
-  }
-  let done = false;
-  const finish = (v: SpeechSynthesisVoice[]) => {
-    if (done) return;
-    done = true;
-    run(v);
-  };
-  const onChange = () => {
-    const v = synth.getVoices();
-    if (v.length) {
-      synth.removeEventListener('voiceschanged', onChange);
-      if (failsafe != null) clearTimeout(failsafe);
-      finish(v);
-    }
-  };
-  synth.addEventListener('voiceschanged', onChange);
-  const failsafe = window.setTimeout(() => {
-    synth.removeEventListener('voiceschanged', onChange);
-    finish(synth.getVoices());
-  }, 2000);
+/**
+ * Stimmen synchron holen (wichtig für iOS Safari: `speak` muss in derselben
+ * User-Geste wie `getVoices`/Queue laufen — `voiceschanged` + Timeout kommt zu spät).
+ */
+function voicesForUtteranceNow(synth: SpeechSynthesis): SpeechSynthesisVoice[] {
+  let v = synth.getVoices();
+  if (v.length) return [...v];
   try {
     void synth.getVoices();
   } catch {
-    // ignore
+    /* ignore */
   }
+  v = synth.getVoices();
+  return [...v];
 }
 
 export const useClaraVoice = () => {
@@ -65,9 +47,16 @@ export const useClaraVoice = () => {
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
-    // Initialize speech recognition
-    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
-      const recognition = new (window as unknown as { webkitSpeechRecognition: new () => SpeechRecognition }).webkitSpeechRecognition();
+    // Initialize speech recognition (iOS 14.5+ oft `SpeechRecognition`, Desktop meist `webkitSpeechRecognition`)
+    if (typeof window === 'undefined') return;
+    const RecognitionCtor =
+      'webkitSpeechRecognition' in window
+        ? (window as unknown as { webkitSpeechRecognition: new () => SpeechRecognition }).webkitSpeechRecognition
+        : 'SpeechRecognition' in window
+          ? (window as unknown as { SpeechRecognition: new () => SpeechRecognition }).SpeechRecognition
+          : null;
+    if (RecognitionCtor) {
+      const recognition = new RecognitionCtor();
       recognition.continuous = false;
       recognition.interimResults = true;
       recognition.lang = 'de-DE';
@@ -161,13 +150,11 @@ export const useClaraVoice = () => {
       synthesisRef.current = utterance;
       try {
         synth.speak(utterance);
-        queueMicrotask(() => {
-          try {
-            if (synth.paused) synth.resume();
-          } catch {
-            // ignore
-          }
-        });
+        try {
+          if (synth.paused) synth.resume();
+        } catch {
+          /* iOS/WKWebView */
+        }
       } catch (e) {
         setVoiceState((prev) => ({
           ...prev,
@@ -177,7 +164,7 @@ export const useClaraVoice = () => {
       }
     };
 
-    withVoicesReady(go);
+    go(voicesForUtteranceNow(synth));
   }, []);
 
   /**
@@ -197,9 +184,9 @@ export const useClaraVoice = () => {
     const synth = window.speechSynthesis;
     synth.cancel();
 
-    withVoicesReady((voices) => {
-      const de = pickGermanVoice(voices);
-      cleaned.forEach((text, idx) => {
+    const voices = voicesForUtteranceNow(synth);
+    const de = pickGermanVoice(voices);
+    cleaned.forEach((text, idx) => {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'de-DE';
         utterance.rate = 0.86;
@@ -245,7 +232,6 @@ export const useClaraVoice = () => {
           }));
         }
       });
-    });
   }, []);
 
   const stopSpeaking = useCallback(() => {
