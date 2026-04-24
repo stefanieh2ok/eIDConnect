@@ -6,6 +6,7 @@ import { useApp } from '@/context/AppContext';
 import { VOTING_DATA } from '@/data/constants';
 import ClaraChat from '@/components/Clara/ClaraChat';
 import ClaraVoiceInterface from '@/components/Clara/ClaraVoiceInterface';
+import type { PreLoginVoicePhase } from '@/components/Clara/ClaraVoiceInterface';
 
 /**
  * Globaler "Clara-Dock": schlanke, glasige Pille am unteren Rand der App.
@@ -24,7 +25,38 @@ const SECTION_LABEL: Record<string, string> = {
   news: 'Meldungen',
 };
 
-export default function ClaraDock() {
+type ClaraDockProps = {
+  /**
+   * Toolbar: über Intro-Overlays (z. B. Anrede z-[600]) — im eingeloggten Screen z-[80].
+   */
+  toolbarZClassName?: string;
+  /**
+   * Zusatzabstand nach oben, z. B. über der Walkthrough-Fußleiste (Zurück/Weiter),
+   * damit die Pille nicht mit den Steuerknöpfen kollidiert.
+   */
+  extraBottomOffset?: string;
+  /**
+   * Pre-Login: kein `generateVoiceGreeting` — nur schritt-spezifische Prompts.
+   * `null` = eingeloggte App: normale Begrüßung.
+   */
+  preLoginVoicePhase?: PreLoginVoicePhase;
+  onAnredeVoiceChoice?: (choice: 'du' | 'sie') => void;
+  onIntroEntryVoiceChoice?: (choice: 'start' | 'direct') => void;
+  /**
+   * Chat- und Voice-Backdrop: `fixed` am Viewport (oft weniger Scroll-/Layout-Sprung mit Tastatur,
+   * z. B. Post-Login-Walkthrough im Vollbild). `absolute` = am nächsten `relative`-Vorfahren (Device-Frame).
+   */
+  overlayPosition?: 'absolute' | 'fixed';
+};
+
+export default function ClaraDock({
+  toolbarZClassName = 'z-[80]',
+  extraBottomOffset = '0px',
+  preLoginVoicePhase = null,
+  onAnredeVoiceChoice,
+  onIntroEntryVoiceChoice,
+  overlayPosition = 'absolute',
+}: ClaraDockProps) {
   const { state } = useApp();
   const [chatOpen, setChatOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
@@ -118,13 +150,10 @@ export default function ClaraDock() {
   return (
     <>
       <div
-        // z-[80]: liegt ueber allem Section-Content (Wahlen/Meldungen/Kalender
-        // haben Cards + Badges, die frueher mit z-[40] optisch konkurriert
-        // haben), aber unter globalen Modals (Filter z-[90], Chat z-[130],
-        // app-overlay-root z-[120], Intro z-[500]).
-        className="pointer-events-none absolute inset-x-0 z-[80] flex justify-center"
+        // Standard z-[80]: im Pre-Login z. B. z-[620] per Prop über Anrede-Overlay.
+        className={`pointer-events-none absolute inset-x-0 flex justify-center ${toolbarZClassName}`}
         style={{
-          bottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))',
+          bottom: `calc(0.75rem + ${extraBottomOffset} + env(safe-area-inset-bottom, 0px))`,
         }}
         aria-hidden={chatOpen || voiceOpen}
       >
@@ -168,15 +197,14 @@ export default function ClaraDock() {
 
       {chatOpen && (
         <div
-          className="absolute inset-0 z-[130] flex items-end justify-center bg-black/45 p-2 sm:p-4"
+          className="absolute inset-0 z-[800] flex items-end justify-center overscroll-contain bg-black/45 p-2 sm:p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Clara – KI-Assistentin"
           onClick={() => setChatOpen(false)}
         >
           <div
-            className="flex w-full max-w-[420px] flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl"
-            style={{ maxHeight: '88%' }}
+            className="flex h-full min-h-0 max-h-[min(92dvh,100%)] w-full max-w-[420px] flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:max-h-[88%]"
             onClick={(e) => e.stopPropagation()}
           >
             <div
@@ -253,7 +281,7 @@ export default function ClaraDock() {
               </div>
             ) : null}
 
-            <div className="flex-1 overflow-hidden">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <ClaraChat
                 level="bund"
                 onPointsEarned={() => {}}
@@ -270,6 +298,10 @@ export default function ClaraDock() {
         isOpen={voiceOpen}
         onClose={() => setVoiceOpen(false)}
         currentCard={currentCard}
+        preLoginVoicePhase={preLoginVoicePhase}
+        onAnredeVoiceChoice={onAnredeVoiceChoice}
+        onIntroEntryVoiceChoice={onIntroEntryVoiceChoice}
+        backdropPosition={overlayPosition}
         onSwitchToChat={() => {
           setVoiceOpen(false);
           setChatOpen(true);

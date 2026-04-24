@@ -38,25 +38,16 @@ export function IphoneFrame({
       }
     >
       <div
-        className="app-device-frame relative flex w-full flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-[0_28px_80px_rgba(0,0,0,0.55)]"
+        className="app-device-frame relative flex w-full flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-none"
         style={{
           width: `min(${DEVICE_WIDTH_PX}px, calc(100% - 0.75rem))`,
           aspectRatio: '393 / 852',
           maxHeight: 'min(852px, calc(100% - 0.75rem))',
-          background:
-            // Light „tech“ base, aber nicht so grell, damit Content-Kontrast stimmt.
-            'radial-gradient(ellipse at 50% 0%, rgba(0,85,164,0.30) 0%, rgba(10,61,107,0.18) 35%, rgba(225,235,250,0.62) 70%, rgba(255,255,255,0.94) 100%)',
+          // Ruhiger App-Flächen-Ton, kein heller Insel-Fleck in der Mitte
+          background: '#F7F9FC',
         }}
       >
-        {/* Subtle glass overlay inside the device */}
-        <div
-          className="app-device-glass pointer-events-none absolute inset-0 opacity-65"
-          style={{
-            background:
-              // Mehr „frosted“ als „Farbverlauf“: verteilt Licht, aber lässt Karten lesbarer.
-              'linear-gradient(180deg, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.14) 38%, rgba(0,51,102,0.05) 100%)',
-          }}
-        />
+        {/* Ehem. starker Glas-Overlay: wirkte als grauer/weißer Nebel; entfernt für sauberen Look. */}
 
         {/* Dynamic Island */}
         <div className="app-device-notch pointer-events-none absolute left-1/2 top-3 z-20 h-7 w-[126px] -translate-x-1/2 rounded-full bg-black/90 ring-1 ring-white/10" />
@@ -65,7 +56,7 @@ export function IphoneFrame({
         </div>
         {/* Home-Indikator */}
         <div className="app-device-home relative z-10 flex flex-shrink-0 justify-center pb-2 pt-1">
-          <div className="h-1 w-[134px] rounded-full bg-white/20" />
+          <div className="h-1 w-[134px] rounded-full bg-black/12" />
         </div>
       </div>
     </div>

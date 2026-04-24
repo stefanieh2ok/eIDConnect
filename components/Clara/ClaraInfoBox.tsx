@@ -109,8 +109,8 @@ const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
               backgroundColor: isSpeaking ? '#ef4444' : LAVENDER.bubble,
               color: isSpeaking ? '#fff' : LAVENDER.text,
             }}
-            title={isSpeaking ? 'Vorlesen stoppen' : 'Einordnung vorlesen'}
-            aria-label={isSpeaking ? 'Vorlesen stoppen' : 'Einordnung vorlesen'}
+            title={isSpeaking ? 'Wiedergabe beenden' : 'Einordnung anhören'}
+            aria-label={isSpeaking ? 'Wiedergabe beenden' : 'Einordnung anhören'}
           >
             {isSpeaking ? <VolumeX size={14} /> : <Volume2 size={14} />}
           </button>

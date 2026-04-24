@@ -39,8 +39,8 @@ export default function PolitikBarometerPanel({ du, variant = 'default' }: Props
 
   const sliderTrackStyle = (value: number) =>
     ({
-      background: `linear-gradient(to right, #1e40af 0%, #1e40af ${value}%, #dbe4f0 ${value}%, #dbe4f0 100%)`,
-      accentColor: '#1e40af',
+      background: `linear-gradient(to right, #0c2d5c 0%, #0c4a8c ${value}%, #c5d4e8 ${value}%, #e2e8f0 100%)`,
+      accentColor: '#0c2d5c',
     }) as const;
 
   return (
@@ -157,7 +157,7 @@ export default function PolitikBarometerPanel({ du, variant = 'default' }: Props
               onChange={(e) => handlePreferenceChange(key as keyof UserPreferences, Number(e.target.value))}
               disabled={!state.consentClaraPersonalization}
               aria-label={`${name} Priorität`}
-              className="w-full h-2 rounded-full"
+              className={`politik-barometer-range w-full max-w-full rounded-full ${compact ? 'h-2.5' : 'h-3'}`}
               style={{
                 ...sliderTrackStyle(state.preferences[key as keyof UserPreferences]),
                 opacity: state.consentClaraPersonalization ? 1 : 0.55,

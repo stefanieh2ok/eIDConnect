@@ -86,10 +86,16 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
   const [isSafeMode, setIsSafeMode] = useState(false);
   const [showCompliance, setShowCompliance] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
   const lastAutoPromptRef = useRef<string>('');
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const sc = messagesScrollRef.current;
+    if (sc) {
+      sc.scrollTo({ top: sc.scrollHeight, behavior: 'smooth' });
+      return;
+    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
 
   useEffect(() => {
@@ -287,7 +293,10 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
   const compactQuickQuestions = quickQuestions.slice(0, 5);
 
   return (
-    <div className="rounded-xl shadow-xl border-2 flex flex-col overflow-hidden min-h-0 h-full max-h-[82vh]" style={{ borderColor: '#8B5CF6', boxShadow: '0 8px 32px rgba(124, 58, 237, 0.2)' }}>
+    <div
+      className="flex h-full min-h-0 max-h-full w-full flex-col overflow-hidden rounded-xl border-2 shadow-xl"
+      style={{ borderColor: '#8B5CF6', boxShadow: '0 8px 32px rgba(124, 58, 237, 0.2)' }}
+    >
       {/* Header – Neutralität + Quellen, kein Beraten */}
       <div
         className="p-2.5 rounded-t-xl text-white border-b border-white/20 flex-shrink-0"
@@ -323,7 +332,11 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
       </div>
 
       {/* Messages – scrollbar, nicht abgeschnitten */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 space-y-3" style={{ background: LAVENDER.bg }}>
+      <div
+        ref={messagesScrollRef}
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 space-y-3"
+        style={{ background: LAVENDER.bg }}
+      >
         {messages.map((message) => (
           <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] min-w-0 rounded-2xl px-4 py-2 break-words ${message.type === 'user' ? 'bg-gray-200 text-gray-900' : ''}`} style={message.type === 'clara' ? { background: LAVENDER.bubble, color: LAVENDER.text, border: '1px solid rgba(139, 92, 246, 0.2)' } : {}}>
@@ -394,6 +407,11 @@ const ClaraChat: React.FC<ClaraProps> = ({ level, onPointsEarned, selectedWahl, 
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="sentences"
+            spellCheck={false}
+            autoFocus={false}
             placeholder={t('Frag Clara: Was sagt die SPD zum Thema Wohnen?', 'Fragen Sie Clara: Was sagt die SPD zum Thema Wohnen?')}
             className="flex-1 p-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2"
             style={{ borderColor: LAVENDER.border, background: LAVENDER.bg }}

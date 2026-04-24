@@ -1,32 +1,39 @@
 'use client';
 
 /**
- * Single Source of Truth für die Produkteinführung (Kanal + Vorlesen).
- *
- * – Eine Intro-Logik: visuelle Schritte; optional dieselbe Führung per Vorlesen
- *   (Browser-Sprachsynthese über useClaraVoice, dieselbe Stimme wie im Clara-Dock).
- * – Kein separater „Clara-Intro-Modus“: nur der Schalter „Vorlesen aktivieren“.
+ * Einführung: eine Clarastimme (opt-in) + geteilte TTS-Engine. Kein paralleles System,
+ * doppelter Start wird über einen Narration-Key pro Folie vermieden.
  */
 
 import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { useClaraVoice } from '@/hooks/useClaraVoice';
 
-const SESSION_READ_ALOUD_KEY = 'eidconnect_intro_vorlesen_v1';
+const SESSION_AUDIO = 'eidconnect_intro_audio_v1';
 
 export type IntroOverlayContextValue = {
-  /** „Vorlesen aktivieren“ – Standard AUS. */
+  /** Standard an; Nutzer:innen können stummschalten (`sessionStorage` = `0`). */
   readAloud: boolean;
   setReadAloud: (v: boolean) => void;
-  /** Spricht Fließtext (nur wenn readAloud true). */
-  speakIntro: (plainText: string) => void;
+  /** TTS (Intro / Claras Stimme) spielt gerade ab — für Audio-Status-UI. */
+  isIntroSpeaking: boolean;
+  /**
+   * @param key optional stabil pro Folie, verhindert doppelte Abgabe trotz Strict Mode/Remount
+   */
+  speakIntro: (plainText: string, key?: string) => void;
+  /**
+   * Wie `speakIntro`, aber mit kurzen, getrennten Sätzen für TTS (Pause zwischen Teilen).
+   */
+  speakIntroParts: (plainParts: string[], key?: string) => void;
   stopIntroSpeech: () => void;
 };
 
@@ -37,13 +44,18 @@ export function useOptionalIntroOverlay() {
 }
 
 function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
-  const { speak, stopSpeaking } = useClaraVoice();
-  const [readAloud, setReadAloudState] = useState(false);
+  const { speak, speakParts, stopSpeaking, voiceState } = useClaraVoice();
+  const isIntroSpeaking = voiceState.isSpeaking;
+  const [readAloud, setReadAloudState] = useState(true);
+  const lastNarrationKeyRef = useRef<string | null>(null);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
     try {
-      if (sessionStorage.getItem(SESSION_READ_ALOUD_KEY) === '1') {
+      const s = sessionStorage.getItem(SESSION_AUDIO);
+      if (s === '0') {
+        setReadAloudState(false);
+      } else {
         setReadAloudState(true);
       }
     } catch {
@@ -57,34 +69,80 @@ function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
     } catch {
       // ignore
     }
+    // Sonst blockiert derselbe `key` ein erneutes `speakIntroParts` (z. B. eID nach vorherigem Stopp).
+    lastNarrationKeyRef.current = null;
   }, [stopSpeaking]);
 
   const speakIntro = useCallback(
-    (raw: string) => {
+    (raw: string, key?: string) => {
       if (!readAloud) return;
+      if (key != null && key !== '' && lastNarrationKeyRef.current === key) {
+        return;
+      }
+      if (key != null && key !== '') {
+        lastNarrationKeyRef.current = key;
+      }
       const text = raw.replace(/\s+/g, ' ').replace(/[*#_`]/g, '').trim();
       if (text.length < 2) return;
-      speak(text);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => speak(text));
+      });
     },
     [readAloud, speak],
+  );
+
+  const speakIntroParts = useCallback(
+    (plainParts: string[], key?: string) => {
+      if (!readAloud) return;
+      if (key != null && key !== '' && lastNarrationKeyRef.current === key) {
+        return;
+      }
+      if (key != null && key !== '') {
+        lastNarrationKeyRef.current = key;
+      }
+      const parts = plainParts
+        .map((p) => p.replace(/\s+/g, ' ').replace(/[*#_`]/g, '').trim())
+        .filter((p) => p.length >= 2);
+      if (parts.length < 1) return;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (parts.length === 1) {
+            speak(parts[0]!);
+          } else {
+            speakParts(parts);
+          }
+        });
+      });
+    },
+    [readAloud, speak, speakParts],
   );
 
   const setReadAloud = useCallback(
     (v: boolean) => {
       setReadAloudState(v);
       try {
-        sessionStorage.setItem(SESSION_READ_ALOUD_KEY, v ? '1' : '0');
+        sessionStorage.setItem(SESSION_AUDIO, v ? '1' : '0');
       } catch {
         // ignore
       }
-      if (!v) stopIntroSpeech();
+      lastNarrationKeyRef.current = null;
+      if (!v) {
+        stopIntroSpeech();
+      }
     },
     [stopIntroSpeech],
   );
 
   const value = useMemo(
-    () => ({ readAloud, setReadAloud, speakIntro, stopIntroSpeech }),
-    [readAloud, setReadAloud, speakIntro, stopIntroSpeech],
+    () => ({
+      readAloud,
+      setReadAloud,
+      isIntroSpeaking,
+      speakIntro,
+      speakIntroParts,
+      stopIntroSpeech,
+    }),
+    [readAloud, setReadAloud, isIntroSpeaking, speakIntro, speakIntroParts, stopIntroSpeech],
   );
 
   return <IntroOverlayContext.Provider value={value}>{children}</IntroOverlayContext.Provider>;
@@ -93,9 +151,9 @@ function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
 export const IntroOverlay = IntroOverlayRoot;
 export default IntroOverlayRoot;
 
-/** Optional: nur sichtbar, wenn <IntroOverlay> den Baum umschließt. */
-type ReadAloudToggleProps = { /** Auf dunklem Intro-Hintergrund (z. B. oberer Balken) */ theme?: 'light' | 'dark' };
+type ReadAloudToggleProps = { theme?: 'light' | 'dark' };
 
+/** Kompaktes Text-Label für Vorlesen (Legacy; Header nutzt bevorzugt `IntroAudioStatusButton`). */
 export function IntroReadAloudToggle({ theme = 'light' }: ReadAloudToggleProps = {}) {
   const ctx = useOptionalIntroOverlay();
   if (!ctx) return null;
@@ -112,8 +170,8 @@ export function IntroReadAloudToggle({ theme = 'light' }: ReadAloudToggleProps =
       onClick={() => setReadAloud(!readAloud)}
       className={
         onDark
-          ? 'inline-flex min-w-0 max-w-[10.5rem] items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2 py-1 text-left text-[10px] font-semibold text-white/95 shadow-sm backdrop-blur-sm transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/50 sm:max-w-none sm:text-[11px]'
-          : 'inline-flex min-w-0 max-w-[10.5rem] items-center gap-1.5 rounded-lg border border-[#0F172A]/12 bg-white/95 px-2 py-1 text-left text-[10px] font-semibold text-[#1E293B] shadow-sm transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#003366] sm:max-w-none sm:text-[11px]'
+          ? 'inline-flex min-w-0 max-w-[9.5rem] items-center gap-1.5 rounded-lg border border-white/20 bg-white/12 px-2 py-1 text-left text-[10px] font-semibold text-white/95 shadow-sm transition hover:bg-white/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/50 sm:max-w-none sm:text-[11px]'
+          : 'inline-flex min-w-0 max-w-[9.5rem] items-center gap-1.5 rounded-lg border border-[#0F172A]/12 bg-white/95 px-2 py-1 text-left text-[10px] font-semibold text-[#1E293B] shadow-sm transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#003366] sm:max-w-none sm:text-[11px]'
       }
     >
       {readAloud ? (
@@ -124,6 +182,97 @@ export function IntroReadAloudToggle({ theme = 'light' }: ReadAloudToggleProps =
       <span className="min-w-0 leading-tight [overflow-wrap:anywhere]">
         {readAloud ? 'Vorlesen deaktivieren' : 'Vorlesen aktivieren'}
       </span>
+    </button>
+  );
+}
+
+type IntroAudioStatusTheme = 'dark' | 'light';
+
+/**
+ * Dünnes Lautsprecher-Icon: AN (Volume2) / AUS (VolumeX) — gleiche Session-Logik wie `readAloud`.
+ * Kurz aufleuchtender Rand, wenn TTS startet (siehe `.intro-audio-status-pulse` in globals.css).
+ */
+export function IntroAudioStatusButton({ theme = 'dark' }: { theme?: IntroAudioStatusTheme } = {}) {
+  const ctx = useOptionalIntroOverlay();
+  const [pulse, setPulse] = useState(false);
+  const wasSpeakingRef = useRef(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (typeof window.matchMedia !== 'function') {
+      setReducedMotion(false);
+      return;
+    }
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReducedMotion(mq.matches);
+    const onChange = () => setReducedMotion(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  useEffect(() => {
+    if (!ctx) return;
+    const { isIntroSpeaking } = ctx;
+    if (isIntroSpeaking && !wasSpeakingRef.current) {
+      wasSpeakingRef.current = true;
+      if (!reducedMotion) {
+        setPulse(true);
+        const t = window.setTimeout(() => setPulse(false), 1200);
+        return () => clearTimeout(t);
+      }
+    }
+    if (!isIntroSpeaking) {
+      wasSpeakingRef.current = false;
+    }
+  }, [ctx, ctx.isIntroSpeaking, reducedMotion]);
+
+  if (!ctx) return null;
+
+  const { readAloud, setReadAloud, isIntroSpeaking } = ctx;
+  const onDark = theme === 'dark';
+  const title = readAloud ? 'Audio ausschalten' : 'Audio einschalten';
+  const activeRing =
+    readAloud && isIntroSpeaking
+      ? onDark
+        ? 'ring-1 ring-sky-300/40'
+        : 'ring-1 ring-sky-600/35'
+      : '';
+
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={readAloud}
+      aria-label={title}
+      title={title}
+      onClick={() => setReadAloud(!readAloud)}
+      className={[
+        'inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border transition',
+        onDark
+          ? 'border-white/25 text-white/80 hover:text-white hover:border-white/40 hover:bg-white/8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/45'
+          : 'border-slate-300/90 text-slate-600/90 hover:text-slate-900 hover:bg-slate-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-slate-400',
+        activeRing,
+        readAloud && isIntroSpeaking && onDark ? 'text-sky-100/90' : '',
+        readAloud && isIntroSpeaking && !onDark ? 'text-sky-700' : '',
+        pulse ? 'intro-audio-status-pulse' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {readAloud ? (
+        <Volume2
+          className={`h-[18px] w-[18px] shrink-0 ${onDark ? '' : 'text-slate-700'}`}
+          strokeWidth={1.5}
+          aria-hidden
+        />
+      ) : (
+        <VolumeX
+          className={`h-[18px] w-[18px] shrink-0 ${onDark ? 'text-white/55' : 'text-slate-400'}`}
+          strokeWidth={1.5}
+          aria-hidden
+        />
+      )}
     </button>
   );
 }

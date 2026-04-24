@@ -1,19 +1,53 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Mic, MicOff, MessageCircle, X } from 'lucide-react';
 import { useClaraVoice } from '@/hooks/useClaraVoice';
 import { ClaraAI } from '@/services/claraAI';
 import { useApp } from '@/context/AppContext';
+import {
+  anredeVoiceUnrecognizedLine,
+  introEntryVoiceUnrecognizedLine,
+  matchAnredeFromSpeech,
+  matchIntroEntryBranchFromSpeech,
+} from '@/lib/introVoiceIntents';
 
 const LAVENDER = { bg: '#F5F0FF', border: '#E6E6FA', text: '#6B5B95', header: '#9370DB', bubble: '#EDE8F5' };
+
+/** Pre-Login: kein App-Standard-Gruß; Werte siehe ClaraDock / BuergerApp. */
+export type PreLoginVoicePhase = 'anrede' | 'entry' | 'eid' | null;
+
+/** Kein vollständiger Begrüßungstext — nur Anrede-Wahl (Pre-Login). */
+const ANREDE_VOICE_PROMPT =
+  'Sag klar „Du" oder „Sie", je nachdem, wie du angesprochen werden möchtest. Oder wähle die Buttons im Fenster.';
+
+const ENTRY_VOICE_PROMPT_DU =
+  'Möchtest du die Einführung starten, oder direkt in die App? Sag zum Beispiel: Einführung starten, oder: direkt zur App. Oder nutz die Tasten oben.';
+
+const ENTRY_VOICE_PROMPT_SIE =
+  'Möchten Sie die Einführung starten, oder direkt in die App? Sagen Sie zum Beispiel: Einführung starten, oder: direkt zur App. Oder nutzen Sie die Tasten oben.';
+
+const EID_VOICE_PROMPT_DU =
+  'Im eID-Schritt kannst du Fragen dazu stellen, oder im Fenster mit dem Button fortfahren. Die ausführliche eID-Erläuterung findest du in der laufenden Einführung oben.';
+
+const EID_VOICE_PROMPT_SIE =
+  'Im eID-Schritt können Sie Fragen dazu stellen, oder im Fenster mit dem Button fortfahren. Die ausführliche eID-Erläuterung finden Sie in der laufenden Einführung oben.';
 
 interface ClaraVoiceInterfaceProps {
   isOpen: boolean;
   onClose: () => void;
   currentCard?: any;
+  /** Pre-Login: Phasen-Prompt statt `generateVoiceGreeting`; `null` = eingeloggte App. */
+  preLoginVoicePhase?: PreLoginVoicePhase;
+  onAnredeVoiceChoice?: (choice: 'du' | 'sie') => void;
+  onIntroEntryVoiceChoice?: (choice: 'start' | 'direct') => void;
   /** Optionaler Fallback: wenn Voice nicht funktioniert, in den Text-Chat wechseln. */
   onSwitchToChat?: () => void;
+  /**
+   * `absolute`: Overlay an den nächsten `relative`-Vorfahren (z. B. App-/Device-Frame) — vermeidet
+   * Viewport-Sprünge im Walkthrough. `fixed`: volles Browser-Fenster (z. B. LiveSection).
+   */
+  backdropPosition?: 'fixed' | 'absolute';
 }
 
 function isSpeechRecognitionSupported() {
@@ -28,7 +62,11 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
   isOpen,
   onClose,
   currentCard,
+  preLoginVoicePhase = null,
+  onAnredeVoiceChoice,
+  onIntroEntryVoiceChoice,
   onSwitchToChat,
+  backdropPosition = 'fixed',
 }) => {
   const { state } = useApp();
   const [conversation, setConversation] = useState<string[]>([]);
@@ -36,6 +74,10 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
   const { voiceState, startListening, stopListening, speak, stopSpeaking } = useClaraVoice();
 
   const addressMode = state.anrede === 'sie' ? 'sie' : 'du';
+  const eidVoicePrompt = useMemo(
+    () => (addressMode === 'sie' ? EID_VOICE_PROMPT_SIE : EID_VOICE_PROMPT_DU),
+    [addressMode],
+  );
   const claraAI = useMemo(
     () => new ClaraAI(state.preferences, state.consentClaraPersonalization, addressMode),
     [state.preferences, state.consentClaraPersonalization, addressMode],
@@ -45,14 +87,37 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
   const micBlocked =
     typeof voiceState.error === 'string' &&
     /not-allowed|denied|service-not-allowed/i.test(voiceState.error);
+  const isAppVoiceGreeting = preLoginVoicePhase == null;
+
+  useLayoutEffect(() => {
+    if (isOpen) {
+      setConversation([]);
+    }
+  }, [isOpen, preLoginVoicePhase]);
 
   useEffect(() => {
     if (isOpen && conversation.length === 0) {
+      if (preLoginVoicePhase === 'anrede') {
+        setConversation([`Clara: ${ANREDE_VOICE_PROMPT}`]);
+        speak(ANREDE_VOICE_PROMPT);
+        return;
+      }
+      if (preLoginVoicePhase === 'entry') {
+        const p = addressMode === 'sie' ? ENTRY_VOICE_PROMPT_SIE : ENTRY_VOICE_PROMPT_DU;
+        setConversation([`Clara: ${p}`]);
+        speak(p);
+        return;
+      }
+      if (preLoginVoicePhase === 'eid') {
+        setConversation([`Clara: ${eidVoicePrompt}`]);
+        speak(eidVoicePrompt);
+        return;
+      }
       const greeting = claraAI.generateVoiceGreeting();
       setConversation([greeting]);
       speak(greeting);
     }
-  }, [isOpen, conversation.length, claraAI, speak]);
+  }, [isOpen, conversation.length, preLoginVoicePhase, addressMode, eidVoicePrompt, claraAI, speak]);
 
   useEffect(() => {
     if (voiceState.transcript) {
@@ -74,6 +139,76 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
   const handleVoiceInput = async (transcript: string) => {
     setConversation((prev) => [...prev, `Du: ${transcript}`]);
     setIsProcessing(true);
+
+    if (preLoginVoicePhase === 'anrede') {
+      const pick = matchAnredeFromSpeech(transcript);
+      if (pick && onAnredeVoiceChoice) {
+        onAnredeVoiceChoice(pick);
+        const conf =
+          pick === 'du'
+            ? 'Alles klar, ich nutze ab jetzt die Du-Form für dich.'
+            : 'Gern, ich formuliere in der Sie-Form.';
+        setTimeout(() => {
+          setConversation((prev) => [...prev, `Clara: ${conf}`]);
+          speak(conf);
+          setIsProcessing(false);
+        }, 200);
+        return;
+      }
+      const hint = anredeVoiceUnrecognizedLine();
+      setTimeout(() => {
+        setConversation((prev) => [...prev, `Clara: ${hint}`]);
+        speak(hint);
+        setIsProcessing(false);
+      }, 200);
+      return;
+    }
+
+    if (preLoginVoicePhase === 'entry') {
+      const pick = matchIntroEntryBranchFromSpeech(transcript);
+      if (pick && onIntroEntryVoiceChoice) {
+        onIntroEntryVoiceChoice(pick);
+        const conf =
+          pick === 'start'
+            ? addressMode === 'sie'
+              ? 'Gut, ich übernehme. Bitte bestätigen Sie mit dem Button „Einführung starten“.'
+              : 'Gut, ich übernehme. Bitte bestätig mit dem Button „Einführung starten“.'
+            : addressMode === 'sie'
+              ? 'Gut, ich übernehme. Bitte bestätigen Sie mit „Direkt zur App“.'
+              : 'Gut, ich übernehme. Bitte bestätig mit „Direkt zur App“.';
+        setTimeout(() => {
+          setConversation((prev) => [...prev, `Clara: ${conf}`]);
+          speak(conf);
+          setIsProcessing(false);
+        }, 200);
+        return;
+      }
+      const hint = introEntryVoiceUnrecognizedLine(addressMode !== 'sie');
+      setTimeout(() => {
+        setConversation((prev) => [...prev, `Clara: ${hint}`]);
+        speak(hint);
+        setIsProcessing(false);
+      }, 200);
+      return;
+    }
+
+    if (preLoginVoicePhase === 'eid') {
+      let response = '';
+      try {
+        response = await claraAI.generateChatResponse(transcript, currentCard);
+      } catch {
+        response =
+          addressMode === 'sie'
+            ? 'Entschuldigung, bitte versuchen Sie es erneut.'
+            : 'Entschuldigung, bitte versuch es erneut.';
+      }
+      setTimeout(() => {
+        setConversation((prev) => [...prev, `Clara: ${response}`]);
+        speak(response);
+        setIsProcessing(false);
+      }, 500);
+      return;
+    }
 
     let response = '';
     try {
@@ -110,6 +245,22 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
   };
 
   const handleReset = () => {
+    if (preLoginVoicePhase === 'anrede') {
+      setConversation([`Clara: ${ANREDE_VOICE_PROMPT}`]);
+      speak(ANREDE_VOICE_PROMPT);
+      return;
+    }
+    if (preLoginVoicePhase === 'entry') {
+      const p = addressMode === 'sie' ? ENTRY_VOICE_PROMPT_SIE : ENTRY_VOICE_PROMPT_DU;
+      setConversation([`Clara: ${p}`]);
+      speak(p);
+      return;
+    }
+    if (preLoginVoicePhase === 'eid') {
+      setConversation([`Clara: ${eidVoicePrompt}`]);
+      speak(eidVoicePrompt);
+      return;
+    }
     const greeting = claraAI.generateVoiceGreeting();
     setConversation([greeting]);
     speak(greeting);
@@ -143,9 +294,15 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
       ? 'Bitte erlauben Sie in der Browser-Adressleiste den Mikrofon­zugriff für diese Seite und versuchen Sie es erneut – oder wechseln Sie in den Text-Chat.'
       : 'Bitte erlaube in der Browser-Adressleiste den Mikrofon­zugriff für diese Seite und versuche es erneut – oder wechsle in den Text-Chat.';
 
+  const backdropCls =
+    backdropPosition === 'absolute'
+      ? 'absolute inset-0 z-[800] flex items-end justify-center overscroll-contain bg-black/45 p-2 sm:p-4'
+      : 'fixed inset-0 z-[800] flex items-end justify-center overscroll-contain bg-black/45 p-2 sm:p-4';
+
   return (
     <div
-      className="absolute inset-0 z-[130] flex items-end justify-center bg-black/45 p-2 sm:p-4"
+      className={backdropCls}
+      style={{ touchAction: 'none' }}
       role="dialog"
       aria-modal="true"
       aria-label="Clara Voice – KI-Assistentin"
@@ -323,9 +480,15 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
               !isProcessing &&
               !errorBanner && (
                 <p className="text-[11px] text-gray-600">
-                  {addressMode === 'sie'
-                    ? 'Tippen Sie auf das Mikrofon, um zu sprechen.'
-                    : 'Tippe auf das Mikrofon, um zu sprechen.'}
+                  {preLoginVoicePhase === 'anrede'
+                    ? 'Sag „Du" oder „Sie" — oder wähle die Buttons im anderen Fenster.'
+                    : preLoginVoicePhase === 'entry'
+                      ? 'Sag „Einführung starten" oder „Direkt zur App" — oder nutze die Tasten im Fenster.'
+                      : preLoginVoicePhase === 'eid'
+                        ? 'Kurze Frage stellen, oder eID-Button im Fenster nutzen.'
+                        : addressMode === 'sie'
+                          ? 'Tippen Sie auf das Mikrofon, um zu sprechen.'
+                          : 'Tippe auf das Mikrofon, um zu sprechen.'}
                 </p>
               )}
             {isProcessing && (
@@ -333,26 +496,28 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
             )}
           </div>
 
-          {/* Quick Actions */}
-          <div className="mt-3 flex gap-2">
-            <button
-              type="button"
-              onClick={() => handleVoiceInput('Erkläre mir die aktuelle Abstimmung')}
-              className="flex-1 py-2 px-3 rounded-lg text-[11px] font-semibold transition-colors"
-              style={{ backgroundColor: LAVENDER.bubble, color: LAVENDER.text }}
-            >
-              Abstimmung erklären
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                handleVoiceInput('Erkläre mir die Relevanz dieser Abstimmung zu meinen Schwerpunkten')
-              }
-              className="flex-1 bg-green-100 text-green-700 py-2 px-3 rounded-lg text-[11px] font-semibold hover:bg-green-200 transition-colors"
-            >
-              Relevanz
-            </button>
-          </div>
+          {/* Quick Actions (nur eingeloggte App, kein Einführungs-Gruß-Modus) */}
+          {isAppVoiceGreeting && (
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleVoiceInput('Erkläre mir die aktuelle Abstimmung')}
+                className="flex-1 py-2 px-3 rounded-lg text-[11px] font-semibold transition-colors"
+                style={{ backgroundColor: LAVENDER.bubble, color: LAVENDER.text }}
+              >
+                Abstimmung erklären
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  handleVoiceInput('Erkläre mir die Relevanz dieser Abstimmung zu meinen Schwerpunkten')
+                }
+                className="flex-1 bg-green-100 text-green-700 py-2 px-3 rounded-lg text-[11px] font-semibold hover:bg-green-200 transition-colors"
+              >
+                Relevanz
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

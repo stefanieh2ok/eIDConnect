@@ -1,47 +1,45 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { INTRO_ANREDE_LEADIN_DU, INTRO_ANREDE_LEADIN_SIE } from '@/data/introOverlayMarketing';
-import { introAnredeGateSpoken } from '@/lib/introSpokenTts';
+import {
+  INTRO_ANREDE_SHORT_DU,
+  INTRO_ANREDE_SHORT_SIE,
+  INTRO_ANREDE_UI_TITLE_DU,
+  INTRO_ANREDE_UI_TITLE_SIE,
+} from '@/data/introOverlayMarketing';
+import { introAnredeGateSpokenParts } from '@/lib/introSpokenTts';
+import { useClaraVoice } from '@/hooks/useClaraVoice';
+import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useOptionalIntroOverlay } from '@/components/Intro/IntroOverlay';
 import type { Anrede } from '@/types';
 
 type Props = {
-  /** Optional: als Vollbild-Overlay (default) oder inline. */
+  /** Steuert Sichtbarkeit; kommt von der zentralen Pre-Login-Phase. */
+  isOpen: boolean;
+  /** Nach bestätigter Anrede (Weiter) — folgt Einstiegs-Branch. */
+  onComplete: () => void;
   variant?: 'overlay' | 'inline';
-  /** Positionierung: im iPhone-Frame (absolute) vs. Seiten-Overlay (fixed). */
   position?: 'fixed' | 'absolute';
 };
 
-export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
+export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position = 'fixed' }: Props) {
   const { state, dispatch } = useApp();
-  const [open, setOpen] = useState(false);
   const [pending, setPending] = useState<Anrede | null>(null);
-
-  // Pro Demo-Session (Browser-Tab) genau einmal bestätigen, auch wenn lokal schon eine Anrede gespeichert ist.
-  const SESSION_KEY = 'eidconnect_anrede_confirmed_session_v1';
+  const intro = useOptionalIntroOverlay();
+  const { speakParts, stopSpeaking } = useClaraVoice();
+  const anredeWelcomeRef = useRef(false);
+  const lastReadAloud = useRef<boolean | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const confirmed = sessionStorage.getItem(SESSION_KEY) === 'true';
-      const shouldOpen = !confirmed;
-      setOpen(shouldOpen);
-      setPending(state.anrede ?? null);
-    } catch {
-      // Wenn sessionStorage nicht verfügbar ist: sicherheitshalber anzeigen, solange keine Anrede gesetzt ist.
-      setOpen(state.anrede == null);
+    if (isOpen) {
       setPending(state.anrede ?? null);
     }
-  }, [state.anrede]);
+  }, [isOpen, state.anrede]);
 
   const shellClass = useMemo(() => {
     if (variant === 'inline') return 'w-full';
-    // iOS Safari: Bei `position: fixed` die Höhe explizit an `100dvh` binden,
-    // damit die Auswahlbuttons + „Weiter" nicht unter der URL-Leiste verschwinden.
-    // Bei `absolute` (im iPhone-Frame/Device-Mockup) genügt `inset: 0`.
     const base =
       position === 'fixed'
         ? 'intro-safe-overlay z-[600] flex items-center justify-center p-3 sm:p-4'
@@ -59,55 +57,88 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
 
   const confirm = useCallback(() => {
     if (pending == null) return;
-    try {
-      sessionStorage.setItem(SESSION_KEY, 'true');
-    } catch {}
-    setOpen(false);
-  }, [pending]);
+    onComplete();
+  }, [pending, onComplete]);
 
-  // Fokus in den Dialog ziehen, ESC schließt nichts destruktiv – Nutzer muss aktiv wählen.
-  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const duMode = pending === 'du';
+
   useEffect(() => {
-    if (!open) return;
-    // Beim Öffnen: Hintergrund-Scroll sperren, damit nichts durchscheint oder ruckelt.
-    // Wichtig: Nur wenn die Gate wirklich global (fixed) liegt. Bei `absolute`
-    // (Device-Mockup im AppStage auf Desktop) würde ein body-Overflow-Lock die
-    // vertikale Scrollleiste togglen – Viewport wird ~15 px breiter → AppStage
-    // rechnet den Desktop-Scale neu → sichtbares „Springen" des iPhone-Rahmens.
+    if (!isOpen) {
+      lastReadAloud.current = null;
+      return;
+    }
+    if (lastReadAloud.current === false && intro?.readAloud) {
+      anredeWelcomeRef.current = false;
+    }
+    lastReadAloud.current = Boolean(intro?.readAloud);
+  }, [isOpen, intro?.readAloud]);
+
+  /** Begrüßung + Ablauf: gleiche Klar-Stimme wie im Clara-Dock; nur wenn „Vorlesen“ in der Leiste an ist. */
+  useEffect(() => {
+    if (!isOpen) {
+      anredeWelcomeRef.current = false;
+      return;
+    }
+    if (!intro?.readAloud) {
+      stopSpeaking();
+      return;
+    }
+    if (anredeWelcomeRef.current) return;
+    const t = window.setTimeout(() => {
+      anredeWelcomeRef.current = true;
+      const choice = pending ?? state.anrede ?? null;
+      speakParts(introAnredeGateSpokenParts(choice));
+    }, 500);
+    return () => {
+      window.clearTimeout(t);
+    };
+  }, [isOpen, intro?.readAloud, pending, state.anrede, speakParts, stopSpeaking]);
+
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    const resetPreloginScroll = () => {
+      if (typeof window === 'undefined') return;
+      try {
+        window.scrollTo(0, 0);
+      } catch {
+        /* jsdom: not implemented */
+      }
+      try {
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      } catch {
+        /* ignore */
+      }
+      const inner = document.getElementById('login-main-scroll');
+      if (inner) inner.scrollTop = 0;
+    };
+    resetPreloginScroll();
+    const r = requestAnimationFrame(resetPreloginScroll);
+    return () => cancelAnimationFrame(r);
+  }, [isOpen]);
+
+  useLayoutEffect(() => {
+    if (!isOpen) return;
     const shouldLockBody = position === 'fixed';
     const prevOverflow =
       shouldLockBody && typeof document !== 'undefined' ? document.body.style.overflow : '';
     if (shouldLockBody && typeof document !== 'undefined') {
       document.body.style.overflow = 'hidden';
     }
-    // Fokus auf den ersten interaktiven Knopf im Dialog legen.
-    const t = window.setTimeout(() => {
-      const el = dialogRef.current?.querySelector<HTMLButtonElement>('button[aria-pressed], button[type="button"]');
-      el?.focus({ preventScroll: true });
-    }, 40);
     return () => {
-      window.clearTimeout(t);
       if (shouldLockBody && typeof document !== 'undefined') {
         document.body.style.overflow = prevOverflow;
       }
     };
-  }, [open, position]);
+  }, [isOpen, position]);
 
-  const duMode = pending === 'du';
-  const leadIn = duMode ? INTRO_ANREDE_LEADIN_DU : INTRO_ANREDE_LEADIN_SIE;
-  const intro = useOptionalIntroOverlay();
+  if (!isOpen) return null;
 
-  useEffect(() => {
-    if (!open || !intro) return;
-    if (!intro.readAloud) {
-      intro.stopIntroSpeech();
-      return;
-    }
-    intro.speakIntro(introAnredeGateSpoken(duMode));
-    return () => intro.stopIntroSpeech();
-  }, [open, intro, intro?.readAloud, duMode]);
-
-  if (!open) return null;
+  const titleAnrede =
+    pending == null ? INTRO_ANREDE_UI_TITLE_SIE : duMode ? INTRO_ANREDE_UI_TITLE_DU : INTRO_ANREDE_UI_TITLE_SIE;
+  const shortAnrede =
+    pending == null ? INTRO_ANREDE_SHORT_SIE : duMode ? INTRO_ANREDE_SHORT_DU : INTRO_ANREDE_SHORT_SIE;
 
   return (
     <div
@@ -118,15 +149,8 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
     >
       {variant === 'overlay' ? (
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 bg-[#020712]"
           aria-hidden
-          style={{
-            // Backdrop: dunkler Scrim + iOS-artiger Blur/Saturate.
-            // Damit sind Inhalte dahinter weder lesbar noch identifizierbar.
-            background: 'rgba(8, 16, 34, 0.62)',
-            backdropFilter: 'blur(8px) saturate(140%)',
-            WebkitBackdropFilter: 'blur(8px) saturate(140%)',
-          }}
         />
       ) : null}
 
@@ -135,66 +159,78 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
         className="intro-dark-body hide-scrollbar relative w-full max-w-[360px] overflow-y-auto overscroll-contain rounded-3xl sm:max-w-[400px] anredegate-sheet"
         style={{
           maxHeight: 'calc(100dvh - 1.5rem)',
-          boxShadow:
-            '0 28px 80px rgba(0, 20, 60, 0.45), 0 6px 18px rgba(0, 20, 60, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.06) inset',
+          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.08)',
           WebkitOverflowScrolling: 'touch',
         }}
+        onPointerDown={() => {
+          if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+          try {
+            void window.speechSynthesis.getVoices();
+            if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+          } catch {
+            // ignore
+          }
+        }}
       >
-        {/* Einheitlicher Dark-Meta-Streifen (siehe <IntroMetaStrip>).
-            Skip/× feuern das globale eidconnect:skip-intro-all-Event, das
-            BuergerApp zentral abarbeitet (Default-Anrede, Login, Flag). */}
         <IntroMetaStrip
-          stepNumber={1}
+          stepNumber={null}
           onSkip={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
           onClose={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
         />
 
-        <div className="px-4 pt-3 pb-3 border-b border-white/10 sm:px-5 sm:pt-4 sm:pb-4">
-          <h2 className="text-base font-black leading-snug text-white sm:text-lg">Wie möchten Sie angesprochen werden?</h2>
-          <p className="mt-1.5 text-[11px] leading-snug text-white/70 sm:text-[12px]">
-            Bitte wählen Sie einmalig <span className="font-semibold text-white/90">Sie</span> oder{' '}
-            <span className="font-semibold text-white/90">Du</span>. Das Intro und alle Hinweise passen sich an.
-          </p>
-          <p className="mt-2 text-[11px] leading-snug text-white/80 sm:text-[12px]">{leadIn}</p>
+        <div className="border-b border-white/10 px-4 pb-3 pt-3 sm:px-5 sm:pt-4 sm:pb-4">
+          <ClaraStepPanel
+            label={titleAnrede}
+            short={shortAnrede}
+            long=""
+            showTopicTitle
+          />
         </div>
 
         <div className="px-4 py-4 sm:px-5 sm:py-5">
-          <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-            {(['sie', 'du'] as const).map((a) => {
-              const active = pending === a;
-              return (
-                <button
-                  key={a}
-                  type="button"
-                  onClick={() => pick(a)}
-                  className="relative btn-gov-choice overflow-hidden py-5 sm:py-6"
-                  aria-pressed={active}
-                >
-                  {active ? (
-                    <span
-                      className="absolute right-2.5 top-2.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-black text-white"
-                      style={{ background: 'var(--gov-primary, #003366)' }}
-                      aria-hidden
-                    >
-                      ✓
-                    </span>
-                  ) : null}
-                  <span className="btn-gov-choice__label mb-1 text-xl font-extrabold sm:text-2xl">
-                    {a === 'sie' ? 'Sie' : 'Du'}
-                  </span>
-                  <span className="text-[11px] text-neutral-500">
-                    {a === 'sie' ? 'Förmlich' : 'Persönlich'}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold text-white/85" id="anrede-choice-label">
+              Ansprache wählen
+            </p>
+            <div
+              className="grid grid-cols-2 gap-2"
+              role="group"
+              aria-labelledby="anrede-choice-label"
+            >
+              <button
+                type="button"
+                onClick={() => pick('sie')}
+                className={
+                  'min-h-[48px] rounded-xl border-2 bg-transparent px-2.5 text-center text-[12px] font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300/60 ' +
+                  (pending === 'sie'
+                    ? 'border-sky-300 text-white'
+                    : 'border-sky-500/50 text-white/90 hover:border-sky-400/70')
+                }
+              >
+                Sie
+                <span className="mt-0.5 block text-[10px] font-semibold text-white/60">förmlich</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => pick('du')}
+                className={
+                  'min-h-[48px] rounded-xl border-2 bg-transparent px-2.5 text-center text-[12px] font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300/60 ' +
+                  (pending === 'du'
+                    ? 'border-sky-300 text-white'
+                    : 'border-sky-500/50 text-white/90 hover:border-sky-400/70')
+                }
+              >
+                Du
+                <span className="mt-0.5 block text-[10px] font-semibold text-white/60">persönlich</span>
+              </button>
+            </div>
           </div>
 
           <button
             type="button"
             disabled={pending == null}
             onClick={confirm}
-            className="btn-gov-primary mt-3 w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-gov-primary mt-3 w-full disabled:cursor-not-allowed disabled:opacity-50"
           >
             Weiter
           </button>
@@ -203,4 +239,3 @@ export function AnredeGate({ variant = 'overlay', position = 'fixed' }: Props) {
     </div>
   );
 }
-

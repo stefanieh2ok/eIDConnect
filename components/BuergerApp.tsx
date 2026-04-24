@@ -13,8 +13,16 @@ import StimmzettelModal from '@/components/Modals/StimmzettelModal';
 import IntroOverlay from '@/components/Intro/IntroOverlay';
 import DemoIntroWalkthrough from '@/components/Intro/DemoIntroWalkthrough';
 import DemoExpectationBanner from '@/components/DemoExpectationBanner';
-import IntroOptInGate from '@/components/Intro/IntroOptInGate';
 import { AnredeGate } from '@/components/Intro/AnredeGate';
+import { IntroEntryBranch } from '@/components/Intro/IntroEntryBranch';
+import {
+  type PreLoginPhase,
+  readPreLoginPhase,
+  writePreLoginPhase,
+  readWantsWalkthrough,
+  writeWantsWalkthrough,
+  clearIntroSessionKeys,
+} from '@/lib/introPreLoginPhase';
 import ClaraDock from '@/components/Clara/ClaraDock';
 import type { EbeneLevel, Location, Section } from '@/types';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
@@ -44,14 +52,9 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
   // Hydration deckungsgleich bleiben. Die eigentliche Entscheidung fällt in
   // einem useLayoutEffect weiter unten anhand des PRODUCT_INTRO_DONE_KEY.
   const [postLoginIntroOpen, setPostLoginIntroOpen] = useState(true);
-  /**
-   * Opt-in-Gate nach Login (Phase B): Tester entscheidet explizit, ob er den
-   * Walkthrough (Schritte 3–8) sehen möchte oder direkt in die App springt.
-   *
-   * Nicht persistent: pro Session einmal, beim Re-Open der Einführung
-   * (z. B. über Einstellungen) wird die Frage wieder gestellt.
-   */
-  const [introOptInAnswered, setIntroOptInAnswered] = useState(false);
+  const [preLogin, setPreLogin] = useState<PreLoginPhase>(() =>
+    typeof window !== 'undefined' ? readPreLoginPhase() : 'anrede',
+  );
   const isDevice = variant === 'device';
 
   const SECTION_LEVELS: Record<Section, EbeneLevel[]> = {
@@ -81,6 +84,36 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       dispatch({ type: 'SET_LOGGED_IN', payload: true });
     }
   }, [dispatch, state.isLoggedIn]);
+
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    setPreLogin(readPreLoginPhase());
+  }, []);
+
+  /** NDA / Vor-Seite kann Scroll mitbringen; Anrede zentriert — ohne Rücksprung-„Sprung". */
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (state.isLoggedIn) return;
+    if (preLogin !== 'anrede') return;
+    const reset = () => {
+      try {
+        window.scrollTo(0, 0);
+      } catch {
+        /* jsdom: not implemented */
+      }
+      try {
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      } catch {
+        /* ignore */
+      }
+      const inner = document.getElementById('login-main-scroll');
+      if (inner) inner.scrollTop = 0;
+    };
+    reset();
+    const r = requestAnimationFrame(reset);
+    return () => cancelAnimationFrame(r);
+  }, [preLogin, state.isLoggedIn]);
 
   /** ?resetIntro=1 in der URL: Intro-Flags löschen und Walkthrough sofort anzeigen (ohne DevTools). */
   useLayoutEffect(() => {
@@ -120,7 +153,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
   }, []);
 
   // Walkthrough erneut öffnen (z. B. aus Einstellungen): Flag löschen, Overlay
-  // einblenden und Opt-in-Gate zurücksetzen, damit die Frage erneut gestellt wird.
+  // einblenden.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const onOpen = () => {
@@ -128,7 +161,6 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
         localStorage.removeItem(PRODUCT_INTRO_DONE_KEY);
       } catch {}
       setPostLoginIntroOpen(true);
-      setIntroOptInAnswered(false);
     };
     window.addEventListener('eidconnect:open-intro', onOpen as any);
     return () => window.removeEventListener('eidconnect:open-intro', onOpen as any);
@@ -144,6 +176,12 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       try {
         localStorage.setItem(PRODUCT_INTRO_DONE_KEY, 'true');
       } catch {}
+      try {
+        writePreLoginPhase('ok');
+        writeWantsWalkthrough(false);
+      } catch {
+        // ignore
+      }
       if (state.anrede == null) {
         dispatch({ type: 'SET_ANREDE', payload: 'sie' });
       }
@@ -151,7 +189,6 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
         dispatch({ type: 'SET_LOGGED_IN', payload: true });
       }
       setPostLoginIntroOpen(false);
-      setIntroOptInAnswered(true);
     };
     window.addEventListener('eidconnect:skip-intro-all', onSkipAll as any);
     return () =>
@@ -180,19 +217,6 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       localStorage.setItem(PRODUCT_INTRO_DONE_KEY, 'true');
     } catch {}
     setPostLoginIntroOpen(false);
-    // Beim nächsten Re-Open (eidconnect:open-intro) soll die Opt-in-Frage wieder
-    // erscheinen; der onOpen-Handler setzt den State explizit zurück.
-    setIntroOptInAnswered(true);
-  };
-
-  /** Opt-in: Tester möchte den Walkthrough sehen — Gate schließen, Walkthrough zeigen. */
-  const startWalkthroughFromGate = () => {
-    setIntroOptInAnswered(true);
-  };
-
-  /** Opt-out: Tester will direkt in die App — Gate schließen, Intro als erledigt markieren. */
-  const skipWalkthroughFromGate = () => {
-    finishProductIntro();
   };
 
   // Wichtig (iOS Safari): im Non-Device-Modus `intro-safe-overlay` verwenden –
@@ -214,76 +238,139 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     }
   };
 
-  // Ein <IntroOverlay> für gesamte App: Schritte 1–2 (vor Login) und 3–8 (Walkthrough)
-  // teilen sich denselben Vorlesen-Zustand (Kanal: Text vs. Stimme, kein separater Modus).
+  // Ein <IntroOverlay> für die gesamte App: Schritte 1–2 (vor Login) und 3–8 (Walkthrough)
+  // teilen sich Claras Stimme (Erklären der Intro-Folien, kein separater Modus-Wechsel).
+  const onAnredeDone = () => {
+    try {
+      writePreLoginPhase('entry');
+    } catch {
+      // ignore
+    }
+    setPreLogin('entry');
+  };
+
+  const onEntryStart = () => {
+    try {
+      writeWantsWalkthrough(true);
+      writePreLoginPhase('ok');
+    } catch {
+      // ignore
+    }
+    setPreLogin('ok');
+  };
+
+  const onEntryDirect = () => {
+    try {
+      writeWantsWalkthrough(false);
+      writePreLoginPhase('ok');
+      localStorage.setItem(PRODUCT_INTRO_DONE_KEY, 'true');
+    } catch {
+      // ignore
+    }
+    if (state.anrede == null) {
+      dispatch({ type: 'SET_ANREDE', payload: 'sie' });
+    }
+    dispatch({ type: 'SET_LOGGED_IN', payload: true });
+    setPostLoginIntroOpen(false);
+    setPreLogin('ok');
+  };
+
   return (
     <IntroOverlay>
-      {!state.isLoggedIn ? (
-        <div
-          className={`relative flex flex-col h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
-            isDevice ? '' : 'min-h-[100dvh]'
-          }`}
-        >
-          <AnredeGate position={isDevice ? 'absolute' : 'fixed'} />
-          <LoginScreen renderFrame={!isDevice} />
-        </div>
-      ) : (
-        <>
-          {/* Wichtig: gleiche Flex-/Size-Klassen wie in den nicht-eingeloggten Zweigen (s.o.),
-              sonst ändert sich beim Login das Wrapper-Verhältnis und der gescalte iPhone-Frame
-              „springt" sichtbar. Nur Farbe/app-body wird hinzugefügt. */}
+      <div className="relative flex h-full min-h-0 w-full min-w-0 flex-1 flex-col">
+        {!state.isLoggedIn ? (
           <div
-            className={`relative flex flex-col app-body bg-[#F7F9FC] h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
+            className={`relative flex flex-col h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
               isDevice ? '' : 'min-h-[100dvh]'
             }`}
           >
-      <div id="app-overlay-root" className="pointer-events-none absolute inset-0 z-[120]" />
-      {postLoginIntroOpen && state.anrede != null ? (
-        <div className={introOverlayShell}>
-          {introOptInAnswered ? (
-            <DemoIntroWalkthrough
-              du={state.anrede === 'du'}
-              residenceLocation={state.residenceLocation}
-              onClose={finishProductIntro}
-              onFinish={finishProductIntro}
+            <AnredeGate
+              isOpen={preLogin === 'anrede'}
+              onComplete={onAnredeDone}
+              position={isDevice ? 'absolute' : 'fixed'}
             />
-          ) : (
-            <IntroOptInGate
+            <IntroEntryBranch
+              open={preLogin === 'entry' && state.anrede != null}
               du={state.anrede === 'du'}
-              onStart={startWalkthroughFromGate}
-              onSkip={skipWalkthroughFromGate}
+              onStart={onEntryStart}
+              onDirectToApp={onEntryDirect}
+              position={isDevice ? 'absolute' : 'fixed'}
             />
-          )}
-        </div>
-      ) : null}
-      {/* Gesamte Navigation + Filter im Header */}
-      <AppHeader />
-
-      {/* Hauptinhalt – füllt restliche Bildschirmhöhe */}
-      <main
-        id="main-scroll"
-        className="scrollbar-hide flex-1 min-h-0 overflow-y-auto scroll-smooth"
-        style={{ WebkitOverflowScrolling: 'touch' }}
-      >
-        <DemoExpectationBanner />
-        <div className="px-3 pt-3 pb-24">
-          {renderSection()}
-          <SecurityFaqFooter />
-        </div>
-      </main>
-
-      {/* Scroll-to-top (erscheint ab 200px Scroll) */}
-      <ScrollToTopButton />
-
-      {/* Clara-Dock: globaler, dezenter Einstieg in Chat + Voice (immer erreichbar) */}
-      <ClaraDock />
-
-      {/* Stimmzettel-Modal (Wahlen → "Stimmzettel ansehen") */}
-      <StimmzettelModal />
-
+            <LoginScreen renderFrame={!isDevice} preLoginPhase={preLogin} />
           </div>
-        </>
-      )}
+        ) : (
+          <>
+            {/* Wichtig: gleiche Flex-/Size-Klassen wie in den nicht-eingeloggten Zweigen (s.o.),
+                sonst ändert sich beim Login das Wrapper-Verhältnis und der gescalte iPhone-Frame
+                „springt" sichtbar. Nur Farbe/app-body wird hinzugefügt. */}
+            <div
+              className={`relative flex flex-col app-body bg-[#F7F9FC] h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
+                isDevice ? '' : 'min-h-[100dvh]'
+              }`}
+            >
+              <div id="app-overlay-root" className="pointer-events-none absolute inset-0 z-[120]" />
+              {postLoginIntroOpen && state.anrede != null && readWantsWalkthrough() ? (
+                <div className={introOverlayShell}>
+                  <DemoIntroWalkthrough
+                    du={state.anrede === 'du'}
+                    residenceLocation={state.residenceLocation}
+                    onClose={finishProductIntro}
+                    onFinish={finishProductIntro}
+                  />
+                </div>
+              ) : null}
+              <AppHeader />
+
+              <main
+                id="main-scroll"
+                className="scrollbar-hide flex-1 min-h-0 overflow-y-auto scroll-smooth"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
+                <DemoExpectationBanner />
+                <div className="px-3 pt-3 pb-24">
+                  {renderSection()}
+                  <SecurityFaqFooter />
+                </div>
+              </main>
+
+              <ScrollToTopButton />
+              <StimmzettelModal />
+            </div>
+          </>
+        )}
+        <ClaraDock
+          toolbarZClassName={
+            !state.isLoggedIn ||
+            (state.isLoggedIn &&
+              postLoginIntroOpen &&
+              state.anrede != null &&
+              readWantsWalkthrough())
+              ? 'z-[620]'
+              : 'z-[80]'
+          }
+          extraBottomOffset={
+            !state.isLoggedIn ||
+            (state.isLoggedIn &&
+              postLoginIntroOpen &&
+              state.anrede != null &&
+              readWantsWalkthrough())
+              ? '9.25rem'
+              : '0px'
+          }
+          overlayPosition="absolute"
+          preLoginVoicePhase={
+            !state.isLoggedIn
+              ? preLogin === 'anrede'
+                ? 'anrede'
+                : preLogin === 'entry'
+                  ? 'entry'
+                  : 'eid'
+              : null
+          }
+          onAnredeVoiceChoice={(choice) => dispatch({ type: 'SET_ANREDE', payload: choice })}
+          onIntroEntryVoiceChoice={(c) => (c === 'start' ? onEntryStart() : onEntryDirect())}
+        />
+      </div>
     </IntroOverlay>
   );
 }

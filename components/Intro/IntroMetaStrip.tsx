@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { INTRO_GLOBAL_PILL_LABEL } from '@/data/introOverlayMarketing';
-import { IntroReadAloudToggle } from '@/components/Intro/IntroOverlay';
+import { IntroAudioStatusButton } from '@/components/Intro/IntroOverlay';
 
 type Props = {
   /**
@@ -21,9 +21,7 @@ type Props = {
 };
 
 /**
- * Eine Zeile: Kennzeichnung „Einführung“ + Vorlesen umschalten + optional beenden.
- * Kein Schrittzähler, keine Fortschrittsbalken, kein langer Framing-Text (geringer
- * Platzbedarf im Phone-Frame, PersoApp-typische klare UI-Schrift via body font).
+ * Eine Zeile: Einführung + optional Stimme (Opt-in) + Schließen.
  */
 export default function IntroMetaStrip({ onSkip, onClose }: Props) {
   const onExit = onClose ?? onSkip;
@@ -37,8 +35,8 @@ export default function IntroMetaStrip({ onSkip, onClose }: Props) {
         >
           {INTRO_GLOBAL_PILL_LABEL}
         </span>
-        <div className="flex min-w-0 flex-1 items-center justify-end gap-1">
-          <IntroReadAloudToggle theme="dark" />
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5">
+          <IntroAudioStatusButton theme="dark" />
           {onExit ? (
             <button
               type="button"

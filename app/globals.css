@@ -909,6 +909,46 @@ body {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
 }
 
+/* Politikbarometer: Schieberegler klar als aktiv lesbar (Gov-Navy, sichtbarer Thumb). */
+.politik-barometer-range {
+  -webkit-appearance: none;
+  appearance: none;
+  accent-color: #0c2d5c;
+}
+.politik-barometer-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -5px;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #0c4a8c 0%, #0c2d5c 100%);
+  border: 2px solid #fff;
+  box-shadow:
+    0 0 0 1px rgba(12, 45, 92, 0.35),
+    0 2px 8px rgba(15, 23, 42, 0.22);
+  cursor: inherit;
+}
+.politik-barometer-range::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 9999px;
+}
+.politik-barometer-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #0c4a8c 0%, #0c2d5c 100%);
+  border: 2px solid #fff;
+  box-shadow:
+    0 0 0 1px rgba(12, 45, 92, 0.35),
+    0 2px 8px rgba(15, 23, 42, 0.22);
+  cursor: inherit;
+}
+.politik-barometer-range::-moz-range-track {
+  height: 8px;
+  border-radius: 9999px;
+}
+
 /* Kompakte Leiste am oberen Rand des Intro-Dialogs: kein weisses Feld mehr,
  * optisch ein Teil von .intro-dark-body (kein Kontrast-„Header-Klotz", kein
  * Platz für ueberlappende Framing-Texte). */
@@ -926,18 +966,32 @@ body {
   }
 }
 
+/* Intro: einmaliger, dezenter Leuchtrand wenn Claras TTS startet (Audio-Status-Button) */
+@keyframes intro-audio-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(125, 211, 252, 0.45);
+  }
+  55% {
+    box-shadow: 0 0 0 5px rgba(125, 211, 252, 0.12);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(125, 211, 252, 0);
+  }
+}
+.intro-audio-status-pulse {
+  animation: intro-audio-glow 1.15s ease-out 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro-audio-status-pulse {
+    animation: none;
+  }
+}
+
 /* Einheitlicher Dark-Body fuer alle Intro-Screens (AnredeGate, LoginScreen,
- * IntroOptInGate, DemoIntroWalkthrough). Zieht den Navy/Slate-Verlauf vom
- * Walkthrough auf alle anderen Intro-Screens, damit der gesamte Einfuehrungs-
- * flow visuell konsistent und deutlich von der eigentlichen App (die hell
- * ist) abgegrenzt ist. */
+ * DemoIntroWalkthrough). Eine ruhige, deckende Navy-Fläche — ohne Slate-Grau
+ * in der Mitte, ohne Transparenz (kein unsauberer Mix mit dem hellen Hintergrund). */
 .intro-dark-body {
-  background: linear-gradient(
-    165deg,
-    rgba(15, 23, 42, 0.98) 0%,
-    rgba(30, 41, 59, 0.95) 45%,
-    rgba(15, 23, 42, 0.99) 100%
-  );
+  background: linear-gradient(180deg, #0a1528 0%, #040a16 50%, #050d1a 100%);
   color: rgba(255, 255, 255, 0.92);
   /* Eine durchgängige Sans-Schrift (vgl. PersoApp) — erbt in der Regel Inter vom body. */
   font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;

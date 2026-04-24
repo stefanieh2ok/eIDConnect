@@ -13,3 +13,8 @@ const localStorageMock = (() => {
   };
 })();
 Object.defineProperty(globalThis, 'localStorage', { value: localStorageMock, writable: true });
+
+// jsdom: scrollTo loggt sonst „Not implemented“ (wirkt wie throw) — stiller No-Op für Tests
+if (typeof window !== 'undefined') {
+  window.scrollTo = () => {};
+}

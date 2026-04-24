@@ -5,19 +5,23 @@ import { useOptionalIntroOverlay } from '@/components/Intro/IntroOverlay';
 import OriginalStimmzettel from '@/components/Voting/OriginalStimmzettel';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
-import { VOTING_DATA } from '@/data/constants';
+import { VOTING_DATA, WAHLEN_DATA } from '@/data/constants';
+import { regionalPraemienForCity } from '@/data/demoVoting2026';
 import {
-  INTRO_CLOSING_TEXT_DU,
-  INTRO_CLOSING_TEXT_SIE,
+  INTRO_CLOSING_SPOKEN_SEGMENTS_DU,
+  INTRO_CLOSING_SPOKEN_SEGMENTS_SIE,
   INTRO_FINISH_CTA_LABEL,
-  INTRO_OVERLAY_HEADLINE,
+  INTRO_OUTRO_DROPDOWN_DU,
+  INTRO_OUTRO_DROPDOWN_SIE,
+  INTRO_OUTRO_LABEL,
+  INTRO_OUTRO_SHORT_DU,
+  INTRO_OUTRO_SHORT_SIE,
   introOverlayFramingLine,
   INTRO_OVERLAY_STEPS,
-  INTRO_TOTAL_STEPS,
 } from '@/data/introOverlayMarketing';
+import { claraBlockForStep } from '@/data/introWalkthroughClara';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { INTRO_SCREENSHOTS } from '@/data/introScreenshots';
-import { adaptIntroAddress } from '@/lib/introAddress';
 import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
 import type { Location, VotingCard as VotingCardModel } from '@/types';
 
@@ -28,13 +32,6 @@ type Props = {
   onClose: () => void;
   onFinish: () => void;
 };
-
-/**
- * Versatz, mit dem der interne Walkthrough-Index in den globalen 8-Schritt-Zähler
- * übersetzt wird. Die Einführung startet konzeptionell mit Ansprache (1) und
- * eID (2); danach folgt der Walkthrough: Abstimmen (3) … Politikbarometer (8).
- */
-const GLOBAL_STEP_OFFSET = 2;
 
 const INTRO_KOMMUNE_VOTE_KEYS = new Set<string>([
   'kirkel',
@@ -71,22 +68,174 @@ const noopVote = () => {};
 const noopKi = () => {};
 const noopDrag = (_x?: number, _y?: number) => {};
 
+function parseDeDeadline(s: string): { d: number; m: number; y: number } | null {
+  const m = s.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (!m) return null;
+  return { d: Number(m[1]), m: Number(m[2]), y: Number(m[3]) };
+}
+
+type IntroCalRow = {
+  level: 'bund' | 'land' | 'kreis' | 'kommune';
+  kind: 'abstimmung' | 'wahl';
+  title: string;
+  dateStr: string;
+};
+
+/** Termine aus VOTING_DATA / WAHLEN_DATA — gleiche inhaltliche Basis wie der Kalender der App. */
+function introCalendarRowsFromFixtures(communeKey: string): IntroCalRow[] {
+  const rows: IntroCalRow[] = [];
+  const communeData = VOTING_DATA[communeKey];
+  if (communeData && 'cards' in communeData) {
+    for (const c of communeData.cards.slice(0, 3)) {
+      rows.push({
+        level: 'kommune',
+        kind: 'abstimmung',
+        title: c.title,
+        dateStr: c.deadline,
+      });
+    }
+  }
+  const bundCard = VOTING_DATA.deutschland?.cards?.[0];
+  if (bundCard) {
+    rows.push({
+      level: 'bund',
+      kind: 'abstimmung',
+      title: bundCard.title,
+      dateStr: bundCard.deadline,
+    });
+  }
+  const landCard = VOTING_DATA.saarland?.cards?.[0];
+  if (landCard) {
+    rows.push({
+      level: 'land',
+      kind: 'abstimmung',
+      title: landCard.title,
+      dateStr: landCard.deadline,
+    });
+  }
+  const kreisCard = VOTING_DATA.saarpfalz?.cards?.[0];
+  if (kreisCard) {
+    rows.push({
+      level: 'kreis',
+      kind: 'abstimmung',
+      title: kreisCard.title,
+      dateStr: kreisCard.deadline,
+    });
+  }
+
+  const pickWahl = (id: string) => WAHLEN_DATA.find((w) => w.id === id);
+  const btw = pickWahl('btw25');
+  if (btw?.datum) {
+    rows.push({ level: 'bund', kind: 'wahl', title: btw.name, dateStr: btw.datum });
+  }
+  const ltwSl = pickWahl('ltw-sl-2022');
+  if (ltwSl?.datum) {
+    rows.push({ level: 'land', kind: 'wahl', title: ltwSl.name, dateStr: ltwSl.datum });
+  }
+  const ktSp = pickWahl('kt-saarpfalz-2024');
+  if (ktSp?.datum) {
+    rows.push({ level: 'kreis', kind: 'wahl', title: ktSp.name, dateStr: ktSp.datum });
+  }
+  if (communeKey === 'kirkel') {
+    const kw = pickWahl('kw-kirkel-2024');
+    if (kw?.datum) {
+      rows.push({ level: 'kommune', kind: 'wahl', title: kw.name, dateStr: kw.datum });
+    }
+  }
+
+  const seen = new Set<string>();
+  const uniq = rows.filter((r) => {
+    const k = `${r.kind}|${r.title}|${r.dateStr}`;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  uniq.sort((a, b) => {
+    const pa = parseDeDeadline(a.dateStr);
+    const pb = parseDeDeadline(b.dateStr);
+    if (!pa || !pb) return 0;
+    if (pa.y !== pb.y) return pa.y - pb.y;
+    if (pa.m !== pb.m) return pa.m - pb.m;
+    return pa.d - pb.d;
+  });
+  return uniq;
+}
+
+function WalkthroughInfoDetails({
+  primaryLong,
+  showOutro,
+  outroShort,
+  outroLong,
+}: {
+  primaryLong: string;
+  showOutro: boolean;
+  outroShort: string;
+  outroLong: string;
+}) {
+  return (
+    <div className="mb-1.5 w-full min-w-0 space-y-1.5 [text-wrap:balance]">
+      <details className="group overflow-hidden rounded-xl border border-white/15 bg-white/[0.04] open:border-sky-400/25">
+        <summary className="cursor-pointer list-none select-none py-1.5 pl-2.5 pr-2.5 text-[10.5px] font-semibold text-sky-100/95 [&::-webkit-details-marker]:hidden">
+          <span className="inline-flex w-full items-center justify-between gap-2">
+            <span>Mehr zu dieser Ansicht</span>
+            <span
+              className="text-white/50 transition group-open:rotate-180"
+              aria-hidden
+            >
+              ▾
+            </span>
+          </span>
+        </summary>
+        <p className="border-t border-white/10 px-2.5 pb-2.5 pt-1.5 text-[10.5px] leading-relaxed text-white/[0.86] [text-wrap:pretty] whitespace-pre-line">
+          {primaryLong}
+        </p>
+      </details>
+      {showOutro ? (
+        <details className="group overflow-hidden rounded-xl border border-white/15 bg-[rgba(6,20,40,0.45)] open:border-violet-300/25">
+          <summary className="cursor-pointer list-none select-none py-1.5 pl-2.5 pr-2.5 text-[10.5px] font-semibold text-white/95 [&::-webkit-details-marker]:hidden">
+            <span className="inline-flex w-full items-center justify-between gap-2">
+              <span>{INTRO_OUTRO_LABEL}</span>
+              <span
+                className="text-white/50 transition group-open:rotate-180"
+                aria-hidden
+              >
+                ▾
+              </span>
+            </span>
+          </summary>
+          <div className="space-y-1.5 border-t border-white/10 px-2.5 pb-2.5 pt-1.5 text-[10.5px] leading-relaxed text-white/85 [text-wrap:pretty]">
+            <p className="font-medium text-white/90">{outroShort}</p>
+            <p className="whitespace-pre-line text-white/78">{outroLong}</p>
+          </div>
+        </details>
+      ) : null}
+    </div>
+  );
+}
+
 /** PNG unter public/intro/ optional; sonst eingebaute Vorschau (siehe data/introScreenshots.ts). */
 function IntroScreenshotOrPreview({
   src,
   alt,
   children,
   useScreenshot = true,
+  noClip = false,
 }: {
   src: string;
   alt: string;
   children: React.ReactNode;
   useScreenshot?: boolean;
+  /** Wenn true: kein overflow:hidden (z. B. Abstimmen-Intro mit Skalierung, Daumen sichtbar). */
+  noClip?: boolean;
 }) {
   const [showShot, setShowShot] = useState(false);
   const effectiveShowShot = useScreenshot && showShot;
   return (
-    <div className="relative w-full shrink-0 overflow-hidden rounded-xl">
+    <div
+      className={
+        'relative w-full shrink-0 rounded-xl ' + (noClip ? 'overflow-visible' : 'overflow-hidden')
+      }
+    >
       <div className={effectiveShowShot ? 'hidden' : 'block'}>{children}</div>
       <img
         src={src}
@@ -108,7 +257,7 @@ function IntroScreenshotOrPreview({
 function BallotScroll({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="hide-scrollbar max-h-[min(36vh,15rem)] overflow-y-auto overflow-x-hidden rounded-xl border border-white/30 bg-white shadow-md"
+      className="hide-scrollbar max-h-[min(72dvh,36rem)] min-h-[16rem] overflow-y-auto overflow-x-hidden rounded-xl border border-white/30 bg-white shadow-md"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
       <div className="p-2 text-gray-900">{children}</div>
@@ -117,13 +266,12 @@ function BallotScroll({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Abstimmungskarte wie in der App. In der Einführung sind die Daumen-Buttons
- * bewusst ohne Feedback (Framing-only): der Zustand „Vorschau" wird aus-
- * schließlich in der Overlay-Chrome kommuniziert, NICHT im Screen selbst.
+ * Abstimmungskarte wie in der App. Daumen-Buttons in der Führung ohne reales
+ * Stimmverhalten, damit der Screen ruhig und lesbar bleibt.
  */
 function IntroAbstimmenPreview({ card }: { card: VotingCardModel }) {
   return (
-    <div className="relative w-full min-w-0 max-w-full">
+    <div className="relative w-full min-w-0 max-w-full origin-top scale-[0.94] [transform:translateZ(0)] sm:scale-[0.96]">
       <div
         className="absolute inset-x-2 -bottom-1 top-2 -z-10 rounded-2xl bg-neutral-100 shadow-sm"
         aria-hidden
@@ -132,7 +280,7 @@ function IntroAbstimmenPreview({ card }: { card: VotingCardModel }) {
         className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl"
         style={{ boxShadow: '0 8px 28px rgba(0,40,100,0.12)' }}
       >
-        <div className="p-1.5">
+        <div className="p-1.5 pb-2">
           <VotingCard
             card={card}
             canVote
@@ -144,16 +292,50 @@ function IntroAbstimmenPreview({ card }: { card: VotingCardModel }) {
             onDragEnd={noopDrag}
             onVote={noopVote}
             introBarIcons
+            introProConExpanded={false}
+            introCompact
           />
-          <VotingControls canVote onVote={noopVote} />
+          <VotingControls canVote onVote={noopVote} compact={false} />
         </div>
       </div>
     </div>
   );
 }
 
-function IntroKalenderPreview() {
+function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
   const days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+  const previewMonth = 3;
+  const previewYear = 2026;
+  const rows = useMemo(() => introCalendarRowsFromFixtures(communeKey), [communeKey]);
+  const highlightDays = useMemo(() => {
+    const s = new Set<number>();
+    for (const r of rows) {
+      const p = parseDeDeadline(r.dateStr);
+      if (p && p.m === previewMonth && p.y === previewYear) s.add(p.d);
+    }
+    return s;
+  }, [rows]);
+
+  const levelBadge = (level: IntroCalRow['level']) => {
+    const map = {
+      bund: 'bg-slate-600 text-white',
+      land: 'bg-[#0c2d5c] text-white',
+      kreis: 'bg-[#0055A4] text-white',
+      kommune: 'bg-[#38bdf8] text-[#0c2d5c]',
+    } as const;
+    const label = { bund: 'Bund', land: 'Land', kreis: 'Kreis', kommune: 'Kommune' }[level];
+    return (
+      <span className={`shrink-0 rounded px-1.5 py-0.5 text-[8px] font-bold ${map[level]}`}>{label}</span>
+    );
+  };
+
+  const kindLabel = (r: IntroCalRow) => (r.kind === 'wahl' ? 'Wahl' : 'Abstimmung');
+
+  const firstDowSun0 = new Date(previewYear, previewMonth - 1, 1).getDay();
+  const startPad = (firstDowSun0 + 6) % 7;
+  const daysInMonth = new Date(previewYear, previewMonth, 0).getDate();
+  const totalCells = Math.ceil((startPad + daysInMonth) / 7) * 7;
+
   return (
     <div className="rounded-xl border border-neutral-200 bg-white text-left shadow-md">
       <div
@@ -161,7 +343,9 @@ function IntroKalenderPreview() {
         style={{ background: 'linear-gradient(135deg, #002855 0%, #0055A4 100%)' }}
       >
         <span className="text-[12px] font-bold">Kalender</span>
-        <span className="text-[10px] opacity-90">März 2026</span>
+        <span className="text-[10px] opacity-90">
+          März {previewYear} · Bund, Land, Kreis & Kommune
+        </span>
       </div>
       <div className="p-2">
         <div className="grid grid-cols-7 gap-0.5 text-center text-[8px] font-semibold text-neutral-500">
@@ -169,25 +353,42 @@ function IntroKalenderPreview() {
             <span key={d}>{d}</span>
           ))}
         </div>
-        <div className="mt-1 grid grid-cols-7 gap-0.5 text-[9px] text-neutral-400">
-          {Array.from({ length: 28 }, (_, i) => (
-            <span
-              key={i}
-              className={`flex h-6 items-center justify-center rounded ${
-                i === 10 || i === 18 ? 'bg-[#E8F0FB] font-semibold text-[#003366]' : ''
-              }`}
-            >
-              {i + 1}
-            </span>
-          ))}
+        <div className="mt-1 grid grid-cols-7 gap-0.5 text-[9px] text-neutral-500">
+          {Array.from({ length: totalCells }, (_, i) => {
+            const dayNum = i - startPad + 1;
+            if (dayNum < 1 || dayNum > daysInMonth) {
+              return <span key={i} className="flex h-6 items-center justify-center rounded" aria-hidden />;
+            }
+            const on = highlightDays.has(dayNum);
+            return (
+              <span
+                key={i}
+                className={`flex h-6 items-center justify-center rounded ${
+                  on ? 'bg-[#E8F0FB] font-semibold text-[#003366] ring-1 ring-[#0055A4]/25' : ''
+                }`}
+              >
+                {dayNum}
+              </span>
+            );
+          })}
         </div>
         <div className="mt-2 space-y-1 border-t border-neutral-100 pt-2">
-          <p className="text-[9px] font-semibold text-[#1A2B45]">Auszug</p>
-          <div className="rounded-lg border border-[#BFD9FF] bg-[#F7FAFF] px-2 py-1.5 text-[9px] text-[#003366]">
-            Kommunalwahl · 15.03.
-          </div>
-          <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-[9px] text-neutral-700">
-            Abstimmung · Frist 22.03.
+          <p className="text-[9px] font-semibold text-[#1A2B45]">Auszug · gebündelt nach Ebene</p>
+          <div className="max-h-[9.5rem] space-y-1 overflow-y-auto pr-0.5" style={{ WebkitOverflowScrolling: 'touch' }}>
+            {rows.slice(0, 7).map((r) => (
+              <div
+                key={`${r.kind}-${r.title}-${r.dateStr}`}
+                className="flex items-start gap-1.5 rounded-lg border border-neutral-200/90 bg-neutral-50/90 px-2 py-1.5 text-[9px] text-neutral-800"
+              >
+                {levelBadge(r.level)}
+                <div className="min-w-0 flex-1 leading-snug">
+                  <span className="font-semibold text-[#1A2B45]">
+                    {kindLabel(r)} · {r.title}
+                  </span>
+                  <span className="mt-0.5 block text-[8.5px] text-neutral-600">Frist / Termin · {r.dateStr}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -270,8 +471,9 @@ function MeldungIntroPreview({ communeName }: { communeName: string }) {
   );
 }
 
-function PraemienIntroPreview() {
+function PraemienIntroPreview({ communeName }: { communeName: string }) {
   const [checkFlash, setCheckFlash] = useState(false);
+  const praemienAuszug = useMemo(() => regionalPraemienForCity(communeName).slice(0, 5), [communeName]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -287,8 +489,8 @@ function PraemienIntroPreview() {
         className="rounded-t-xl p-3 text-white"
         style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
       >
-        <div className="text-sm font-bold leading-snug">Punkte sammeln und Prämien erhalten</div>
-        <div className="text-[10px] opacity-90">Teilnahme freiwillig</div>
+        <div className="text-sm font-bold leading-snug">Prämien</div>
+        <div className="text-[10px] opacity-90">Teilnahme freiwillig · Auszug {communeName} & Region</div>
       </div>
       <div className="space-y-2 p-3">
         <label
@@ -312,17 +514,36 @@ function PraemienIntroPreview() {
           <span>Ich möchte am freiwilligen Punkte- und Prämienprogramm teilnehmen.</span>
         </label>
         <p className="text-[10px] text-neutral-600">
-          Prämien und Einlöseangebote werden erst nach Ihrer Zustimmung sichtbar.
+          Nach Zustimmung sind Einlösen und Details wie in der App freigeschaltet — hier ein regionaler Vorgeschmack.
         </p>
-        <div className="rounded-lg border border-neutral-200 bg-neutral-100 px-2.5 py-2 text-[10px] text-neutral-500">
-          Prämienkarte (gesperrte Vorschau)
+        <div className="max-h-[11.5rem] space-y-1.5 overflow-y-auto pr-0.5" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <p className="text-[9px] font-bold uppercase tracking-wide text-[#1A2B45]">Lokale Prämien · Auszug</p>
+          {praemienAuszug.map((p) => (
+            <div
+              key={p.id}
+              className="flex items-start gap-2 rounded-lg border border-neutral-200/90 bg-[#F7F9FC] px-2 py-1.5 text-[10px]"
+            >
+              <span className="text-[14px] leading-none" aria-hidden>
+                {p.emoji}
+              </span>
+              <div className="min-w-0 flex-1 leading-snug">
+                <div className="font-semibold text-neutral-900">{p.name}</div>
+                <div className="mt-0.5 text-[9px] text-neutral-600">
+                  {p.description} · {p.points.toLocaleString('de-DE')} Punkte
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="rounded-lg border border-dashed border-[#BFD9FF] bg-[#F0F6FF] px-2.5 py-2 text-[9px] text-[#003366]">
+          Vorschau: Freibad, Mobilität, Kino, Museum, Nahverkehr und lokale Partner — gebündelt wie im Prämien-Bereich der App.
         </div>
         <button
           type="button"
           disabled
-          className="w-full rounded-lg border border-neutral-300 bg-neutral-200 py-2 text-[10px] font-semibold text-neutral-500"
+          className="w-full rounded-lg border border-neutral-200 bg-white py-2 text-[10px] font-semibold text-neutral-400"
         >
-          Einlösen (gesperrt)
+          Einlösen (nach Aktivierung in der App)
         </button>
       </div>
     </div>
@@ -344,23 +565,20 @@ export default function DemoIntroWalkthrough({
   const [idx, setIdx] = useState(0);
   const step = steps[idx];
   const isLast = idx >= steps.length - 1;
-  const isAbstimmenStep = step.id === 'abstimmen';
-  const isPolitikbarometerStep = step.id === 'politikbarometer';
-  const globalStepNumber = idx + 1 + GLOBAL_STEP_OFFSET;
-
-  // Barometer und Abstimmen dürfen die volle Höhe einnehmen (sonst werden die
-  // Daumen bzw. die Slider am unteren Rand abgeschnitten). Der äußere Overlay-
-  // Container scrollt bereits.
-  const previewMaxHeight =
-    step.id === 'praemien'
-      ? 'min(52vh, 440px)'
-      : step.id === 'abstimmen'
-        ? 'min(46vh, 360px)'
-        : step.id === 'politikbarometer'
-          ? 'min(48vh, 400px)'
-          : 'min(44vh, 380px)';
 
   const framingLine = introOverlayFramingLine(step.id, du);
+  const clara = useMemo(() => claraBlockForStep(step.id, du), [step.id, du]);
+
+  const speakParts = useMemo(() => {
+    const base: string[] = [clara.line10s, ...clara.speakSegments];
+    if (isLast) {
+      return [
+        ...base,
+        ...(du ? INTRO_CLOSING_SPOKEN_SEGMENTS_DU : INTRO_CLOSING_SPOKEN_SEGMENTS_SIE),
+      ];
+    }
+    return base;
+  }, [clara.line10s, clara.speakSegments, isLast, du]);
 
   const preview = useMemo(() => {
     switch (step.id) {
@@ -370,13 +588,14 @@ export default function DemoIntroWalkthrough({
             src={INTRO_SCREENSHOTS.beteiligung}
             alt="Bereich Abstimmen"
             useScreenshot={false}
+            noClip
           >
             <IntroAbstimmenPreview card={previewCard} />
           </IntroScreenshotOrPreview>
         );
       case 'wahlen':
         return (
-          <IntroScreenshotOrPreview src={INTRO_SCREENSHOTS.wahlen} alt="Bereich Wahlen – Stimmzettel" useScreenshot={false}>
+          <IntroScreenshotOrPreview src={INTRO_SCREENSHOTS.wahlen} alt="Bereich Wahlen – Stimmzettel" useScreenshot>
             <BallotScroll>
               <OriginalStimmzettel
                 level="bund"
@@ -395,76 +614,49 @@ export default function DemoIntroWalkthrough({
           <IntroScreenshotOrPreview
             src={INTRO_SCREENSHOTS.kalender}
             alt="Bereich Kalender"
-            useScreenshot={false}
+            useScreenshot
           >
-            <IntroKalenderPreview />
+            <IntroKalenderPreview communeKey={communeKey} />
           </IntroScreenshotOrPreview>
         );
       case 'meldungen':
         return (
-          <IntroScreenshotOrPreview src={INTRO_SCREENSHOTS.meldungen} alt="Bereich Meldungen" useScreenshot={false}>
+          <IntroScreenshotOrPreview src={INTRO_SCREENSHOTS.meldungen} alt="Bereich Meldungen" useScreenshot>
             <MeldungIntroPreview communeName={communeName} />
           </IntroScreenshotOrPreview>
         );
       case 'praemien':
-        return <PraemienIntroPreview />;
+        return <PraemienIntroPreview communeName={communeName} />;
       case 'politikbarometer':
         return <PolitikBarometerPanel du={du} variant="compact" />;
       default:
         return null;
     }
-  }, [step.id, previewCard, communeName, du]);
+  }, [step.id, previewCard, communeName, du, communeKey]);
 
-  const closingText = du ? INTRO_CLOSING_TEXT_DU : INTRO_CLOSING_TEXT_SIE;
   const intro = useOptionalIntroOverlay();
 
   useEffect(() => {
     if (!intro) return;
-    if (!intro.readAloud) {
-      intro.stopIntroSpeech();
-      return;
-    }
-    const bodyForSpeech = adaptIntroAddress(
-      isAbstimmenStep ? step.body.replace(/\n\n+/g, '\n') : step.body,
-      du,
-    )
-      .replace(/\n+/g, ' ')
-      .trim();
-    const meta = framingLine ? ` Kurz: ${framingLine}` : '';
-    let text = `Schritt ${globalStepNumber} von ${INTRO_TOTAL_STEPS}. ${step.title}. ${bodyForSpeech}${meta}`;
-    if (isLast) {
-      text += ` ${closingText.replace(/\n+/g, ' ').trim()}`;
-    }
-    intro.speakIntro(text);
+    const speechKey = `walkthrough-${idx}-${step.id}`;
+    const t = window.setTimeout(() => {
+      intro.speakIntroParts(speakParts, speechKey);
+    }, 120);
     return () => {
+      window.clearTimeout(t);
       intro.stopIntroSpeech();
     };
-  }, [
-    intro,
-    intro?.readAloud,
-    idx,
-    globalStepNumber,
-    step.id,
-    step.title,
-    step.body,
-    du,
-    isAbstimmenStep,
-    isLast,
-    closingText,
-    framingLine,
-  ]);
+  }, [intro, intro?.readAloud, idx, step.id, speakParts]);
 
-  // aria-live Ansage: wird von Screenreadern bei jedem Schritt-Wechsel gelesen.
-  const liveAnnouncement = `Einführung, Schritt ${globalStepNumber} von ${INTRO_TOTAL_STEPS} – ${step.title}. ${framingLine}`;
+  const liveAnnouncement = `Bereich ${clara.label}. ${clara.line10s} ${framingLine || clara.short}`.trim();
+
+  const isAbstimmenStep = step.id === 'abstimmen';
 
   return (
     <div
-      className="relative z-10 flex min-h-0 h-full w-full max-w-[100%] min-w-0 flex-col overflow-hidden font-sans antialiased [font-synthesis:none]"
+      className="intro-dark-body relative z-10 flex min-h-0 h-full w-full max-w-[100%] min-w-0 flex-col overflow-hidden font-sans antialiased [font-synthesis:none]"
       style={{
-        background: 'linear-gradient(165deg, rgba(15,23,42,0.97) 0%, rgba(30,41,59,0.94) 45%, rgba(15,23,42,0.98) 100%)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
       }}
       role="dialog"
       aria-modal="true"
@@ -480,70 +672,63 @@ export default function DemoIntroWalkthrough({
         {liveAnnouncement}
       </div>
 
-      <IntroMetaStrip stepNumber={globalStepNumber} onSkip={onFinish} onClose={onClose} />
+      <IntroMetaStrip stepNumber={null} onSkip={onFinish} onClose={onClose} />
 
-      {/* Headline des Walkthroughs bleibt, ist aber deutlich vom Meta-Rahmen getrennt. */}
-      <div className="flex-shrink-0 px-3 pt-2.5 pb-1 sm:px-4">
-        <h2 className="text-[16px] font-extrabold leading-[1.2] tracking-tight text-white sm:text-[17px]">
-          {INTRO_OVERLAY_HEADLINE}
+      <div className="flex-shrink-0 px-3 pb-1 pt-2.5 sm:px-4">
+        <h2 className="text-[15px] font-extrabold leading-tight tracking-tight text-white sm:text-[16px]">
+          Im Überblick · {clara.label}
         </h2>
+        <p className="mt-1.5 text-[11px] font-medium leading-snug text-sky-100/88 [text-wrap:pretty]">
+          {clara.line10s}
+        </p>
+        <div className="mt-1.5">
+          <WalkthroughInfoDetails
+            primaryLong={clara.long}
+            showOutro={isLast}
+            outroShort={du ? INTRO_OUTRO_SHORT_DU : INTRO_OUTRO_SHORT_SIE}
+            outroLong={du ? INTRO_OUTRO_DROPDOWN_DU : INTRO_OUTRO_DROPDOWN_SIE}
+          />
+        </div>
       </div>
 
-      {/* Inhalt: Abschnitt, Fließtext, Vorschau */}
-      <div className="hide-scrollbar min-h-0 flex-1 touch-pan-y overflow-y-auto overflow-x-hidden overscroll-contain px-3 pb-2 sm:px-4">
-        <div className={isAbstimmenStep ? 'space-y-2' : 'space-y-3'}>
-          <p className="text-[12px] font-bold leading-snug text-white/95">{step.title}</p>
-          <div className={isAbstimmenStep ? 'space-y-1.5' : 'space-y-2.5'}>
-            {adaptIntroAddress(isAbstimmenStep ? step.body.replace(/\n\n+/g, '\n') : step.body, du)
-              .split(/\n\n+/)
-              .map((block) => block.trim())
-              .filter(Boolean)
-              .map((para, i) => (
-                <p
-                  key={i}
-                  className="text-[11px] leading-[1.5] text-white/[0.88] [text-wrap:pretty]"
-                >
-                  {para}
-                </p>
-              ))}
-          </div>
-        </div>
-
-        <div className={`${isAbstimmenStep ? 'mt-2' : 'mt-3'} rounded-xl border border-neutral-200/95 bg-white p-2 shadow-sm`}>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 pb-1 sm:px-4">
+        <div className="mt-0 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <div
-            className="hide-scrollbar flex-shrink-0 overflow-x-hidden overscroll-contain overflow-y-auto"
-            style={{ maxHeight: previewMaxHeight }}
+            className={`relative min-h-0 w-full min-w-0 flex-1 rounded-2xl border border-white/12 bg-white p-1 shadow-[0_4px_20px_rgba(0,0,0,0.12)] sm:p-1.5 ${
+              isAbstimmenStep
+                ? 'flex flex-col overflow-y-auto overflow-x-hidden overscroll-contain'
+                : 'overflow-hidden'
+            }`}
+            style={
+              isAbstimmenStep
+                ? { minHeight: 0, maxHeight: 'min(78dvh, 40rem)' }
+                : { minHeight: 'min(78dvh, 40rem)' }
+            }
           >
-            <div key={step.id}>{preview}</div>
+            <div
+              className={
+                isAbstimmenStep
+                  ? 'flex w-full min-w-0 flex-col overflow-x-hidden pb-0.5'
+                  : 'hide-scrollbar flex h-full min-h-[min(70dvh,32rem)] w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain sm:min-h-[min(72dvh,36rem)]'
+              }
+            >
+              <div
+                key={step.id}
+                className={
+                  isAbstimmenStep
+                    ? 'flex w-full min-w-0 flex-col'
+                    : 'flex w-full min-w-0 flex-1 flex-col'
+                }
+              >
+                {preview}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Barometer: Hinweis zu gespeicherten Einstellungen (vor Abschlusstext am letzten Schritt). */}
-        {isPolitikbarometerStep ? (
-          <p className="mt-3 text-[10.5px] leading-snug text-white/65">
-            {du
-              ? 'Hinweis: Deine Auswahl wird für die App übernommen und lässt sich jederzeit in den Einstellungen anpassen.'
-              : 'Hinweis: Ihre Auswahl wird für die App übernommen und lässt sich jederzeit in den Einstellungen anpassen.'}
-          </p>
-        ) : null}
-
-        {/* Abschluss-Text auf dem letzten Screen – als Meta-Ebene oberhalb des Buttons. */}
-        {isLast ? (
-          <div className="mt-4 space-y-2 rounded-xl border border-white/15 bg-white/[0.06] px-3 py-2.5">
-            {closingText
-              .split(/\n\n+/)
-              .map((block) => block.trim())
-              .filter(Boolean)
-              .map((para, i) => (
-                <p key={i} className="text-[11px] leading-relaxed text-white/90 [text-wrap:pretty]">
-                  {para}
-                </p>
-              ))}
-          </div>
-        ) : null}
       </div>
 
-      <div className="flex flex-shrink-0 gap-2 border-t border-white/10 bg-[rgba(12,18,32,0.96)] px-3 pt-2.5 intro-action-bar-pad sm:px-4">
+      <div className="relative z-30 flex flex-shrink-0 gap-2 border-t border-white/10 bg-[rgba(12,18,32,0.96)] px-3 pt-2.5 intro-action-bar-pad sm:px-4">
         <button
           type="button"
           onClick={() => {

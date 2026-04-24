@@ -1,13 +1,24 @@
 import { introAnredeGateSpoken, introEidLoginSpoken } from '@/lib/introSpokenTts';
 
 describe('introSpokenTts', () => {
-  it('Anrede: Du- und Sie-Öffnung unterscheidet sich', () => {
-    expect(introAnredeGateSpoken(true)).toContain('Möchtest du per Du');
-    expect(introAnredeGateSpoken(false)).toContain('Wie möchten Sie angesprochen');
+  it('Anrede: Clara (Spoken) — kurze Sätze, Ansprache, kein UI-Fließtext', () => {
+    const duT = introAnredeGateSpoken(true);
+    expect(duT).toContain('Willkommen');
+    expect(duT).toContain('Clara');
+    expect(duT).toMatch(/geduzt|gesiezt/);
+    const sieT = introAnredeGateSpoken(false);
+    expect(sieT).toContain('Willkommen');
+    expect(sieT).toContain('Clara');
+    expect(sieT).toMatch(/geduzt|gesiezt/);
   });
 
-  it('eID-Login: Du vs. Sie Abschlusssatz', () => {
-    expect(introEidLoginSpoken(true, 'eID Demo Connect')).toContain('Du meldest dich');
-    expect(introEidLoginSpoken(false, 'eID Demo Connect')).toContain('Sie melden sich');
+  it('eID-Login: Spoken — Zugang, eID, Kommune/Wahlbezirk, Kirkel, ohne alte Floskeln', () => {
+    const du = introEidLoginSpoken(true);
+    expect(du).toMatch(/sicher|Zugang/);
+    expect(du).toMatch(/eID/);
+    expect(du).toMatch(/Kirkel|Kommune/);
+    expect(du).not.toMatch(/passgenaue|Reibung|wo sie hingehören/);
+    expect(du).not.toMatch(/eID Demo Connect/);
+    expect(du).not.toMatch(/Demo-eID/);
   });
 });

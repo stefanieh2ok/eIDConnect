@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { AppProvider } from '@/context/AppContext';
 import BuergerApp from '@/components/BuergerApp';
 import { DemoProvider, useDemoLogger } from '@/lib/demo-logger';
 import { ExternalLinkProvider } from '@/components/ExternalLink';
 import { AntiCopyLayer } from '@/components/security/AntiCopyLayer';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
+import { clearIntroSessionKeys } from '@/lib/introPreLoginPhase';
 
 function DemoContent() {
   const pathRef = useRef<string>('');
@@ -39,7 +40,6 @@ type DemoAppClientProps = {
 };
 
 const INTRO_DONE_KEY = 'eidconnect_product_intro_done_v4';
-const ANREDE_SESSION_KEY = 'eidconnect_anrede_confirmed_session_v1';
 
 export function DemoAppClient({
   tokenId,
@@ -47,15 +47,51 @@ export function DemoAppClient({
   recipientName,
   recipientOrg,
 }: DemoAppClientProps) {
+  /**
+   * Synchron in der Render-Phase (pro sessionId), **bevor** BuergerApp `readPreLoginPhase` liest:
+   * sonst bleibt `eidconnect_prelogin_v2: ok` aus der letzten Sitzung hängen → kein
+   * Anrede-Dropdown, „unverändert“-Effekt. useEffect wäre zu spät.
+   */
+  const resetGate = useRef<string | null>(null);
+  if (typeof window !== 'undefined' && resetGate.current !== sessionId) {
+    resetGate.current = sessionId;
+    try {
+      localStorage.removeItem(INTRO_DONE_KEY);
+      clearIntroSessionKeys();
+    } catch {
+      // ignore
+    }
+  }
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
-      // Beim Einstieg in die Demo soll der Intro-/Anrede-Flow zuverlässig wieder starten.
-      // Der manuelle Start über Einstellungen bleibt weiterhin möglich.
       localStorage.removeItem(INTRO_DONE_KEY);
-      sessionStorage.removeItem(ANREDE_SESSION_KEY);
+      clearIntroSessionKeys();
     } catch {
-      // ignore storage access issues
+      // ignore
+    }
+  }, [sessionId]);
+
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+      }
+    } catch {
+      // ignore
+    }
+    try {
+      window.scrollTo(0, 0);
+    } catch {
+      /* jsdom: not implemented */
+    }
+    try {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    } catch {
+      /* ignore */
     }
   }, [sessionId]);
 

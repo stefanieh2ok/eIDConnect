@@ -1,7 +1,7 @@
 'use client';
 
 import React, { memo, useState } from 'react';
-import { ChevronDown, ListChecks } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { VotingCard as VotingCardType, VoteType } from '@/types';
 
 function enforceFactDetail(text: string): string {
@@ -29,6 +29,10 @@ interface VotingCardProps {
   onVote: (voteType: VoteType) => void;
   /** Produkt-Intro: kompakter Prozent-Balken ohne Icons/Labels. */
   introBarIcons?: boolean;
+  /** Einführungs-Walkthrough: Pro- und Contra-Boxen sofort geöffnet. */
+  introProConExpanded?: boolean;
+  /** Einführung: weniger Zeilen, damit Karte + Daumen ohne Scroll sichtbar bleiben. */
+  introCompact?: boolean;
 }
 
 const VotingCard: React.FC<VotingCardProps> = memo(
@@ -43,9 +47,12 @@ const VotingCard: React.FC<VotingCardProps> = memo(
     onDragEnd,
     onVote: _onVote,
     introBarIcons = false,
+    introProConExpanded = false,
+    introCompact = false,
   }) => {
-    const [proOpen, setProOpen] = useState(false);
-    const [conOpen, setConOpen] = useState(false);
+    const [proOpen, setProOpen] = useState(introProConExpanded);
+    const [conOpen, setConOpen] = useState(introProConExpanded);
+    const proConLimit = introCompact ? 1 : 2;
 
     return (
       <div
@@ -73,7 +80,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
       >
         {/* ── Header-Streifen (Governikus Dunkelblau) ── */}
         <div
-          className="flex items-center justify-between px-4 py-3"
+          className={`flex items-center justify-between px-4 ${introCompact ? 'py-2' : 'py-3'}`}
           style={{
             background: 'linear-gradient(135deg, #002855 0%, #003d80 50%, #0055A4 100%)',
           }}
@@ -107,17 +114,23 @@ const VotingCard: React.FC<VotingCardProps> = memo(
         </div>
 
         {/* ── Inhalt ── */}
-        <div className="px-4 pt-3 pb-2">
-          <h2 className="text-[15px] font-bold leading-snug mb-1" style={{ color: 'var(--gov-heading, #1A2B45)' }}>
+        <div className={`px-4 ${introCompact ? 'pt-2 pb-1' : 'pt-3 pb-2'}`}>
+          <h2
+            className={`font-bold leading-snug mb-0.5 ${introCompact ? 'text-[13px] line-clamp-2' : 'text-[15px] mb-1'}`}
+            style={{ color: 'var(--gov-heading, #1A2B45)' }}
+          >
             {card.title}
           </h2>
-          <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--gov-muted, #6B7A99)' }}>
+          <p
+            className={`text-xs leading-relaxed ${introCompact ? 'line-clamp-1' : 'line-clamp-2'}`}
+            style={{ color: 'var(--gov-muted, #6B7A99)' }}
+          >
             {card.description}
           </p>
         </div>
 
         {/* ── Live-Abstimmungsbarometer: Verlauf rot → grau → grün (wie Daumen: Dagegen · Enthalten · Dafür) ── */}
-        <div className="px-4 pb-2">
+        <div className={`px-4 ${introCompact ? 'pb-1' : 'pb-2'}`}>
           <div
             className="rounded-full p-[1.5px]"
             style={{
@@ -191,25 +204,12 @@ const VotingCard: React.FC<VotingCardProps> = memo(
           </div>
         </div>
 
-        {/* ── Quick Facts ── */}
-        <div
-          className="mx-4 mb-3 rounded-xl px-3 py-2 grid grid-cols-2 gap-x-3 gap-y-1"
-          style={{ background: 'var(--gov-primary-light, #E8F0FB)' }}
-        >
-          {card.quickFacts.slice(0, 4).map((fact, i) => (
-            <div key={i} className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--gov-heading)' }}>
-              <ListChecks className="h-3 w-3 flex-shrink-0" style={{ color: 'var(--gov-primary-mid)' }} aria-hidden />
-              <span className="truncate">{fact}</span>
-            </div>
-          ))}
-        </div>
-
         {/* ── Pro / Contra: einklappbar, damit Abstimmungs-Buttons sichtbar bleiben ── */}
-        <div className="mx-4 mb-3 grid grid-cols-2 gap-2">
+        <div className={`mx-4 ${introCompact ? 'mb-2 grid grid-cols-2 gap-1.5' : 'mb-3 grid grid-cols-2 gap-2'}`}>
           <div className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/60">
             <button
               type="button"
-              className="flex w-full items-center justify-between gap-1 px-2.5 py-2 text-left"
+              className={`flex w-full items-center justify-between gap-1 px-2.5 text-left ${introCompact ? 'py-1.5' : 'py-2'}`}
               onClick={() => setProOpen((o: boolean) => !o)}
               aria-expanded={proOpen}
               aria-controls="voting-pro-details"
@@ -226,9 +226,9 @@ const VotingCard: React.FC<VotingCardProps> = memo(
                 id="voting-pro-details"
                 role="region"
                 aria-labelledby="voting-pro-toggle"
-                className="space-y-1 border-t border-emerald-200/80 px-2.5 pb-2.5 pt-1 text-[10px] leading-snug text-emerald-950"
+                className={`space-y-1 border-t border-emerald-200/80 px-2.5 pt-1 leading-snug text-emerald-950 ${introCompact ? 'pb-1.5 text-[9px]' : 'pb-2.5 text-[10px]'}`}
               >
-                {(card.kiAnalysis?.pros ?? []).slice(0, 2).map((p, i) => (
+                {(card.kiAnalysis?.pros ?? []).slice(0, proConLimit).map((p, i) => (
                   <li key={i} className="flex gap-1">
                     <span className="mt-[2px] text-emerald-700">•</span>
                     <span>{enforceFactDetail(p.text)}</span>
@@ -243,7 +243,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
           <div className="overflow-hidden rounded-xl border border-rose-200 bg-rose-50/60">
             <button
               type="button"
-              className="flex w-full items-center justify-between gap-1 px-2.5 py-2 text-left"
+              className={`flex w-full items-center justify-between gap-1 px-2.5 text-left ${introCompact ? 'py-1.5' : 'py-2'}`}
               onClick={() => setConOpen((o: boolean) => !o)}
               aria-expanded={conOpen}
               aria-controls="voting-contra-details"
@@ -260,9 +260,9 @@ const VotingCard: React.FC<VotingCardProps> = memo(
                 id="voting-contra-details"
                 role="region"
                 aria-labelledby="voting-contra-toggle"
-                className="space-y-1 border-t border-rose-200/80 px-2.5 pb-2.5 pt-1 text-[10px] leading-snug text-rose-950"
+                className={`space-y-1 border-t border-rose-200/80 px-2.5 pt-1 leading-snug text-rose-950 ${introCompact ? 'pb-1.5 text-[9px]' : 'pb-2.5 text-[10px]'}`}
               >
-                {(card.kiAnalysis?.cons ?? []).slice(0, 2).map((c, i) => (
+                {(card.kiAnalysis?.cons ?? []).slice(0, proConLimit).map((c, i) => (
                   <li key={i} className="flex gap-1">
                     <span className="mt-[2px] text-rose-700">•</span>
                     <span>{enforceFactDetail(c.text)}</span>

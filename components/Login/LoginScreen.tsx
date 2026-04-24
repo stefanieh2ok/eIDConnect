@@ -5,8 +5,16 @@ import { useApp } from '@/context/AppContext';
 import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
-import { INTRO_EID_FRAMING_SHORT } from '@/data/introOverlayMarketing';
-import { introEidLoginSpoken } from '@/lib/introSpokenTts';
+import {
+  INTRO_EID_CARD_BODY_DU,
+  INTRO_EID_CARD_BODY_SIE,
+  INTRO_EID_CARD_PRESENTATION_HINT,
+  INTRO_EID_CARD_TITLE,
+  INTRO_EID_CTA,
+  INTRO_EID_FRAMING_SHORT,
+} from '@/data/introOverlayMarketing';
+import type { PreLoginPhase } from '@/lib/introPreLoginPhase';
+import { introEidLoginSpokenParts } from '@/lib/introSpokenTts';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useOptionalIntroOverlay } from '@/components/Intro/IntroOverlay';
 
@@ -34,9 +42,11 @@ type LoginScreenProps = {
    * dann darf LoginScreen keinen zweiten IphoneFrame rendern.
    */
   renderFrame?: boolean;
+  /** eID-TTS erst, wenn Anrede + Einstiegs-Folie durch (sonst schweigt Folie 4 oder spricht zu früh). */
+  preLoginPhase?: PreLoginPhase;
 };
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
+const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true, preLoginPhase = 'ok' }) => {
   const { state, dispatch } = useApp();
 
   const reopenProductIntro = useCallback(() => {
@@ -66,16 +76,31 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
   const intro = useOptionalIntroOverlay();
   useEffect(() => {
     if (state.anrede == null || !intro) return;
-    if (typeof document !== 'undefined' && document.querySelector('[role="dialog"][aria-label="Anrede wählen"]')) {
+    if (preLoginPhase !== 'ok') {
       return;
     }
     if (!intro.readAloud) {
       intro.stopIntroSpeech();
       return;
     }
-    intro.speakIntro(introEidLoginSpoken(du, APP_DISPLAY_NAME));
-    return () => intro.stopIntroSpeech();
-  }, [state.anrede, intro, intro?.readAloud, du]);
+    if (typeof document !== 'undefined' && document.querySelector('[role="dialog"][aria-label="Anrede wählen"]')) {
+      return;
+    }
+    if (
+      typeof document !== 'undefined' &&
+      document.querySelector('[role="dialog"][aria-label="Einstieg Einführung"]')
+    ) {
+      return;
+    }
+    const parts = introEidLoginSpokenParts(du);
+    const t = window.setTimeout(() => {
+      intro.speakIntroParts(parts, 'eid-demo-login');
+    }, 450);
+    return () => {
+      window.clearTimeout(t);
+      intro.stopIntroSpeech();
+    };
+  }, [state.anrede, intro, intro?.readAloud, du, preLoginPhase]);
 
   const applyEidKirkelDemo = () => {
     persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
@@ -133,10 +158,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
     <div
       className="intro-dark-body mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] sm:mx-2 relative"
       style={{
-        backdropFilter: 'blur(18px)',
-        WebkitBackdropFilter: 'blur(18px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: '0 16px 48px rgba(0, 20, 60, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+      }}
+      onPointerDown={() => {
+        if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+        try {
+          void window.speechSynthesis.getVoices();
+          if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+        } catch {
+          // ignore
+        }
       }}
     >
           {/* --- Meta-Ebene: Einführungs-Pill + Schritt 2/8 + Kurzzeile ---
@@ -160,6 +192,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
           </div>
 
           <div
+            id="login-main-scroll"
             className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pb-2"
             style={{ overscrollBehavior: 'contain' }}
           >
@@ -172,12 +205,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                 }}
               >
                 <h2 className="text-base font-bold text-white">
-                  Anmeldung mit eID (Demo)
+                  {INTRO_EID_CARD_TITLE}
                 </h2>
-                <p className="mt-1 text-[11px] leading-relaxed text-white/75">
-                  {du
-                    ? 'MVP-Flow: eID setzt automatisch Kirkel (66459) mit Saarpfalz-Kreis. Keine manuelle Adresseingabe erforderlich.'
-                    : 'MVP-Flow: eID setzt automatisch Kirkel (66459) mit Saarpfalz-Kreis. Keine manuelle Adresseingabe erforderlich.'}
+                <p className="mt-1.5 text-[11px] leading-relaxed text-white/85 [text-wrap:pretty]">
+                  {du ? INTRO_EID_CARD_BODY_DU : INTRO_EID_CARD_BODY_SIE}
+                </p>
+                <p className="mt-2.5 text-[10.5px] leading-relaxed text-white/70 [text-wrap:pretty]">
+                  {INTRO_EID_CARD_PRESENTATION_HINT}
                 </p>
                 <button
                   type="button"
@@ -185,14 +219,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true }) => {
                   onAnimationEnd={onOnboardingSpotlightAnimationEnd}
                   className={`btn-gov-primary mt-3 ${onboardingSpotlight === 'eid' ? 'onboarding-heartbeat' : ''}`}
                 >
-                  eID auslesen (Demo) – Kirkel
+                  {INTRO_EID_CTA}
                 </button>
-                <p className="mt-2 text-[10px] text-white/65">
-                  <span className="font-semibold text-white/90">
-                    Aktuell:
-                  </span>{' '}
-                  Hauptstraße 1, 66459 Kirkel
-                  {demoWahlkreis ? <span> · Zuständigkeit: {demoWahlkreis}</span> : null}
+                <p className="mt-2 text-[10px] text-white/60">
+                  <span className="font-semibold text-white/80">Sitzung:</span> Hauptstraße 1, 66459 Kirkel
+                  {demoWahlkreis ? <span> · {demoWahlkreis}</span> : null}
                 </p>
               </div>
             </div>

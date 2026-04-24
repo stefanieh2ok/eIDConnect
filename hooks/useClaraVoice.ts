@@ -3,6 +3,56 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { ClaraVoiceState } from '@/types/clara';
 
+/**
+ * de-DE bevorzugen (Hedda, etc.); optional explicit Google/Microsoft-Namen in Kleinbuchstaben.
+ * Wichtig: Ohne Stimmauswahl spricht manche Browser-Engine (Safari) nicht zuverlässig.
+ */
+function pickGermanVoice(
+  list: ReadonlyArray<SpeechSynthesisVoice>,
+): SpeechSynthesisVoice | null {
+  if (!list.length) return null;
+  const de = (lang: string) => lang.toLowerCase().replace('_', '-').startsWith('de');
+  return (
+    list.find((v) => de(v.lang) && /hedda|katja|yannick|amala|conrad|zira|google\s*de|microsoft.*de/gi.test(v.name)) ??
+    list.find((v) => de(v.lang)) ??
+    null
+  );
+}
+
+function withVoicesReady(run: (voices: SpeechSynthesisVoice[]) => void) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  const synth = window.speechSynthesis;
+  const voices = synth.getVoices();
+  if (voices.length > 0) {
+    run(voices);
+    return;
+  }
+  let done = false;
+  const finish = (v: SpeechSynthesisVoice[]) => {
+    if (done) return;
+    done = true;
+    run(v);
+  };
+  const onChange = () => {
+    const v = synth.getVoices();
+    if (v.length) {
+      synth.removeEventListener('voiceschanged', onChange);
+      if (failsafe != null) clearTimeout(failsafe);
+      finish(v);
+    }
+  };
+  synth.addEventListener('voiceschanged', onChange);
+  const failsafe = window.setTimeout(() => {
+    synth.removeEventListener('voiceschanged', onChange);
+    finish(synth.getVoices());
+  }, 2000);
+  try {
+    void synth.getVoices();
+  } catch {
+    // ignore
+  }
+}
+
 export const useClaraVoice = () => {
   const [voiceState, setVoiceState] = useState<ClaraVoiceState>({
     isListening: false,
@@ -67,35 +117,135 @@ export const useClaraVoice = () => {
   }, [voiceState.isListening]);
 
   const speak = useCallback((text: string) => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      // Stop any current speech
-      window.speechSynthesis.cancel();
+    if (typeof window === 'undefined' || !('speechSynthesis' in window) || !text.trim()) {
+      return;
+    }
+    const synth = window.speechSynthesis;
+    synth.cancel();
 
+    const go = (voices: SpeechSynthesisVoice[]) => {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'de-DE';
-      utterance.rate = 0.9;
-      utterance.pitch = 1.1;
-      utterance.volume = 0.8;
+      /** Eher ruhig und freundlich, nicht „Aktions-News“. */
+      /** Etwas ruhiger für bessere Satzgrenzen bei TTS. */
+      utterance.rate = 0.86;
+      utterance.pitch = 1.02;
+      utterance.volume = 0.92;
+      const de = pickGermanVoice(voices);
+      if (de) {
+        utterance.voice = de;
+        utterance.lang = de.lang || 'de-DE';
+      }
 
       utterance.onstart = () => {
-        setVoiceState(prev => ({ ...prev, isSpeaking: true }));
+        try {
+          if (synth.paused) synth.resume();
+        } catch {
+          /* iOS/Chrome: nötig, damit die Ausgabe startet */
+        }
+        setVoiceState((prev) => ({ ...prev, isSpeaking: true, error: null }));
       };
 
       utterance.onend = () => {
-        setVoiceState(prev => ({ ...prev, isSpeaking: false }));
+        setVoiceState((prev) => ({ ...prev, isSpeaking: false }));
       };
 
       utterance.onerror = (event) => {
-        setVoiceState(prev => ({ 
-          ...prev, 
-          isSpeaking: false, 
-          error: `Sprachsynthese Fehler: ${event.error}` 
+        setVoiceState((prev) => ({
+          ...prev,
+          isSpeaking: false,
+          error: `Sprachsynthese: ${event.error}`,
         }));
       };
 
       synthesisRef.current = utterance;
-      window.speechSynthesis.speak(utterance);
+      try {
+        synth.speak(utterance);
+        queueMicrotask(() => {
+          try {
+            if (synth.paused) synth.resume();
+          } catch {
+            // ignore
+          }
+        });
+      } catch (e) {
+        setVoiceState((prev) => ({
+          ...prev,
+          isSpeaking: false,
+          error: e instanceof Error ? e.message : 'Sprachsynthese nicht verfügbar',
+        }));
+      }
+    };
+
+    withVoicesReady(go);
+  }, []);
+
+  /**
+   * Mehrere kurze Äußerungen nacheinander (Browser queue), damit Pausen zwischen
+   * Sinnabschnitten entstehen — klingt natürlicher als ein langer Monolog.
+   */
+  const speakParts = useCallback((parts: string[]) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      return;
     }
+    const cleaned = parts
+      .map((p) => p.replace(/\s+/g, ' ').replace(/[*#_`]/g, '').trim())
+      .filter((p) => p.length >= 2);
+    if (!cleaned.length) {
+      return;
+    }
+    const synth = window.speechSynthesis;
+    synth.cancel();
+
+    withVoicesReady((voices) => {
+      const de = pickGermanVoice(voices);
+      cleaned.forEach((text, idx) => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'de-DE';
+        utterance.rate = 0.86;
+        utterance.pitch = 1.02;
+        utterance.volume = 0.92;
+        if (de) {
+          utterance.voice = de;
+          utterance.lang = de.lang || 'de-DE';
+        }
+
+        utterance.onstart = () => {
+          try {
+            if (synth.paused) synth.resume();
+          } catch {
+            /* ignore */
+          }
+          if (idx === 0) {
+            setVoiceState((prev) => ({ ...prev, isSpeaking: true, error: null }));
+          }
+        };
+
+        utterance.onend = () => {
+          if (idx === cleaned.length - 1) {
+            setVoiceState((prev) => ({ ...prev, isSpeaking: false }));
+          }
+        };
+
+        utterance.onerror = (event) => {
+          setVoiceState((prev) => ({
+            ...prev,
+            isSpeaking: false,
+            error: `Sprachsynthese: ${event.error}`,
+          }));
+        };
+
+        try {
+          synth.speak(utterance);
+        } catch (e) {
+          setVoiceState((prev) => ({
+            ...prev,
+            isSpeaking: false,
+            error: e instanceof Error ? e.message : 'Sprachsynthese nicht verfügbar',
+          }));
+        }
+      });
+    });
   }, []);
 
   const stopSpeaking = useCallback(() => {
@@ -110,6 +260,7 @@ export const useClaraVoice = () => {
     startListening,
     stopListening,
     speak,
+    speakParts,
     stopSpeaking
   };
 };

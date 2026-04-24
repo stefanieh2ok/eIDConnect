@@ -126,57 +126,64 @@ export function regionalPraemienForCity(cityName: string) {
   const c = cityName.trim() || 'Kommune';
   const norm = c.toLowerCase();
 
-  // Kirkel (Demo-Kernkommune): lokal plausibel, ohne konkrete Partner-Namen zu behaupten.
+  // Kirkel (Demo-Kernkommune): regionaler Auszug — gleiche Quelle wie Leaderboard/Prämien.
   if (norm === 'kirkel' || norm.includes('kirkel')) {
     return [
       {
         id: 'rk1',
-        name: 'Kirkel – Bücherei/Jugendangebot: Jahreskarte',
-        points: 2200,
-        emoji: '📚',
-        description: 'Kommunales Angebot (Demo)',
+        name: 'Naturfreibad Kirkel – Saison-Eintritt reduziert',
+        points: 2800,
+        emoji: '🏊',
+        description: 'Freibad & Naturbad vor Ort',
       },
       {
         id: 'rk2',
-        name: 'Kirkel – Schwimmbad/Sport: 10er-Karte',
-        points: 3200,
-        emoji: '🏊',
-        description: 'Freizeitangebot vor Ort (Demo)',
+        name: 'Deutsche Bahn – Ticketzuschuss Regional (z. B. Saarbrücken)',
+        points: 7500,
+        emoji: '🚆',
+        description: 'Zuschuss zum Zugticket (Demo-Modell)',
       },
       {
         id: 'rk3',
-        name: 'Kirkel – Vereinsleben: Zuschuss für Mitgliedsbeitrag',
-        points: 3800,
-        emoji: '🤝',
-        description: 'Sport/Kultur/Soziales (Demo)',
+        name: 'Kino im Saarpfalz-Kreis – Gutschein 2 Personen',
+        points: 4200,
+        emoji: '🎬',
+        description: 'Kinogutschein regional einlösbar',
       },
       {
         id: 'rk4',
-        name: 'Kirkel & Saarpfalz-Kreis – ÖPNV: Monatsbonus',
-        points: 6200,
-        emoji: '🚌',
-        description: 'Nahverkehr in der Region (Demo)',
+        name: 'Museum regional – Familien-Tageskarte',
+        points: 3600,
+        emoji: '🖼️',
+        description: 'Kultur & Museum in der Umgebung',
       },
       {
         id: 'rk5',
-        name: 'Kirkel – Lokaler Einkauf: Gutschein 10€',
-        points: 4200,
-        emoji: '🛒',
-        description: 'Einlösbar bei lokalen Partnern (Demo)',
+        name: 'Kirkel – Bücherei / Medien: Jahresausleihe',
+        points: 2200,
+        emoji: '📚',
+        description: 'Kommunales Angebot',
       },
       {
         id: 'rk6',
-        name: 'Kirkel – Natur & Klima: Baum-/Blühpatenschaft',
-        points: 2600,
-        emoji: '🌿',
-        description: 'Gemeindliches Umweltprojekt (Demo)',
+        name: 'ÖPNV Saarland – Monatsbonus / Nahverkehr',
+        points: 6200,
+        emoji: '🚌',
+        description: 'Bus & Bahn in der Region',
       },
       {
         id: 'rk7',
-        name: 'Kirkel – Bürgerabend: Einladung + Getränk',
-        points: 1800,
-        emoji: '🏛️',
-        description: 'Dialogformat vor Ort (Demo)',
+        name: 'Kirkel – Lokaler Einkauf & Gastronomie: Gutschein 15 €',
+        points: 4500,
+        emoji: '🛒',
+        description: 'Partner im Ort und Umland',
+      },
+      {
+        id: 'rk8',
+        name: 'Vereine Kirkel – Zuschuss Mitgliedsbeitrag',
+        points: 3800,
+        emoji: '🤝',
+        description: 'Sport, Kultur, Soziales',
       },
     ];
   }
