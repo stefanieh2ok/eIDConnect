@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { resetViewportScroll } from '@/lib/resetViewportScroll';
 
 type AcceptNdaButtonProps = {
   token: string;
@@ -47,8 +47,23 @@ export function AcceptNdaButton({ token, children }: AcceptNdaButtonProps) {
         return;
       }
 
-      if (result.redirectTo) {
-        router.push(result.redirectTo);
+      const redirectTo = typeof result.redirectTo === 'string' ? result.redirectTo.trim() : '';
+      if (redirectTo) {
+        resetViewportScroll();
+        if (redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
+          router.replace(redirectTo);
+          return;
+        }
+        try {
+          const u = new URL(redirectTo);
+          if (typeof window !== 'undefined' && u.origin === window.location.origin) {
+            router.replace(`${u.pathname}${u.search}${u.hash}`);
+            return;
+          }
+        } catch {
+          /* fall through */
+        }
+        window.location.href = redirectTo;
         return;
       }
       setError('Keine Weiterleitung erhalten.');

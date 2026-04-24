@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { resetViewportScroll } from '@/lib/resetViewportScroll';
 
 export function CheckboxAcceptButton({ token }: { token: string }) {
+  const router = useRouter();
   const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,10 +26,24 @@ export function CheckboxAcceptButton({ token }: { token: string }) {
         setError(data.error ?? 'Fehler beim Akzeptieren.');
         return;
       }
-      if (data.redirectTo) {
-        resetViewportScroll();
-        window.location.href = data.redirectTo as string;
+      const redirectTo = typeof data.redirectTo === 'string' ? data.redirectTo.trim() : '';
+      if (!redirectTo) return;
+
+      resetViewportScroll();
+      if (redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
+        router.replace(redirectTo);
+        return;
       }
+      try {
+        const u = new URL(redirectTo);
+        if (typeof window !== 'undefined' && u.origin === window.location.origin) {
+          router.replace(`${u.pathname}${u.search}${u.hash}`);
+          return;
+        }
+      } catch {
+        /* fall through */
+      }
+      window.location.href = redirectTo;
     } catch {
       setError('Netzwerkfehler. Bitte erneut versuchen.');
     } finally {
