@@ -211,10 +211,10 @@ export function IntroAudioStatusButton({ theme = 'dark' }: { theme?: IntroAudioS
     return () => mq.removeEventListener('change', onChange);
   }, []);
 
+  const speakingForPulse = ctx?.isIntroSpeaking ?? false;
   useEffect(() => {
     if (!ctx) return;
-    const { isIntroSpeaking } = ctx;
-    if (isIntroSpeaking && !wasSpeakingRef.current) {
+    if (speakingForPulse && !wasSpeakingRef.current) {
       wasSpeakingRef.current = true;
       if (!reducedMotion) {
         setPulse(true);
@@ -222,10 +222,10 @@ export function IntroAudioStatusButton({ theme = 'dark' }: { theme?: IntroAudioS
         return () => clearTimeout(t);
       }
     }
-    if (!isIntroSpeaking) {
+    if (!speakingForPulse) {
       wasSpeakingRef.current = false;
     }
-  }, [ctx, ctx.isIntroSpeaking, reducedMotion]);
+  }, [ctx, speakingForPulse, reducedMotion]);
 
   if (!ctx) return null;
 

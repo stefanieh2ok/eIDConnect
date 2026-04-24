@@ -26,7 +26,7 @@ export function IphoneFrame({
 
   return (
     <div
-      className={`app-device-shell flex w-full flex-col items-center justify-center ${
+      className={`app-device-shell flex w-full flex-col items-center justify-center shadow-none ring-0 [filter:none] ${
         fillContainer ? 'min-h-0 flex-1' : 'h-full min-h-0'
       } ${outerClassName}`}
       style={
@@ -38,19 +38,20 @@ export function IphoneFrame({
       }
     >
       <div
-        className="app-device-frame relative flex w-full flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-none"
+        className="app-device-frame relative flex w-full flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-none ring-0 [filter:none]"
         style={{
           width: `min(${DEVICE_WIDTH_PX}px, calc(100% - 0.75rem))`,
           aspectRatio: '393 / 852',
           maxHeight: 'min(852px, calc(100% - 0.75rem))',
           // Ruhiger App-Flächen-Ton, kein heller Insel-Fleck in der Mitte
           background: '#F7F9FC',
+          boxShadow: 'none',
         }}
       >
         {/* Ehem. starker Glas-Overlay: wirkte als grauer/weißer Nebel; entfernt für sauberen Look. */}
 
         {/* Dynamic Island */}
-        <div className="app-device-notch pointer-events-none absolute left-1/2 top-3 z-20 h-7 w-[126px] -translate-x-1/2 rounded-full bg-black/90 ring-1 ring-white/10" />
+        <div className="app-device-notch pointer-events-none absolute left-1/2 top-3 z-20 h-7 w-[126px] -translate-x-1/2 rounded-full bg-black" />
         <div className="app-device-content relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden pt-10">
           {children}
         </div>

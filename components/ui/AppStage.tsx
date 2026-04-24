@@ -23,7 +23,7 @@ type AppStageProps = {
 export function AppStage({
   children,
   stageWidthPx = 390,
-  /** Etwas Luft für Rahmen, Home-Indikator, Schatten (393×852-Logik + Rand) */
+  /** Etwas Luft für Rahmen & Home-Indikator (393×852-Logik + Rand) */
   stageHeightPx = 880,
 }: AppStageProps) {
   /** Zusätzliche Verkleinerung nur bei Bedarf; 1 = reines scale-to-fit in den Stage-Viewport */
@@ -87,6 +87,8 @@ export function AppStage({
           ['--stage-w' as any]: `${stageWidthPx}px`,
           ['--stage-h' as any]: `${stageHeightPx}px`,
           ['--desktop-scale' as any]: desktopScale,
+          // Ersetzt den bläulichen Radial-Gradient aus globals.css — reines Weiß hinter dem Device.
+          background: '#ffffff',
         } as any
       }
     >

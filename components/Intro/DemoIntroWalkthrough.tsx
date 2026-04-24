@@ -242,7 +242,7 @@ function IntroScreenshotOrPreview({
         alt={alt}
         className={
           effectiveShowShot
-            ? 'mx-auto w-full rounded-xl border border-white/35 shadow-xl'
+            ? 'mx-auto w-full rounded-xl border border-white/35 shadow-none'
             : 'pointer-events-none absolute h-0 w-0 opacity-0'
         }
         loading="eager"
@@ -272,14 +272,7 @@ function BallotScroll({ children }: { children: React.ReactNode }) {
 function IntroAbstimmenPreview({ card }: { card: VotingCardModel }) {
   return (
     <div className="relative w-full min-w-0 max-w-full origin-top scale-[0.94] [transform:translateZ(0)] sm:scale-[0.96]">
-      <div
-        className="absolute inset-x-2 -bottom-1 top-2 -z-10 rounded-2xl bg-neutral-100 shadow-sm"
-        aria-hidden
-      />
-      <div
-        className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl"
-        style={{ boxShadow: '0 8px 28px rgba(0,40,100,0.12)' }}
-      >
+      <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-none">
         <div className="p-1.5 pb-2">
           <VotingCard
             card={card}
@@ -654,10 +647,7 @@ export default function DemoIntroWalkthrough({
 
   return (
     <div
-      className="intro-dark-body relative z-10 flex min-h-0 h-full w-full max-w-[100%] min-w-0 flex-col overflow-hidden font-sans antialiased [font-synthesis:none]"
-      style={{
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
-      }}
+      className="intro-dark-body relative z-10 flex min-h-0 h-full w-full max-w-[100%] min-w-0 flex-col overflow-hidden font-sans antialiased [font-synthesis:none] shadow-none"
       role="dialog"
       aria-modal="true"
       aria-label="Einführung"
@@ -694,7 +684,7 @@ export default function DemoIntroWalkthrough({
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 pb-1 sm:px-4">
         <div className="mt-0 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <div
-            className={`relative min-h-0 w-full min-w-0 flex-1 rounded-2xl border border-white/12 bg-white p-1 shadow-[0_4px_20px_rgba(0,0,0,0.12)] sm:p-1.5 ${
+            className={`relative min-h-0 w-full min-w-0 flex-1 rounded-2xl border border-white/12 bg-white p-1 shadow-none sm:p-1.5 ${
               isAbstimmenStep
                 ? 'flex flex-col overflow-y-auto overflow-x-hidden overscroll-contain'
                 : 'overflow-hidden'

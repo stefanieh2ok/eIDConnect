@@ -62,10 +62,7 @@ export function IntroEntryBranch({
       aria-label="Einstieg Einführung"
     >
       <div className="absolute inset-0 bg-[#020712]" aria-hidden />
-      <div
-        className="intro-dark-body relative w-full max-w-[400px] overflow-hidden rounded-3xl border border-white/10 sm:max-w-[440px]"
-        style={{ boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.08)' }}
-      >
+      <div className="intro-dark-body relative w-full max-w-[400px] overflow-hidden rounded-3xl border border-white/10 shadow-none sm:max-w-[440px]">
         <IntroMetaStrip stepNumber={null} onClose={onDirectToApp} onSkip={onDirectToApp} />
         <div className="border-b border-white/10 px-4 pb-3 pt-3 sm:px-6 sm:pt-4 sm:pb-4">
           <ClaraStepPanel

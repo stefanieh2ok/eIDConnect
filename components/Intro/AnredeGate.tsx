@@ -159,7 +159,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
         className="intro-dark-body hide-scrollbar relative w-full max-w-[360px] overflow-y-auto overscroll-contain rounded-3xl sm:max-w-[400px] anredegate-sheet"
         style={{
           maxHeight: 'calc(100dvh - 1.5rem)',
-          boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+          boxShadow: 'none',
           WebkitOverflowScrolling: 'touch',
         }}
         onPointerDown={() => {
