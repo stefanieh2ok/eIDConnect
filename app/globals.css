@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Aus Root-Layout: kein manuelles <head> im App Router (Next.js Metadata + globals) */
+@layer base {
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+@layer components {
+  @supports (-ms-ime-align: auto) {
+    .ballot-checkbox {
+      -ms-appearance: none;
+    }
+  }
+  input[type='radio'].ballot-checkbox,
+  input[type='checkbox'].ballot-checkbox {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+}
+
 /* eIDConnect Custom Styles */
 :root {
   /* ─── Governikus / eID Corporate Design ─────────────────────────── */

@@ -1,9 +1,22 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
+import { ScrollRestoration } from '@/components/ScrollRestoration';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
+
+/** Vercel: NEXT_PUBLIC_APP_URL muss absolute URL sein; sonst metadataBase wirft. */
+function safeMetadataBase(): URL {
+  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (!raw) return new URL('http://localhost:3002');
+  try {
+    const href = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    return new URL(href);
+  } catch {
+    return new URL('http://localhost:3002');
+  }
+}
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -15,7 +28,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002'),
+  metadataBase: safeMetadataBase(),
   title: APP_DISPLAY_NAME,
   description: 'Moderne Bürgerbeteiligung mit KI-Unterstützung. Mitreden. Mitentscheiden. Mitgestalten.',
   openGraph: {
@@ -31,6 +44,10 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * App Router: nur <html> + <body> — kein manuelles <head> (sonst Hydration / Client-Crash).
+ * Meta über `metadata` / `viewport`; Styles in globals.css; ScrollRestoration clientseitig.
+ */
 export default function RootLayout({
   children,
 }: {
@@ -38,43 +55,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de">
-      <head>
-        {/* Browser-Kompatibilität: Edge & Chrome */}
-        <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-        {/* Verhindere Browser-spezifische Styling-Unterschiede */}
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            /* Browser-Reset für konsistente Darstellung */
-            * {
-              -webkit-font-smoothing: antialiased;
-              -moz-osx-font-smoothing: grayscale;
-              text-rendering: optimizeLegibility;
-            }
-            
-            /* Edge-spezifische Fixes */
-            @supports (-ms-ime-align: auto) {
-              .ballot-checkbox {
-                -ms-appearance: none;
-              }
-            }
-            
-            /* Chrome/Edge Chromium Konsistenz */
-            input[type="radio"].ballot-checkbox,
-            input[type="checkbox"].ballot-checkbox {
-              -webkit-appearance: none;
-              -moz-appearance: none;
-              appearance: none;
-            }
-          `
-        }} />
-        {/* Kein next/script beforeInteractive im App Router (nicht supported wie in pages/_document) */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{if(typeof history!=='undefined'&&'scrollRestoration'in history)history.scrollRestoration='manual';}catch(e){}`,
-          }}
-        />
-      </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <ScrollRestoration />
+        {children}
+      </body>
     </html>
   );
 }
