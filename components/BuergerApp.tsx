@@ -24,6 +24,10 @@ import {
   clearIntroSessionKeys,
 } from '@/lib/introPreLoginPhase';
 import ClaraDock from '@/components/Clara/ClaraDock';
+import {
+  CLARA_DOCK_EXTRA_BOTTOM_ANREDE_ENTRY,
+  CLARA_DOCK_EXTRA_BOTTOM_EID,
+} from '@/lib/claraDockSpacing';
 import type { EbeneLevel, Location, Section } from '@/types';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
 
@@ -346,7 +350,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
                 <DemoExpectationBanner />
-                <div className="px-3 pt-3 pb-24">
+                <div className="px-3 pt-3 pb-clara-dock-safe">
                   {renderSection()}
                   <SecurityFaqFooter />
                 </div>
@@ -363,7 +367,13 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
           }
           walkthroughActive={walkthroughChrome}
           walkthroughStep={walkthroughChrome ? walkthroughStep : null}
-          extraBottomOffset={!state.isLoggedIn ? '10.75rem' : '0px'}
+          extraBottomOffset={
+            !state.isLoggedIn
+              ? preLogin === 'anrede' || preLogin === 'entry'
+                ? '15.75rem'
+                : '12.25rem'
+              : '0px'
+          }
           overlayPosition={walkthroughChrome && !isDevice ? 'fixed' : 'absolute'}
           preLoginVoicePhase={
             !state.isLoggedIn
@@ -401,7 +411,7 @@ function ScrollToTopButton() {
       }
       className="absolute z-[45] w-9 h-9 rounded-full text-white shadow-lg flex items-center justify-center"
       style={{
-        bottom: 'calc(3.75rem + env(safe-area-inset-bottom, 0px))',
+        bottom: 'var(--clara-dock-scroll-top-btn-bottom)',
         right: '0.75rem',
         background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)',
       }}

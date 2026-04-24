@@ -72,7 +72,7 @@ export function IntroEntryBranch({
             showTopicTitle
           />
         </div>
-        <div className="flex flex-col gap-2 px-4 pb-4 sm:px-6 sm:pb-5">
+        <div className="intro-entry-bottom-room flex flex-col gap-2 px-4 pt-2 sm:px-6">
           <button
             type="button"
             onClick={onStart}

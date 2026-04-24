@@ -193,7 +193,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true, preLoginP
 
           <div
             id="login-main-scroll"
-            className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pb-2"
+            className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pb-6 sm:pb-8"
             style={{ overscrollBehavior: 'contain' }}
           >
             <div className="space-y-4">

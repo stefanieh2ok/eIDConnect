@@ -54,6 +54,9 @@
   --app-label:        0.6875rem;
   --glass-white:      rgba(255, 255, 255, 0.72);
   --glass-border-light: rgba(0, 0, 0, 0.06);
+  /* Clara-Pille unten: Scroll-Inhalt / „Nach oben“ nicht überlappen */
+  --clara-dock-content-pad-bottom: max(6.75rem, calc(5.25rem + env(safe-area-inset-bottom, 0px)));
+  --clara-dock-scroll-top-btn-bottom: max(6rem, calc(5.25rem + env(safe-area-inset-bottom, 0px)));
 }
 
 /* ───────────────── App-Stage: Mobile = Vollfläche, Desktop = zentrierte Preview ───────────────── */
@@ -908,6 +911,20 @@ body {
  */
 .intro-action-bar-pad {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
+}
+
+/** Haupt-Scroll: letzte Zeilen & Footer bleiben oberhalb der Clara-Pille */
+.pb-clara-dock-safe {
+  padding-bottom: var(--clara-dock-content-pad-bottom);
+}
+
+/** Anrede / Einstieg: Inhalt im Dialog nicht bis in die Pille-Zeile ziehen */
+.intro-anrede-bottom-room {
+  padding-bottom: max(1.5rem, calc(4rem + env(safe-area-inset-bottom, 0px)));
+}
+
+.intro-entry-bottom-room {
+  padding-bottom: max(1.5rem, calc(4.25rem + env(safe-area-inset-bottom, 0px)));
 }
 
 /* Politikbarometer: Schieberegler klar als aktiv lesbar (GovTech-Navy / kräftiges Blau). */

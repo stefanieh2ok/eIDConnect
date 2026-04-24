@@ -187,7 +187,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
           />
         </div>
 
-        <div className="px-4 py-4 sm:px-5 sm:py-5">
+        <div className="intro-anrede-bottom-room px-4 pt-4 sm:px-5 sm:pt-5">
           <div className="space-y-2">
             <p className="text-[11px] font-semibold text-white/85" id="anrede-choice-label">
               Ansprache wählen

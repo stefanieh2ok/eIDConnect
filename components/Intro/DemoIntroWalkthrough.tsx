@@ -727,7 +727,7 @@ export default function DemoIntroWalkthrough({
       {/* Reservierter Streifen für Clara-Pille — Inhalt per Portal aus ClaraDock, nicht über die Vorschau gelegt. */}
       <div
         id="walkthrough-clara-slot"
-        className="relative z-20 flex min-h-[3.25rem] w-full shrink-0 items-center justify-center border-t border-white/10 bg-[rgba(12,18,32,0.92)] px-3 py-1 sm:px-4"
+        className="relative z-20 flex min-h-[2.375rem] w-full shrink-0 items-center justify-center border-t border-white/10 bg-[rgba(12,18,32,0.92)] px-3 py-0.5 sm:px-4"
         aria-hidden={false}
       />
 
