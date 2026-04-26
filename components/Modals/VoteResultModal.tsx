@@ -26,19 +26,13 @@ const VoteResultModal: React.FC<VoteResultModalProps> = ({ voteResult, onClose }
         <div className="text-6xl mb-4">
           {getVoteIcon(voteResult.vote)}
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">
-          Stimme registriert!
-        </h3>
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">Auswahl erfasst</h3>
         <p className="text-lg text-gray-700 mb-4">
-          Du hast mit <strong>{voteResult.vote}</strong> gestimmt
+          Ihre Auswahl: <strong>{voteResult.vote}</strong>
         </p>
-        <div className="bg-green-50 border-2 border-green-500 rounded-xl p-4">
-          <div className="text-3xl font-bold text-green-600">
-            +{voteResult.points} Punkte
-          </div>
-          <div className="text-sm text-gray-600 mt-1">
-            Clara analysiert die Auswirkungen...
-          </div>
+        <div className="bg-slate-50 border-2 border-slate-300 rounded-xl p-4">
+          <div className="text-sm font-semibold text-slate-800">Demo-Hinweis · keine echte Abstimmung</div>
+          <div className="text-sm text-slate-600 mt-1">Die Erfassung dient nur der Demo-Darstellung.</div>
         </div>
       </div>
     </div>

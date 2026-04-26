@@ -1,5 +1,7 @@
 # 👋 eIDConnect – Anrede-System
 
+> **Hinweis:** Dieses Dokument enthält historische Beispiele. Aktuelle UI-Texte mit GovTech-Wording sind im laufenden Quellcode umgesetzt.
+
 ## ✅ **Anrede-Auswahl implementiert:**
 
 ### **1. Login-Flow mit Anrede-Auswahl:**

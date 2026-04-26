@@ -92,7 +92,6 @@ const COMMUNE_DISPLAY: Record<string, string> = {
 
 const noopVote = () => {};
 const noopKi = () => {};
-const noopDrag = (_x?: number, _y?: number) => {};
 
 function parseDeDeadline(s: string): { d: number; m: number; y: number } | null {
   const m = s.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
@@ -367,28 +366,19 @@ function BallotScroll({ children }: { children: React.ReactNode }) {
  * Abstimmungskarte wie in der App. Daumen-Buttons in der Führung ohne reales
  * Stimmverhalten, damit der Screen ruhig und lesbar bleibt.
  */
-function IntroAbstimmenPreview({ card }: { card: VotingCardModel }) {
+function IntroAbstimmenPreview({ card, du }: { card: VotingCardModel; du: boolean }) {
   return (
     <div className="relative w-full min-w-0 max-w-full shrink-0 [transform:translateZ(0)]">
       <div className="rounded-2xl border border-neutral-200 bg-white shadow-none">
         <div className="p-1 sm:p-1.5 pb-2">
           <VotingCard
             card={card}
-            canVote
-            dragOffsetX={0}
-            dragOffsetY={0}
-            isDragging={false}
-            onDragStart={noopDrag}
-            onDragMove={noopDrag}
-            onDragEnd={noopDrag}
-            onVote={noopVote}
             introBarIcons
             introProConExpanded
             introCompact
-            introHideDemoPoints
             introDemoVoteDisclaimer
           />
-          <VotingControls canVote onVote={noopVote} introWalkthrough />
+          <VotingControls canVote onVote={noopVote} introWalkthrough du={du} />
         </div>
       </div>
     </div>
@@ -536,7 +526,7 @@ function BeteiligungsstatusIntroPreview({ communeName }: { communeName: string }
       </div>
       <div className="flex min-h-0 flex-1 flex-col space-y-2 overflow-hidden p-3">
         <p className="shrink-0 text-[10px] leading-snug text-neutral-600">
-          Überblick über eingereichte Beiträge und Meldungen sowie optionales, freiwilliges Prämienprogramm der Kommune.
+          Übersicht über eingereichte Beiträge, Meldungen und Beteiligungen mit transparentem Rückmeldestatus.
         </p>
         <div
           className="min-h-0 max-h-[12rem] flex-1 space-y-1.5 overflow-y-auto pr-0.5"
@@ -560,13 +550,7 @@ function BeteiligungsstatusIntroPreview({ communeName }: { communeName: string }
           })}
         </div>
         <div className="shrink-0 rounded-lg border border-dashed border-[#BFD9FF] bg-[#F0F6FF] px-2.5 py-2 text-[9px] text-[#003366]">
-          Demo-Hinweis · Statusansicht + optionale Prämien, keine echte Bearbeitung
-        </div>
-        <div className="shrink-0 rounded-lg border border-emerald-200/90 bg-emerald-50/80 px-2.5 py-2 text-[9px] text-emerald-900">
-          <p className="font-semibold">Prämien (optional)</p>
-          <p className="mt-0.5 leading-snug">
-            Kommunen können freiwillige Dankeschön-Angebote für bestätigte Beteiligungen sichtbar machen.
-          </p>
+          Demo-Hinweis · Statusansicht zur Nachvollziehbarkeit, keine rechtlich wirksame Bearbeitung
         </div>
       </div>
     </div>
@@ -617,7 +601,7 @@ export default function DemoIntroWalkthrough({
             useScreenshot={false}
             noClip
           >
-            <IntroAbstimmenPreview card={previewCard} />
+            <IntroAbstimmenPreview card={previewCard} du={_du} />
           </IntroScreenshotOrPreview>
         );
       case 'wahlen':

@@ -1,5 +1,7 @@
 # 🚀 eIDConnect – Killer Features & Innovationen
 
+> **Legacy-Dokument (veraltet):** Enthält frühere Ideen und Begriffe. Für die aktuelle HookAI Civic Demo gilt der GovTech-Standard: keine Ranglisten- oder Belohnungslogik für politische Beteiligung.
+
 ## 📱 **Aktuelle Stimmzettel - Originalgetreu:**
 
 ### ✅ **Bundestagswahl-Stimmzettel:**

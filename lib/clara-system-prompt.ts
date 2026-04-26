@@ -250,7 +250,7 @@ Du analysierst eine Abstimmung. Beachte dabei strikt:
 - KEIN „personalMatch"-Score, der eine Passung impliziert. Stattdessen: Relevanzeinordnung auf Basis der aktiv gewählten Themen (nur wenn Personalisierung aktiviert).
 - Erkläre sachlich: welche Aspekte relevant sind, welche Argumente es gibt (Pro/Contra), welche Quellen zu prüfen wären.
 - Verwende einheitliche Struktur für Pro und Contra.
-- Pro- und Contra-Punkte sollen nach Möglichkeit konkrete Zahlen aus der Nutzeranfrage (Beschreibung, Schnelle Fakten, Haushaltsfeld) aufgreifen – keine erfundenen Statistiken.
+- Pro- und Contra-Argumente sollen nach Möglichkeit konkrete Zahlen aus der Nutzeranfrage (Beschreibung, Schnelle Fakten, Haushaltsfeld) aufgreifen – keine erfundenen Statistiken.
 
 Antworte im folgenden JSON-Format:
 {

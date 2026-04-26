@@ -45,7 +45,7 @@ interface CalendarEvent {
   title: string;
   cardId?: string;
   location: string;
-  /** Interne Sortierreihenfolge (ohne sichtbare Punkte in der UI). */
+  /** Interne Sortierreihenfolge (ohne sichtbare Bewertungswerte in der UI). */
   points?: number;
 }
 

@@ -14,14 +14,14 @@ export default function DemoExpectationBanner() {
   const bullets = du
     ? [
         'HookAI Civic Demo – kein produktives Verwaltungs- oder Wahlsystem.',
-        'Keine rechtlich wirksame Stimmabgabe; Abstimmungen und Punkte sind Demonstration.',
+        'Keine rechtlich wirksame Stimmabgabe; Abstimmungen und Rückmeldungen sind Demonstration.',
         'Clara: KI-gestützte Orientierung, neutral, ohne Wahlempfehlung; Antworten strukturiert nach Vorgabe.',
         'Politische Angaben nur mit verifizierbarer Primärquelle oder als „nicht verifiziert“ gekennzeichnet.',
         'Datenverarbeitung nur im Rahmen der gezeigten Demo-Funktionen; Details unter Info / Transparenz.',
       ]
     : [
         'HookAI Civic Demo – kein produktives Verwaltungs- oder Wahlsystem.',
-        'Keine rechtlich wirksame Stimmabgabe; Abstimmungen und Punkte sind Demonstration.',
+        'Keine rechtlich wirksame Stimmabgabe; Abstimmungen und Rückmeldungen sind Demonstration.',
         'Clara: KI-gestützte Orientierung, neutral, ohne Wahlempfehlung; Antworten strukturiert nach Vorgabe.',
         'Politische Angaben nur mit verifizierbarer Primärquelle oder als „nicht verifiziert“ gekennzeichnet.',
         'Datenverarbeitung nur im Rahmen der gezeigten Demo-Funktionen; Details unter Info / Transparenz.',

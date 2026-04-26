@@ -1,5 +1,7 @@
 # 🇩🇪 eIDConnect – Vollständige Implementierung
 
+> **Hinweis (Stand 2026):** Teile dieses Dokuments beschreiben eine ältere Produktvision. Die aktuelle **HookAI Civic Demo** nutzt für Abstimmungen **nur sichtbare Buttons** (kein Wischen zur Stimmabgabe). Pro- und Contra-Argumente unterstützen die Einordnung; es gibt **keine spielerische Belohnung** für Stimmenabgabe.
+
 ## ✅ **Alle Anforderungen erfüllt:**
 
 ### 1. **Korrektes CI-Design** ✅
@@ -35,13 +37,11 @@
 - **Streak-System**: Kontinuierliche Teilnahme belohnen
 - **Fortschritts-Tracking** mit visuellen Indikatoren
 
-### 6. **Tinder-Style Swipe-Funktion** ✅
-- **Swipe-Cards** für kommunale Abstimmungen
-- **Links = Dagegen, Rechts = Dafür**
-- **Touch- und Mouse-Support**
-- **Animierte Übergänge** mit Rotation und Opacity
-- **Pro/Contra-Argumente** auf jeder Card
-- **Detaillierte Informationen** expandierbar
+### 6. **Abstimmungen (GovTech, aktueller Stand)** ✅
+- **Nur Button-Abstimmung**: Zustimmen, Ablehnen, Enthalten — kein Wischen oder Ziehen zur Stimmabgabe
+- **Pro- und Contra-Argumente** zur Einordnung (ohne Empfehlung)
+- **Demo-Hinweis**: keine echte Stimmabgabe
+- **Zähler** für Beteiligungen im Kalenderjahr (z. B. 2026) aus Demo-Daten
 
 ### 7. **Bundesländer-Übersicht** ✅
 - **Alle 16 Bundesländer** mit aktuellen Daten
@@ -72,7 +72,7 @@
 ### **Animationen**
 - **Badge-Unlock** mit Pop-Animation
 - **Level-Progress** mit smooth transitions
-- **Swipe-Cards** mit Rotation und Fade
+- **Karten-UI** mit klaren Bedienelementen (kein Wischen zur Stimmabgabe)
 - **Reduced Motion** Support für Accessibility
 
 ## 🏗️ **Technische Architektur:**
@@ -82,7 +82,8 @@
 components/
 ├── BuergerApp.tsx          # Hauptkomponente
 ├── Voting/
-│   └── SwipeCard.tsx       # Tinder-Style Cards
+│   ├── VotingCard.tsx      # Abstimmungskarte (Pro/Contra, Balken)
+│   └── VotingControls.tsx # Zustimmen / Ablehnen / Enthalten
 ├── Clara/
 │   └── ClaraChat.tsx       # KI-Assistent
 └── Rewards/
@@ -170,11 +171,11 @@ interface Vote {
 - **Streak-Tracking** für kontinuierliche Teilnahme
 - **Fortschritts-Visualisierung** mit Progress Bars
 
-### **6. Swipe-Funktionalität**
-- **Touch- und Mouse-Support**
-- **Smooth Animationen** mit Rotation
-- **Pro/Contra-Argumente** auf jeder Card
-- **Expandable Details** für mehr Informationen
+### **6. Abstimmungsbedienung (aktuell)**
+- **Große Touch-Targets** für Zustimmen / Ablehnen / Enthalten
+- **Keine Stimmabgabe per Wischen** — bewusste Klicks
+- **Pro- und Contra-Argumente** auf der Karte (einklappbar)
+- **Expandierbare Details** für mehr Informationen
 
 ### **7. Bundesländer-Übersicht**
 - **Alle 16 Bundesländer** mit aktuellen Daten
@@ -215,7 +216,7 @@ interface Vote {
 
 ### **Touch-Optimiert**
 - **44px+ Touch Targets**
-- **Swipe-Gesten** für Cards
+- **Abstimmung nur über Buttons** (kein Wischen zur Stimmabgabe)
 - **Pull-to-Refresh** Simulation
 - **Mobile-Navigation** mit Bottom Tabs
 
@@ -261,8 +262,8 @@ eIDConnect ist eine **vollständige, produktionsreife Anwendung** mit:
 ✅ **5 Ebenen-Navigation** (EU, Bund, Land, Kreis, Kommune)  
 ✅ **Originalen Stimmzetteln** (Bundestagswahl + Landtagswahl Saarland)  
 ✅ **KI-Chat mit Clara** (Aleph Alpha Integration)  
-✅ **Belohnungssystem** (Punkte, Badges, Level)  
-✅ **Tinder-Style Swipe-Funktion** für kommunale Abstimmungen  
+✅ **Beteiligungs- und Statusdarstellung** (optional, zustimmungsbasiert)  
+✅ **Button-basierte Abstimmungen** für kommunale Beteiligungen (Demo)  
 ✅ **Bundesländer-Übersicht** mit allen 16 Ländern  
 
 Die App ist **deployment-ready** und erfüllt alle deine Anforderungen für eine moderne, benutzerfreundliche Demokratie-App im deutschen Design-Standard.

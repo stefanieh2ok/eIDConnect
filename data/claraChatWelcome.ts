@@ -2,6 +2,7 @@
  * Erste Systemnachricht im Clara-Chat (Du/Sie, konsistent mit Anrede).
  */
 export const CLARA_CHAT_WELCOME_LINES_DU = [
+  'Hallo, ich bin Clara, deine digitale Assistentin in der HookAI Civic Demo.',
   'Ich unterstütze dich mit Informationen zu den einzelnen Bereichen der App.',
   'Meine Antworten sind neutral und basieren auf verfügbaren Quellen.',
   'Ich gebe keine Wahlempfehlungen.',
@@ -9,6 +10,7 @@ export const CLARA_CHAT_WELCOME_LINES_DU = [
 ] as const;
 
 export const CLARA_CHAT_WELCOME_LINES_SIE = [
+  'Hallo, ich bin Clara, Ihre digitale Assistentin in der HookAI Civic Demo.',
   'Ich unterstütze Sie mit Informationen zu den einzelnen Bereichen der App.',
   'Meine Antworten sind neutral und basieren auf verfügbaren Quellen.',
   'Ich gebe keine Wahlempfehlungen.',

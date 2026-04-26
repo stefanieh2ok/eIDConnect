@@ -1,5 +1,7 @@
 # 🗳️ eIDConnect – Seriöse Demokratie ohne Gamification
 
+> **Legacy-Dokument (veraltet):** Enthält frühere Architektur- und Sicherheitsnotizen. Maßgeblich für die laufende Demo ist die aktuelle UI-Implementierung ohne Wettbewerbs- oder Belohnungslogik.
+
 ## ❌ **Was NICHT geht - Demokratie ist kein Spiel:**
 
 ### **Gamification-Probleme:**

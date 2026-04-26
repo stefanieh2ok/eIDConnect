@@ -1,5 +1,7 @@
 # 🗳️ eIDConnect – Seriöse Demokratie ohne Gamification
 
+> **Legacy-Dokument (veraltet):** Historische Korrekturstände. Der aktuelle Produktstand wird durch die Komponenten- und Intro-Texte in der HookAI Civic Demo definiert.
+
 ## ✅ **Korrekturen durchgeführt:**
 
 ### **❌ Entfernte Gamification-Elemente:**

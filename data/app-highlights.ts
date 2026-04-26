@@ -40,12 +40,12 @@ export const APP_HIGHLIGHTS_FOR_LATER = [
       'Fristen, Veranstaltungen und politische Termine auf einen Blick.',
   },
   {
-    emoji: '🏆',
-    title: 'Engagement sichtbar machen',
+    emoji: '🧾',
+    title: 'Beteiligungsstatus nachvollziehen',
     body: (du: boolean) =>
       du
-        ? 'Aktive Beteiligung bringt dir Punkte, die du lokal einlösen kannst.'
-        : 'Aktive Beteiligung kann mit lokal einlösbaren Punkten verbunden werden.',
+        ? 'Du siehst nachvollziehbar, welche Beiträge bereits eingereicht wurden und welchen Status sie haben.'
+        : 'Sie sehen nachvollziehbar, welche Beiträge bereits eingereicht wurden und welchen Status sie haben.',
   },
   {
     emoji: '🤖',

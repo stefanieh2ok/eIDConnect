@@ -1,5 +1,7 @@
 # eIDConnect – Was fehlt noch?
 
+> **Legacy-Planungsdokument (veraltet):** Einzelne Punkte spiegeln frühere Annahmen wider. Der aktuelle Demo-Stand priorisiert Beteiligungsstatus und Rückmeldestatus ohne Ranglisten- oder Belohnungslogik.
+
 Stand: Übersicht der offenen Punkte für einen produktionsnahen oder demo-stabilen Stand.
 
 ---

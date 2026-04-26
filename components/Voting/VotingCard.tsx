@@ -2,7 +2,7 @@
 
 import React, { memo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { VotingCard as VotingCardType, VoteType } from '@/types';
+import { VotingCard as VotingCardType } from '@/types';
 
 function enforceFactDetail(text: string): string {
   const t = text.trim();
@@ -17,43 +17,22 @@ function enforceFactDetail(text: string): string {
 
 interface VotingCardProps {
   card: VotingCardType;
-  canVote: boolean;
-  /** Horizontaler Wisch-Offset (Dafür/Dagegen). */
-  dragOffsetX: number;
-  /** Vertikaler Wisch-Offset (Enthalten / Rückgängig). */
-  dragOffsetY: number;
-  isDragging: boolean;
-  onDragStart: (clientX: number, clientY: number) => void;
-  onDragMove: (clientX: number, clientY: number) => void;
-  onDragEnd: () => void;
-  onVote: (voteType: VoteType) => void;
   /** Produkt-Intro: kompakter Prozent-Balken ohne Icons/Labels. */
   introBarIcons?: boolean;
-  /** Einführungs-Walkthrough: Pro- und Contra-Boxen sofort geöffnet. */
+  /** Pro- und Contra-Boxen initial geöffnet (Walkthrough und Live-Detail). */
   introProConExpanded?: boolean;
   /** Einführung: weniger Zeilen, damit Karte + Daumen ohne Scroll sichtbar bleiben. */
   introCompact?: boolean;
-  /** Intro/Walkthrough: blendet Demo-Punkte in der Kartenfußzeile aus. */
-  introHideDemoPoints?: boolean;
-  /** Intro/Walkthrough: zeigt kompakten Demo-Hinweis statt Punkteanzeige. */
+  /** Intro/Walkthrough: zusätzliche Zeile „Keine echte Abstimmung.“ unter dem Balken. */
   introDemoVoteDisclaimer?: boolean;
 }
 
 const VotingCard: React.FC<VotingCardProps> = memo(
   ({
     card,
-    canVote,
-    dragOffsetX,
-    dragOffsetY,
-    isDragging,
-    onDragStart,
-    onDragMove,
-    onDragEnd,
-    onVote: _onVote,
     introBarIcons = false,
     introProConExpanded = false,
     introCompact = false,
-    introHideDemoPoints = false,
     introDemoVoteDisclaimer = false,
   }) => {
     const [proOpen, setProOpen] = useState(introProConExpanded);
@@ -69,20 +48,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
           WebkitBackdropFilter: 'blur(16px)',
           border: '1px solid var(--gov-border, #D6E0EE)',
           boxShadow: '0 4px 24px rgba(0,40,100,0.10)',
-          transform: `translate(${dragOffsetX}px, ${dragOffsetY}px) rotate(${dragOffsetX * 0.025}deg)`,
-          opacity: isDragging
-            ? Math.max(0.55, 1 - (Math.abs(dragOffsetX) + Math.abs(dragOffsetY)) / 500)
-            : 1,
-          transition: isDragging ? 'none' : 'transform 0.25s ease, opacity 0.2s',
-          cursor: canVote ? 'grab' : 'default',
         }}
-        onMouseDown={(e) => canVote && onDragStart(e.clientX, e.clientY)}
-        onMouseMove={(e) => canVote && onDragMove(e.clientX, e.clientY)}
-        onMouseUp={() => canVote && onDragEnd()}
-        onMouseLeave={() => canVote && onDragEnd()}
-        onTouchStart={(e) => canVote && onDragStart(e.touches[0].clientX, e.touches[0].clientY)}
-        onTouchMove={(e) => canVote && onDragMove(e.touches[0].clientX, e.touches[0].clientY)}
-        onTouchEnd={() => canVote && onDragEnd()}
       >
         {/* ── Header-Streifen (GovTech Dunkelblau) ── */}
         <div
@@ -135,14 +101,14 @@ const VotingCard: React.FC<VotingCardProps> = memo(
           </p>
         </div>
 
-        {/* ── Live-Abstimmungsbarometer: Verlauf rot → grau → grün (wie Daumen: Dagegen · Enthalten · Dafür) ── */}
+        {/* ── Live-Abstimmungsbarometer: Verlauf rot → grau → grün (Ablehnen · Enthalten · Zustimmen) ── */}
         <div className={`px-4 ${introCompact ? 'pb-1' : 'pb-2'}`}>
           <div
             className="rounded-full p-[1.5px]"
             style={{
               background: 'linear-gradient(90deg, #dc2626 0%, #94a3b8 50%, #16a34a 100%)',
             }}
-            title="Dagegen · Enthalten · Dafür"
+            title="Ablehnen · Enthalten · Zustimmen"
           >
             <div
               className={`flex w-full min-w-0 overflow-hidden rounded-full ${introBarIcons ? 'h-7' : 'h-6'}`}
@@ -188,7 +154,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
                       background: 'linear-gradient(90deg, #ef4444, #94a3b8, #10b981)',
                     }}
                     aria-hidden
-                    title="Dagegen · Enthalten · Dafür"
+                    title="Ablehnen · Enthalten · Zustimmen"
                   />
                   <span className="inline-flex items-center gap-0.5" aria-hidden>
                     <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
@@ -200,7 +166,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
               <span>
                 {card.votes.toLocaleString('de-DE')} Stimmen
                 {!introBarIcons && (
-                  <span className="ml-0.5 text-[9px] opacity-85">(dagegen · enthalten · dafür)</span>
+                  <span className="ml-0.5 text-[9px] opacity-85">(ablehnen · enthalten · zustimmen)</span>
                 )}
               </span>
             </span>
@@ -215,7 +181,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
           ) : null}
         </div>
 
-        {/* ── Pro / Contra: einklappbar, damit Abstimmungs-Buttons sichtbar bleiben ── */}
+        {/* ── Pro / Contra: einklappbar ── */}
         <div className={`mx-4 ${introCompact ? 'mb-2 grid grid-cols-2 gap-1.5' : 'mb-3 grid grid-cols-2 gap-2'}`}>
           <div className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/60">
             <button

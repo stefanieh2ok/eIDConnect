@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useLayoutEffect, useEffect } from 'react';
+import React, { useState, useLayoutEffect, useEffect, useCallback } from 'react';
 import { useApp } from '@/context/AppContext';
 import LoginScreen from '@/components/Login/LoginScreen';
 import AppHeader from '@/components/Header/AppHeader';
@@ -32,6 +32,12 @@ import { resetViewportScroll } from '@/lib/resetViewportScroll';
 import type { EbeneLevel, Location, Section } from '@/types';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
+import { DemoLaunchEffect } from '@/components/Effects/DemoLaunchEffect';
+import {
+  isDemoLaunchEffectEnabled,
+  DEMO_LAUNCH_SESSION_STORAGE_KEY,
+} from '@/lib/demoLaunchEffectConfig';
+import { playDemoLaunchAudio } from '@/lib/playDemoLaunchAudio';
 
 // Produkteinführung (4 Screens) vor Login/Onboarding — eigenes Flag, nicht mit eID/Anrede vermischen.
 const PRODUCT_INTRO_DONE_KEY = 'eidconnect_product_intro_done_v4';
@@ -63,7 +69,38 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
   );
   /** Walkthrough-Schritt für Clara-Kontext (Pille + Chat). */
   const [walkthroughStep, setWalkthroughStep] = useState<{ id: string; label: string } | null>(null);
+  /** Optionaler Demo-/Pitch-Launch (nur bei User-Klick + NEXT_PUBLIC_ENABLE_DEMO_LAUNCH_EFFECT). */
+  const [demoLaunchOpen, setDemoLaunchOpen] = useState(false);
   const isDevice = variant === 'device';
+
+  const finishDemoLaunch = useCallback(() => {
+    setDemoLaunchOpen(false);
+    if (typeof window === 'undefined') return;
+    requestAnimationFrame(() => {
+      const el = document.getElementById('main-scroll');
+      if (!el) return;
+      try {
+        el.setAttribute('tabindex', '-1');
+        el.focus({ preventScroll: true });
+      } catch {
+        /* ignore */
+      }
+    });
+  }, []);
+
+  /** Nur aus echten Click-Handlern (Walkthrough fertig / „Direkt zur App“). */
+  const tryStartDemoLaunchFromUserGesture = useCallback(() => {
+    if (!isDemoLaunchEffectEnabled()) return;
+    if (typeof window === 'undefined') return;
+    try {
+      if (window.sessionStorage.getItem(DEMO_LAUNCH_SESSION_STORAGE_KEY)) return;
+      window.sessionStorage.setItem(DEMO_LAUNCH_SESSION_STORAGE_KEY, '1');
+    } catch {
+      return;
+    }
+    playDemoLaunchAudio();
+    setDemoLaunchOpen(true);
+  }, []);
 
   const SECTION_LEVELS: Record<Section, EbeneLevel[]> = {
     live: ['bund', 'land', 'kreis', 'kommune'],
@@ -216,6 +253,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
   }, [state.activeSection, state.residenceLocation, state.activeLocation, dispatch]);
 
   const finishProductIntro = () => {
+    tryStartDemoLaunchFromUserGesture();
     try {
       localStorage.setItem(PRODUCT_INTRO_DONE_KEY, 'true');
     } catch {}
@@ -304,6 +342,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     dispatch({ type: 'SET_LOGGED_IN', payload: true });
     setPostLoginIntroOpen(false);
     setPreLogin('ok');
+    tryStartDemoLaunchFromUserGesture();
   };
 
   return (
@@ -360,7 +399,8 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
 
               <main
                 id="main-scroll"
-                className="scrollbar-hide flex-1 min-h-0 overflow-y-auto scroll-smooth"
+                tabIndex={-1}
+                className="scrollbar-hide flex-1 min-h-0 overflow-y-auto scroll-smooth outline-none"
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
                 <DemoExpectationBanner />
@@ -372,6 +412,9 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
 
               <ScrollToTopButton />
               <StimmzettelModal />
+              {demoLaunchOpen ? (
+                <DemoLaunchEffect open={demoLaunchOpen} onComplete={finishDemoLaunch} />
+              ) : null}
             </div>
           </>
         )}

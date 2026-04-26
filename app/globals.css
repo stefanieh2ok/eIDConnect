@@ -569,7 +569,7 @@ body {
   font-size: var(--app-meta, 10px);
 }
 
-/* Swipe Card Animation */
+/* Legacy only. Not used in current GovTech voting flow. Swipe voting intentionally disabled. */
 .swipe-card {
   transition: transform 0.3s ease, opacity 0.3s ease;
   cursor: grab;

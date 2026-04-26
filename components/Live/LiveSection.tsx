@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { VOTING_DATA } from '@/data/constants';
 import { VoteType, AbstimmungTab } from '@/types';
@@ -9,8 +9,16 @@ import VotingControls from '@/components/Voting/VotingControls';
 import ClaraVoiceInterface from '@/components/Clara/ClaraVoiceInterface';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { SectionLevelFilterIcon, selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
+import { getVotingStatsForYear } from '@/lib/getVotingStatsForYear';
 
-const SWIPE_THRESHOLD_PX = 100;
+const VOTING_STATS_YEAR = 2026;
+
+function voteResultHumanLabel(vote: string): string {
+  if (vote === 'DAFÜR') return 'Zustimmung';
+  if (vote === 'DAGEGEN') return 'Ablehnung';
+  if (vote === 'ENTHALTEN') return 'Enthaltung';
+  return vote;
+}
 
 const LiveSection: React.FC = () => {
   const { state, dispatch } = useApp();
@@ -19,15 +27,9 @@ const LiveSection: React.FC = () => {
   const [activeNow, setActiveNow] = useState(3_847_291);
   const [showStats, setShowStats] = useState(false);
 
-  const [swipe, setSwipe] = useState({ x: 0, y: 0 });
-  const [cardDragging, setCardDragging] = useState(false);
-  const swipeRef = useRef({ x: 0, y: 0 });
-  const dragStartRef = useRef({ x: 0, y: 0 });
-  const pointerActiveRef = useRef(false);
   const pendingAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingVoteMetaRef = useRef<{ fromIndex: number; points: number } | null>(null);
   const completedVoteStack = useRef<Array<{ previousIndex: number; points: number }>>([]);
-  const overlayTouchYRef = useRef(0);
 
   const loc = state.activeLocation;
   const currentData =
@@ -37,6 +39,13 @@ const LiveSection: React.FC = () => {
   const currentCard =
     abstimmungTab === 'aktuell' ? currentData?.cards[state.currentCardIndex] : null;
   const totalCards = currentData?.cards?.length ?? 0;
+
+  const votingStats2026 = useMemo(
+    () => getVotingStatsForYear(currentData, VOTING_STATS_YEAR),
+    [currentData],
+  );
+
+  const du = state.anrede === 'du';
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -128,47 +137,6 @@ const LiveSection: React.FC = () => {
     [currentCard, currentData?.canVote, executeVote]
   );
 
-  const handleCardDragStart = useCallback(
-    (clientX: number, clientY: number) => {
-      if (!currentData?.canVote) return;
-      pointerActiveRef.current = true;
-      setCardDragging(true);
-      dragStartRef.current = { x: clientX, y: clientY };
-      swipeRef.current = { x: 0, y: 0 };
-      setSwipe({ x: 0, y: 0 });
-    },
-    [currentData?.canVote]
-  );
-
-  const handleCardDragMove = useCallback((clientX: number, clientY: number) => {
-    if (!pointerActiveRef.current) return;
-    const x = clientX - dragStartRef.current.x;
-    const y = clientY - dragStartRef.current.y;
-    swipeRef.current = { x, y };
-    setSwipe({ x, y });
-  }, []);
-
-  const handleCardDragEnd = useCallback(() => {
-    if (!pointerActiveRef.current) return;
-    pointerActiveRef.current = false;
-    setCardDragging(false);
-    const { x: dx, y: dy } = swipeRef.current;
-    swipeRef.current = { x: 0, y: 0 };
-    setSwipe({ x: 0, y: 0 });
-
-    const ax = Math.abs(dx);
-    const ay = Math.abs(dy);
-    if (Math.max(ax, ay) < SWIPE_THRESHOLD_PX) return;
-
-    if (ax > ay) {
-      handleVote(dx > 0 ? 'for' : 'against');
-    } else if (dy < 0) {
-      handleVote('abstain');
-    } else {
-      performUndo();
-    }
-  }, [handleVote, performUndo]);
-
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-start justify-between">
@@ -180,6 +148,28 @@ const LiveSection: React.FC = () => {
         </div>
         <SectionLevelFilterIcon section="live" />
       </div>
+
+      <div
+        className="min-w-0 rounded-xl px-3 py-2 break-words"
+        style={{
+          background: 'rgba(255,255,255,0.88)',
+          border: '1px solid var(--gov-border, #D6E0EE)',
+          boxShadow: '0 1px 6px rgba(0,40,100,0.06)',
+        }}
+      >
+        <p className="text-[11px] font-semibold text-[#1A2B45]">Abstimmungen {VOTING_STATS_YEAR}</p>
+        <p className="mt-0.5 text-[10px] leading-snug text-neutral-600">
+          {votingStats2026.total2026 > 0 ? (
+            <>
+              {VOTING_STATS_YEAR} · {votingStats2026.total2026} Abstimmungen verfügbar
+              {votingStats2026.open2026 > 0 ? ` · ${votingStats2026.open2026} aktuell offen` : null}
+            </>
+          ) : (
+            <>Für {VOTING_STATS_YEAR} sind in dieser Demo-Ansicht keine Abstimmungsdaten hinterlegt.</>
+          )}
+        </p>
+      </div>
+
       {/* ── Tab-Leiste: Aktuell / Ergebnisse ── */}
       <div
         className="flex gap-1 p-1 rounded-2xl"
@@ -234,20 +224,10 @@ const LiveSection: React.FC = () => {
       {/* ── Aktuelle Abstimmung ── */}
       {abstimmungTab === 'aktuell' && currentCard && (
         <>
-          <VotingCard
-            card={currentCard}
-            canVote={currentData.canVote}
-            dragOffsetX={swipe.x}
-            dragOffsetY={swipe.y}
-            isDragging={cardDragging}
-            onDragStart={handleCardDragStart}
-            onDragMove={handleCardDragMove}
-            onDragEnd={handleCardDragEnd}
-            onVote={handleVote}
-          />
+          <VotingCard card={currentCard} introProConExpanded />
 
           {/* Voting-Buttons direkt unter der Karte */}
-          <VotingControls canVote={currentData.canVote} onVote={handleVote} />
+          <VotingControls canVote={currentData.canVote} onVote={handleVote} du={du} />
 
           {/* ── Live-Stats (einklappbar, sekundär) ── */}
           <div className="mt-1">
@@ -377,13 +357,9 @@ const LiveSection: React.FC = () => {
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-6"
           style={{ background: 'rgba(0,20,60,0.55)', backdropFilter: 'blur(6px)' }}
-          onTouchStart={(e) => {
-            overlayTouchYRef.current = e.touches[0].clientY;
-          }}
-          onTouchEnd={(e) => {
-            const y = e.changedTouches[0].clientY;
-            if (y - overlayTouchYRef.current > 48) performUndo();
-          }}
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="vote-feedback-title"
         >
           <div
             className="max-w-xs w-full text-center rounded-3xl p-7"
@@ -413,8 +389,10 @@ const LiveSection: React.FC = () => {
                 <span className="text-sm font-bold text-slate-300">ENT</span>
               </div>
             )}
-            <h3 className="text-base font-bold text-white mb-1">Position in der Demo markiert</h3>
-            <p className="text-xs text-white/60 mb-4">{state.voteResult.vote}</p>
+            <h3 id="vote-feedback-title" className="text-base font-bold text-white mb-1">
+              {du ? 'Deine Auswahl wurde in der Demo erfasst.' : 'Ihre Auswahl wurde in der Demo erfasst.'}
+            </h3>
+            <p className="text-xs text-white/75 mb-4">{voteResultHumanLabel(state.voteResult.vote)}</p>
             <div
               className="rounded-xl px-4 py-2.5 text-sm text-white/90"
               style={{ background: 'rgba(148,163,184,0.2)', border: '1px solid rgba(148,163,184,0.35)' }}

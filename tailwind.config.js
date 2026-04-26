@@ -33,11 +33,6 @@ module.exports = {
           900: '#581c87',
         }
       },
-      animation: {
-        'fade-in': 'fadeIn 0.3s ease-in-out',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'bounce-gentle': 'bounceGentle 0.6s ease-out',
-      },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0' },
@@ -53,6 +48,24 @@ module.exports = {
           '70%': { transform: 'translate3d(0,-4px,0)' },
           '90%': { transform: 'translate3d(0,-2px,0)' },
         },
+        demoLaunchSparkle: {
+          '0%': { opacity: '0', transform: 'scale(0.45) translateY(0)' },
+          '38%': { opacity: '0.82' },
+          '100%': { opacity: '0', transform: 'scale(1) translateY(-32px)' },
+        },
+        demoLaunchFade: {
+          '0%': { opacity: '0' },
+          '22%': { opacity: '1' },
+          '78%': { opacity: '1' },
+          '100%': { opacity: '0' },
+        },
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.3s ease-in-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+        'bounce-gentle': 'bounceGentle 0.6s ease-out',
+        'demo-launch-sparkle': 'demoLaunchSparkle 1.35s ease-out forwards',
+        'demo-launch-fade': 'demoLaunchFade 0.65s ease-in-out forwards',
       },
     },
   },

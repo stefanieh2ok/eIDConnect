@@ -1,6 +1,6 @@
 import type { Location } from '@/types';
 
-/** Anzeigenamen für Demo-Standorte (Filter, Kalender, Punkte) */
+/** Anzeigenamen für Demo-Standorte (Filter, Kalender, Statusansichten) */
 export const DEMO_LOCATION_LABEL: Record<Location, string> = {
   bundesweit: 'Deutschland',
   deutschland: 'Deutschland',

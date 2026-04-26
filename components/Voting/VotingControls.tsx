@@ -9,11 +9,9 @@ interface VotingControlsProps {
   onVote: (voteType: VoteType) => void;
   /** Einführung: kompaktere Daumen, damit alles ohne Scroll sichtbar ist. */
   compact?: boolean;
-  /**
-   * Produkt-Walkthrough „Abstimmen“: Daumen gut sichtbar, ein Zeile Wisch-Hinweis,
-   * ohne die hohe Standard-Leiste (`compact` allein unterdrückt den Hinweis).
-   */
+  /** Produkt-Walkthrough „Abstimmen“: Daumen gut sichtbar, gleicher Hinweis wie Live (nur Button-Abstimmung). */
   introWalkthrough?: boolean;
+  du?: boolean;
 }
 
 const VotingControls: React.FC<VotingControlsProps> = ({
@@ -21,24 +19,27 @@ const VotingControls: React.FC<VotingControlsProps> = ({
   onVote,
   compact = false,
   introWalkthrough = false,
+  du = false,
 }) => {
   if (!canVote) return null;
+
+  const hintSie =
+    'Wählen Sie über die Buttons. Entscheiden Sie bewusst nach Sichtung der Informationen. Pro und Contra helfen bei der Einordnung.';
+  const hintDu =
+    'Wähle über die Buttons. Entscheide bewusst nach Sichtung der Informationen. Pro und Contra helfen dir bei der Einordnung.';
 
   const kicker = (
     <p
       className={`text-center text-[10px] font-semibold leading-snug ${compact ? 'mb-1.5' : 'mb-3'}`}
       style={{ color: 'var(--gov-muted)' }}
     >
-      Tippen oder Karte wischen: rechts Dafür · links Dagegen · hoch Enthalten · runter Rückgängig
+      {du ? hintDu : hintSie}
     </p>
   );
 
   const introKicker = (
-    <p
-      className="mb-2 text-center text-[9px] font-semibold leading-tight"
-      style={{ color: 'var(--gov-muted)' }}
-    >
-      Wischen wie bei Karten: links Dagegen · mitte Enthalten · rechts Dafür
+    <p className="mb-2 text-center text-[9px] font-semibold leading-tight" style={{ color: 'var(--gov-muted)' }}>
+      {du ? hintDu : hintSie}
     </p>
   );
 
@@ -55,12 +56,15 @@ const VotingControls: React.FC<VotingControlsProps> = ({
       }}
     >
       {useIntro ? introKicker : compact ? null : kicker}
+      <p className={`text-center text-[9px] text-neutral-500 ${useCompactLayout ? 'mb-2' : 'mb-2.5'}`}>
+        Demo-Hinweis · keine echte Abstimmung
+      </p>
       <div className={`flex items-end justify-center ${useCompactLayout ? 'gap-3' : 'gap-4'}`}>
         <button
           type="button"
           onClick={() => onVote('against')}
           className={`flex flex-col items-center group ${useCompactLayout ? 'gap-1' : 'gap-2'}`}
-          aria-label="Position dagegen markieren (Demo)"
+          aria-label="Ablehnen"
         >
           <div
             className={
@@ -73,12 +77,13 @@ const VotingControls: React.FC<VotingControlsProps> = ({
               size={useIntro ? 24 : compact ? 22 : 28}
               strokeWidth={2.25}
               className="text-red-500 transition-colors group-hover:text-white"
+              aria-hidden
             />
           </div>
           <span
             className={`font-bold uppercase tracking-wide text-red-600 ${useCompactLayout ? 'text-[9px]' : 'text-[11px]'}`}
           >
-            Dagegen
+            Ablehnen
           </span>
         </button>
 
@@ -86,7 +91,7 @@ const VotingControls: React.FC<VotingControlsProps> = ({
           type="button"
           onClick={() => onVote('abstain')}
           className={`flex flex-col items-center group ${useCompactLayout ? 'gap-1' : 'gap-2'}`}
-          aria-label="Position enthalten markieren (Demo)"
+          aria-label="Enthalten"
         >
           <div
             className={
@@ -96,8 +101,9 @@ const VotingControls: React.FC<VotingControlsProps> = ({
           >
             <span
               className={`font-bold text-neutral-500 ${useCompactLayout ? 'text-[9px]' : 'text-xs'}`}
+              aria-hidden
             >
-              Enth.
+              —
             </span>
           </div>
           <span
@@ -111,7 +117,7 @@ const VotingControls: React.FC<VotingControlsProps> = ({
           type="button"
           onClick={() => onVote('for')}
           className={`flex flex-col items-center group ${useCompactLayout ? 'gap-1' : 'gap-2'}`}
-          aria-label="Position dafür markieren (Demo)"
+          aria-label="Zustimmen"
         >
           <div
             className={
@@ -124,12 +130,13 @@ const VotingControls: React.FC<VotingControlsProps> = ({
               size={useIntro ? 24 : compact ? 22 : 28}
               strokeWidth={2.25}
               className="text-emerald-600 transition-colors group-hover:text-white"
+              aria-hidden
             />
           </div>
           <span
             className={`font-bold uppercase tracking-wide text-emerald-700 ${useCompactLayout ? 'text-[9px]' : 'text-[11px]'}`}
           >
-            Dafür
+            Zustimmen
           </span>
         </button>
       </div>

@@ -1,5 +1,7 @@
 # 📱 eIDConnect – Optimierte User Journey & iPhone 15/16 Design
 
+> **Veraltet / Kontext:** Die folgenden Zeilen beschreiben frühere Navigationsideen. In der **HookAI Civic Demo** erfolgen **Abstimmungen bewusst über sichtbare Buttons**; Pro- und Contra-Argumente unterstützen die Einordnung. **Kein Wischen** zur Stimmabgabe und **keine spielerische Belohnung** dafür.
+
 ## 🔍 **Analyse der ursprünglichen Probleme:**
 
 ### ❌ **Was war falsch:**
@@ -36,7 +38,7 @@ const bottomNavItems = [
 ### **3. Screen-basierte Navigation**
 - **5 Hauptscreens** statt komplexe Tabs
 - **Klare Hierarchie** der Funktionen
-- **Swipe-Gesten** zwischen Screens möglich
+- **Screen-Wechsel** über die Navigationsleiste (Abstimmung: nur Buttons, kein Wischen)
 
 ## 🎯 **Optimierte User Journey:**
 
@@ -128,13 +130,13 @@ const premiumOffers: PremiumOffer[] = [
 
 ### **2. Touch-Optimierung**
 - **44px+ Touch Targets** für alle Buttons
-- **Swipe-Gesten** zwischen Screens
+- **Screen-Wechsel** über die Navigationsleiste
 - **Pull-to-Refresh** Simulation
 - **Haptic Feedback** (simuliert)
 
 ### **3. Navigation-Patterns**
 - **Bottom Navigation** (iPhone-Standard)
-- **Swipe zwischen Screens** möglich
+- **Klare Navigation** zwischen Bereichen
 - **Back-Button** nur wo nötig
 - **Modal Overlays** für Details
 
@@ -189,7 +191,7 @@ const CI_COLORS = {
 
 ### **Navigation zwischen Screens:**
 - **Bottom Tab** für Hauptfunktionen
-- **Swipe-Gesten** für schnelle Navigation
+- **Eintippen** auf Navigationspunkte für schnellen Wechsel
 - **Breadcrumbs** bei komplexen Flows
 - **Back-Button** nur wo sinnvoll
 
@@ -231,7 +233,7 @@ const CI_COLORS = {
 - **Notch-optimiert**
 - **Dynamic Island** kompatibel
 - **Haptic Feedback** (simuliert)
-- **Swipe-Gesten** zwischen Screens
+- **Screen-Wechsel** über die Navigationsleiste
 
 ### 🎨 **Design-Prinzipien:**
 - **KISS** (Keep It Simple, Stupid)

@@ -26,21 +26,19 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
     shortSie: 'Beteiligungen werden verständlich eingeordnet – mit Pro, Contra und neutralem Kontext.',
     longDu:
       'In diesem Bereich sehen Nutzerinnen und Nutzer aktuelle Beteiligungen und Abstimmungen.\n\n' +
-      'Wichtig ist die ausgewogene Einordnung: Pro- und Contra-Argumente werden sichtbar gemacht, damit Entscheidungen besser nachvollzogen werden können.\n\n' +
-      'Die App gibt keine Empfehlung ab. Sie unterstützt Orientierung, Transparenz und informierte Mitwirkung.',
+      'Die Entscheidung erfolgt bewusst über sichtbare Daumen-Buttons, nicht durch Wischen am Bildschirm. Pro- und Contra-Argumente bleiben sichtbar, um Orientierung zu geben — ohne Empfehlung oder Richtungsvorgabe.',
     longSie:
       'In diesem Bereich sehen Nutzerinnen und Nutzer aktuelle Beteiligungen und Abstimmungen.\n\n' +
-      'Wichtig ist die ausgewogene Einordnung: Pro- und Contra-Argumente werden sichtbar gemacht, damit Entscheidungen besser nachvollzogen werden können.\n\n' +
-      'Die App gibt keine Empfehlung ab. Sie unterstützt Orientierung, Transparenz und informierte Mitwirkung.',
+      'Die Entscheidung erfolgt bewusst über sichtbare Daumen-Buttons, nicht durch Wischen am Bildschirm. Pro- und Contra-Argumente bleiben sichtbar, um Orientierung zu geben — ohne Empfehlung oder Richtungsvorgabe.',
     speakSegmentsDu: [
-      'In diesem Bereich siehst du aktuelle Beteiligungen und Abstimmungen.',
-      'Entscheidend ist nicht nur der Abstimmungsbutton, sondern die Einordnung davor. Deshalb sollten Pro- und Contra-Argumente sichtbar sein.',
-      'Die App hilft dir, Positionen besser zu verstehen — ohne dir eine Richtung vorzugeben.',
+      'In diesem Bereich siehst du aktuelle Beteiligungen und Abstimmungen. Die Entscheidung erfolgt bewusst über die Daumen-Buttons, nicht durch Wischen am Bildschirm.',
+      'Vorher helfen dir Pro- und Contra-Argumente, die Positionen besser einzuordnen.',
+      'Die App gibt dir keine Richtung vor.',
     ],
     speakSegmentsSie: [
-      'In diesem Bereich sehen Sie aktuelle Beteiligungen und Abstimmungen.',
-      'Entscheidend ist nicht nur der Abstimmungsbutton, sondern die Einordnung davor. Deshalb sollten Pro- und Contra-Argumente sichtbar sein.',
-      'Die App hilft Ihnen, Positionen besser zu verstehen — ohne Ihnen eine Richtung vorzugeben.',
+      'In diesem Bereich sehen Sie aktuelle Beteiligungen und Abstimmungen. Die Entscheidung erfolgt bewusst über die Daumen-Buttons, nicht durch Wischen am Bildschirm.',
+      'Vorher helfen Ihnen Pro- und Contra-Argumente, die Positionen besser einzuordnen.',
+      'Die App gibt Ihnen keine Richtung vor.',
     ],
   },
   wahlen: {
@@ -119,28 +117,28 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
     ],
   },
   praemien: {
-    label: 'Prämien & Beteiligungsstatus',
-    line10sDu: 'Eigene Beiträge werden transparent nachvollziehbar; optionale Prämien können freiwillig sichtbar sein.',
-    line10sSie: 'Eigene Beiträge werden transparent nachvollziehbar; optionale Prämien können freiwillig sichtbar sein.',
-    shortDu: 'Eigene Beiträge werden transparent nachvollziehbar; optionale Prämien können freiwillig sichtbar sein.',
-    shortSie: 'Eigene Beiträge werden transparent nachvollziehbar; optionale Prämien können freiwillig sichtbar sein.',
+    label: 'Beteiligungsstatus',
+    line10sDu: 'Eigene Beiträge und Rückmeldungen werden transparent nachvollziehbar.',
+    line10sSie: 'Eigene Beiträge und Rückmeldungen werden transparent nachvollziehbar.',
+    shortDu: 'Eigene Beiträge und Rückmeldungen werden transparent nachvollziehbar.',
+    shortSie: 'Eigene Beiträge und Rückmeldungen werden transparent nachvollziehbar.',
     longDu:
       'Dieser Bereich zeigt, welche Beiträge, Meldungen oder Beteiligungen bereits eingereicht wurden.\n\n' +
-      'Im Mittelpunkt steht Transparenz: Was wurde übermittelt, was ist bestätigt und was ist noch offen?\n\n' +
-      'Optional kann die Kommune zusätzlich ein freiwilliges Prämienprogramm als Dankeschön für aktive Beteiligung anzeigen.',
+      'Der Fokus liegt auf Transparenz: Was wurde übermittelt, was ist bestätigt und was ist noch offen?\n\n' +
+      'So bleibt Beteiligung nachvollziehbar, ohne Druck, Gamification oder politische Steuerungslogik.',
     longSie:
       'Dieser Bereich zeigt, welche Beiträge, Meldungen oder Beteiligungen bereits eingereicht wurden.\n\n' +
-      'Im Mittelpunkt steht Transparenz: Was wurde übermittelt, was ist bestätigt und was ist noch offen?\n\n' +
-      'Optional kann die Kommune zusätzlich ein freiwilliges Prämienprogramm als Dankeschön für aktive Beteiligung anzeigen.',
+      'Der Fokus liegt auf Transparenz: Was wurde übermittelt, was ist bestätigt und was ist noch offen?\n\n' +
+      'So bleibt Beteiligung nachvollziehbar, ohne Druck, Gamification oder politische Steuerungslogik.',
     speakSegmentsDu: [
-      'Dieser Bereich zeigt dir, welche Beiträge, Meldungen oder Beteiligungen du bereits eingereicht hast und welchen Status sie haben.',
+      'Dieser Bereich zeigt dir, welche Beiträge oder Meldungen du bereits eingereicht hast und welchen Status sie haben.',
+      'Es geht um Nachvollziehbarkeit und klare Statusinformationen.',
       'Du sollst sehen können, was offen, bestätigt oder abgeschlossen ist.',
-      'Optional kann die Kommune hier außerdem ein freiwilliges Prämienprogramm anzeigen.',
     ],
     speakSegmentsSie: [
-      'Dieser Bereich zeigt Ihnen, welche Beiträge, Meldungen oder Beteiligungen Sie bereits eingereicht haben und welchen Status sie haben.',
+      'Dieser Bereich zeigt Ihnen, welche Beiträge oder Meldungen Sie bereits eingereicht haben und welchen Status sie haben.',
+      'Es geht um Nachvollziehbarkeit und klare Statusinformationen.',
       'Sie sollen sehen können, was offen, bestätigt oder abgeschlossen ist.',
-      'Optional kann die Kommune hier außerdem ein freiwilliges Prämienprogramm anzeigen.',
     ],
   },
   politikbarometer: {

@@ -25,7 +25,7 @@ import {
 
 const SECTION_LABEL: Record<string, string> = {
   live: 'Abstimmen',
-  leaderboard: 'Leaderboard',
+  leaderboard: 'Beteiligungsstatus',
   wahlen: 'Wahlen',
   kalender: 'Kalender',
   meldungen: 'Meldungen',

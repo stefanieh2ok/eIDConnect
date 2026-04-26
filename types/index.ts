@@ -35,7 +35,12 @@ export interface VotingCard {
   id: string;
   nummer?: string;
   title: string;
+  /** Frist (typisch DD.MM.JJJJ); für Jahreszähler und „offen“-Logik genutzt. */
   deadline: string;
+  /** Optional: Kalenderjahr, wenn keine auswertbare Frist gesetzt ist. */
+  year?: number;
+  /** Optional: Beteiligungsfenster (Datumstexte wie bei deadline). */
+  participationWindow?: { start?: string; end?: string };
   emoji: string;
   category: string;
   description: string;

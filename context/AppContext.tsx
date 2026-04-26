@@ -35,7 +35,7 @@ const CONSENT_CLARA_PERSONALIZATION_KEY = 'eidconnect_consent_clara_personalizat
 const CONSENT_PRAEMIEN_KEY = 'eidconnect_consent_praemien';
 const CONSENT_PARTICIPATION_KEY = 'eidconnect_consent_participation';
 const PARTICIPATION_DATA_KEY = 'eidconnect_participation_data';
-/** Persistente Demo-Punktesumme (Header, Prämien) – unabhängig vom Consent „Beteiligungsnachweis“. */
+/** Persistenter Demo-Zähler für den Bereich Beteiligungsstatus (intern, nicht als Motivationsanzeige). */
 const DEMO_POINTS_TOTAL_KEY = 'eidconnect_demo_points_total';
 
 function readParticipationSnapshotFromStorage(): {
@@ -127,7 +127,7 @@ interface AppState {
   voteResult: VoteResult | null;
   votedElectionIds: string[];
   consentClaraPersonalization: boolean;
-  /** Consent für Punkte & Prämien (freiwillig, privacy by default) */
+  /** Zustimmung für optionale Statuszusatzfunktionen (freiwillig, privacy by default). */
   consentPraemien: boolean;
   /** false = Nur-Vorschau (z. B. Adresse ohne Abstimmrecht) */
   canVote: boolean;
@@ -169,7 +169,7 @@ type AppAction =
   | { type: 'SET_VOTE_RESULT'; payload: VoteResult | null }
   | { type: 'HANDLE_VOTE'; payload: { voteType: VoteType; card: any; points: number; earnedPoints: number } }
   | { type: 'RESET_DRAG' }
-  /** Hebt die letzte Demo-Abstimmung für Punkte/Zähler rückgängig (Karte zurück / vor Advance). */
+  /** Hebt die letzte Demo-Abstimmung für den internen Zähler rückgängig (Karte zurück / vor Advance). */
   | { type: 'DEMO_REVERT_VOTE'; payload: { points: number } }
   | { type: 'RECORD_ELECTION_VOTE'; payload: string }
   | { type: 'HYDRATE_VOTED_ELECTIONS'; payload: string[] }

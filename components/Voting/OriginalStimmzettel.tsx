@@ -419,7 +419,7 @@ const ClaraInfoModal: React.FC<ClaraInfoModalProps> = ({ data, type, du, onClose
             </div>
           )}
 
-          {/* Match Score */}
+          {/* Übereinstimmungswert */}
           {data.matchScore && (
             <div>
               <div className="flex items-center justify-between mb-2">

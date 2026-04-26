@@ -1,19 +1,19 @@
-# eIDConnect – Swipe. Vote. Change.
+# HookAI Civic Demo
 
-Moderne Bürgerbeteiligungs-App mit KI-Unterstützung, optimiert für Next.js 14.
+Informieren. Verstehen. Mitwirken. — GovTech-Bürgerbeteiligungs-Demo mit KI-Unterstützung (Next.js 14).
 
 ## Features
 
-- 🗳️ **Swipe-to-Vote**: Intuitive Abstimmungen mit Drag & Drop; Stimmabgabe wird lokal gespeichert (Demo)
-- 🪪 **eID-Intro**: Erklärung Personalienprüfung, anonymer Stimmcode, Krypto für Dummies (Blindensignatur, Zero-Knowledge)
-- 🤖 **KI-Analyse**: Clara-KI mit personalisierten Empfehlungen
-- 📱 **Responsive Design**: Optimiert für Mobile und Desktop
-- 🏛️ **Multi-Level**: Deutschland, Saarland, Kreis, Kirkel – Abstimmungen und Wahlen
-- 📰 **News**: Aktuelle Berichterstattung
-- 📅 **Kalender**: Kommende Abstimmungen, prioritätsbasiert
-- 🗳️ **Wahlen**: Stimmzettel (Bund/Land/Kommune), Stimmabgabe mit Feedback und Persistenz
-- 📍 **Melden**: Mängelmelder MVP (Kategorien, Beschreibung, Anti-Spam, „Meine Meldungen“)
-- 🎁 **Prämien**: Lokale Anreize (Kino, Theater, etc.) mit Einwilligung
+- **Abstimmungen & Beteiligungen**: Bewusste Entscheidung über sichtbare Buttons (Zustimmen, Ablehnen, Enthalten). Pro- und Contra-Argumente unterstützen die Einordnung. **Kein Wischen** zur Stimmabgabe und **keine spielerische Gewinnlogik** für Abstimmungen.
+- **eID-Intro**: Erklärung Personalienprüfung, anonymer Stimmcode, Krypto für Dummies (Blindensignatur, Zero-Knowledge)
+- **KI (Clara)**: Sachliche Erklärungen und Einordnung — **keine Wahlempfehlung**, keine Abstimmungsempfehlung
+- **Responsive Design**: Optimiert für Mobile und Desktop
+- **Multi-Level**: Deutschland, Saarland, Kreis, Kommune — Abstimmungen und Wahlen
+- **News**: Aktuelle Berichterstattung
+- **Kalender**: Kommende Abstimmungen, prioritätsbasiert
+- **Wahlen**: Stimmzettel (Bund/Land/Kommune), Stimmabgabe mit Feedback und Persistenz
+- **Melden**: Mängelmelder MVP (Kategorien, Beschreibung, Anti-Spam, „Meine Meldungen“)
+- **Optional**: Separater Bereich für freiwilligen Beteiligungsstatus / kommunale Angebote — nur nach ausdrücklicher Zustimmung
 
 ## Tech Stack
 

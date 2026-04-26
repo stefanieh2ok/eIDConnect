@@ -196,12 +196,12 @@ export function mergeCommunalVotes2026(
   return have;
 }
 
-/** Prämien-Liste für eine beliebige Kommune (Demo, regional formuliert). */
+/** Statusangebote für eine beliebige Kommune (Demo, regional formuliert). */
 export function regionalPraemienForCity(cityName: string) {
   const c = cityName.trim() || 'Kommune';
   const norm = c.toLowerCase();
 
-  // Kirkel (Demo-Kernkommune): regionaler Auszug — gleiche Quelle wie Leaderboard/Prämien.
+  // Kirkel (Demo-Kernkommune): regionaler Auszug — gleiche Quelle wie Beteiligungsstatus.
   if (norm === 'kirkel' || norm.includes('kirkel')) {
     return [
       {

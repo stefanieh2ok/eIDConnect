@@ -47,7 +47,7 @@ const StimmzettelModal: React.FC = () => {
 
   if (!state.showStimmzettel || !state.selectedWahl) return null;
 
-  // Bestimme Wahl-Level basierend auf selectedWahl
+  // Bestimme Wahlebene basierend auf selectedWahl
   let level: 'bund' | 'land' | 'kommune' | 'kreis' = 'bund';
   
   // Prüfe zuerst das level-Feld direkt

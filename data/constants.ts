@@ -1,5 +1,5 @@
 /**
- * App-Konstanten: Wahlen, Abstimmungen, Themen, Rangliste, News
+ * App-Konstanten: Wahlen, Abstimmungen, Themen und News
  */
 import { WAHLEN_DEUTSCHLAND } from './wahlen-deutschland';
 import type { VotingCard, VotingData, LeaderboardItem, NewsItem } from '@/types';
@@ -15,13 +15,13 @@ export const THEME_NAMES: Record<string, string> = {
   sicherheit: 'Sicherheit',
 };
 
-/** Einheitliche Demo-Punkte pro Abstimmungskarte (Anzeige + HANDLE_VOTE). Früher pro Karte unterschiedlich – das wirkte inkonsistent. */
+/** Interner Demo-Zähler je Abstimmungskarte (für Statusableitungen, nicht als Anreizanzeige). */
 export const DEMO_POINTS_PER_ABSTIMMUNG = 250;
 
-/** Demo-Punkte pro abgegebener Stimme bei Wahlen (RECORD_ELECTION_VOTE). */
+/** Interner Demo-Zähler pro abgegebener Stimme bei Wahlen (RECORD_ELECTION_VOTE). */
 export const DEMO_POINTS_PER_WAHL = 200;
 
-/** Demo-Punkte pro erfolgreich gesendeter Meldung (RECORD_MELDUNG_SUBMITTED). */
+/** Interner Demo-Zähler pro erfolgreich gesendeter Meldung (RECORD_MELDUNG_SUBMITTED). */
 export const DEMO_POINTS_PER_MELDUNG = 75;
 
 // ─── Helper ──────────────────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ function card(
   yes: number,
   no: number,
   votes: number,
-  /** @deprecated Wird ignoriert; Punkte sind einheitlich DEMO_POINTS_PER_ABSTIMMUNG */
+  /** @deprecated Wird ignoriert; der interne Zähler ist einheitlich DEMO_POINTS_PER_ABSTIMMUNG. */
   _legacyPoints: number,
   urgent: boolean,
   claraPro: string,
@@ -1085,7 +1085,7 @@ export const NEWS_DATA: NewsItem[] = [
   },
 ];
 
-/** Nach Bestätigung im Live-Bereich oder in den Prämien-Einstellungen: keine erneute Abstimmungs-Hürde. */
+/** Nach Bestätigung im Live-Bereich oder in den Status-Einstellungen: keine erneute Abstimmungs-Hürde. */
 export const PRAEMIEN_LIVE_VOTE_GATE_KEY = 'eidconnect_praemien_live_vote_gate_v1';
 
 export function markPraemienLiveVoteGateDone(): void {
