@@ -80,27 +80,52 @@ const LiveSection: React.FC = () => {
     }
   }, [dispatch]);
 
-  const handleVote = useCallback(
+  const executeVote = useCallback(
     (voteType: VoteType) => {
       if (!currentData?.canVote || !currentCard) return;
       if (pendingAdvanceRef.current) return;
-      const fromIndex = state.currentCardIndex;
-      const points = currentCard.points;
-      pendingVoteMetaRef.current = { fromIndex, points };
+      const earnedPoints = 0;
 
-      dispatch({ type: 'HANDLE_VOTE', payload: { voteType, card: currentCard, points } });
+      const fromIndex = state.currentCardIndex;
+      pendingVoteMetaRef.current = { fromIndex, points: earnedPoints };
+
+      dispatch({
+        type: 'HANDLE_VOTE',
+        payload: {
+          voteType,
+          card: currentCard,
+          points: currentCard.points,
+          earnedPoints,
+        },
+      });
 
       pendingAdvanceRef.current = setTimeout(() => {
         dispatch({ type: 'SET_VOTE_RESULT', payload: null });
         const next = fromIndex < totalCards - 1 ? fromIndex + 1 : 0;
         dispatch({ type: 'SET_CURRENT_CARD_INDEX', payload: next });
         if (state.showKIAnalysis) dispatch({ type: 'TOGGLE_KI_ANALYSIS' });
-        completedVoteStack.current.push({ previousIndex: fromIndex, points });
+        completedVoteStack.current.push({ previousIndex: fromIndex, points: earnedPoints });
         pendingVoteMetaRef.current = null;
         pendingAdvanceRef.current = null;
       }, 2200);
     },
-    [currentCard, currentData?.canVote, totalCards, state.currentCardIndex, state.showKIAnalysis, dispatch]
+    [
+      currentCard,
+      currentData?.canVote,
+      totalCards,
+      state.currentCardIndex,
+      state.showKIAnalysis,
+      dispatch,
+    ]
+  );
+
+  const handleVote = useCallback(
+    (voteType: VoteType) => {
+      if (!currentData?.canVote || !currentCard) return;
+      if (pendingAdvanceRef.current) return;
+      executeVote(voteType);
+    },
+    [currentCard, currentData?.canVote, executeVote]
   );
 
   const handleCardDragStart = useCallback(
@@ -391,15 +416,13 @@ const LiveSection: React.FC = () => {
             <h3 className="text-base font-bold text-white mb-1">Position in der Demo markiert</h3>
             <p className="text-xs text-white/60 mb-4">{state.voteResult.vote}</p>
             <div
-              className="rounded-xl px-4 py-2.5"
-              style={{ background: 'rgba(0,168,107,0.25)', border: '1px solid rgba(0,168,107,0.35)' }}
+              className="rounded-xl px-4 py-2.5 text-sm text-white/90"
+              style={{ background: 'rgba(148,163,184,0.2)', border: '1px solid rgba(148,163,184,0.35)' }}
             >
-              <span className="text-lg font-extrabold text-green-300">
-                +{state.voteResult.points} Punkte
-              </span>
+              Demo-Hinweis · keine echte Abstimmung
             </div>
             <p className="mt-3 text-[10px] text-white/70">
-              Punkte zeigen nur Aktivitaet in der Demo, keine rechtliche Wirkung.
+              Diese Auswahl dient nur der Demo ohne rechtliche Wirkung.
             </p>
             <button
               type="button"

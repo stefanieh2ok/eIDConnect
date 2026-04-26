@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
       nda_version: ndaCfg.version,
       nda_document_hash: getNdaDocumentHash({ email, company: normalizedCompany }),
       expires_at: expiresAt,
-      max_views: requireDocusign ? 10 : 50,
+      // Sicherheitsnetz: Zugriffslimit sehr hoch halten, damit Demo-Links im Testbetrieb nicht blockieren.
+      max_views: requireDocusign ? 100000 : 100000,
       max_devices: 1,
       is_revoked: false,
       require_docusign: requireDocusign,

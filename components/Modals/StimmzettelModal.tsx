@@ -98,7 +98,7 @@ const StimmzettelModal: React.FC = () => {
                 <span className="text-base font-bold leading-none">x</span>
                 <span className="text-sm font-bold truncate">Zurück</span>
               </button>
-              <h2 className="text-lg font-black truncate mx-2" style={{letterSpacing: '-0.02em'}}>Stimmzettel</h2>
+                <h2 className="text-base font-extrabold truncate mx-2" style={{letterSpacing: '-0.01em'}}>Stimmzettel</h2>
               <div className="w-14 flex-shrink-0"></div>
             </div>
             
@@ -109,7 +109,7 @@ const StimmzettelModal: React.FC = () => {
               className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden stimmzettel-scroll"
               style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 24px)' }}
             >
-              <div className="p-4 max-w-full">
+              <div className="p-3 max-w-full">
                 {voteSuccess ? (
                   <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">Auswahl in der Demo gespeichert</h3>
@@ -117,7 +117,7 @@ const StimmzettelModal: React.FC = () => {
                   </div>
                 ) : (
                   <>
-                    <div className="mb-3 rounded-xl border border-neutral-200 bg-white p-3 text-[11px] text-neutral-700">
+                    <div className="mb-3 rounded-xl border border-neutral-200 bg-white p-3 text-[12px] leading-relaxed text-neutral-700">
                       <span className="font-semibold">Status:</span>{' '}
                       {isVotingOpen ? 'Laeuft aktuell (Demo-Teilnahme moeglich)' : 'Abgeschlossen / Ergebnisansicht (nicht mehr abstimmbar)'}
                     </div>

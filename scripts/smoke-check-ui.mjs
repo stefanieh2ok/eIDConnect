@@ -22,12 +22,8 @@ async function main() {
     ok = false;
   } else {
     console.log('✅ GET / → 200');
-    if (
-      !home.text.includes('eID Demo Connect') &&
-      !home.text.includes('HookAI') &&
-      !home.text.includes('eidconnect')
-    ) {
-      console.log('   ⚠ Kein erwarteter App-/Marken-Hinweis im HTML (eID Demo Connect / HookAI)');
+    if (!home.text.includes('HookAI') && !home.text.includes('Civic Demo') && !home.text.includes('eidconnect')) {
+      console.log('   ⚠ Kein erwarteter App-/Marken-Hinweis im HTML (HookAI Civic Demo)');
     }
   }
 

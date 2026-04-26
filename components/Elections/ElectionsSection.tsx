@@ -193,15 +193,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
     (typeUi !== 'all' ? 1 : 0) +
     (filterDateQuery.trim() ? 1 : 0);
 
-  const residenceLevel = levelForResidenceLocation(state.residenceLocation);
-  const availableLevels =
-    residenceLevel === 'kommune'
-      ? (['bund', 'land', 'kreis', 'kommune'] as const)
-      : residenceLevel === 'kreis'
-        ? (['bund', 'land', 'kreis'] as const)
-        : residenceLevel === 'land'
-          ? (['bund', 'land'] as const)
-          : (['bund'] as const);
+  const availableLevels = ['bund', 'land', 'kreis', 'kommune'] as const;
 
   useEffect(() => {
     if (!filterSheetOpen) return;
@@ -747,22 +739,19 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                     <div className="divide-y divide-neutral-200 rounded-2xl border border-neutral-200 bg-white">
                       {filterView === 'ebene'
                         ? (['bund', 'land', 'kreis', 'kommune'] as const).map((lvl) => {
-                            const enabled = (availableLevels as readonly string[]).includes(lvl);
                             const active = draftLevel === lvl;
                             const text = lvl === 'bund' ? 'Bund' : lvl === 'land' ? 'Land' : lvl === 'kreis' ? 'Kreis' : 'Kommune';
                             return (
                               <button
                                 key={lvl}
                                 type="button"
-                                disabled={!enabled}
                                 onClick={() => {
-                                  if (!enabled) return;
                                   setDraftLevel(lvl);
                                   setDraftRegion(activeLocationForLevel(state.residenceLocation, lvl));
                                 }}
-                                className={`flex w-full items-center px-4 py-3 text-left text-[13px] ${
-                                  enabled ? 'text-neutral-900' : 'text-neutral-400'
-                                } ${active ? 'bg-neutral-50' : ''}`}
+                                className={`flex w-full items-center px-4 py-3 text-left text-[13px] text-neutral-900 ${
+                                  active ? 'bg-neutral-50' : ''
+                                }`}
                               >
                                 <span className="font-normal">{text}</span>
                                 <span className="ml-auto text-neutral-500" aria-hidden>

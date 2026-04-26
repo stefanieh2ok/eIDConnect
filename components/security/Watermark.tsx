@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
 
-const DEMO_ID = 'eidconnect';
+/** Kurzlabel im Sichtschutz (technische Demo-IDs in APIs bleiben unverändert). */
+const DEMO_ID = 'hookai-civic-demo';
 
 export type WatermarkProps = {
   fullName: string;

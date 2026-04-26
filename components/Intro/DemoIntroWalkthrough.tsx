@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
+import { useIntroIsSpeaking, useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { activeLocationForLevel } from '@/lib/activeLocationForLevel';
 import MeldungenSection from '@/components/Meldungen/MeldungenSection';
 import OriginalStimmzettel from '@/components/Voting/OriginalStimmzettel';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
 import { VOTING_DATA, WAHLEN_DATA } from '@/data/constants';
-import { regionalPraemienForCity } from '@/data/demoVoting2026';
+import { CheckCircle, ListChecks, Send } from 'lucide-react';
 import {
   INTRO_CLOSING_SPOKEN_SEGMENTS_DU,
   INTRO_CLOSING_SPOKEN_SEGMENTS_SIE,
@@ -53,6 +53,8 @@ type Props = {
   residenceLocation: Location;
   onClose: () => void;
   onFinish: () => void;
+  /** Schritt 1 · Zurück: zur eID-Demo (Logout), nicht „Einführung erledigt“. */
+  onBackFromFirstStep?: () => void;
   /** Aktueller Walkthrough-Schritt für Clara-Kontext (Dock/Chat). */
   onWalkthroughStepChange?: (step: { id: string; label: string }) => void;
 };
@@ -135,7 +137,7 @@ function introCalendarRowsFromFixtures(communeKey: string): IntroCalRow[] {
   });
   const communeData = VOTING_DATA[communeKey];
   if (communeData && 'cards' in communeData) {
-    for (const c of communeData.cards.slice(0, 4)) {
+    for (const c of communeData.cards) {
       const hall = /kirkel-halle|halle kirkel/i.test(c.title) || c.title.includes('Kirkel-Halle');
       rows.push({
         level: 'kommune',
@@ -209,48 +211,101 @@ function WalkthroughInfoDetails({
   showOutro,
   outroShort,
   outroLong,
+  surface = 'dark',
 }: {
   primaryLong: string;
   showOutro: boolean;
   outroShort: string;
   outroLong: string;
+  surface?: 'dark' | 'light';
 }) {
+  const [openMain, setOpenMain] = useState(false);
+  const [openOutro, setOpenOutro] = useState(false);
+  const onLight = surface === 'light';
   return (
     <div className="mb-1.5 w-full min-w-0 space-y-1.5 [text-wrap:balance]">
-      <details className="group overflow-hidden rounded-xl border border-white/15 bg-white/[0.04] open:border-sky-400/25">
-        <summary className="cursor-pointer list-none select-none py-1.5 pl-2.5 pr-2.5 text-[10.5px] font-semibold text-sky-100/95 [&::-webkit-details-marker]:hidden">
-          <span className="inline-flex w-full items-center justify-between gap-2">
-            <span>Mehr zu dieser Ansicht</span>
-            <span
-              className="text-white/50 transition group-open:rotate-180"
-              aria-hidden
+      <div
+        className={
+          'group overflow-hidden rounded-xl border ' +
+          (onLight
+            ? 'border-slate-200 bg-slate-50/80'
+            : 'border-white/15 bg-white/[0.04]')
+        }
+      >
+        <button
+          type="button"
+          onClick={() => setOpenMain((v) => !v)}
+          className={
+            'inline-flex w-full cursor-pointer list-none items-center justify-between gap-2 py-1.5 pl-2.5 pr-2.5 text-[10.5px] font-semibold transition [&::-webkit-details-marker]:hidden ' +
+            (onLight ? 'text-[#003366] hover:bg-slate-100/80' : 'text-sky-100/95 hover:bg-white/5')
+          }
+          aria-expanded={openMain}
+        >
+          <span>{openMain ? 'Weniger anzeigen' : 'Mehr anzeigen'}</span>
+          <span className={(onLight ? 'text-slate-400' : 'text-white/50') + ` transition ${openMain ? 'rotate-180' : ''}`} aria-hidden>
+            ▾
+          </span>
+        </button>
+        <div
+          className={`grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none ${
+            openMain ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+          }`}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <p
+              className={
+                'border-t px-2.5 pb-2.5 pt-1.5 text-[10.5px] leading-relaxed [text-wrap:pretty] whitespace-pre-line ' +
+                (onLight
+                  ? 'border-slate-200 text-neutral-700'
+                  : 'border-white/10 text-white/[0.86]')
+              }
             >
+              {primaryLong}
+            </p>
+          </div>
+        </div>
+      </div>
+      {showOutro ? (
+        <div
+          className={
+            'group overflow-hidden rounded-xl border ' +
+            (onLight
+              ? 'border-violet-200 bg-violet-50/60'
+              : 'border-white/15 bg-[rgba(6,20,40,0.45)]')
+          }
+        >
+          <button
+            type="button"
+            onClick={() => setOpenOutro((v) => !v)}
+            className={
+              'inline-flex w-full cursor-pointer list-none items-center justify-between gap-2 py-1.5 pl-2.5 pr-2.5 text-[10.5px] font-semibold transition [&::-webkit-details-marker]:hidden ' +
+              (onLight ? 'text-[#4C1D95] hover:bg-violet-100/70' : 'text-white/95 hover:bg-white/5')
+            }
+            aria-expanded={openOutro}
+          >
+            <span>{openOutro ? 'Weniger anzeigen' : INTRO_OUTRO_LABEL}</span>
+            <span className={(onLight ? 'text-violet-400' : 'text-white/50') + ` transition ${openOutro ? 'rotate-180' : ''}`} aria-hidden>
               ▾
             </span>
-          </span>
-        </summary>
-        <p className="border-t border-white/10 px-2.5 pb-2.5 pt-1.5 text-[10.5px] leading-relaxed text-white/[0.86] [text-wrap:pretty] whitespace-pre-line">
-          {primaryLong}
-        </p>
-      </details>
-      {showOutro ? (
-        <details className="group overflow-hidden rounded-xl border border-white/15 bg-[rgba(6,20,40,0.45)] open:border-violet-300/25">
-          <summary className="cursor-pointer list-none select-none py-1.5 pl-2.5 pr-2.5 text-[10.5px] font-semibold text-white/95 [&::-webkit-details-marker]:hidden">
-            <span className="inline-flex w-full items-center justify-between gap-2">
-              <span>{INTRO_OUTRO_LABEL}</span>
-              <span
-                className="text-white/50 transition group-open:rotate-180"
-                aria-hidden
+          </button>
+          <div
+            className={`grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none ${
+              openOutro ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+            }`}
+          >
+            <div className="min-h-0 overflow-hidden">
+              <div
+                className={
+                  'space-y-1.5 border-t px-2.5 pb-2.5 pt-1.5 text-[10.5px] leading-relaxed [text-wrap:pretty] ' +
+                  (onLight ? 'border-violet-100 text-neutral-700' : 'border-white/10 text-white/85')
+                }
               >
-                ▾
-              </span>
-            </span>
-          </summary>
-          <div className="space-y-1.5 border-t border-white/10 px-2.5 pb-2.5 pt-1.5 text-[10.5px] leading-relaxed text-white/85 [text-wrap:pretty]">
-            <p className="font-medium text-white/90">{outroShort}</p>
-            <p className="whitespace-pre-line text-white/78">{outroLong}</p>
+                <p className={'font-medium ' + (onLight ? 'text-[#1A2B45]' : 'text-white/90')}>{outroShort}</p>
+                <p className={'whitespace-pre-line ' + (onLight ? 'text-neutral-600' : 'text-white/78')}>{outroLong}</p>
+              </div>
+            </div>
           </div>
-        </details>
+        </div>
       ) : null}
     </div>
   );
@@ -328,8 +383,10 @@ function IntroAbstimmenPreview({ card }: { card: VotingCardModel }) {
             onDragEnd={noopDrag}
             onVote={noopVote}
             introBarIcons
-            introProConExpanded={false}
+            introProConExpanded
             introCompact
+            introHideDemoPoints
+            introDemoVoteDisclaimer
           />
           <VotingControls canVote onVote={noopVote} introWalkthrough />
         </div>
@@ -436,17 +493,37 @@ function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
   );
 }
 
-function PraemienIntroPreview({ communeName }: { communeName: string }) {
-  const [checkFlash, setCheckFlash] = useState(false);
-  const praemienAuszug = useMemo(() => regionalPraemienForCity(communeName).slice(0, 5), [communeName]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    setCheckFlash(true);
-    const id = window.setTimeout(() => setCheckFlash(false), 1800);
-    return () => window.clearTimeout(id);
-  }, []);
+function BeteiligungsstatusIntroPreview({ communeName }: { communeName: string }) {
+  const rows = useMemo(
+    () =>
+      [
+        {
+          icon: Send,
+          title: 'Meldung · defekte Straßenlaterne',
+          status: 'Eingereicht',
+          hint: `${communeName} · Demo`,
+        },
+        {
+          icon: CheckCircle,
+          title: 'Hinweis · Spielplatz Bürgerpark',
+          status: 'In Prüfung',
+          hint: 'Bearbeitung durch Fachbereich',
+        },
+        {
+          icon: CheckCircle,
+          title: 'Rückmeldung · Bürgerdialog Haushalt',
+          status: 'Bestätigt',
+          hint: 'Eingang dokumentiert',
+        },
+        {
+          icon: ListChecks,
+          title: 'Beteiligung · digitales Bürgerportal',
+          status: 'Abgeschlossen',
+          hint: 'Nur Demo-Daten',
+        },
+      ] as const,
+    [communeName],
+  );
 
   return (
     <div className="flex min-h-0 max-h-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white text-left shadow-md">
@@ -454,59 +531,43 @@ function PraemienIntroPreview({ communeName }: { communeName: string }) {
         className="shrink-0 rounded-t-xl p-3 text-white"
         style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
       >
-        <div className="text-sm font-bold leading-snug">Prämien</div>
-        <div className="text-[10px] opacity-90">Teilnahme freiwillig · Auszug {communeName} & Region</div>
+        <div className="text-sm font-bold leading-snug">Beteiligungsstatus</div>
+        <div className="text-[10px] opacity-90">Nachvollziehbarkeit · {communeName}</div>
       </div>
       <div className="flex min-h-0 flex-1 flex-col space-y-2 overflow-hidden p-3">
-        <label
-          className="relative flex shrink-0 cursor-default items-start gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2 text-[10px] text-neutral-800 onboarding-heartbeat"
-          onAnimationEnd={(e) => {
-            if (e.target !== e.currentTarget) return;
-            const name = e.animationName || '';
-            if (!name.includes('eid-filter-heartbeat')) return;
-            (e.currentTarget as HTMLElement).classList.remove('onboarding-heartbeat');
-          }}
-        >
-          <input type="checkbox" readOnly tabIndex={-1} className="pointer-events-none mt-0.5" aria-hidden />
-          {checkFlash ? (
-            <span className="absolute left-2.5 top-1.5 rounded bg-emerald-600 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white shadow-sm">
-              ok
-            </span>
-          ) : null}
-          <span>Ich möchte am freiwilligen Punkte- und Prämienprogramm teilnehmen.</span>
-        </label>
-        <p className="shrink-0 text-[10px] text-neutral-600">
-          Nach Zustimmung sind Einlösen und Details wie in der App freigeschaltet — hier ein regionaler Vorgeschmack.
+        <p className="shrink-0 text-[10px] leading-snug text-neutral-600">
+          Überblick über eingereichte Beiträge und Meldungen sowie optionales, freiwilliges Prämienprogramm der Kommune.
         </p>
         <div
-          className="min-h-0 max-h-[11.5rem] flex-1 space-y-1.5 overflow-y-auto pr-0.5"
+          className="min-h-0 max-h-[12rem] flex-1 space-y-1.5 overflow-y-auto pr-0.5"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          <p className="text-[9px] font-bold uppercase tracking-wide text-[#1A2B45]">Lokale Prämien · Auszug</p>
-          {praemienAuszug.map((p) => (
-            <div
-              key={p.id}
-              className="rounded-lg border border-neutral-200/90 bg-[#F7F9FC] px-2 py-1.5 text-[10px]"
-            >
-              <div className="min-w-0 flex-1 leading-snug">
-                <div className="font-semibold text-neutral-900">{p.name}</div>
-                <div className="mt-0.5 text-[9px] text-neutral-600">
-                  {p.description} · {p.points.toLocaleString('de-DE')} Punkte
+          {rows.map((r) => {
+            const Icon = r.icon;
+            return (
+              <div
+                key={r.title}
+                className="flex items-start gap-2 rounded-lg border border-neutral-200/90 bg-[#F7F9FC] px-2 py-1.5 text-[10px]"
+              >
+                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[#0055A4]" aria-hidden />
+                <div className="min-w-0 flex-1 leading-snug">
+                  <div className="font-semibold text-neutral-900">{r.title}</div>
+                  <div className="mt-0.5 text-[9px] font-semibold text-[#003366]">{r.status}</div>
+                  <div className="mt-0.5 text-[9px] text-neutral-600">{r.hint}</div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className="shrink-0 rounded-lg border border-dashed border-[#BFD9FF] bg-[#F0F6FF] px-2.5 py-2 text-[9px] text-[#003366]">
-          Vorschau: Freibad, Mobilität, Kino, Museum, Nahverkehr und lokale Partner — gebündelt wie im Prämien-Bereich der App.
+          Demo-Hinweis · Statusansicht + optionale Prämien, keine echte Bearbeitung
         </div>
-        <button
-          type="button"
-          disabled
-          className="w-full shrink-0 rounded-lg border border-neutral-200 bg-white py-2 text-[10px] font-semibold text-neutral-400"
-        >
-          Einlösen (nach Aktivierung in der App)
-        </button>
+        <div className="shrink-0 rounded-lg border border-emerald-200/90 bg-emerald-50/80 px-2.5 py-2 text-[9px] text-emerald-900">
+          <p className="font-semibold">Prämien (optional)</p>
+          <p className="mt-0.5 leading-snug">
+            Kommunen können freiwillige Dankeschön-Angebote für bestätigte Beteiligungen sichtbar machen.
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -517,6 +578,7 @@ export default function DemoIntroWalkthrough({
   residenceLocation,
   onClose,
   onFinish,
+  onBackFromFirstStep,
   onWalkthroughStepChange,
 }: Props) {
   const { dispatch } = useApp();
@@ -596,15 +658,26 @@ export default function DemoIntroWalkthrough({
           </div>
         );
       case 'praemien':
-        return <PraemienIntroPreview communeName={communeName} />;
+        return <BeteiligungsstatusIntroPreview communeName={communeName} />;
       case 'politikbarometer':
-        return <PolitikBarometerPanel du={du} variant="compact" />;
+        return (
+          <PolitikBarometerPanel
+            du={du}
+            variant="compact"
+            walkthroughFooterDu="Du kannst diese Auswahl später jederzeit in den Einstellungen ändern."
+            walkthroughFooterSie="Sie können diese Auswahl später jederzeit in den Einstellungen ändern."
+          />
+        );
       default:
         return null;
     }
   }, [step.id, previewCard, communeName, du, communeKey]);
 
   const speakApi = useIntroSpeakApi();
+  const isIntroSpeaking = useIntroIsSpeaking();
+  const speechStartedRef = useRef(false);
+  const speechAutoAdvancedRef = useRef(false);
+  const speechStepKeyRef = useRef<string>('');
 
   useEffect(() => {
     const section = walkthroughSectionForStep(step.id);
@@ -629,8 +702,16 @@ export default function DemoIntroWalkthrough({
 
   useEffect(() => {
     if (!speakApi) return;
-    if (!speakApi.readAloud) return;
+    if (!speakApi.readAloud) {
+      speechStartedRef.current = false;
+      speechAutoAdvancedRef.current = false;
+      speechStepKeyRef.current = '';
+      return;
+    }
     const speechKey = `walkthrough-${idx}-${step.id}`;
+    speechStepKeyRef.current = speechKey;
+    speechStartedRef.current = false;
+    speechAutoAdvancedRef.current = false;
     const t = window.setTimeout(() => {
       speakApi.speakIntroParts(speakParts, speechKey);
     }, 120);
@@ -640,11 +721,30 @@ export default function DemoIntroWalkthrough({
     };
   }, [speakApi, speakApi?.readAloud, idx, step.id, speakParts]);
 
+  useEffect(() => {
+    if (!speakApi?.readAloud) return;
+    const activeSpeechKey = `walkthrough-${idx}-${step.id}`;
+    if (speechStepKeyRef.current !== activeSpeechKey) return;
+
+    if (isIntroSpeaking) {
+      speechStartedRef.current = true;
+      return;
+    }
+    if (!speechStartedRef.current || speechAutoAdvancedRef.current) return;
+
+    speechAutoAdvancedRef.current = true;
+    if (isLast) onFinish();
+    else setIdx((p) => Math.min(steps.length - 1, p + 1));
+  }, [isIntroSpeaking, idx, step.id, isLast, onFinish, speakApi?.readAloud, steps.length]);
+
   const liveAnnouncement = `Bereich ${clara.label}. ${clara.line10s} ${framingLine || clara.short}`.trim();
+
+  const exitIntroOrBackToEid = idx === 0 ? (onBackFromFirstStep ?? onClose) : onClose;
+  const skipIntroOrBackToEid = idx === 0 ? (onBackFromFirstStep ?? onFinish) : onFinish;
 
   return (
     <div
-      className="intro-dark-body relative z-10 flex min-h-0 h-full w-full max-w-[100%] min-w-0 flex-col overflow-hidden font-sans antialiased [font-synthesis:none] shadow-none"
+      className="relative z-10 flex min-h-0 h-full w-full max-w-[100%] min-w-0 flex-col overflow-hidden bg-[#020712] font-sans antialiased [font-synthesis:none]"
       role="dialog"
       aria-modal="true"
       aria-label="Einführung"
@@ -659,96 +759,112 @@ export default function DemoIntroWalkthrough({
         {liveAnnouncement}
       </div>
 
-      <IntroMetaStrip stepNumber={null} onSkip={onFinish} onClose={onClose} />
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-1 pb-1 pt-1 sm:px-2">
+        <div className="intro-device-chrome-shell intro-dark-body flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] p-[3px] sm:p-1">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.65rem] border border-neutral-200/95 bg-white">
+          <IntroMetaStrip
+            surface="light"
+            stepNumber={null}
+            showClaraVoice
+            onSkip={skipIntroOrBackToEid}
+            onClose={exitIntroOrBackToEid}
+            closeAriaLabel={idx === 0 ? 'Zurück zur eID-Demo' : undefined}
+          />
 
-      <div
-        className={`flex-shrink-0 px-3 sm:px-4 ${isAbstimmenStep ? 'pb-0.5 pt-1.5' : 'pb-1 pt-2.5'}`}
-      >
-        <h2 className="text-[15px] font-extrabold leading-tight tracking-tight text-white sm:text-[16px]">
-          Im Überblick · {clara.label}
-        </h2>
-        <p
-          className={`font-medium text-sky-100/88 [text-wrap:pretty] ${
-            isAbstimmenStep ? 'mt-1 line-clamp-2 text-[10px] leading-snug' : 'mt-1.5 text-[11px] leading-snug'
-          }`}
-        >
-          {clara.line10s}
-        </p>
-        {!isAbstimmenStep ? (
-          <div className="mt-1.5">
-            <WalkthroughInfoDetails
-              primaryLong={clara.long}
-              showOutro={isLast}
-              outroShort={du ? INTRO_OUTRO_SHORT_DU : INTRO_OUTRO_SHORT_SIE}
-              outroLong={du ? INTRO_OUTRO_DROPDOWN_DU : INTRO_OUTRO_DROPDOWN_SIE}
-            />
-          </div>
-        ) : null}
-      </div>
-
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 pb-1 sm:px-4">
-        <div className="mt-0 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <div
-            className={`relative flex min-h-0 w-full min-w-0 flex-1 flex-col rounded-2xl border border-white/12 bg-white p-1 shadow-none sm:p-1.5 ${
-              isAbstimmenStep
-                ? 'intro-walkthrough-scroll overflow-x-hidden overflow-y-auto overscroll-contain'
-                : 'min-h-0 overflow-hidden'
-            }`}
-            style={
-              isAbstimmenStep
-                ? {
-                    minHeight: 0,
-                    /* Im Geräterahmen: an Elternhöhe koppeln, nicht an Viewport (dvh). */
-                    maxHeight: 'min(100%, 56rem)',
-                  }
-                : { minHeight: 0, maxHeight: '100%' }
-            }
+            className={`flex-shrink-0 px-3 sm:px-4 ${isAbstimmenStep ? 'pb-0.5 pt-1.5' : 'pb-1 pt-2.5'}`}
           >
-            <div
-              className={
-                isAbstimmenStep
-                  ? 'flex w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2'
-                  : 'intro-walkthrough-scroll hide-scrollbar flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2'
-              }
+            <h2 className="text-[15px] font-extrabold leading-tight tracking-tight text-[#1A2B45] sm:text-[16px]">
+              Im Überblick · {clara.label}
+            </h2>
+            <p
+              className={`font-medium text-[#374151] [text-wrap:pretty] ${
+                isAbstimmenStep ? 'mt-1 line-clamp-2 text-[10px] leading-snug' : 'mt-1.5 text-[11px] leading-snug'
+              }`}
             >
+              {clara.line10s}
+            </p>
+            <div className="mt-1.5">
+              <WalkthroughInfoDetails
+                surface="light"
+                primaryLong={clara.long}
+                showOutro={isLast}
+                outroShort={du ? INTRO_OUTRO_SHORT_DU : INTRO_OUTRO_SHORT_SIE}
+                outroLong={du ? INTRO_OUTRO_DROPDOWN_DU : INTRO_OUTRO_DROPDOWN_SIE}
+              />
+            </div>
+          </div>
+
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 pb-1 sm:px-4">
+            <div className="mt-0 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
               <div
-                key={step.id}
-                className={
+                className={`relative flex min-h-0 w-full min-w-0 flex-1 flex-col rounded-2xl border border-neutral-200/90 bg-[#F7F9FC] p-1 shadow-none sm:p-1.5 ${
                   isAbstimmenStep
-                    ? 'flex w-full min-w-0 flex-col'
-                    : 'flex w-full min-w-0 flex-1 flex-col'
+                    ? 'intro-walkthrough-scroll overflow-x-hidden overflow-y-auto overscroll-contain'
+                    : 'min-h-0 overflow-hidden'
+                }`}
+                style={
+                  isAbstimmenStep
+                    ? {
+                        minHeight: 0,
+                        /* Im Geräterahmen: an Elternhöhe koppeln, nicht an Viewport (dvh). */
+                        maxHeight: 'min(100%, 56rem)',
+                      }
+                    : { minHeight: 0, maxHeight: '100%' }
                 }
               >
-                {preview}
+                <div
+                  className={
+                    isAbstimmenStep
+                      ? 'flex w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2'
+                      : 'intro-walkthrough-scroll hide-scrollbar flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2'
+                  }
+                >
+                  <div
+                    key={step.id}
+                    className={
+                      isAbstimmenStep
+                        ? 'flex w-full min-w-0 flex-col'
+                        : 'flex w-full min-w-0 flex-1 flex-col'
+                    }
+                  >
+                    {preview}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+
+          <div className="relative z-[45] flex flex-shrink-0 gap-2 border-t border-neutral-200 bg-[#F7F9FC] px-3 pt-2.5 intro-action-bar-pad sm:px-4">
+            <button
+              type="button"
+              onClick={() => {
+                speechAutoAdvancedRef.current = true;
+                speechStartedRef.current = false;
+                speakApi?.stopIntroSpeech();
+                if (idx === 0) {
+                  if (onBackFromFirstStep) onBackFromFirstStep();
+                  return;
+                }
+                setIdx((p) => Math.max(0, p - 1));
+              }}
+              className="inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-xl border border-black/80 bg-black px-3 text-[11px] font-semibold text-white shadow-sm transition hover:bg-neutral-900 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/50"
+            >
+              Zurück
+            </button>
+            <button
+              type="button"
+              onClick={() => (isLast ? onFinish() : setIdx((p) => Math.min(steps.length - 1, p + 1)))}
+              className={
+                'btn-gov-primary btn-gov-primary--flex min-h-[44px] min-w-0 flex-1 text-[11px] font-extrabold ' +
+                (isLast ? 'whitespace-nowrap' : '')
+              }
+            >
+              {isLast ? INTRO_FINISH_CTA_LABEL : 'Weiter'}
+            </button>
+          </div>
+          </div>
         </div>
-
-      </div>
-
-      {/* Clara: kompaktes Mic oben rechts im Frame (ClaraDock), kein zusätzlicher Streifen über der Fußleiste. */}
-      <div className="relative z-30 flex flex-shrink-0 gap-2 border-t border-white/10 bg-[rgba(12,18,32,0.96)] px-3 pt-2.5 intro-action-bar-pad sm:px-4">
-        <button
-          type="button"
-          onClick={() => {
-            if (idx === 0) onClose();
-            else setIdx((p) => Math.max(0, p - 1));
-          }}
-          className="inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-xl border border-black/80 bg-black px-3 text-[11px] font-semibold text-white shadow-sm transition hover:bg-neutral-900 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/50"
-        >
-          Zurück
-        </button>
-        <button
-          type="button"
-          onClick={() => (isLast ? onFinish() : setIdx((p) => Math.min(steps.length - 1, p + 1)))}
-          className={
-            'btn-gov-primary btn-gov-primary--flex min-h-[44px] min-w-0 flex-1 text-[11px] font-extrabold ' +
-            (isLast ? 'whitespace-nowrap' : '')
-          }
-        >
-          {isLast ? INTRO_FINISH_CTA_LABEL : 'Weiter'}
-        </button>
       </div>
     </div>
   );

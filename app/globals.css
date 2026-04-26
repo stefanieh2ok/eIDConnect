@@ -955,6 +955,21 @@ body {
   padding-bottom: min(11rem, 30vh);
 }
 
+/* Kurze Viewports (viele Smartphones): weniger „Leerfläche“, EU-Wallet schneller im Scrollbereich */
+@media (max-height: 740px) {
+  .clara-prelogin-shell-pad {
+    padding-bottom: min(6rem, 18vh);
+  }
+}
+
+/** Einheitlicher dunkler Intro-Rahmen (eID, Anrede, Einstieg, Walkthrough im Gerät) */
+.intro-device-chrome-shell {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
 /* Politikbarometer: Schieberegler klar als aktiv lesbar (GovTech-Navy / kräftiges Blau). */
 .politik-barometer-range {
   -webkit-appearance: none;
@@ -1012,6 +1027,12 @@ body {
   .intro-meta-strip {
     padding: 0.4rem 0.75rem 0.5rem;
   }
+}
+
+/* Intro-Leiste auf hellem Untergrund (weiße „Bild“-Kachel) */
+.intro-meta-strip--on-light {
+  color: #1a2b45;
+  border-bottom-color: rgba(15, 23, 42, 0.12);
 }
 
 /* Intro: einmaliger, dezenter Leuchtrand wenn Claras TTS startet (Audio-Status-Button) */
@@ -1083,7 +1104,7 @@ select:focus-visible {
   background: #FFE066; /* Amtlich Gelb nach BWahlG */
   border: 2px solid var(--text-dark, #000000);
   border-radius: 0; /* Keine Rundungen - originalgetreu */
-  padding: var(--space-6, 24px);
+  padding: var(--space-4, 16px);
   font-family: Arial, -apple-system, system-ui, sans-serif;
   font-size: 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -1093,9 +1114,9 @@ select:focus-visible {
 .ballot-option {
   display: flex;
   align-items: center;
-  min-height: 48px; /* Touch Target - größer als Original für Mobile */
-  padding: var(--space-3, 12px);
-  margin-bottom: var(--space-2, 8px);
+  min-height: 42px;
+  padding: var(--space-2, 8px);
+  margin-bottom: 6px;
   transition: background-color var(--duration-fast, 150ms);
   position: relative;
   border: 1px solid transparent;
@@ -1111,10 +1132,10 @@ select:focus-visible {
 
 /* Ballot Checkbox (Originalgetreu, aber touch-optimiert) */
 .ballot-checkbox {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  min-height: 36px;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
   border: 2px solid var(--text-dark, #000000);
   border-radius: 0; /* Keine Rundungen - originalgetreu */
   margin-right: 10px;
@@ -1147,7 +1168,7 @@ select:focus-visible {
   -webkit-transform: translate(-50%, -50%);
   -ms-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
-  font-size: 24px;
+  font-size: 20px;
   font-weight: bold;
   color: var(--text-dark, #000000);
   line-height: 1;
@@ -1207,19 +1228,19 @@ select:focus-visible {
 /* Mobile Optimierungen */
 @media (max-width: 768px) {
   .ballot-paper {
-    padding: var(--space-3, 12px);
+    padding: 10px;
     font-size: 12px;
   }
   
   .ballot-checkbox {
-    width: 26px;
-    height: 26px;
-    min-width: 26px;
-    min-height: 26px;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    min-height: 18px;
   }
   
   .ballot-checkbox:checked::after {
-    font-size: 18px;
+    font-size: 12px;
   }
   
   .ballot-info-trigger {
@@ -1231,8 +1252,8 @@ select:focus-visible {
   }
   
   .ballot-option {
-    min-height: 38px;
-    padding: 5px;
+    min-height: 32px;
+    padding: 4px;
   }
 }
 

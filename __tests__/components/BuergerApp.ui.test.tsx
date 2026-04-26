@@ -43,7 +43,7 @@ describe('BuergerApp UI (Footer, Tour, Consent)', () => {
     }
   });
 
-  it('zeigt nach Intro-Skip die Top-Navigation und Punkte-Status (Meldungen nur bei Kommune)', async () => {
+  it('zeigt nach Intro-Skip die Top-Navigation und Beteiligungsstatus (Meldungen nur bei Kommune)', async () => {
     renderApp();
     await waitFor(
       () => {
@@ -53,7 +53,7 @@ describe('BuergerApp UI (Footer, Tour, Consent)', () => {
       { timeout: 3000 }
     );
     expect(document.getElementById('tour-voting-btn')).toHaveTextContent(/Abstimmen/i);
-    expect(document.getElementById('tour-rewards-btn')).toHaveTextContent(/Punkte/i);
+    expect(document.getElementById('tour-rewards-btn')).toHaveTextContent(/Status/i);
     // Meldungen-Tab erscheint nur bei Kommune-Ebene; bei Bund/Land/Kreis standardmäßig nicht
     const meldenBtn = document.getElementById('tour-melden-btn');
     if (meldenBtn) expect(meldenBtn).toHaveTextContent(/Meldungen/i);

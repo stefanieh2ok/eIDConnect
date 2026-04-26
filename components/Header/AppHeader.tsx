@@ -4,9 +4,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '@/context/AppContext';
 import { EbeneLevel, Location, Section } from '@/types';
-import { Award, Settings } from 'lucide-react';
+import { ListChecks, Settings } from 'lucide-react';
+import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
 import { normalizePlz, parseLegacyDemoAddress, suggestCityFromPlz } from '@/data/plzDemoLookup';
-import { APP_DISPLAY_NAME } from '@/lib/branding';
+import { APP_DISPLAY_NAME, APP_TAGLINE } from '@/lib/branding';
 import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
 
 // ─── Section Nav Config ────────────────────────────────────────────────────
@@ -91,6 +92,8 @@ const AppHeader: React.FC = () => {
   const [demoPlz, setDemoPlz] = useState('');
   const [demoCity, setDemoCity] = useState('');
   const [demoZustaendigkeit, setDemoZustaendigkeit] = useState('');
+  const [interessenSavedHint, setInteressenSavedHint] = useState(false);
+  const [settingsActionHint, setSettingsActionHint] = useState<string | null>(null);
   const residencePath = useMemo(() => residencePathForLocation(state.residenceLocation), [state.residenceLocation]);
   const overlayRoot = typeof document !== 'undefined' ? document.getElementById('app-overlay-root') : null;
 
@@ -98,6 +101,14 @@ const AppHeader: React.FC = () => {
   const closeSettingsBtnRef = useRef<HTMLButtonElement | null>(null);
   const isFormal = state.anrede === 'sie';
   const t = (du: string, sie: string) => (isFormal ? sie : du);
+  const showSettingsHint = (msgDu: string, msgSie: string) => {
+    setSettingsActionHint(t(msgDu, msgSie));
+    window.setTimeout(() => setSettingsActionHint(null), 2500);
+  };
+  const closeSettingsToApp = () => {
+    dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'live' });
+    setShowSettings(false);
+  };
 
   useEffect(() => {
     if (!showSettings) return;
@@ -268,51 +279,77 @@ const AppHeader: React.FC = () => {
                   </div>
                 </section>
 
-                <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-                  <p className="text-xs font-semibold text-neutral-900">Clara-Personalisierung</p>
-                  <label className="mt-2 flex items-start gap-2 text-[11px] leading-relaxed text-neutral-800">
-                    <input
-                      type="checkbox"
-                      checked={state.consentClaraPersonalization}
-                      onChange={(e) =>
-                        dispatch({
-                          type: 'SET_CONSENT_CLARA_PERSONALIZATION',
-                          payload: e.target.checked,
-                        })
-                      }
-                      className="mt-0.5 h-4 w-4 rounded"
-                      style={{ accentColor: '#0055A4' }}
-                    />
-                    Einwilligung zur Nutzung von Politik-Schwerpunkten für relevantere Clara-Analysen.
-                  </label>
-                  <p className="mt-2 text-[11px] leading-relaxed text-neutral-600">
+                <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-2.5">
+                  <PolitikBarometerPanel
+                    du={!isFormal}
+                    variant="compact"
+                    density="tight"
+                    headingTitle="Interessen & Relevanz"
+                    leadDu="Wähle Themen aus, zu denen Termine und Beteiligungsmöglichkeiten im Kalender hervorgehoben werden sollen."
+                    leadSie="Wählen Sie Themen aus, zu denen Termine und Beteiligungsmöglichkeiten im Kalender hervorgehoben werden sollen."
+                  />
+                  <p className="mt-1.5 px-0.5 text-[9.5px] leading-snug text-neutral-600">
                     {t(
-                      'Wenn aktiviert, nutzt Clara deine gewählten Themen, um Inhalte relevanter zu strukturieren. Clara bleibt dabei strikt neutral und gibt keine Wahlempfehlung.',
-                      'Wenn aktiviert, nutzt Clara Ihre gewählten Themen, um Inhalte relevanter zu strukturieren. Clara bleibt dabei strikt neutral und gibt keine Wahlempfehlung.',
+                      'Diese Auswahl dient nur dazu, passende Kalendertermine hervorzuheben. Sie ist keine politische Empfehlung und wird nicht aus deinem Verhalten abgeleitet.',
+                      'Diese Auswahl dient nur dazu, passende Kalendertermine hervorzuheben. Sie ist keine politische Empfehlung und wird nicht aus Ihrem Verhalten abgeleitet.',
                     )}
                   </p>
-                </section>
-
-                <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-                  <p className="text-xs font-semibold text-neutral-900">Punkte & Prämien</p>
-                  <label className="mt-2 flex items-start gap-2 text-[11px] leading-relaxed text-neutral-800 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={state.consentPraemien}
-                      onChange={(e) =>
-                        dispatch({ type: 'SET_CONSENT_PRAEMIEN', payload: e.target.checked })
-                      }
-                      className="mt-0.5 h-4 w-4 rounded"
-                      style={{ accentColor: '#0055A4' }}
-                    />
-                    Ich möchte am freiwilligen Punkte- und Prämienprogramm teilnehmen.
-                  </label>
-                  <p className="mt-2 text-[11px] leading-relaxed text-neutral-600">
-                    Prämien und Einlöseangebote werden erst nach Ihrer Zustimmung sichtbar.
-                  </p>
-                  <p className="mt-2 text-[10px] leading-relaxed text-neutral-500">
-                    Ihre Einwilligung können Sie jederzeit in den Einstellungen widerrufen.
-                  </p>
+                  {interessenSavedHint ? (
+                    <p className="mt-2 text-[10px] font-semibold text-emerald-800" role="status">
+                      {t('Einstellungen für diese Sitzung übernommen.', 'Einstellungen für diese Sitzung übernommen.')}
+                    </p>
+                  ) : null}
+                  {settingsActionHint ? (
+                    <p className="mt-2 text-[10px] font-semibold text-[#003366]" role="status">
+                      {settingsActionHint}
+                    </p>
+                  ) : null}
+                  <div className="mt-1.5 flex flex-col gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInteressenSavedHint(true);
+                        showSettingsHint(
+                          'Auswahl gespeichert. Du kannst direkt in die App.',
+                          'Auswahl gespeichert. Sie können direkt in die App.',
+                        );
+                        window.setTimeout(() => setInteressenSavedHint(false), 2500);
+                      }}
+                      className="w-full rounded-lg border border-[#003366] bg-[#003366] py-1.5 text-[10.5px] font-semibold text-white hover:opacity-95"
+                    >
+                      Auswahl speichern
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        dispatch({
+                          type: 'SET_PREFERENCES',
+                          payload: {
+                            umwelt: 50,
+                            finanzen: 50,
+                            bildung: 50,
+                            digital: 50,
+                            soziales: 50,
+                            sicherheit: 50,
+                          },
+                        });
+                        showSettingsHint('Auswahl zurückgesetzt.', 'Auswahl zurückgesetzt.');
+                      }}
+                      className="w-full rounded-lg border border-neutral-300 bg-white py-1.5 text-[10.5px] font-semibold text-neutral-800 hover:bg-neutral-50"
+                    >
+                      Auswahl zurücksetzen
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        dispatch({ type: 'SET_CONSENT_CLARA_PERSONALIZATION', payload: false });
+                        showSettingsHint('Hervorhebungen wurden deaktiviert.', 'Hervorhebungen wurden deaktiviert.');
+                      }}
+                      className="w-full rounded-lg border border-neutral-300 bg-white py-1.5 text-[10.5px] font-semibold text-neutral-800 hover:bg-neutral-50"
+                    >
+                      Hervorhebungen deaktivieren
+                    </button>
+                  </div>
                 </section>
 
                 <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-[11px] leading-relaxed text-neutral-800">
@@ -406,10 +443,10 @@ const AppHeader: React.FC = () => {
               <div className="border-t border-neutral-200 bg-white px-4 py-3">
                 <button
                   type="button"
-                  onClick={() => setShowSettings(false)}
-                  className="w-full rounded-lg border border-neutral-300 bg-neutral-50 py-2 text-sm font-semibold text-neutral-800 hover:bg-neutral-100"
+                  onClick={closeSettingsToApp}
+                  className="w-full rounded-lg border border-[#003366] bg-[#003366] py-2 text-sm font-semibold text-white hover:opacity-95"
                 >
-                  Schließen
+                  Zur App
                 </button>
               </div>
             </div>
@@ -431,37 +468,26 @@ const AppHeader: React.FC = () => {
         paddingTop: 'max(0.6rem, env(safe-area-inset-top, 0.6rem))',
       }}
     >
-      {/* ── Row 1: Brand + Punkte ── */}
-      <div className="flex items-center justify-between px-4 pt-1 pb-2">
-        <div className="flex items-center gap-2">
-          <div className="text-sm font-bold text-[#003366] tracking-wide leading-none">
-            {APP_DISPLAY_NAME}
+      {/* ── Row 1: Brand + Status ── */}
+      <div className="flex items-start justify-between gap-2 px-4 pt-1 pb-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <div className="truncate text-sm font-bold tracking-wide leading-none text-[#003366]">
+              {APP_DISPLAY_NAME}
+            </div>
           </div>
-          {/* Persistenter Demo-Hinweis: Macht auch NACH der Einführung klar,
-              dass es sich um eine Testumgebung handelt — verhindert Missver-
-              ständnisse bei weitergeleiteten Screenshots. */}
-          <span
-            className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-1.5 py-[1px] text-[8.5px] font-extrabold uppercase tracking-[0.14em] text-amber-900"
-            title="Testumgebung — keine Live-Daten"
-            aria-label="Testumgebung — keine Live-Daten"
-          >
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden />
-            Demo
-          </span>
+          <p className="mt-0.5 text-[11px] leading-tight text-neutral-500">{APP_TAGLINE}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             id="tour-rewards-btn"
             onClick={() => dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'leaderboard' })}
             className="flex items-center gap-1.5 rounded-full px-3 py-1 border border-neutral-200 bg-white/70 hover:bg-white transition-colors"
-            aria-label="Punkte & Prämien öffnen"
+            aria-label="Beteiligungsstatus öffnen"
           >
-            <Award className="h-3.5 w-3.5 text-[#0055A4] shrink-0" aria-hidden />
-            <span className="text-xs font-bold text-neutral-900 tabular-nums">
-              {state.participationPoints.toLocaleString('de-DE')}
-            </span>
-            <span className="text-[9px] text-neutral-500">Punkte</span>
+            <ListChecks className="h-3.5 w-3.5 text-[#0055A4] shrink-0" aria-hidden />
+            <span className="text-xs font-bold text-neutral-900">Status</span>
           </button>
           <button
             type="button"

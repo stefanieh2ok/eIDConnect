@@ -31,6 +31,7 @@ import {
 import { resetViewportScroll } from '@/lib/resetViewportScroll';
 import type { EbeneLevel, Location, Section } from '@/types';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
+import { APP_DISPLAY_NAME } from '@/lib/branding';
 
 // Produkteinführung (4 Screens) vor Login/Onboarding — eigenes Flag, nicht mit eID/Anrede vermischen.
 const PRODUCT_INTRO_DONE_KEY = 'eidconnect_product_intro_done_v4';
@@ -162,6 +163,12 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     return () => window.removeEventListener('eidconnect:open-intro', onOpen as any);
   }, []);
 
+  /** Tab-Titel immer setzen (auch vor Login) — sonst bleibt auf dem Handy oft ein alter Name aus Cache/PWA stehen. */
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.title = APP_DISPLAY_NAME;
+  }, [state.isLoggedIn]);
+
   // Globaler Skip: „Einführung überspringen" / × aus AnredeGate oder
   // LoginScreen. Sie laufen vor dem Login, haben also selbst keinen Zugriff auf
   // das Intro-Flag. Wir fangen das hier zentral ein und beenden den kompletten
@@ -215,6 +222,19 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     setPostLoginIntroOpen(false);
   };
 
+  /** Erster Walkthrough-Schritt: zurück zur eID-Demo (ohne Intro als „erledigt“ zu markieren). */
+  const backFromWalkthroughFirstStep = () => {
+    try {
+      writePreLoginPhase('ok');
+      writeWantsWalkthrough(true);
+    } catch {
+      // ignore
+    }
+    setPreLogin('ok');
+    setPostLoginIntroOpen(true);
+    dispatch({ type: 'SET_LOGGED_IN', payload: false });
+  };
+
   const walkthroughChrome =
     state.isLoggedIn &&
     postLoginIntroOpen &&
@@ -238,7 +258,12 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       case 'live':        return <LiveSection />;
       case 'leaderboard': return <LeaderboardSection />;
       case 'wahlen':      return <ElectionsSection />;
-      case 'kalender':    return <CalendarSection />;
+      case 'kalender':
+        return (
+          <CalendarSection
+            priorities={state.consentClaraPersonalization ? state.preferences : undefined}
+          />
+        );
       case 'meldungen':   return <MeldungenSection />;
       default:            return <LiveSection />;
     }
@@ -286,7 +311,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       <div className="relative flex h-full min-h-0 w-full min-w-0 flex-1 flex-col">
         {!state.isLoggedIn ? (
           <div
-            className={`relative flex flex-col h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
+            className={`relative z-[650] flex flex-col h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
               isDevice ? '' : 'min-h-[100dvh]'
             }`}
           >
@@ -302,7 +327,11 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
               onDirectToApp={onEntryDirect}
               position={isDevice ? 'absolute' : 'fixed'}
             />
-            <LoginScreen renderFrame={!isDevice} preLoginPhase={preLogin} />
+            <LoginScreen
+              renderFrame={!isDevice}
+              preLoginPhase={preLogin}
+              onBackToEntry={() => setPreLogin('entry')}
+            />
           </div>
         ) : (
           <>
@@ -311,8 +340,8 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                 „springt" sichtbar. Nur Farbe/app-body wird hinzugefügt. */}
             <div
               className={`relative flex flex-col app-body bg-[#F7F9FC] h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
-                isDevice ? '' : 'min-h-[100dvh]'
-              }`}
+                walkthroughChrome ? 'z-[650]' : ''
+              } ${isDevice ? '' : 'min-h-[100dvh]'}`}
             >
               <div id="app-overlay-root" className="pointer-events-none absolute inset-0 z-[120]" />
               {postLoginIntroOpen && state.anrede != null && readWantsWalkthrough() ? (
@@ -322,6 +351,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                     residenceLocation={state.residenceLocation}
                     onClose={finishProductIntro}
                     onFinish={finishProductIntro}
+                    onBackFromFirstStep={backFromWalkthroughFirstStep}
                     onWalkthroughStepChange={setWalkthroughStep}
                   />
                 </div>
@@ -349,6 +379,8 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
           toolbarZClassName={
             !state.isLoggedIn || walkthroughChrome ? 'z-[620]' : 'z-[80]'
           }
+          compactMicOnlyMode={state.isLoggedIn ? walkthroughChrome : undefined}
+          suppressCompactMic={!state.isLoggedIn || walkthroughChrome}
           walkthroughActive={walkthroughChrome}
           walkthroughStep={walkthroughChrome ? walkthroughStep : null}
           extraBottomOffset={

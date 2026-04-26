@@ -7,8 +7,8 @@ import type { VotingCard, VotingData, LeaderboardItem, NewsItem } from '@/types'
 export const WAHLEN_DATA = WAHLEN_DEUTSCHLAND;
 
 export const THEME_NAMES: Record<string, string> = {
-  umwelt: 'Umwelt & Klima',
-  finanzen: 'Finanzen & Steuern',
+  umwelt: 'Umwelt & Energie',
+  finanzen: 'Finanzen & Wirtschaft',
   bildung: 'Bildung',
   digital: 'Digitalisierung',
   soziales: 'Soziales',
@@ -112,6 +112,33 @@ const bundCards: VotingCard[] = [
     'Kosten, Reichweite, Vereinbarkeit mit Beruf und Ausbildung.',
     'Sicherheit', '🛡️'
   ),
+  card(
+    'bund-5',
+    'Hochwasser- und Starkregenvorsorge Flüsse 2027',
+    'Bündelmaßnahmen für Deiche, Rückhaltebecken und kommunale Alarmketten; Mittelbereitstellung und Prioritätenliste.',
+    '10.09.2026', 62, 28, 920_000, 300, true,
+    'Mehr Resilienz, bessere Frühwarnung, Schutz von Infrastruktur und Wohngebieten.',
+    'Hoher Finanzbedarf, langfristige Planung, Abstimmung mit Ländern und Kommunen.',
+    'Umwelt & Klima', '🌊'
+  ),
+  card(
+    'bund-6',
+    'E-Government: Nutzerstudie & Serviceverbesserung',
+    'Bürgerbefragung und Pilotierung vereinfachter Online-Verfahren für häufige Anträge.',
+    '28.10.2026', 70, 20, 1_050_000, 300, false,
+    'Bessere Usability, messbare Verbesserung, Bürgerbeteiligung an der Gestaltung.',
+    'Umsetzungszeit, Datenschutz, belastbare IT-Architektur.',
+    'Digitalisierung', '💻'
+  ),
+  card(
+    'bund-7',
+    'Bürgerdialog kommunaler Haushalt (Bund Demo)',
+    'Online-Anhörung zu Schwerpunkten Bildung, Klima und Sicherheit vor dem Haushaltsentwurf.',
+    '12.12.2026', 58, 32, 890_000, 300, false,
+    'Transparenz, frühzeitige Einbindung, sachliche Priorisierung.',
+    'Komplexität des Themas, begrenzte Kapazität für individuelle Rückmeldungen.',
+    'Finanzen & Steuern', '📊'
+  ),
 ];
 
 // ─── Landesebene Saarland ─────────────────────────────────────────────────────
@@ -143,6 +170,24 @@ const landCards: VotingCard[] = [
     'Arbeitsplatzsicherung, Innovation, klimaneutrale Produktion.',
     'Hohe Investitionen, Abhängigkeit von EU-Fördermitteln, Zeitdruck.',
     'Finanzen & Steuern', '🏭'
+  ),
+  card(
+    'land-4',
+    'Landesprogramm kommunale Wärmeplanung',
+    'Frist für Stellungnahmen der Kommunen zum Förderprogramm Wärmenetze und Gebäudesanierung.',
+    '22.08.2026', 66, 24, 205_000, 280, false,
+    'Klarer Fahrplan für Kommunen, Fördermittel, Klimaschutz vor Ort.',
+    'Verwaltungsaufwand, Datengrundlagen, Priorisierung zwischen Kommunen.',
+    'Umwelt & Klima', '♨️'
+  ),
+  card(
+    'land-5',
+    'Landesgesundheitspakt – Psychiatrie & Notfallversorgung',
+    'Beschluss über zusätzliche Plätze und Vernetzung Rettungsdienst / Kliniken.',
+    '20.11.2026', 63, 27, 188_000, 280, true,
+    'Kürzere Wartezeiten, bessere Versorgung, belastbare Finanzierung.',
+    'Personalgewinnung, Raumkonzept, langfristige Trägerverantwortung.',
+    'Soziales', '🏥'
   ),
 ];
 
@@ -176,6 +221,24 @@ const kreisCards: VotingCard[] = [
     'Finanzierung über Kreisumlage, Personalgewinnung.',
     'Soziales', '👦'
   ),
+  card(
+    'kreis-4',
+    'Kreisarchiv – Digitalisierung Bürgerbeteiligung',
+    'Priorisierung von Aktenbeständen für Online-Recherche und Bürgeranfragen.',
+    '08.09.2026', 73, 19, 31_200, 180, false,
+    'Transparenz, schnellere Auskunft, Schutz historischer Bestände.',
+    'Kosten Digitalisierung, Datenschutz, Priorisierung der Bestände.',
+    'Digitalisierung', '📂'
+  ),
+  card(
+    'kreis-5',
+    'Regionalbus-Linien Saarpfalz 2027',
+    'Taktverdichtung und neue Haltestellen; Abstimmung über Finanzierungsanteil Kreis/Kommunen.',
+    '25.11.2026', 67, 23, 28_400, 180, false,
+    'Bessere Erreichbarkeit, weniger Umsteigen, attraktiver ÖPNV.',
+    'Haushaltsbelastung, Bauzeit, Akzeptanz im ländlichen Raum.',
+    'Umwelt & Klima', '🚌'
+  ),
 ];
 
 // ─── Kommunalebene Kirkel ─────────────────────────────────────────────────────
@@ -183,7 +246,7 @@ const kreisCards: VotingCard[] = [
 const kirkelCards: VotingCard[] = [
   card(
     'kirkel-1',
-    'Sanierung der Kirkel-Halle',
+    'Digitale Ausstattung von Schulen · Sanierung Kirkel-Halle',
     'Vollsanierung der Gemeindehalle Kirkel: Energetische Ertüchtigung (Wärmepumpe, Dämmung), barrierefreier Umbau und neue Bühne. Gesamtkosten: ca. 2,1 Mio. €.',
     '30.03.2026', 74, 18, 4_820, 150, true,
     'Wichtigster Versammlungsort für Vereine und Bürger, energetische Einsparung von ca. 35 %.',
@@ -201,7 +264,7 @@ const kirkelCards: VotingCard[] = [
   ),
   card(
     'kirkel-3',
-    'Solaranlage auf dem Dach der Grundschule Limbach',
+    'Bürgerbeteiligung Solarprojekt Kirkel',
     'Photovoltaikanlage (180 kWp) auf dem Dach der Grundschule Limbach. Deckung von ca. 60 % des Schulstrombedarfs, Einspeisung überschüssiger Energie.',
     '01.05.2026', 88, 8, 5_230, 100, false,
     'Klimaschutz, langfristige Kosteneinsparung, Vorbildfunktion für Schüler.',
@@ -210,7 +273,7 @@ const kirkelCards: VotingCard[] = [
   ),
   card(
     'kirkel-4',
-    'Neubau Spielplatz Bürgerpark Kirkel-Altstadt',
+    'Beteiligung Familien- und Jugendangebote – Spielplatz Bürgerpark',
     'Erneuerung und Erweiterung des Spielplatzes im Bürgerpark: Kletterturm, Wasserspielanlage, Sitzbereich für Eltern, barrierefreier Zugang.',
     '20.05.2026', 91, 6, 7_350, 80, false,
     'Attraktivität für Familien, Treffpunkt im Ort, inklusiv gestaltbar.',
@@ -219,7 +282,7 @@ const kirkelCards: VotingCard[] = [
   ),
   card(
     'kirkel-5',
-    'Digitale Bürgerdienste Gemeinde Kirkel',
+    'Beteiligung zum digitalen Bürgerportal Saarland',
     'Online-Portal für Meldewesen, Termin buchen, Kita-Anmeldung, Mängelmelder und Anfragen an die Gemeindeverwaltung.',
     '30.06.2026', 77, 15, 5_890, 90, false,
     'Weniger Amtswege, 24/7-Erreichbarkeit, modern und bürgerfreundlich.',
@@ -234,6 +297,60 @@ const kirkelCards: VotingCard[] = [
     'Belebung des Ortskerns, Wohnraum, Steuereinnahmen, Heimatpflege.',
     'Eigentümer nicht immer kooperativ, Fördervolumen begrenzt, langwierig.',
     'Finanzen & Steuern', '🏘️'
+  ),
+  card(
+    'kirkel-7',
+    'Klimaschutzkonzept Gemeinde Kirkel – Maßnahmenpaket II',
+    'Bürgerbeteiligung zu Maßnahmen Mobilität, Energie und Grünflächen bis 2030.',
+    '28.08.2026', 75, 17, 4_350, 110, true,
+    'Klare Ziele, Fördermittel, messbare CO₂-Reduktion.',
+    'Umsetzungskosten, Priorisierung zwischen Ortsteilen.',
+    'Umwelt & Klima', '🌿'
+  ),
+  card(
+    'kirkel-8',
+    'Ortskernbeleuchtung LED-Umrüstung',
+    'Energieeffiziente Straßen- und Platzbeleuchtung mit dimmbaren Leuchten und Dunkelphase.',
+    '19.09.2026', 70, 21, 4_010, 110, false,
+    'Stromersparnis, weniger Lichtverschmutzung, mehr Sicherheit.',
+    'Anschaffungskosten, Wartungskonzept, Optik im Denkmalbereich.',
+    'Digitalisierung', '💡'
+  ),
+  card(
+    'kirkel-9',
+    'Friedhof Limbach – Erweiterung Ruhewald',
+    'Flächenerweiterung und naturnahe Bestattungsformen; Umwelt- und Denkmalauflagen.',
+    '14.10.2026', 62, 28, 3_680, 110, false,
+    'Mehr Kapazität, respektvoller Umgang, naturnahe Gestaltung.',
+    'Flächenbedarf, Nachbarschaft, langfristige Pflegekosten.',
+    'Soziales', '🌳'
+  ),
+  card(
+    'kirkel-10',
+    'Seniorentreff Kirkel-Neuhäusel – barrierefreier Anbau',
+    'Gemeinschaftsraum, Küche und barrierefreie Sanitäranlagen für Treff- und Beratungsangebote.',
+    '06.11.2026', 79, 14, 3_920, 110, false,
+    'Teilhabe, soziale Kontakte, entlastete Angehörige.',
+    'Baukosten, Betreuungspersonal, dauerhafter Betrieb.',
+    'Soziales', '👴'
+  ),
+  card(
+    'kirkel-11',
+    'Kita-Beiträge 2027 – Elternbeteiligung',
+    'Anpassung der Elternbeiträge nach Kostendeckungsprinzip; Anhörung vor Gemeinderatsbeschluss.',
+    '27.11.2026', 58, 30, 3_540, 110, false,
+    'Planbare Finanzen, Qualität der Betreuung, Transparenz.',
+    'Belastung Haushalte, Ausnahmeregelungen, Verwaltungsaufwand.',
+    'Finanzen & Steuern', '🧸'
+  ),
+  card(
+    'kirkel-12',
+    'Dialog Katastrophenschutz und Warnsysteme (Demo Kirkel)',
+    'Bürgerdialog zu Warnketten, Katastrophenschutz und Kommunikation bei Ereignissen; keine operative Entscheidung.',
+    '10.12.2026', 82, 11, 4_200, 110, false,
+    'Transparenz zu Abläufen, bessere Orientierung, Feedback zu Kommunikationswegen.',
+    'Kein Ersatz für Notrufe; Fokus auf strukturierte Hinweise und Nachvollziehbarkeit.',
+    'Sicherheit', '🛡️'
   ),
 ];
 
@@ -284,6 +401,21 @@ const frankfurtCards: VotingCard[] = [
     'Digitalisierung',
     '💻'
   ),
+  card(
+    'frankfurt-4',
+    'Frankfurt – Mobilitätsbudget Schulen 2027',
+    'Priorisierung von Schulwegen, ÖPNV-Zuschüssen und Verkehrsprojekten im Stadtgebiet.',
+    '12.10.2026',
+    64,
+    22,
+    920_000,
+    280,
+    false,
+    'Sicherere Schulwege und planbare Investitionen.',
+    'Haushaltsmittel müssen mit anderen Bildungsprojekten abgewogen werden.',
+    'Bildung',
+    '🎒'
+  ),
 ];
 
 const mannheimCards: VotingCard[] = [
@@ -316,6 +448,21 @@ const mannheimCards: VotingCard[] = [
     'Umstellungskosten und Förderlogistik erfordern gute Steuerung.',
     'Finanzen & Steuern',
     '⚡'
+  ),
+  card(
+    'mannheim-3',
+    'Mannheim – Klimaanpassung Innenstadt 2027',
+    'Hitzeschutz, Beschattung und Regenwassernutzung in der Quadratestadt.',
+    '25.09.2026',
+    71,
+    19,
+    495_000,
+    260,
+    true,
+    'Bessere Aufenthaltsqualität bei Hitzeextremen.',
+    'Umsetzung in Denkmalbereichen und Kostensteuerung.',
+    'Umwelt & Klima',
+    '🌡️'
   ),
 ];
 
@@ -350,6 +497,21 @@ const heidelbergCards: VotingCard[] = [
     'Umwelt & Klima',
     '🔬'
   ),
+  card(
+    'heidelberg-3',
+    'Heidelberg – Nachtruhe & Veranstaltungen',
+    'Genehmigungsregeln für Open-Air-Veranstaltungen und Lärmschutzmaßnahmen.',
+    '03.11.2026',
+    59,
+    31,
+    395_000,
+    250,
+    false,
+    'Ausgewogene Regeln für Kultur und Anwohner.',
+    'Abgrenzung zu gewerblichen Events und Kontrollaufwand.',
+    'Sicherheit',
+    '🎵'
+  ),
 ];
 
 const weinheimCards: VotingCard[] = [
@@ -382,6 +544,21 @@ const weinheimCards: VotingCard[] = [
     'Technik muss wartbar sein; gleiche Zugänge sind wichtig.',
     'Bildung',
     '📚'
+  ),
+  card(
+    'weinheim-3',
+    'Weinheim – Gewerbegebiet Süd 2027',
+    'Erschließung, Verkehrsanbindung und Umweltauflagen für neue Gewerbeflächen.',
+    '18.08.2026',
+    62,
+    27,
+    298_000,
+    210,
+    false,
+    'Arbeitsplätze vor Ort, steuerliche Mehreinnahmen.',
+    'Verkehrsbelastung und Artenschutz an der Peripherie.',
+    'Finanzen & Steuern',
+    '🏭'
   ),
 ];
 
@@ -416,6 +593,21 @@ const viernheimCards: VotingCard[] = [
     'Sicherheit',
     '🧠'
   ),
+  card(
+    'vierenheim-3',
+    'Viernheim – Kita-Plätze und Sprachkitas',
+    'Ausbau der Betreuungskapazitäten und Förderung mehrsprachiger Erzieher:innen-Teams.',
+    '30.10.2026',
+    76,
+    16,
+    235_000,
+    220,
+    true,
+    'Kürzere Wartelisten, Chancen für Kinder mit Migrationshintergrund.',
+    'Personalgewinnung und Raum für neue Gruppen.',
+    'Bildung',
+    '👶'
+  ),
 ];
 
 const neustadtCards: VotingCard[] = [
@@ -449,6 +641,21 @@ const neustadtCards: VotingCard[] = [
     'Umwelt & Klima',
     '🌧️'
   ),
+  card(
+    'neustadt-3',
+    'Neustadt – Weinlagen-Schutz & Tourismus',
+    'Auflagen für Events in sensiblen Weinlagen und Nachhaltigkeitslabel Gastronomie.',
+    '22.09.2026',
+    65,
+    25,
+    198_000,
+    240,
+    false,
+    'Schutz der Kulturlandschaft und Qualitätstourismus.',
+    'Abstimmung mit Winzerinnen und Veranstaltern.',
+    'Umwelt & Klima',
+    '🍷'
+  ),
 ];
 
 const bremenCards: VotingCard[] = [
@@ -481,6 +688,21 @@ const bremenCards: VotingCard[] = [
     'Umsetzung erfordert Planung und verlässliche Finanzierung.',
     'Soziales',
     '🏙️'
+  ),
+  card(
+    'bremen-3',
+    'Bremen – Wasserstoff-Hafenlogistik (Pilot)',
+    'Investition in H2-Bunkerung und Sicherheitskonzept für Umschlagterminals.',
+    '07.12.2026',
+    61,
+    28,
+    245_000,
+    220,
+    false,
+    'Technologieführerschaft und Klimaschutz im Hafen.',
+    'Risiko neuer Technologien und hohe Anfangsinvestitionen.',
+    'Umwelt & Klima',
+    '⛽'
   ),
 ];
 
@@ -549,6 +771,21 @@ const bayernCards: VotingCard[] = [
     'Umwelt & Klima',
     '🌬️'
   ),
+  card(
+    'bayern-3',
+    'Bayern – Landesprogramm Feuerwehr-Digitalfunk',
+    'Ausstattung und Schulung der Hilfsorganisationen; Finanzierungsanteil Land/Kommunen.',
+    '16.09.2026',
+    74,
+    18,
+    580_000,
+    330,
+    true,
+    'Zuverlässige Alarmierung und Einsatzführung.',
+    'Gerätebeschaffung und laufende Betriebskosten.',
+    'Sicherheit',
+    '📡'
+  ),
 ];
 
 const muenchenCards: VotingCard[] = [
@@ -581,6 +818,21 @@ const muenchenCards: VotingCard[] = [
     'Datenschutz und Usability sind entscheidend für Vertrauen.',
     'Digitalisierung',
     '📲'
+  ),
+  card(
+    'muenchen-3',
+    'München – Winterdienst & Gehwegsicherheit',
+    'Priorisierung von Räumungsrouten und Streugutmischungen mit Umweltauflagen.',
+    '28.11.2026',
+    68,
+    21,
+    315_000,
+    230,
+    false,
+    'Weniger Glatteis, klarere Zuständigkeiten.',
+    'Salzreduktion vs. Sicherheit, Nachteinsätze.',
+    'Sicherheit',
+    '❄️'
   ),
 ];
 
@@ -832,3 +1084,25 @@ export const NEWS_DATA: NewsItem[] = [
     related: 'Kommune',
   },
 ];
+
+/** Nach Bestätigung im Live-Bereich oder in den Prämien-Einstellungen: keine erneute Abstimmungs-Hürde. */
+export const PRAEMIEN_LIVE_VOTE_GATE_KEY = 'eidconnect_praemien_live_vote_gate_v1';
+
+export function markPraemienLiveVoteGateDone(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PRAEMIEN_LIVE_VOTE_GATE_KEY, '1');
+  } catch {
+    /* ignore */
+  }
+}
+
+/** true = vor der ersten Abstimmung noch der Hinweis zum freiwilligen Prämienprogramm anzeigen. */
+export function needsPraemienLiveVoteGate(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem(PRAEMIEN_LIVE_VOTE_GATE_KEY) !== '1';
+  } catch {
+    return true;
+  }
+}

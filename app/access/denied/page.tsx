@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
+import { APP_DISPLAY_NAME } from '@/lib/branding';
 
 export const metadata = {
-  title: 'Zugang verweigert – HookAI',
+  title: `Zugang verweigert – ${APP_DISPLAY_NAME}`,
 };
 
 type AccessDeniedPageProps = {

@@ -6,7 +6,7 @@ describe('introOverlayFramingLine', () => {
     const du = introOverlayFramingLine('abstimmen', true);
     const sie = introOverlayFramingLine('abstimmen', false);
     expect(du).toBe(sie);
-    expect(du).toMatch(/Aktuelle Themen|Beteiligung/);
+    expect(du).toMatch(/Pro und Contra|Orientierung/);
   });
 });
 
@@ -24,12 +24,13 @@ describe('buildIntroTtsManifest', () => {
   it('Walkthrough: erster TTS-Block (Du) = Clara-Sprachtext ohne Schritt-Präfix (Abstimmen)', () => {
     const du = buildIntroTtsManifest(true);
     expect(du[2].tts).not.toMatch(/^Schritt \d+ von/);
-    expect(du[2].tts).toMatch(/Hier findest du aktuelle|aktuelle Themen/);
+    expect(du[2].tts).toMatch(/aktuell.*Beteiligungen|Beteiligungen.*aktuell/);
   });
 
   it('letzter TTS-Block (Du) enthält Abschlusstext', () => {
     const last = buildIntroTtsManifest(true).find((e) => e.id === 'politikbarometer')!;
-    expect(last.tts).toContain('kompakten Überblick');
-    expect(last.tts).toMatch(/für dich da|für Sie da/);
+    expect(last.tts).toContain('kurze Überblick');
+    expect(last.tts).toMatch(/HookAI Civic Demo.*erkunden|erkunden.*HookAI Civic Demo/);
+    expect(last.tts).toMatch(/neutral.*verständlich|verständlich.*neutral/);
   });
 });

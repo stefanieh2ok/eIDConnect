@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useState } from 'react';
+import { APP_DISPLAY_NAME } from '@/lib/branding';
 
 type ExternalLinkContextValue = {
   openExternal: (url: string, label?: string) => void;
@@ -51,7 +52,8 @@ export function ExternalLinkProvider({ children }: { children: React.ReactNode }
               App verlassen?
             </h2>
             <p className="text-sm text-gray-600 mb-4">
-              Sie verlassen die eID Connect Demo. Möchten Sie diese Seite in einem externen Browser (z. B. Safari, Chrome) öffnen?
+              Sie verlassen {APP_DISPLAY_NAME}. Möchten Sie diese Seite in einem externen Browser (z. B. Safari,
+              Chrome) öffnen?
             </p>
             <p className="text-xs text-gray-500 mb-4 truncate" title={modal.url}>
               {modal.label || modal.url}

@@ -167,7 +167,7 @@ type AppAction =
   | { type: 'TOGGLE_STIMMZETTEL' }
   | { type: 'SET_SELECTED_WAHL'; payload: any }
   | { type: 'SET_VOTE_RESULT'; payload: VoteResult | null }
-  | { type: 'HANDLE_VOTE'; payload: { voteType: VoteType; card: any; points: number } }
+  | { type: 'HANDLE_VOTE'; payload: { voteType: VoteType; card: any; points: number; earnedPoints: number } }
   | { type: 'RESET_DRAG' }
   /** Hebt die letzte Demo-Abstimmung für Punkte/Zähler rückgängig (Karte zurück / vor Advance). */
   | { type: 'DEMO_REVERT_VOTE'; payload: { points: number } }
@@ -298,14 +298,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
         against: 'DAGEGEN',
         abstain: 'ENTHALTEN',
       };
-      const earnedPts = state.canVote ? (action.payload.points || 0) : 0;
+      const earnedPts = state.canVote ? Math.max(0, action.payload.earnedPoints) : 0;
       const scopeKey = state.activeAdministrativeScope;
       return {
         ...state,
         voteResult: {
           card: action.payload.card,
           vote: voteLabels[action.payload.voteType],
-          points: action.payload.points,
+          points: earnedPts,
         },
         participationPoints: state.participationPoints + earnedPts,
         participationVoteCount: state.participationVoteCount + (state.canVote ? 1 : 0),

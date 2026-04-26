@@ -74,7 +74,7 @@ export const validateAPIKeys = (): { valid: boolean; missing: string[] } => {
 export const createAPIHeaders = (apiKey: string) => ({
   'Authorization': `Bearer ${apiKey}`,
   'Content-Type': 'application/json',
-  'User-Agent': 'eID-Demo-Connect/1.0.0'
+  'User-Agent': 'HookAI-Civic-Demo/1.0.0'
 });
 
 // Rate Limiting Konfiguration

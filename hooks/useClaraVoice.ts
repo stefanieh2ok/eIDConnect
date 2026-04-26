@@ -241,12 +241,18 @@ export const useClaraVoice = () => {
     }
   }, []);
 
+  /** Nach Verarbeitung leeren, damit `useEffect` bei gleichem Text erneut feuern kann und keine Doppel-Läufe entstehen. */
+  const clearTranscript = useCallback(() => {
+    setVoiceState((prev) => ({ ...prev, transcript: '' }));
+  }, []);
+
   return {
     voiceState,
     startListening,
     stopListening,
     speak,
     speakParts,
-    stopSpeaking
+    stopSpeaking,
+    clearTranscript,
   };
 };

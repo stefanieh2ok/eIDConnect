@@ -68,7 +68,8 @@ export async function POST(request: NextRequest) {
         company: normalizedCompany,
       }),
       expires_at: expiresAt,
-      max_views: body.maxViews ?? 10,
+      // Sicherheitsnetz: standardmäßig sehr hohes Zugriffslimit, damit Demo-Links nicht ungewollt auslaufen.
+      max_views: body.maxViews ?? 100000,
       max_devices: body.maxDevices ?? 1,
       is_revoked: false,
     });

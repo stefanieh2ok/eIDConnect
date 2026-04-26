@@ -33,6 +33,10 @@ interface VotingCardProps {
   introProConExpanded?: boolean;
   /** Einführung: weniger Zeilen, damit Karte + Daumen ohne Scroll sichtbar bleiben. */
   introCompact?: boolean;
+  /** Intro/Walkthrough: blendet Demo-Punkte in der Kartenfußzeile aus. */
+  introHideDemoPoints?: boolean;
+  /** Intro/Walkthrough: zeigt kompakten Demo-Hinweis statt Punkteanzeige. */
+  introDemoVoteDisclaimer?: boolean;
 }
 
 const VotingCard: React.FC<VotingCardProps> = memo(
@@ -49,6 +53,8 @@ const VotingCard: React.FC<VotingCardProps> = memo(
     introBarIcons = false,
     introProConExpanded = false,
     introCompact = false,
+    introHideDemoPoints = false,
+    introDemoVoteDisclaimer = false,
   }) => {
     const [proOpen, setProOpen] = useState(introProConExpanded);
     const [conOpen, setConOpen] = useState(introProConExpanded);
@@ -78,7 +84,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
         onTouchMove={(e) => canVote && onDragMove(e.touches[0].clientX, e.touches[0].clientY)}
         onTouchEnd={() => canVote && onDragEnd()}
       >
-        {/* ── Header-Streifen (Governikus Dunkelblau) ── */}
+        {/* ── Header-Streifen (GovTech Dunkelblau) ── */}
         <div
           className={`flex items-center justify-between px-4 ${introCompact ? 'py-2' : 'py-3'}`}
           style={{
@@ -198,10 +204,15 @@ const VotingCard: React.FC<VotingCardProps> = memo(
                 )}
               </span>
             </span>
-            <span className="text-[10px] font-bold" style={{ color: 'var(--gov-primary-mid, #0055A4)' }}>
-              +{card.points} Demo-Punkte
+            <span className="text-[10px] font-semibold text-neutral-600">
+              Demo-Hinweis · keine echte Abstimmung
             </span>
           </div>
+          {introDemoVoteDisclaimer ? (
+            <p className="mt-1 text-[9px] leading-snug text-neutral-600">
+              Keine echte Abstimmung.
+            </p>
+          ) : null}
         </div>
 
         {/* ── Pro / Contra: einklappbar, damit Abstimmungs-Buttons sichtbar bleiben ── */}

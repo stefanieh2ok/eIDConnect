@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
 import { ScrollRestoration } from '@/components/ScrollRestoration';
+import { InAppBrowserBanner } from '@/components/InAppBrowserBanner';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -30,17 +31,24 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: safeMetadataBase(),
   title: APP_DISPLAY_NAME,
-  description: 'Moderne Bürgerbeteiligung mit KI-Unterstützung. Mitreden. Mitentscheiden. Mitgestalten.',
+  /** Explizit für „Zum Home-Bildschirm“ / iOS-Standalone; sonst kann Safari alte Projekt-Titel cachen. */
+  applicationName: APP_DISPLAY_NAME,
+  appleWebApp: {
+    capable: true,
+    title: APP_DISPLAY_NAME,
+    statusBarStyle: 'default',
+  },
+  description: 'Digitale Identität · Beteiligung · Bürgerzugang — GovTech-Demo zu Orientierung und Mitwirkung.',
   openGraph: {
     title: APP_DISPLAY_NAME,
-    description: 'Moderne Bürgerbeteiligung mit KI-Unterstützung. Mitreden. Mitentscheiden. Mitgestalten.',
+    description: 'Digitale Identität · Beteiligung · Bürgerzugang — GovTech-Demo zu Orientierung und Mitwirkung.',
     type: 'website',
     locale: 'de_DE',
   },
   twitter: {
     card: 'summary',
     title: APP_DISPLAY_NAME,
-    description: 'Moderne Bürgerbeteiligung mit KI-Unterstützung.',
+    description: 'Digitale Identität · Beteiligung · Bürgerzugang — GovTech-Demo.',
   },
 };
 
@@ -57,6 +65,7 @@ export default function RootLayout({
     <html lang="de">
       <body className={inter.className}>
         <ScrollRestoration />
+        <InAppBrowserBanner />
         {children}
       </body>
     </html>

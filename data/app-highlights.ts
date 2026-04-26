@@ -1,7 +1,7 @@
 import { APP_DISPLAY_NAME } from '@/lib/branding';
 
 /**
- * Merkmalsliste für eID Connect Demo – für ein späteres Onboarding / Hilfe-Screen vorgesehen.
+ * Merkmalsliste für die HookAI Civic Demo – für ein späteres Onboarding / Hilfe-Screen vorgesehen.
  * (Nicht mehr im Login-Assistenten, um Dopplungen mit der Markenzeile zu vermeiden.)
  */
 export const APP_HIGHLIGHTS_FOR_LATER = [

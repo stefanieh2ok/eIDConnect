@@ -638,7 +638,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
         : { top: 'Verbandsgemeinde Kirkel', sub: 'Gemeinde Kirkel', candLine: '(Gemeinderat/Verbandsgemeinderat)' };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="mx-auto max-w-4xl text-[13px] leading-relaxed text-gray-900 sm:text-[14px]">
       {/* Bundestagswahl Stimmzettel */}
       {level === 'bund' && (
         <div className="space-y-4">
@@ -648,17 +648,17 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
               <h1
                 className={
                   introMode
-                    ? 'text-lg font-bold tracking-tight text-gray-900 sm:text-2xl'
-                    : 'text-2xl font-bold text-gray-900 sm:text-3xl'
+                    ? 'text-base font-bold tracking-tight text-gray-900 sm:text-xl'
+                    : 'text-xl font-bold text-gray-900 sm:text-2xl'
                 }
               >
                 BUNDESTAGSWAHL
               </h1>
             </div>
-            <p className="text-base font-semibold text-gray-700 sm:text-lg">
+            <p className="text-sm font-semibold text-gray-700 sm:text-base">
               {formatGermanDate(bundElection?.datum) || '—'}
             </p>
-            <p className="mt-1 text-sm text-gray-700 sm:text-base">Wahlkreis {wahlkreis || '—'}</p>
+            <p className="mt-1 text-[12px] text-gray-700 sm:text-sm">Wahlkreis {wahlkreis || '—'}</p>
             <div className="mt-3 border-2 border-blue-300 bg-blue-100 p-2.5 sm:mt-4 sm:p-4">
               <p className="text-sm font-bold text-blue-900 sm:text-base">
                 {t('Du hast 2 Stimmen', 'Sie haben 2 Stimmen')}
@@ -669,8 +669,8 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
           {/* Erststimme */}
           <div className="ballot-paper border-2 border-gray-900 p-3 sm:p-6">
             <div className="mb-4 sm:mb-6">
-              <h2 className="mb-1.5 text-xl font-bold text-gray-900 sm:mb-2 sm:text-2xl">ERSTSTIMME</h2>
-              <p className="mb-3 text-sm text-gray-700 sm:mb-4 sm:text-base">
+              <h2 className="mb-1.5 text-lg font-bold text-gray-900 sm:mb-2 sm:text-xl">ERSTSTIMME</h2>
+              <p className="mb-3 text-[12px] text-gray-700 sm:mb-4 sm:text-sm">
                 (Wahl eines Wahlkreisabgeordneten)
               </p>
             </div>
@@ -690,8 +690,8 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-base font-bold text-gray-900 sm:text-lg">{index + 1}.</span>
-                        <span className="text-base font-bold text-gray-900 sm:text-lg">{kandidat.name}</span>
+                        <span className="text-[14px] font-bold text-gray-900 sm:text-[15px]">{index + 1}.</span>
+                        <span className="text-[14px] font-bold text-gray-900 sm:text-[15px]">{kandidat.name}</span>
                       </div>
                       <div className="mt-0.5 text-xs text-gray-700 sm:mt-1 sm:text-sm">
                         {kandidat.parteiLang || partyFullName(kandidat.partei)}
@@ -723,8 +723,8 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
           {/* Zweitstimme */}
           <div className="ballot-paper border-2 border-gray-900 p-3 sm:p-6">
             <div className="mb-4 sm:mb-6">
-              <h2 className="mb-1.5 text-xl font-bold text-gray-900 sm:mb-2 sm:text-2xl">ZWEITSTIMME</h2>
-              <p className="mb-3 text-sm text-gray-700 sm:mb-4 sm:text-base">
+              <h2 className="mb-1.5 text-lg font-bold text-gray-900 sm:mb-2 sm:text-xl">ZWEITSTIMME</h2>
+              <p className="mb-3 text-[12px] text-gray-700 sm:mb-4 sm:text-sm">
                 (Wahl einer Landesliste - entscheidet über die Sitzverteilung im Bundestag)
               </p>
             </div>
@@ -743,7 +743,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       className="ballot-checkbox"
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="text-base font-bold text-gray-900 sm:text-lg">{partei.kuerzel}</div>
+                      <div className="text-[14px] font-bold text-gray-900 sm:text-[15px]">{partei.kuerzel}</div>
                       <div className="text-xs text-gray-700 sm:text-sm">
                         {partyFullName(partei.kuerzel) || partei.name}
                       </div>
@@ -813,8 +813,8 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
         <div className="space-y-4">
           {/* Header */}
           <div className="ballot-paper border-b-2 border-gray-900 pb-4 text-center">
-            <h1 className="mb-2 text-2xl font-bold text-gray-900 sm:text-3xl">LANDTAGSWAHL SAARLAND</h1>
-            <p className="text-base font-semibold text-gray-700 sm:text-lg">
+            <h1 className="mb-2 text-xl font-bold text-gray-900 sm:text-2xl">LANDTAGSWAHL SAARLAND</h1>
+            <p className="text-sm font-semibold text-gray-700 sm:text-base">
               {landElection?.datum === 'aktuell'
                 ? 'Frühjahr 2027'
                 : formatGermanDate(landElection?.datum) || '—'}
@@ -829,8 +829,8 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
           {/* Kandidaten */}
           <div className="ballot-paper border-2 border-gray-900 p-3 sm:p-6">
             <div className="mb-4 sm:mb-6">
-              <h2 className="mb-1.5 text-xl font-bold text-gray-900 sm:mb-2 sm:text-2xl">KANDIDATEN</h2>
-              <p className="mb-3 text-sm text-gray-700 sm:mb-4 sm:text-base">
+              <h2 className="mb-1.5 text-lg font-bold text-gray-900 sm:mb-2 sm:text-xl">KANDIDATEN</h2>
+              <p className="mb-3 text-[12px] text-gray-700 sm:mb-4 sm:text-sm">
                 (Ministerpräsident/in)
               </p>
             </div>
@@ -850,8 +850,8 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-base font-bold text-gray-900 sm:text-lg">{index + 1}.</span>
-                        <span className="text-base font-bold text-gray-900 sm:text-lg">{kandidat.name}</span>
+                        <span className="text-[14px] font-bold text-gray-900 sm:text-[15px]">{index + 1}.</span>
+                        <span className="text-[14px] font-bold text-gray-900 sm:text-[15px]">{kandidat.name}</span>
                       </div>
                       <div className="mt-0.5 text-xs text-gray-700 sm:mt-1 sm:text-sm">
                         {kandidat.parteiLang || partyFullName(kandidat.partei)}
@@ -925,13 +925,13 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
       {level === 'kreis' && (
         <div className="space-y-4">
           <div className="ballot-paper border-b-2 border-gray-900 pb-4 text-center">
-            <h1 className="mb-2 text-2xl font-bold text-gray-900 sm:text-3xl">
+            <h1 className="mb-2 text-xl font-bold text-gray-900 sm:text-2xl">
               {String(kreisElection?.name || 'KREISWAHL').toUpperCase()}
             </h1>
-            <p className="text-base font-semibold text-gray-700 sm:text-lg">
+            <p className="text-sm font-semibold text-gray-700 sm:text-base">
               {formatGermanDate(kreisElection?.datum) || '—'}
             </p>
-            <p className="mt-1 text-sm text-gray-700 sm:text-base">{kreisElection?.wahlkreis || wahlkreis || '—'}</p>
+            <p className="mt-1 text-[12px] text-gray-700 sm:text-sm">{kreisElection?.wahlkreis || wahlkreis || '—'}</p>
             <div className="mt-3 border-2 border-blue-300 bg-blue-100 p-2.5 sm:mt-4 sm:p-4">
               <p className="text-sm font-bold text-blue-900 sm:text-base">
                 {t('Du hast 1 Stimme', 'Sie haben 1 Stimme')}
@@ -941,8 +941,8 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
 
           <div className="ballot-paper border-2 border-gray-900 p-3 sm:p-6">
             <div className="mb-4 sm:mb-6">
-              <h2 className="mb-1.5 text-xl font-bold text-gray-900 sm:mb-2 sm:text-2xl">LISTEN / PARTEIEN</h2>
-              <p className="mb-3 text-sm text-gray-700 sm:mb-4 sm:text-base">(Kreislisten)</p>
+              <h2 className="mb-1.5 text-lg font-bold text-gray-900 sm:mb-2 sm:text-xl">LISTEN / PARTEIEN</h2>
+              <p className="mb-3 text-[12px] text-gray-700 sm:mb-4 sm:text-sm">(Kreislisten)</p>
             </div>
 
             {kreisParteien.length ? (
@@ -960,7 +960,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                         className="ballot-checkbox"
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="text-base font-bold text-gray-900 sm:text-lg">{partei.kuerzel}</div>
+                        <div className="text-[14px] font-bold text-gray-900 sm:text-[15px]">{partei.kuerzel}</div>
                         <div className="text-xs text-gray-700 sm:text-sm">{partyFullName(partei.kuerzel) || partei.name}</div>
                         <div className="mt-1">
                           <SourceTrustBadge data={partei} du={du} />
@@ -1000,8 +1000,8 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
           {kreisKandidaten.length && showAux ? (
             <div className="ballot-paper border-2 border-gray-900 p-3 sm:p-6">
               <div className="mb-4 sm:mb-6">
-                <h2 className="mb-1.5 text-xl font-bold text-gray-900 sm:mb-2 sm:text-2xl">AMT / PERSON</h2>
-                <p className="mb-3 text-sm text-gray-700 sm:mb-4 sm:text-base">(z. B. Landrat – Informationsbereich)</p>
+                <h2 className="mb-1.5 text-lg font-bold text-gray-900 sm:mb-2 sm:text-xl">AMT / PERSON</h2>
+                <p className="mb-3 text-[12px] text-gray-700 sm:mb-4 sm:text-sm">(z. B. Landrat – Informationsbereich)</p>
               </div>
               <div className="space-y-2">
                 {kreisKandidaten.map((kandidat, index) => (
@@ -1010,8 +1010,8 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       <div className="ballot-checkbox opacity-30" aria-hidden />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-base font-bold text-gray-900 sm:text-lg">{index + 1}.</span>
-                          <span className="text-base font-bold text-gray-900 sm:text-lg">{kandidat.name}</span>
+                          <span className="text-[14px] font-bold text-gray-900 sm:text-[15px]">{index + 1}.</span>
+                          <span className="text-[14px] font-bold text-gray-900 sm:text-[15px]">{kandidat.name}</span>
                         </div>
                         <div className="mt-0.5 text-xs text-gray-700 sm:mt-1 sm:text-sm">
                           {kandidat.parteiLang || partyFullName(kandidat.partei)}
@@ -1082,14 +1082,14 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
 
       {/* Kommunalwahl Kirkel Stimmzettel */}
       {level === 'kommune' && (
-        <div className="space-y-6 max-w-full overflow-hidden">
+        <div className="space-y-4 max-w-full overflow-hidden">
           {/* Header */}
           <div className="ballot-paper text-center pb-4 border-b-2 border-gray-900 px-2">
-            <h1 className="text-[1.05rem] leading-tight sm:text-2xl sm:leading-snug font-bold text-gray-900 mb-2">
+            <h1 className="mb-2 text-[1rem] font-bold leading-tight text-gray-900 sm:text-xl sm:leading-snug">
               GEMEINDERATS&shy;WAHL
             </h1>
-            <p className="text-base text-gray-700 font-semibold">{kommuneHead.top}</p>
-            <p className="text-sm text-gray-700 mt-1">{kommuneHead.sub}</p>
+            <p className="text-sm font-semibold text-gray-700">{kommuneHead.top}</p>
+            <p className="mt-1 text-[12px] text-gray-700">{kommuneHead.sub}</p>
             <div
               className="mt-3 rounded-lg border-2 p-3 text-white"
               style={{
@@ -1103,16 +1103,16 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
           </div>
 
           {/* Kandidaten */}
-          <div className="ballot-paper border-2 border-gray-900 p-4 max-w-full overflow-hidden">
-            <div className="mb-4">
-              <h2 className="text-xl font-bold text-gray-900 mb-2 break-words">KANDIDATEN</h2>
-              <p className="text-sm text-gray-700 mb-3">{kommuneHead.candLine}</p>
+          <div className="ballot-paper border-2 border-gray-900 p-3 max-w-full overflow-hidden">
+            <div className="mb-3">
+              <h2 className="mb-2 break-words text-lg font-bold text-gray-900">KANDIDATEN</h2>
+              <p className="mb-3 text-[12px] text-gray-700">{kommuneHead.candLine}</p>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {kommunalKandidaten.map((kandidat, index) => (
                 <div key={index} className="ballot-option relative group min-w-0">
-                  <label className="flex items-center gap-3 cursor-pointer w-full min-w-0">
+                  <label className="flex items-start gap-2 cursor-pointer w-full min-w-0">
                     <input
                       type="radio"
                       name="kommune"
@@ -1120,15 +1120,18 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       checked={selectedKommune === kandidat.name}
                       onChange={(e) => setSelectedKommune(e.target.value)}
                       disabled={!canVote}
-                      className="ballot-checkbox flex-shrink-0"
+                      className="ballot-checkbox mt-0.5 flex-shrink-0"
                     />
-                    <div className="flex-1 min-w-0 overflow-hidden">
+                    <div className="flex-1 min-w-0 overflow-hidden leading-snug">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-gray-900 text-base">{index + 1}.</span>
-                        <span className="font-bold text-gray-900 text-base break-words">{kandidat.name}</span>
+                        <span className="text-[14px] font-bold text-gray-900">{index + 1}.</span>
+                        <span className="break-words text-[14px] font-bold text-gray-900">{kandidat.name}</span>
                       </div>
-                      <div className="text-sm text-gray-700 mt-0.5 break-words">{kandidat.parteiLang}</div>
-                      <div className="text-xs text-gray-600 mt-0.5 break-words">
+                      <div className="mt-0.5 text-[12px] font-semibold text-gray-800 break-words">{kandidat.partei}</div>
+                      <div className="text-[11px] text-gray-700 break-words">
+                        {kandidat.parteiLang || partyFullName(kandidat.partei)}
+                      </div>
+                      <div className="mt-0.5 text-[11px] text-gray-600 break-words">
                         {[
                           (kandidat as any).beruf,
                           typeof (kandidat as any).alter === 'number' ? `${(kandidat as any).alter} Jahre` : null,
@@ -1149,7 +1152,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                         e.stopPropagation();
                         handleClaraInfo('kandidat', kandidat);
                       }}
-                      className="rounded-lg p-1.5 flex items-center justify-center hover:opacity-90 transition-opacity border flex-shrink-0"
+                      className="rounded-lg px-2 py-1 text-[12px] font-semibold flex items-center justify-center hover:opacity-90 transition-opacity border flex-shrink-0"
                       style={GOV_INFO_BTN}
                       aria-label={`Clara Info zu ${kandidat.name}`}
                     >

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   INTRO_ENTRY_DIRECT,
   INTRO_ENTRY_SHORT_DU,
@@ -13,6 +13,14 @@ import {
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
+
+function isFinePointerDevice(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(hover: hover) and (pointer: fine)').matches
+  );
+}
 
 type Props = {
   open: boolean;
@@ -35,18 +43,39 @@ export function IntroEntryBranch({
 }: Props) {
   /** Stabile API — nicht `useOptionalIntroOverlay()` (merged Objekt wechselt bei jedem TTS-Tick → Effect-Sturm). */
   const speakApi = useIntroSpeakApi();
+  const entryIntroPlayedRef = useRef(false);
 
   useEffect(() => {
-    if (!open || !speakApi || !speakApi.readAloud) return;
+    if (!open) {
+      entryIntroPlayedRef.current = false;
+    }
+  }, [open]);
+
+  const speakEntry = useCallback(() => {
+    if (!speakApi) return;
     const parts = du ? [...INTRO_SPOKEN_ENTRY_DU] : [...INTRO_SPOKEN_ENTRY_SIE];
+    speakApi.stopIntroSpeech();
+    speakApi.speakIntroParts(parts, 'intro-entry-1');
+    entryIntroPlayedRef.current = true;
+  }, [du, speakApi]);
+
+  /** Desktop: kurzes Delay ok. Touch: erst nach User-Geste (s. onPointerDownCapture). */
+  useEffect(() => {
+    if (!open || !speakApi) return;
+    if (!speakApi.readAloud) {
+      speakApi.stopIntroSpeech();
+      return;
+    }
+    if (!isFinePointerDevice()) return;
+    if (entryIntroPlayedRef.current) return;
     const t = window.setTimeout(() => {
-      speakApi.speakIntroParts(parts, 'intro-entry-1');
+      if (entryIntroPlayedRef.current) return;
+      speakEntry();
     }, 200);
     return () => {
       clearTimeout(t);
-      speakApi.stopIntroSpeech();
     };
-  }, [open, speakApi, speakApi?.readAloud, du]);
+  }, [open, speakApi, speakApi?.readAloud, speakEntry]);
 
   if (!open) return null;
 
@@ -64,33 +93,59 @@ export function IntroEntryBranch({
     >
       <div className="absolute inset-0 bg-[#020712]" aria-hidden />
       <div
-        className="clara-prelogin-shell-pad intro-dark-body relative w-full max-w-[400px] overflow-hidden rounded-3xl border border-white/10 shadow-none sm:max-w-[440px]"
+        className="clara-prelogin-shell-pad intro-device-chrome-shell intro-dark-body relative w-full max-w-[400px] overflow-hidden rounded-[1.85rem] p-[3px] sm:max-w-[440px] sm:p-1"
         style={{ maxHeight: 'min(calc(100dvh - 1.5rem), 100%)' }}
       >
-        <IntroMetaStrip stepNumber={null} onClose={onDirectToApp} onSkip={onDirectToApp} />
-        <div className="border-b border-white/10 px-4 pb-3 pt-3 sm:px-6 sm:pt-4 sm:pb-4">
-          <ClaraStepPanel
-            label={INTRO_ENTRY_UI_TITLE}
-            short={du ? INTRO_ENTRY_SHORT_DU : INTRO_ENTRY_SHORT_SIE}
-            long=""
-            showTopicTitle
+        <div
+          className="flex min-h-0 flex-col overflow-hidden rounded-[1.65rem] border border-neutral-200/95 bg-white"
+          style={{ maxHeight: 'min(calc(100dvh - 1.5rem), 100%)' }}
+          onPointerDownCapture={(e) => {
+            if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+            try {
+              void window.speechSynthesis.getVoices();
+              if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+            } catch {
+              // ignore
+            }
+            const t = e.target as HTMLElement;
+            if (t.closest('.intro-meta-strip')) return;
+            if (!speakApi?.readAloud) return;
+            if (entryIntroPlayedRef.current) return;
+            speakEntry();
+          }}
+        >
+          <IntroMetaStrip
+            surface="light"
+            stepNumber={null}
+            showClaraVoice
+            onClose={onDirectToApp}
+            onSkip={onDirectToApp}
           />
-        </div>
-        <div className="intro-entry-bottom-room flex flex-col gap-2 px-4 pt-2 sm:px-6">
-          <button
-            type="button"
-            onClick={onStart}
-            className="btn-gov-primary w-full min-h-[48px] text-[13px] font-extrabold"
-          >
-            {INTRO_ENTRY_START}
-          </button>
-          <button
-            type="button"
-            onClick={onDirectToApp}
-            className="min-h-[48px] w-full rounded-xl border border-white/20 bg-white/10 py-2.5 text-[12px] font-semibold text-white/95 transition hover:bg-white/15"
-          >
-            {INTRO_ENTRY_DIRECT}
-          </button>
+          <div className="border-b border-neutral-200 px-4 pb-3 pt-3 sm:px-6 sm:pt-4 sm:pb-4">
+            <ClaraStepPanel
+              surface="light"
+              label={INTRO_ENTRY_UI_TITLE}
+              short={du ? INTRO_ENTRY_SHORT_DU : INTRO_ENTRY_SHORT_SIE}
+              long=""
+              showTopicTitle
+            />
+          </div>
+          <div className="intro-entry-bottom-room flex flex-col gap-2 px-4 pt-2 sm:px-6">
+            <button
+              type="button"
+              onClick={onStart}
+              className="btn-gov-primary w-full min-h-[48px] text-[13px] font-extrabold"
+            >
+              {INTRO_ENTRY_START}
+            </button>
+            <button
+              type="button"
+              onClick={onDirectToApp}
+              className="min-h-[48px] w-full rounded-xl border border-slate-300 bg-[#F7F9FC] py-2.5 text-[12px] font-semibold text-[#1A2B45] transition hover:bg-slate-100"
+            >
+              {INTRO_ENTRY_DIRECT}
+            </button>
+          </div>
         </div>
       </div>
     </div>

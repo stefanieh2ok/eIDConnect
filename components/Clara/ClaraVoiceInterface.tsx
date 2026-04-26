@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { Mic, MicOff, MessageCircle, X } from 'lucide-react';
 import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { ClaraAI } from '@/services/claraAI';
@@ -70,7 +70,8 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
   const { state } = useApp();
   const [conversation, setConversation] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { voiceState, startListening, stopListening, speak, stopSpeaking } = useClaraVoiceContext();
+  const { voiceState, startListening, stopListening, speak, stopSpeaking, clearTranscript } =
+    useClaraVoiceContext();
 
   const addressMode = state.anrede === 'sie' ? 'sie' : 'du';
   const eidVoicePrompt = useMemo(
@@ -87,6 +88,7 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
     typeof voiceState.error === 'string' &&
     /not-allowed|denied|service-not-allowed/i.test(voiceState.error);
   const isAppVoiceGreeting = preLoginVoicePhase == null;
+  const userLinePrefix = addressMode === 'sie' ? 'Sie:' : 'Du:';
 
   useLayoutEffect(() => {
     if (isOpen) {
@@ -102,11 +104,118 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
     }
   }, [isOpen, voiceOpenNonce, openingSeedLine]);
 
+  const handleVoiceInput = useCallback(
+    async (transcript: string) => {
+      setConversation((prev) => [...prev, `${userLinePrefix} ${transcript}`]);
+      setIsProcessing(true);
+
+      if (preLoginVoicePhase === 'anrede') {
+        const pick = matchAnredeFromSpeech(transcript);
+        if (pick && onAnredeVoiceChoice) {
+          try {
+            stopSpeaking();
+          } catch {
+            /* ignore */
+          }
+          onAnredeVoiceChoice(pick);
+          const conf =
+            pick === 'du'
+              ? 'Alles klar, ich nutze ab jetzt die Du-Form für dich.'
+              : 'Gern, ich formuliere in der Sie-Form.';
+          setConversation((prev) => [...prev, `Clara: ${conf}`]);
+          speak(conf);
+          setIsProcessing(false);
+          return;
+        }
+        const hint = anredeVoiceUnrecognizedLine();
+        setConversation((prev) => [...prev, `Clara: ${hint}`]);
+        speak(hint);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (preLoginVoicePhase === 'entry') {
+        const pick = matchIntroEntryBranchFromSpeech(transcript);
+        if (pick && onIntroEntryVoiceChoice) {
+          try {
+            stopSpeaking();
+          } catch {
+            /* ignore */
+          }
+          onIntroEntryVoiceChoice(pick);
+          const conf =
+            pick === 'start'
+              ? addressMode === 'sie'
+                ? 'Gut, es geht weiter mit dem eID-Schritt. Ich führe Sie durch die Einführung.'
+                : 'Gut, es geht weiter mit dem eID-Schritt. Ich führe dich durch die Einführung.'
+              : addressMode === 'sie'
+                ? 'Alles klar, Sie wechseln direkt in die App.'
+                : 'Alles klar, du wechselst direkt in die App.';
+          setConversation((prev) => [...prev, `Clara: ${conf}`]);
+          speak(conf);
+          setIsProcessing(false);
+          return;
+        }
+        const hint = introEntryVoiceUnrecognizedLine(addressMode !== 'sie');
+        setConversation((prev) => [...prev, `Clara: ${hint}`]);
+        speak(hint);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (preLoginVoicePhase === 'eid') {
+        let response = '';
+        try {
+          response = await claraAI.generateChatResponse(transcript, currentCard);
+        } catch {
+          response =
+            addressMode === 'sie'
+              ? 'Entschuldigung, bitte versuchen Sie es erneut.'
+              : 'Entschuldigung, bitte versuch es erneut.';
+        }
+        setConversation((prev) => [...prev, `Clara: ${response}`]);
+        speak(response);
+        setIsProcessing(false);
+        return;
+      }
+
+      let response = '';
+      try {
+        if (currentCard && (transcript.includes('abstimmung') || transcript.includes('empfehlung'))) {
+          response = await claraAI.generateDeepDiveAnalysis(currentCard);
+        } else {
+          response = await claraAI.generateChatResponse(transcript, currentCard);
+        }
+      } catch {
+        response =
+          addressMode === 'sie'
+            ? 'Entschuldigung, da ist etwas schiefgelaufen. Bitte versuchen Sie es später erneut.'
+            : 'Entschuldigung, da ist etwas schiefgelaufen. Bitte versuche es später erneut.';
+      }
+
+      setConversation((prev) => [...prev, `Clara: ${response}`]);
+      speak(response);
+      setIsProcessing(false);
+    },
+    [
+      userLinePrefix,
+      preLoginVoicePhase,
+      onAnredeVoiceChoice,
+      onIntroEntryVoiceChoice,
+      addressMode,
+      claraAI,
+      currentCard,
+      speak,
+      stopSpeaking,
+    ],
+  );
+
   useEffect(() => {
-    if (voiceState.transcript) {
-      handleVoiceInput(voiceState.transcript);
-    }
-  }, [voiceState.transcript]);
+    const t = (voiceState.transcript ?? '').trim();
+    if (!t) return;
+    clearTranscript();
+    void handleVoiceInput(t);
+  }, [voiceState.transcript, clearTranscript, handleVoiceInput]);
 
   // Beim Schliessen Sprachausgabe + Mic stoppen, damit nichts im Hintergrund weiter redet.
   useEffect(() => {
@@ -118,101 +227,6 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
       }
     }
   }, [isOpen, stopSpeaking]);
-
-  const handleVoiceInput = async (transcript: string) => {
-    setConversation((prev) => [...prev, `Du: ${transcript}`]);
-    setIsProcessing(true);
-
-    if (preLoginVoicePhase === 'anrede') {
-      const pick = matchAnredeFromSpeech(transcript);
-      if (pick && onAnredeVoiceChoice) {
-        onAnredeVoiceChoice(pick);
-        const conf =
-          pick === 'du'
-            ? 'Alles klar, ich nutze ab jetzt die Du-Form für dich.'
-            : 'Gern, ich formuliere in der Sie-Form.';
-        setTimeout(() => {
-          setConversation((prev) => [...prev, `Clara: ${conf}`]);
-          speak(conf);
-          setIsProcessing(false);
-        }, 200);
-        return;
-      }
-      const hint = anredeVoiceUnrecognizedLine();
-      setTimeout(() => {
-        setConversation((prev) => [...prev, `Clara: ${hint}`]);
-        speak(hint);
-        setIsProcessing(false);
-      }, 200);
-      return;
-    }
-
-    if (preLoginVoicePhase === 'entry') {
-      const pick = matchIntroEntryBranchFromSpeech(transcript);
-      if (pick && onIntroEntryVoiceChoice) {
-        onIntroEntryVoiceChoice(pick);
-        const conf =
-          pick === 'start'
-            ? addressMode === 'sie'
-              ? 'Gut, ich übernehme. Bitte bestätigen Sie mit dem Button „Einführung starten“.'
-              : 'Gut, ich übernehme. Bitte bestätig mit dem Button „Einführung starten“.'
-            : addressMode === 'sie'
-              ? 'Gut, ich übernehme. Bitte bestätigen Sie mit „Direkt zur App“.'
-              : 'Gut, ich übernehme. Bitte bestätig mit „Direkt zur App“.';
-        setTimeout(() => {
-          setConversation((prev) => [...prev, `Clara: ${conf}`]);
-          speak(conf);
-          setIsProcessing(false);
-        }, 200);
-        return;
-      }
-      const hint = introEntryVoiceUnrecognizedLine(addressMode !== 'sie');
-      setTimeout(() => {
-        setConversation((prev) => [...prev, `Clara: ${hint}`]);
-        speak(hint);
-        setIsProcessing(false);
-      }, 200);
-      return;
-    }
-
-    if (preLoginVoicePhase === 'eid') {
-      let response = '';
-      try {
-        response = await claraAI.generateChatResponse(transcript, currentCard);
-      } catch {
-        response =
-          addressMode === 'sie'
-            ? 'Entschuldigung, bitte versuchen Sie es erneut.'
-            : 'Entschuldigung, bitte versuch es erneut.';
-      }
-      setTimeout(() => {
-        setConversation((prev) => [...prev, `Clara: ${response}`]);
-        speak(response);
-        setIsProcessing(false);
-      }, 500);
-      return;
-    }
-
-    let response = '';
-    try {
-      if (currentCard && (transcript.includes('abstimmung') || transcript.includes('empfehlung'))) {
-        response = await claraAI.generateDeepDiveAnalysis(currentCard);
-      } else {
-        response = await claraAI.generateChatResponse(transcript, currentCard);
-      }
-    } catch {
-      response =
-        addressMode === 'sie'
-          ? 'Entschuldigung, da ist etwas schiefgelaufen. Bitte versuchen Sie es später erneut.'
-          : 'Entschuldigung, da ist etwas schiefgelaufen. Bitte versuche es später erneut.';
-    }
-
-    setTimeout(() => {
-      setConversation((prev) => [...prev, `Clara: ${response}`]);
-      speak(response);
-      setIsProcessing(false);
-    }, 500);
-  };
 
   const handleMicToggle = () => {
     if (!speechSupported) return;
@@ -285,14 +299,16 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
   return (
     <div
       className={backdropCls}
-      style={{ touchAction: 'none' }}
+      style={{ touchAction: 'pan-y' }}
       role="dialog"
       aria-modal="true"
       aria-label="Clara Voice – KI-Assistentin"
+      onClick={onClose}
     >
       <div
         className="flex w-full max-w-[420px] flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl"
         style={{ maxHeight: '88%' }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div
@@ -332,24 +348,27 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
 
         {/* Conversation */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {conversation.map((message, index) => (
+          {conversation.map((message, index) => {
+            const isUserBubble = !message.startsWith('Clara:');
+            return (
             <div
               key={index}
-              className={`${message.startsWith('Du:') ? 'text-right' : 'text-left'}`}
+              className={isUserBubble ? 'text-right' : 'text-left'}
             >
               <div
                 className={`inline-block max-w-[80%] p-2.5 rounded-2xl ${
-                  message.startsWith('Du:')
+                  isUserBubble
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-900'
                 }`}
               >
                 <p className="text-sm whitespace-pre-wrap">
-                  {message.replace(/^(Du:|Clara:)\s*/, '')}
+                  {message.replace(/^(Du:|Sie:|Clara:)\s*/, '')}
                 </p>
               </div>
             </div>
-          ))}
+            );
+          })}
 
           {isProcessing && (
             <div className="text-left">
@@ -466,7 +485,7 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
                   {preLoginVoicePhase === 'anrede'
                     ? 'Sag „Du" oder „Sie" — oder wähle die Buttons im anderen Fenster.'
                     : preLoginVoicePhase === 'entry'
-                      ? 'Sag „Einführung starten" oder „Direkt zur App" — oder nutze die Tasten im Fenster.'
+                      ? 'Sag „Ja", „Einführung starten" oder „Direkt zur App" — oder nutze die Tasten im Fenster.'
                       : preLoginVoicePhase === 'eid'
                         ? 'Kurze Frage stellen, oder eID-Button im Fenster nutzen.'
                         : addressMode === 'sie'

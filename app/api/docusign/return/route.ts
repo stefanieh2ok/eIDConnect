@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  countAcceptanceEvents,
   countTokenSessions,
   findAccessTokenByRawToken,
   isTokenExpired,
@@ -69,13 +68,6 @@ export async function GET(request: NextRequest) {
     if (activeSessions >= tokenRecord.max_devices) {
       console.log('[DocuSign Return] deactivating older sessions...');
       await deactivateOtherSessionsForToken(tokenRecord.id);
-    }
-
-    const acceptanceCount = await countAcceptanceEvents(tokenRecord.id);
-    console.log('[DocuSign Return] acceptanceCount:', acceptanceCount, '/ max_views:', tokenRecord.max_views);
-    if (acceptanceCount >= tokenRecord.max_views) {
-      console.log('[DocuSign Return] EXIT max_views reached → /access/denied?reason=max_views');
-      return NextResponse.redirect(new URL('/access/denied?reason=max_views', request.url));
     }
 
     console.log('[DocuSign Return] creating session...');

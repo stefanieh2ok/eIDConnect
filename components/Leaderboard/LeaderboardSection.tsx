@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useApp } from '@/context/AppContext';
+import { markPraemienLiveVoteGateDone } from '@/data/constants';
 import { regionalPraemienForCity } from '@/data/demoVoting2026';
 import { SectionLevelFilterIcon, selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
 import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
@@ -57,7 +58,10 @@ const LeaderboardSection: React.FC = () => {
           <input
             type="checkbox"
             checked={state.consentPraemien}
-            onChange={(e) => dispatch({ type: 'SET_CONSENT_PRAEMIEN', payload: e.target.checked })}
+            onChange={(e) => {
+              markPraemienLiveVoteGateDone();
+              dispatch({ type: 'SET_CONSENT_PRAEMIEN', payload: e.target.checked });
+            }}
             className="mt-1"
           />
           <span>Ich möchte am freiwilligen Punkte- und Prämienprogramm teilnehmen.</span>
@@ -150,8 +154,8 @@ const LeaderboardSection: React.FC = () => {
             </button>
 
             <div className="px-5 pt-5 pb-3">
-              <div className="text-xs font-semibold text-neutral-500">eID DEMO CONNECT</div>
-              <h2 className="text-lg font-bold text-gray-900 mt-1">eID Demo Connect im Überblick</h2>
+              <div className="text-xs font-semibold text-neutral-500">HOOKAI CIVIC DEMO</div>
+              <h2 className="text-lg font-bold text-gray-900 mt-1">HookAI Civic Demo im Überblick</h2>
               <div className="mt-2 text-sm font-semibold text-[#003366]">
                 Punkte sammeln und Prämien erhalten
               </div>
@@ -186,6 +190,7 @@ const LeaderboardSection: React.FC = () => {
                   try {
                     localStorage.setItem(PRAEMIEN_INTRO_DONE_KEY, 'true');
                   } catch {}
+                  markPraemienLiveVoteGateDone();
                   dispatch({ type: 'SET_CONSENT_PRAEMIEN', payload: true });
                   setShowPraemienIntro(false);
                 }}

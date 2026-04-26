@@ -8,7 +8,7 @@ import { HESSEN_CALENDAR_LOCATION_IDS, HESSEN_KREIS_MENU_LABELS } from '@/data/h
 import { BW_CALENDAR_LOCATION_IDS, BW_KREIS_MENU_LABELS } from '@/data/badenWuerttembergKreis';
 import { CalendarScopeFilter, type CalendarGeoScope } from '@/components/Filter/CalendarScopeFilter';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
-import type { EbeneLevel } from '@/types';
+import type { EbeneLevel, UserPreferences } from '@/types';
 
 function buildHessenCalendarLocationTypes(): Record<string, string> {
   const o: Record<string, string> = { hessen: 'saarland' };
@@ -45,14 +45,14 @@ interface CalendarEvent {
   title: string;
   cardId?: string;
   location: string;
-  /** Punkte/Relevanz (nur Abstimmungen); soll visuell subtil bleiben */
+  /** Interne Sortierreihenfolge (ohne sichtbare Punkte in der UI). */
   points?: number;
 }
 
 interface CalendarSectionProps {
   votingData?: Record<string, { items: any[] }>;
   currentLocation?: string;
-  priorities?: Record<string, number>;
+  priorities?: UserPreferences;
   /** Nur Ebenen anzeigen, die der Nutzer hat (Bund, Land, Kreis, Kommune) */
   menuItems?: MenuItem[];
   /** Callback bei Klick auf Kalender-Eintrag: wechselt zu Abstimmen-Tab und zeigt die Karte */
@@ -75,6 +75,77 @@ const MONTHS = [
 ];
 
 const PRIORITY_THRESHOLD = 60;
+type PreferenceKey = 'umwelt' | 'finanzen' | 'bildung' | 'digital' | 'soziales' | 'sicherheit';
+
+const PREFERENCE_LABEL: Record<PreferenceKey, string> = {
+  digital: 'Digitalisierung',
+  umwelt: 'Umwelt & Energie',
+  bildung: 'Bildung',
+  finanzen: 'Finanzen & Wirtschaft',
+  soziales: 'Soziales',
+  sicherheit: 'Sicherheit',
+};
+
+const TOPIC_KEYWORDS: Array<{ key: PreferenceKey; words: string[] }> = [
+  { key: 'digital', words: ['digital', 'digitalisierung', 'eid', 'online', 'verwaltung', 'bürgerportal', 'buergerportal', 'smart city'] },
+  { key: 'umwelt', words: ['umwelt', 'klima', 'energie', 'solar', 'nachhaltig', 'wind', 'waerm', 'wärm', 'hitzeschutz'] },
+  { key: 'bildung', words: ['bildung', 'schule', 'kita', 'lernen', 'lern', 'ausstattung', 'jugendhilfe'] },
+  { key: 'finanzen', words: ['finanz', 'wirtschaft', 'haushalt', 'gebühr', 'gebuehr', 'steuer', 'gebühren', 'foerder', 'förder'] },
+  { key: 'soziales', words: ['sozial', 'familie', 'pflege', 'integration', 'jugend', 'teilhabe', 'wohnen', 'kita-beitrag'] },
+  { key: 'sicherheit', words: ['sicherheit', 'ordnung', 'katastrophenschutz', 'polizei', 'warnsystem', 'warn', 'notfall', 'winterdienst'] },
+];
+
+function normalizeTopicText(v: unknown): string {
+  return String(v ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function detectPreferenceKeys(card: any): PreferenceKey[] {
+  if (!card) return [];
+  const text = normalizeTopicText(
+    [
+      card.theme,
+      card.category,
+      card.title,
+      card.description,
+      ...(Array.isArray(card.quickFacts) ? card.quickFacts : []),
+    ]
+      .filter(Boolean)
+      .join(' '),
+  );
+  if (!text) return [];
+  const out = new Set<PreferenceKey>();
+  for (const entry of TOPIC_KEYWORDS) {
+    if (entry.words.some((w) => text.includes(normalizeTopicText(w)))) {
+      out.add(entry.key);
+    }
+  }
+  return Array.from(out);
+}
+
+function getMatchedPreferenceKeys(
+  card: any,
+  priorities?: UserPreferences,
+): PreferenceKey[] {
+  if (!priorities) return [];
+  const keys = detectPreferenceKeys(card);
+  return keys.filter((k) => (priorities[k] ?? 0) >= PRIORITY_THRESHOLD);
+}
+
+function getRelevanceReason(keys: PreferenceKey[], du: boolean): string {
+  const labels = keys.slice(0, 2).map((k) => PREFERENCE_LABEL[k]);
+  if (labels.length === 0) return '';
+  if (labels.length === 1) {
+    return du
+      ? `Hervorgehoben wegen deines Interessenschwerpunkts: ${labels[0]}.`
+      : `Hervorgehoben wegen Ihres Interessenschwerpunkts: ${labels[0]}.`;
+  }
+  return du
+    ? `Hervorgehoben wegen deiner Interessenschwerpunkte: ${labels.join(', ')}.`
+    : `Hervorgehoben wegen Ihrer Interessenschwerpunkte: ${labels.join(', ')}.`;
+}
 
 /** Prüft, ob Stichtag (DD.MM.YYYY) bereits abgelaufen ist. */
 function isDeadlinePassed(deadline: string): boolean {
@@ -86,11 +157,11 @@ function isDeadlinePassed(deadline: string): boolean {
   return Date.now() > deadlineEnd.getTime();
 }
 
-const LEGEND_CONFIG: Record<string, { label: string; points: string; bg: string }> = {
-  bund: { label: 'Bund', points: '+500 Punkte', bg: 'bg-slate-500' },
-  land: { label: 'Land', points: '+250-300 Punkte', bg: 'bg-blue-900' },
-  kreis: { label: 'Kreis', points: '+200 Punkte', bg: 'bg-blue-500' },
-  kommune: { label: 'Kommune', points: '+100-150 Punkte', bg: 'bg-blue-400' }
+const LEGEND_CONFIG: Record<string, { label: string; bg: string }> = {
+  bund: { label: 'Bund', bg: 'bg-slate-500' },
+  land: { label: 'Land', bg: 'bg-blue-900' },
+  kreis: { label: 'Kreis', bg: 'bg-blue-500' },
+  kommune: { label: 'Kommune', bg: 'bg-blue-400' },
 };
 const LEVEL_ORDER = ['bund', 'land', 'kreis', 'kommune'];
 
@@ -161,6 +232,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
     const locName = LOCATION_LABEL[state.activeLocation] ? ` · ${LOCATION_LABEL[state.activeLocation]}` : '';
     return `Auswahl: ${labelByLevel[geoScope]}${locName}`;
   }, [geoScope, state.activeLocation]);
+  const duMode = state.anrede === 'du';
   
   function parseGermanDate(dateStr: string): { d: number; m: number; y: number } | null {
     const parts = (dateStr || '').trim().split(/\./);
@@ -408,18 +480,19 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
   }, [allEventsThisMonth, availableLevels, geoScope, mappedLocation]);
 
   const sortedEventsForList = React.useMemo(() => {
-    // Punkte/Relevanz nur als subtile Metainfo: in der Liste sortieren wir Abstimmungen leicht nach Punkten
-    // (Wahlen bleiben prominent, aber Typ bleibt primär über Label).
     const copy = [...filteredEventsThisMonth];
     copy.sort((a, b) => {
       if (a.day !== b.day) return a.day - b.day;
-      if (a.event.kind !== b.event.kind) return a.event.kind === 'wahl' ? -1 : 1; // Wahl zuerst
-      const ap = typeof a.event.points === 'number' ? a.event.points : 0;
-      const bp = typeof b.event.points === 'number' ? b.event.points : 0;
-      return bp - ap;
+      if (a.event.kind !== b.event.kind) return a.event.kind === 'wahl' ? -1 : 1;
+      return a.event.title.localeCompare(b.event.title, 'de');
     });
     return copy;
   }, [filteredEventsThisMonth]);
+  const hasTopicHighlighting = Boolean(priorities && Object.keys(priorities).length > 0);
+  const hasAnyHighlightedInList = React.useMemo(
+    () => sortedEventsForList.some(({ card }) => getMatchedPreferenceKeys(card, priorities).length > 0),
+    [sortedEventsForList, priorities],
+  );
   
   // Location-Mapping
   const locationMap: Record<string, string> = {
@@ -586,9 +659,6 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
               )
             );
 
-            const maxPoints = visible.reduce((mx, e) => (typeof e.points === 'number' ? Math.max(mx, e.points) : mx), 0);
-            const showRelevanceDot = maxPoints >= 300; // subtiler Hinweis, nicht dominant
-            
             return (
               <button
                 key={i}
@@ -608,8 +678,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
 
                 {/* Marker-Logik:
                     1) Event-Typ (primär): Wahl = gefüllt, Abstimmung = Outline
-                    2) Ebene (sekundär): Farbe
-                    3) Punkte (tertiär): kleiner Relevanzpunkt */}
+                    2) Ebene (sekundär): Farbe */}
                 {(wahlLevels.length > 0 || abstLevels.length > 0) && (
                   <div className="mt-1 flex flex-col items-center gap-0.5" aria-hidden>
                     {wahlLevels.length > 0 && (
@@ -641,13 +710,6 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
                   </div>
                 )}
 
-                {showRelevanceDot && (
-                  <span
-                    className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-400/70"
-                    aria-hidden
-                    title="Höhere Punkte (subtil)"
-                  />
-                )}
               </button>
             );
           })}
@@ -679,9 +741,8 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
             ))}
           </div>
 
-          {/* 3) Punkte (subtil) */}
           <div className="text-[10px] text-gray-500">
-            Punkte/Relevanz sind nur Metadaten (subtiler Hinweis, keine Hauptbedeutung).
+            Farben zeigen die Verwaltungsebene (Bund, Land, Kreis, Kommune).
           </div>
         </div>
 
@@ -692,12 +753,27 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
           <p className="text-[10px] text-gray-500 mb-2">
             Kompaktliste (Filter wirkt auf Kalender + Legende + Liste).
           </p>
+          {hasTopicHighlighting && hasAnyHighlightedInList ? (
+            <p className="mb-2 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-[10px] leading-snug text-slate-700">
+              {duMode
+                ? 'Einige Termine werden hervorgehoben, weil sie zu deinen ausgewählten Interessenschwerpunkten passen. Das ist keine politische Empfehlung.'
+                : 'Einige Termine werden hervorgehoben, weil sie zu Ihren ausgewählten Interessenschwerpunkten passen. Dies ist keine politische Empfehlung.'}
+            </p>
+          ) : null}
+          {!hasTopicHighlighting ? (
+            <p className="mb-2 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-[10px] leading-snug text-slate-700">
+              {duMode
+                ? 'Du kannst Interessenschwerpunkte im Politikbarometer setzen, um passende Termine im Kalender hervorzuheben.'
+                : 'Sie können Interessenschwerpunkte im Politikbarometer setzen, um passende Termine im Kalender hervorzuheben.'}
+            </p>
+          ) : null}
           {sortedEventsForList.length > 0 ? (
             <div className="space-y-1">
               {sortedEventsForList.map(({ day, event, card }, idx) => {
-                const isPriority = Boolean(priorities && card?.theme && (priorities[card.theme] ?? 0) >= PRIORITY_THRESHOLD);
+                const matchedPreferenceKeys = getMatchedPreferenceKeys(card, priorities);
+                const isPriority = matchedPreferenceKeys.length > 0;
+                const relevanceReason = getRelevanceReason(matchedPreferenceKeys, duMode);
                 const typeLabel = event.kind === 'wahl' ? 'Wahl' : 'Abstimmung';
-                const pointsText = typeof event.points === 'number' ? `+${event.points} Punkte` : null;
                 return (
                   <button
                     key={`${event.cardId}-${day}-${idx}`}
@@ -726,17 +802,19 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
                             {day}. {currentMonth.name}
                           </span>
                           {isPriority && (
-                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                              Priorisiert
+                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                              Thematisch relevant
                             </span>
-                          )}
-                          {pointsText && (
-                            <span className="ml-auto text-[10px] font-medium text-neutral-500">{pointsText}</span>
                           )}
                         </div>
                         <div className="mt-1 text-[11px] font-semibold text-neutral-900 line-clamp-1">
                           {event.title}
                         </div>
+                        {isPriority ? (
+                          <p className="mt-1 text-[10px] leading-snug text-slate-700">
+                            {relevanceReason} Keine Empfehlung · nur thematische Relevanz.
+                          </p>
+                        ) : null}
                       </div>
                       <span className="text-[10px] font-semibold text-neutral-400 mt-1 flex-shrink-0">Details</span>
                     </div>

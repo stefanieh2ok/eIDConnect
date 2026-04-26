@@ -9,7 +9,11 @@ import ClaraVoiceInterface from '@/components/Clara/ClaraVoiceInterface';
 import type { PreLoginVoicePhase } from '@/components/Clara/ClaraVoiceInterface';
 import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { ClaraAI } from '@/services/claraAI';
-import { getVoiceOpenPromptAndDisplay } from '@/lib/claraVoiceOpenPrompts';
+import {
+  getVoiceOpenPromptAndDisplay,
+  WALKTHROUGH_VOICE_OPEN_LINE_DU,
+  WALKTHROUGH_VOICE_OPEN_LINE_SIE,
+} from '@/lib/claraVoiceOpenPrompts';
 
 /**
  * Globaler "Clara-Dock": schlanke, glasige Pille am unteren Rand der App.
@@ -34,6 +38,17 @@ type ClaraDockProps = {
    */
   toolbarZClassName?: string;
   /**
+   * Wenn gesetzt, steuert diese Flag **explizit** Kompakt-Mic vs. untere Pille (eingeloggt).
+   * Verhindert, dass die Pille fälschlich über die Walkthrough-Fußleiste liegt.
+   */
+  compactMicOnlyMode?: boolean;
+  /**
+   * Zusätzlicher Abstand für das kompakte Mic (rem), z. B. im Geräterahmen neben Intro-Meta.
+   */
+  compactMicExtraInsetRem?: { top?: number; right?: number };
+  /** z-index Kompakt-Mic (Walkthrough: über `app-body z-[650]`, Standard: über Pille). */
+  compactMicZClassName?: string;
+  /**
    * Post-Login-Produkt-Walkthrough: kompaktes Mic oben rechts (wie Pre-Login); Chat per Event / Voice-UI.
    */
   walkthroughActive?: boolean;
@@ -56,10 +71,17 @@ type ClaraDockProps = {
    * z. B. Post-Login-Walkthrough im Vollbild). `absolute` = am nächsten `relative`-Vorfahren (Device-Frame).
    */
   overlayPosition?: 'absolute' | 'fixed';
+  /**
+   * Intro/Walkthrough: Mic sitzt in `IntroMetaStrip` (wie Lautsprecher) — kein zweites schwebendes Mic.
+   */
+  suppressCompactMic?: boolean;
 };
 
 export default function ClaraDock({
   toolbarZClassName = 'z-[80]',
+  compactMicOnlyMode,
+  compactMicExtraInsetRem,
+  compactMicZClassName = 'z-[625]',
   walkthroughActive = false,
   walkthroughStep = null,
   extraBottomOffset = '0px',
@@ -67,6 +89,7 @@ export default function ClaraDock({
   onAnredeVoiceChoice,
   onIntroEntryVoiceChoice,
   overlayPosition = 'absolute',
+  suppressCompactMic = false,
 }: ClaraDockProps) {
   const { state } = useApp();
   const { speak: speakVoice } = useClaraVoiceContext();
@@ -78,7 +101,13 @@ export default function ClaraDock({
   const [autoSend, setAutoSend] = useState(false);
 
   /** Pre-Login oder Walkthrough: nur Mic oben rechts — volle Pille nur in der normalen App. */
-  const showCompactMicOnly = walkthroughActive || preLoginVoicePhase !== null;
+  const showCompactMicOnly =
+    compactMicOnlyMode !== undefined
+      ? compactMicOnlyMode
+      : walkthroughActive || preLoginVoicePhase !== null;
+
+  const micExtraTop = compactMicExtraInsetRem?.top ?? 0;
+  const micExtraRight = compactMicExtraInsetRem?.right ?? 0;
 
   const claraAiForVoice = useMemo(
     () =>
@@ -90,20 +119,32 @@ export default function ClaraDock({
     [state.preferences, state.consentClaraPersonalization, state.anrede],
   );
 
-  /** iOS Safari: TTS nur zuverlässig, wenn `speak` im selben Tap wie „Mic“ läuft — nicht in useEffect. */
+  /**
+   * Einführung (Pre-Login) + Walkthrough: Mic öffnet nur die Session — **kein** sofortiges TTS
+   * (Hinweis steht im Panel; sonst würde Clara doppelt zur laufenden Vorlese-Führung reden).
+   * iOS: Normale App weiterhin: `speak` im selben Tap wie die Pille, damit TTS startet.
+   */
   const openVoiceSession = useCallback(() => {
     const loggedInGreeting =
-      preLoginVoicePhase == null ? claraAiForVoice.generateVoiceGreeting() : '';
+      preLoginVoicePhase == null && !walkthroughActive ? claraAiForVoice.generateVoiceGreeting() : '';
     const { speakText, conversationLine } = getVoiceOpenPromptAndDisplay({
       preLoginVoicePhase,
       addressMode: state.anrede === 'sie' ? 'sie' : 'du',
       loggedInGreetingPlain: loggedInGreeting,
     });
-    speakVoice(speakText);
-    setVoiceOpeningSeed(conversationLine);
+    const skipOpeningTts = preLoginVoicePhase !== null || walkthroughActive;
+    if (!skipOpeningTts && speakText.trim()) {
+      speakVoice(speakText);
+    }
+    const isSie = state.anrede === 'sie';
+    const seedForWalkthroughOnly =
+      walkthroughActive && preLoginVoicePhase == null
+        ? `Clara: ${isSie ? WALKTHROUGH_VOICE_OPEN_LINE_SIE : WALKTHROUGH_VOICE_OPEN_LINE_DU}`
+        : null;
+    setVoiceOpeningSeed(seedForWalkthroughOnly ?? conversationLine);
     setVoiceUiNonce((n) => n + 1);
     setVoiceOpen(true);
-  }, [speakVoice, preLoginVoicePhase, state.anrede, claraAiForVoice]);
+  }, [speakVoice, preLoginVoicePhase, walkthroughActive, state.anrede, claraAiForVoice]);
 
   useEffect(() => {
     if (!voiceOpen) setVoiceOpeningSeed(null);
@@ -252,18 +293,18 @@ export default function ClaraDock({
   const compactMicPositionClass = overlayPosition === 'fixed' ? 'fixed' : 'absolute';
 
   const compactMicOnlyControl =
-    showCompactMicOnly && !voiceOpen && !chatOpen ? (
+    !suppressCompactMic && showCompactMicOnly && !voiceOpen && !chatOpen ? (
       <div
-        className={`pointer-events-auto ${compactMicPositionClass} z-[625]`}
+        className={`pointer-events-auto ${compactMicPositionClass} ${compactMicZClassName}`}
         style={{
-          top: 'max(0.5rem, calc(env(safe-area-inset-top, 0px) + 0.35rem))',
-          right: 'max(0.5rem, env(safe-area-inset-right, 0px))',
+          top: `max(0.5rem, calc(env(safe-area-inset-top, 0px) + 0.35rem + ${micExtraTop}rem))`,
+          right: `max(0.5rem, calc(env(safe-area-inset-right, 0px) + ${micExtraRight}rem))`,
         }}
       >
         <button
           type="button"
           onClick={() => openVoiceSession()}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border bg-white/95 shadow-[0_4px_14px_rgba(76,29,149,0.22)] backdrop-blur-xl transition hover:brightness-[1.03] active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full border bg-white/95 shadow-[0_4px_14px_rgba(76,29,149,0.22)] backdrop-blur-xl transition hover:brightness-[1.03] active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
           style={{
             borderColor: 'rgba(124, 58, 237, 0.4)',
             background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(245,240,255,0.94) 100%)',
@@ -271,7 +312,7 @@ export default function ClaraDock({
           aria-label="Clara Voice — Mikrofon"
           title="Mit Clara sprechen"
         >
-          <Mic className="text-[#4C1D95]" size={18} strokeWidth={2.2} aria-hidden="true" />
+          <Mic className="text-[#4C1D95]" size={16} strokeWidth={2.2} aria-hidden="true" />
         </button>
       </div>
     ) : null;

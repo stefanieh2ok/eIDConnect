@@ -27,6 +27,8 @@ describe('matchIntroEntryBranchFromSpeech', () => {
     expect(matchIntroEntryBranchFromSpeech('Einführung starten')).toBe('start');
     expect(matchIntroEntryBranchFromSpeech('direkt zur app')).toBe('direct');
     expect(matchIntroEntryBranchFromSpeech('ja')).toBe('start');
+    expect(matchIntroEntryBranchFromSpeech('ich bin bereit')).toBe('start');
+    expect(matchIntroEntryBranchFromSpeech('na klar')).toBe('start');
   });
 });
 

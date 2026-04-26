@@ -75,7 +75,10 @@ export function matchIntroEntryBranchFromSpeech(input: string): IntroEntryVoiceC
     /^(direkt|app|nur\s+app)$/i.test(t);
   const startHints =
     /\b(einf(ü|u)hrung(\s+starten)?|überblick|start(en)?|los|zeig(\s+mir)?|anfang|weiter)\b/.test(t) ||
-    /^(ja|ok|okay|gern|bitte)$/i.test(t);
+    /^(ja|ok|okay|gern|bitte)!?$/i.test(t) ||
+    /\b(ja|jawohl|jep|jo)\b/.test(t) ||
+    /\b(ich\s+)?bin\s+bereit\b/.test(t) ||
+    /\b(na klar|na\s+klar|alles klar)\b/.test(t);
 
   if (directHints && startHints) return null;
   if (directHints) return 'direct';
@@ -85,8 +88,8 @@ export function matchIntroEntryBranchFromSpeech(input: string): IntroEntryVoiceC
 
 export function introEntryVoiceUnrecognizedLine(du: boolean): string {
   return du
-    ? 'Sag zum Beispiel: Einführung starten — oder: direkt zur App. Oder nutz die Buttons.'
-    : 'Sagen Sie zum Beispiel: Einführung starten — oder: direkt zur App. Oder nutzen Sie die Tasten.';
+    ? 'Sag zum Beispiel: Ja — oder: Einführung starten — oder: direkt zur App. Oder nutz die Tasten.'
+    : 'Sagen Sie zum Beispiel: Ja — oder: Einführung starten — oder: direkt zur App. Oder nutzen Sie die Tasten.';
 }
 
 export type IntroVoiceIntent =

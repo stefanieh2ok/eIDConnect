@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
+import { APP_DISPLAY_NAME, APP_TAGLINE } from '@/lib/branding';
 
 /**
  * Inhalt der Startseite (HookAI Zugang).
@@ -37,6 +38,11 @@ type HomeContentProps = {
 };
 
 export default function HomeContent({ showSetupLink }: HomeContentProps) {
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.title = APP_DISPLAY_NAME;
+  }, []);
+
   const router = useRouter();
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
@@ -101,13 +107,10 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
       <main className="scrollbar-hide flex h-full min-h-0 w-full flex-col overflow-y-auto rounded-b-[1.75rem] px-3 py-3 text-neutral-900">
       <div className="mx-auto w-full max-w-[360px] flex flex-col items-center gap-6 rounded-2xl border border-white/25 bg-white/12 p-4 shadow-lg backdrop-blur-xl">
         {/* Marke */}
-        <div className="flex flex-col items-center gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
-            HookAI
-          </h1>
-          <p className="text-sm text-neutral-500 text-center">
-            Zugang
-          </p>
+        <div className="flex flex-col items-center gap-2 text-center">
+          <h1 className="text-xl font-bold tracking-tight text-[#003366] sm:text-2xl">{APP_DISPLAY_NAME}</h1>
+          <p className="max-w-[18rem] text-sm leading-snug text-neutral-600">{APP_TAGLINE}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">Zugang</p>
         </div>
 
         {/* Zugang anfordern – zuerst */}

@@ -4,6 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { resetViewportScroll } from '@/lib/resetViewportScroll';
 
+const INTRO_AUTOSTART_ONCE_KEY = 'eidconnect_intro_autostart_once';
+const INTRO_AUDIO_SESSION_KEY = 'eidconnect_intro_audio_v1';
+const PRELOGIN_PHASE_KEY = 'eidconnect_prelogin_v2';
+const WANTS_WALKTHROUGH_KEY = 'eidconnect_wants_walkthrough_v1';
+
 type AcceptNdaButtonProps = {
   token: string;
   /** Optionale Kurzfassung / Hinweistexte oberhalb des Buttons */
@@ -26,6 +31,17 @@ export function AcceptNdaButton({ token, children }: AcceptNdaButtonProps) {
       return;
     }
 
+    try {
+      if (typeof window !== 'undefined') {
+        // Nach NDA immer mit Clara-gestütztem Einstieg starten.
+        sessionStorage.setItem(PRELOGIN_PHASE_KEY, 'anrede');
+        sessionStorage.setItem(WANTS_WALKTHROUGH_KEY, '1');
+        sessionStorage.setItem(INTRO_AUTOSTART_ONCE_KEY, '1');
+        sessionStorage.setItem(INTRO_AUDIO_SESSION_KEY, '1');
+      }
+    } catch {
+      // ignore
+    }
     setLoading(true);
     setError(null);
 

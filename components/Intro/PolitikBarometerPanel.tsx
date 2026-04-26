@@ -5,16 +5,15 @@ import { useApp } from '@/context/AppContext';
 import { THEME_NAMES } from '@/data/constants';
 import type { UserPreferences } from '@/types';
 
+const DEFAULT_LEAD_DU =
+  'Das Politikbarometer zeigt keine politische Bewertung und erstellt kein Meinungsprofil. Du markierst selbst Themen, die dir wichtig sind – zum Beispiel Digitalisierung, Umwelt und Energie oder Bildung. Passende Termine und Beteiligungen können im Kalender hervorgehoben werden. Das ist keine Empfehlung, sondern nur thematische Relevanz.';
+
+const DEFAULT_LEAD_SIE =
+  'Das Politikbarometer zeigt keine politische Bewertung und erstellt kein Meinungsprofil. Sie markieren selbst Themen, die Ihnen wichtig sind – zum Beispiel Digitalisierung, Umwelt und Energie oder Bildung. Passende Termine und Beteiligungen können im Kalender hervorgehoben werden. Das ist keine Empfehlung, sondern nur thematische Relevanz.';
+
 /**
- * Politikbarometer – Auswahl der Themen, auf die die App später mit
- * Hinweisen auf passende Abstimmungen und Kalender-Terminen reagiert.
- *
- * Wording bewusst NICHT in Richtung „Interessen" oder „Profiling", sondern
- * als Themenwahl für relevante Hinweise und Termine – entsprechend den
- * UX-Vorgaben für State-Clarity im Einführungs-Flow.
- *
- * Diese Komponente wird sowohl im ehemaligen LoginScreen-Pfad als auch im
- * letzten Walkthrough-Schritt (Einführung · Schritt 8/8) eingebunden.
+ * Politikbarometer (Themenkompass): selbst gewählte Interessenschwerpunkte für
+ * thematische Kalender-Hervorhebung — keine Empfehlung, keine Ableitung aus Verhalten.
  */
 type Props = {
   du: boolean;
@@ -23,11 +22,33 @@ type Props = {
    * verhält sich das Panel wie bisher im LoginScreen.
    */
   variant?: 'default' | 'compact';
+  /** Optional: Überschrift überschreiben (z. B. Einstellungen). */
+  headingTitle?: string;
+  /** Optional: erster Absatz statt Standard-Themenkompass-Text. */
+  leadDu?: string;
+  leadSie?: string;
+  walkthroughFooterDu?: string;
+  walkthroughFooterSie?: string;
+  /** Extra kompakte Darstellung für enge Settings-Abschnitte. */
+  density?: 'default' | 'tight';
 };
 
-export default function PolitikBarometerPanel({ du, variant = 'default' }: Props) {
+export default function PolitikBarometerPanel({
+  du,
+  variant = 'default',
+  headingTitle,
+  leadDu,
+  leadSie,
+  walkthroughFooterDu,
+  walkthroughFooterSie,
+  density = 'default',
+}: Props) {
   const { state, dispatch } = useApp();
   const compact = variant === 'compact';
+  const tight = density === 'tight';
+  const title = headingTitle ?? 'Politikbarometer';
+  const lead = du ? (leadDu ?? DEFAULT_LEAD_DU) : (leadSie ?? DEFAULT_LEAD_SIE);
+  const walkFooter = du ? walkthroughFooterDu : walkthroughFooterSie;
 
   const handlePreferenceChange = (key: keyof UserPreferences, value: number) => {
     dispatch({ type: 'SET_PREFERENCES', payload: { [key]: value } });
@@ -45,7 +66,7 @@ export default function PolitikBarometerPanel({ du, variant = 'default' }: Props
 
   return (
     <div
-      className={`rounded-2xl ${compact ? 'px-3 py-2.5' : 'px-4 py-3'}`}
+      className={`rounded-2xl ${compact ? (tight ? 'px-2.5 py-2' : 'px-3 py-2.5') : 'px-4 py-3'}`}
       style={{
         background: 'var(--gov-surface)',
         border: '1px solid var(--gov-border)',
@@ -53,22 +74,20 @@ export default function PolitikBarometerPanel({ du, variant = 'default' }: Props
       }}
     >
       <h2
-        className={`mb-1 font-bold ${compact ? 'text-[13px]' : 'text-base'}`}
+        className={`mb-1 font-bold ${compact ? (tight ? 'text-[12px]' : 'text-[13px]') : 'text-base'}`}
         style={{ color: 'var(--gov-heading)' }}
       >
-        Politikbarometer
+        {title}
       </h2>
       <p
-        className={`leading-relaxed ${compact ? 'text-[10.5px]' : 'text-[11px]'}`}
+        className={`leading-relaxed ${compact ? (tight ? 'text-[10px]' : 'text-[10.5px]') : 'text-[11px]'}`}
         style={{ color: 'var(--gov-muted)' }}
       >
-        {du
-          ? 'Optional: Lege fest, welche Themen Dir wichtig sind. Die App weist Dich später auf passende Abstimmungen hin und nimmt relevante Termine in Deinen Kalender auf.'
-          : 'Optional: Legen Sie fest, welche Themen Ihnen wichtig sind. Die App weist Sie später auf passende Abstimmungen hin und nimmt relevante Termine in Ihren Kalender auf.'}
+        {lead}
       </p>
 
       <label
-        className="relative mt-3 flex cursor-pointer items-start gap-3 rounded-xl border bg-white px-3 py-2.5"
+        className={`relative mt-3 flex cursor-pointer items-start rounded-xl border bg-white ${tight ? 'gap-2 px-2.5 py-2' : 'gap-3 px-3 py-2.5'}`}
         style={{ borderColor: 'var(--gov-border)' }}
       >
         <input
@@ -80,20 +99,20 @@ export default function PolitikBarometerPanel({ du, variant = 'default' }: Props
               payload: e.target.checked,
             })
           }
-          className="mt-0.5 h-4 w-4 flex-shrink-0 rounded"
+          className={`mt-0.5 flex-shrink-0 rounded ${tight ? 'h-3.5 w-3.5' : 'h-4 w-4'}`}
           style={{ accentColor: 'var(--gov-btn)' }}
         />
         <span
-          className={`leading-snug ${compact ? 'text-[10.5px]' : 'text-[11px]'}`}
+          className={`leading-snug ${compact ? (tight ? 'text-[10px]' : 'text-[10.5px]') : 'text-[11px]'}`}
           style={{ color: 'var(--gov-body)' }}
         >
           {du
-            ? 'Einwilligung: Clara, die neutrale KI-Agentin, darf die von Dir priorisierten Themen nutzen, um Dich auf relevante Abstimmungen und Termine hinzuweisen.'
-            : 'Einwilligung: Clara, die neutrale KI-Agentin, darf die von Ihnen priorisierten Themen nutzen, um Sie auf relevante Abstimmungen und Termine hinzuweisen.'}
+            ? 'Einwilligung: Meine Interessenschwerpunkte dürfen genutzt werden, um passende Kalendertermine thematisch hervorzuheben — keine politische Empfehlung und keine Ableitung aus meinem übrigen Verhalten.'
+            : 'Einwilligung: Die von mir gewählten Interessenschwerpunkte dürfen genutzt werden, um passende Kalendertermine thematisch hervorzuheben — keine politische Empfehlung und keine Ableitung aus meinem übrigen Verhalten.'}
         </span>
       </label>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className={`mt-3 flex flex-wrap ${tight ? 'gap-1.5' : 'gap-2'}`}>
         {(
           [
             {
@@ -123,7 +142,7 @@ export default function PolitikBarometerPanel({ du, variant = 'default' }: Props
             type="button"
             onClick={() => applyPreset(p.values)}
             disabled={!state.consentClaraPersonalization}
-            className="rounded-full border px-3 py-1 text-[11px] font-semibold transition"
+            className={`rounded-full border font-semibold transition ${tight ? 'px-2.5 py-0.5 text-[10px]' : 'px-3 py-1 text-[11px]'}`}
             style={{
               borderColor: 'var(--gov-border)',
               background: state.consentClaraPersonalization ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.60)',
@@ -137,14 +156,14 @@ export default function PolitikBarometerPanel({ du, variant = 'default' }: Props
         ))}
       </div>
 
-      <div className={`${compact ? 'mt-3 space-y-2.5' : 'mt-4 space-y-3.5'}`}>
+      <div className={`${compact ? (tight ? 'mt-2.5 space-y-2' : 'mt-3 space-y-2.5') : 'mt-4 space-y-3.5'}`}>
         {Object.entries(THEME_NAMES).map(([key, name]) => (
           <div key={key}>
-            <div className="mb-1.5 flex justify-between">
-              <span className="text-[11px] font-medium" style={{ color: 'var(--gov-heading)' }}>
+            <div className={`${tight ? 'mb-1' : 'mb-1.5'} flex justify-between`}>
+              <span className={tight ? 'text-[10px] font-medium' : 'text-[11px] font-medium'} style={{ color: 'var(--gov-heading)' }}>
                 {name}
               </span>
-              <span className="text-[11px] font-bold tabular-nums" style={{ color: 'var(--gov-heading)' }}>
+              <span className={`${tight ? 'text-[10px]' : 'text-[11px]'} font-bold tabular-nums`} style={{ color: 'var(--gov-heading)' }}>
                 {state.preferences[key as keyof UserPreferences]}%
               </span>
             </div>
@@ -156,8 +175,8 @@ export default function PolitikBarometerPanel({ du, variant = 'default' }: Props
               value={state.preferences[key as keyof UserPreferences]}
               onChange={(e) => handlePreferenceChange(key as keyof UserPreferences, Number(e.target.value))}
               disabled={!state.consentClaraPersonalization}
-              aria-label={`${name} Priorität`}
-              className={`politik-barometer-range w-full max-w-full rounded-full ${compact ? 'h-2.5' : 'h-3'}`}
+              aria-label={`${name} · Interessenschwerpunkt`}
+              className={`politik-barometer-range w-full max-w-full rounded-full ${compact ? (tight ? 'h-2' : 'h-2.5') : 'h-3'}`}
               style={{
                 ...sliderTrackStyle(state.preferences[key as keyof UserPreferences]),
                 opacity: state.consentClaraPersonalization ? 1 : 0.55,
@@ -168,10 +187,15 @@ export default function PolitikBarometerPanel({ du, variant = 'default' }: Props
         ))}
       </div>
       {!state.consentClaraPersonalization && (
-        <p className="mt-3 text-[10px] leading-snug" style={{ color: 'var(--gov-muted)' }}>
+        <p className={`mt-3 leading-snug ${tight ? 'text-[9.5px]' : 'text-[10px]'}`} style={{ color: 'var(--gov-muted)' }}>
           Hinweis: Die Schieberegler werden erst aktiv, wenn die Einwilligung oben gesetzt ist.
         </p>
       )}
+      {walkFooter ? (
+        <p className={`mt-3 leading-snug ${tight ? 'text-[9.5px]' : 'text-[10px]'}`} style={{ color: 'var(--gov-muted)' }}>
+          {walkFooter}
+        </p>
+      ) : null}
     </div>
   );
 }

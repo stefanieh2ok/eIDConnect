@@ -4,6 +4,11 @@ import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ndaConfig } from '@/config/nda';
 
+const INTRO_AUTOSTART_ONCE_KEY = 'eidconnect_intro_autostart_once';
+const INTRO_AUDIO_SESSION_KEY = 'eidconnect_intro_audio_v1';
+const PRELOGIN_PHASE_KEY = 'eidconnect_prelogin_v2';
+const WANTS_WALKTHROUGH_KEY = 'eidconnect_wants_walkthrough_v1';
+
 const MSG_SIGNING_UNAVAILABLE = 'Der Signaturprozess konnte derzeit nicht gestartet werden.';
 const MSG_CONNECTION_UNAVAILABLE = 'Die Verbindung zum Signaturdienst ist momentan nicht verfügbar.';
 const MSG_SIGNING_INCOMPLETE =
@@ -50,6 +55,17 @@ export function AcceptNdaButton({ token }: { token: string }) {
   const showSignedInfo = returnCode === 'return_no_envelope';
 
   const handleDigitalSign = async () => {
+    try {
+      if (typeof window !== 'undefined') {
+        // Nach NDA immer mit Clara-gestütztem Einstieg starten.
+        sessionStorage.setItem(PRELOGIN_PHASE_KEY, 'anrede');
+        sessionStorage.setItem(WANTS_WALKTHROUGH_KEY, '1');
+        sessionStorage.setItem(INTRO_AUTOSTART_ONCE_KEY, '1');
+        sessionStorage.setItem(INTRO_AUDIO_SESSION_KEY, '1');
+      }
+    } catch {
+      // ignore
+    }
     setSigningLoading(true);
     setError(null);
     setConsentUrl(null);

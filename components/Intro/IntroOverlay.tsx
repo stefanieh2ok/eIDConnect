@@ -186,6 +186,15 @@ export default IntroOverlayRoot;
 
 type ReadAloudToggleProps = { theme?: 'light' | 'dark' };
 
+/**
+ * Fläche und Rand wie `IntroAudioStatusButton` (theme dark) — für z. B. Clara-Mic in derselben Leiste.
+ */
+export const INTRO_META_ICON_BUTTON_DARK_CLASS =
+  'inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border transition border-white/25 text-white/80 hover:text-white hover:border-white/40 hover:bg-white/8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/45';
+
+export const INTRO_META_ICON_BUTTON_LIGHT_CLASS =
+  'inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border transition border-slate-300/90 text-slate-600/90 hover:text-slate-900 hover:bg-slate-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-slate-400';
+
 /** Kompaktes Text-Label für Vorlesen (Legacy; Header nutzt bevorzugt `IntroAudioStatusButton`). */
 export function IntroReadAloudToggle({ theme = 'light' }: ReadAloudToggleProps = {}) {
   const api = useIntroSpeakApi();
@@ -282,10 +291,9 @@ export function IntroAudioStatusButton({ theme = 'dark' }: { theme?: IntroAudioS
       title={title}
       onClick={() => setReadAloud(!readAloud)}
       className={[
-        'inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border transition',
         onDark
-          ? 'border-white/25 text-white/80 hover:text-white hover:border-white/40 hover:bg-white/8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/45'
-          : 'border-slate-300/90 text-slate-600/90 hover:text-slate-900 hover:bg-slate-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-slate-400',
+          ? INTRO_META_ICON_BUTTON_DARK_CLASS
+          : 'inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border transition border-slate-300/90 text-slate-600/90 hover:text-slate-900 hover:bg-slate-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-slate-400',
         activeRing,
         readAloud && isIntroSpeaking && onDark ? 'text-sky-100/90' : '',
         readAloud && isIntroSpeaking && !onDark ? 'text-sky-700' : '',

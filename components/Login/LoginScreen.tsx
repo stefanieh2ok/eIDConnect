@@ -1,20 +1,43 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
-import { APP_DISPLAY_NAME } from '@/lib/branding';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
 import {
+  INTRO_ACCESS_CONFIRMED_BODY,
+  INTRO_ACCESS_CONFIRMED_LEVELS,
+  INTRO_ACCESS_CONFIRMED_TITLE,
+  INTRO_DEMO_MODE_BODY,
+  INTRO_DEMO_MODE_CTA,
+  INTRO_DEMO_MODE_TITLE,
   INTRO_EID_CARD_BODY_DU,
   INTRO_EID_CARD_BODY_SIE,
-  INTRO_EID_CARD_PRESENTATION_HINT,
+  INTRO_EID_CARD_STATUS,
   INTRO_EID_CARD_TITLE,
   INTRO_EID_CTA,
   INTRO_EID_FRAMING_SHORT,
+  INTRO_ACCESS_CLARA_PANEL_HINT_DU,
+  INTRO_ACCESS_CLARA_PANEL_HINT_SIE,
+  INTRO_ACCESS_CLARA_PANEL_SHORT_DU,
+  INTRO_ACCESS_CLARA_PANEL_SHORT_SIE,
+  INTRO_TRUST_HINT_DU,
+  INTRO_TRUST_HINT_SIE,
+  INTRO_ACCESS_SCREEN_TAGLINE,
+  INTRO_WALLET_BADGE,
+  INTRO_WALLET_CARD_BODY,
+  INTRO_WALLET_CARD_TITLE,
+  INTRO_WALLET_CTA,
+  INTRO_WALLET_INFO_HINT,
+  INTRO_WALLET_INFO_TEXT,
+  INTRO_WALLET_KONZEPTION_LABEL,
+  INTRO_WALLET_PROCESS_STEPS,
 } from '@/data/introOverlayMarketing';
-import type { PreLoginPhase } from '@/lib/introPreLoginPhase';
+import { APP_DISPLAY_NAME, APP_TAGLINE } from '@/lib/branding';
+import { writeWantsWalkthrough, type PreLoginPhase } from '@/lib/introPreLoginPhase';
 import { introEidLoginSpokenParts } from '@/lib/introSpokenTts';
+import { ListChecks, Settings } from 'lucide-react';
+import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 
@@ -26,8 +49,18 @@ const PRODUCT_INTRO_DONE_KEY = 'eidconnect_product_intro_done_v4';
 
 const loginNavBackClass =
   'inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-xl border border-neutral-800 bg-black px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-900 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500';
-const loginNavNextClass =
-  'btn-gov-primary btn-gov-primary--flex min-h-[44px] min-w-0 flex-1 text-sm font-bold';
+const loginNavNextClass = 'btn-gov-primary btn-gov-primary--flex min-h-[44px] min-w-0 flex-1 text-sm font-bold';
+
+const accessPathCardClass =
+  'rounded-xl border border-neutral-200/90 bg-[#F7F9FC] px-2.5 py-2 shadow-sm sm:px-3 sm:py-2.5';
+
+const accessPathTitleClass = 'text-[13px] font-bold leading-snug tracking-tight text-[#1A2B45] sm:text-[14px]';
+
+const accessPathBodyClass =
+  'mt-0.5 text-[10.5px] leading-snug text-neutral-800 [text-wrap:pretty] sm:mt-1 sm:text-[11px] sm:leading-relaxed';
+
+const accessPathHintClass =
+  'mt-1 text-[10px] leading-snug text-neutral-600 [text-wrap:pretty] sm:mt-1.5 sm:text-[10.5px] sm:leading-relaxed';
 
 /**
  * Login-Screen = Einführungs-Schritt 2 von 8 (eID · Beispiel).
@@ -37,28 +70,30 @@ const loginNavNextClass =
  * die App-Bereiche kennenlernen und sich erst am Ende für Themen entscheiden.
  */
 type LoginScreenProps = {
-  /**
-   * Wenn die App bereits im iPhone-Rahmen läuft (Demo „device"-Variante),
-   * dann darf LoginScreen keinen zweiten IphoneFrame rendern.
-   */
   renderFrame?: boolean;
-  /** eID-TTS erst, wenn Anrede + Einstiegs-Folie durch (sonst schweigt Folie 4 oder spricht zu früh). */
   preLoginPhase?: PreLoginPhase;
+  onBackToEntry?: () => void;
 };
 
-const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true, preLoginPhase = 'ok' }) => {
+const LoginScreen: React.FC<LoginScreenProps> = ({
+  renderFrame = true,
+  preLoginPhase = 'ok',
+  onBackToEntry,
+}) => {
   const { state, dispatch } = useApp();
+  const du = state.anrede === 'du';
+  const [demoWahlkreis, setDemoWahlkreis] = useState<string>('');
+  const [walletInfoOpen, setWalletInfoOpen] = useState(false);
+  const [confirmedAccessMethod, setConfirmedAccessMethod] = useState<'eid' | 'demo' | null>('eid');
+  type OnboardingSpotlight = 'off' | 'eid' | 'weiter';
+  const [onboardingSpotlight, setOnboardingSpotlight] = useState<OnboardingSpotlight>('off');
 
   const reopenProductIntro = useCallback(() => {
     try {
       localStorage.removeItem(PRODUCT_INTRO_DONE_KEY);
-    } catch {
-      /* ignore */
-    }
+    } catch {}
     window.dispatchEvent(new Event('eidconnect:open-intro'));
   }, []);
-  const du = state.anrede === 'du';
-  const [demoWahlkreis, setDemoWahlkreis] = useState<string>('');
 
   const persistDemoFields = useCallback(
     (street: string, plz: string, city: string) => {
@@ -76,9 +111,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true, preLoginP
   const introSpeak = useIntroSpeakApi();
   useEffect(() => {
     if (state.anrede == null || !introSpeak) return;
-    if (preLoginPhase !== 'ok') {
-      return;
-    }
+    if (preLoginPhase !== 'ok') return;
     if (!introSpeak.readAloud) {
       introSpeak.stopIntroSpeech();
       return;
@@ -101,25 +134,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true, preLoginP
       introSpeak.stopIntroSpeech();
     };
   }, [state.anrede, introSpeak, introSpeak?.readAloud, du, preLoginPhase]);
-
-  const applyEidKirkelDemo = () => {
-    persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
-  };
-
-  const handleEidDemoClick = () => {
-    cancelOnboardingSpotlight();
-    // eID-Daten setzen und direkt einloggen; das frühere Politik-Barometer-
-    // Zwischenformular liegt jetzt als letzter Walkthrough-Schritt.
-    try {
-      applyEidKirkelDemo();
-    } catch {
-      /* noop */
-    }
-    dispatch({ type: 'SET_LOGGED_IN', payload: true });
-  };
-
-  type OnboardingSpotlight = 'off' | 'eid' | 'weiter';
-  const [onboardingSpotlight, setOnboardingSpotlight] = useState<OnboardingSpotlight>('off');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -145,111 +159,277 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ renderFrame = true, preLoginP
     });
   }, []);
 
+  const applyEidKirkelDemo = () => {
+    persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
+  };
+
+  const handleEidDemoClick = () => {
+    cancelOnboardingSpotlight();
+    try {
+      applyEidKirkelDemo();
+    } catch {
+      /* noop */
+    }
+    dispatch({ type: 'SET_LOGIN_AUTH_METHOD', payload: 'eid' });
+    setConfirmedAccessMethod('eid');
+  };
+
   const handleProceedToApp = () => {
     try {
       applyEidKirkelDemo();
     } catch {
       /* noop */
     }
+    try {
+      writeWantsWalkthrough(true);
+    } catch {
+      /* noop */
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('eidconnect:open-intro'));
+    }
+    dispatch({
+      type: 'SET_LOGIN_AUTH_METHOD',
+      payload: confirmedAccessMethod === 'demo' ? 'address' : 'eid',
+    });
     dispatch({ type: 'SET_LOGGED_IN', payload: true });
   };
 
+  const claraAccessLongPlain = useMemo(() => introEidLoginSpokenParts(du).join(' '), [du]);
+  const claraAccessShortPlain = useMemo(() => {
+    const main = du ? INTRO_ACCESS_CLARA_PANEL_SHORT_DU : INTRO_ACCESS_CLARA_PANEL_SHORT_SIE;
+    const hint = du ? INTRO_ACCESS_CLARA_PANEL_HINT_DU : INTRO_ACCESS_CLARA_PANEL_HINT_SIE;
+    return `${main}\n\n${hint}`;
+  }, [du]);
+
+  const handleDemoModeClick = () => {
+    cancelOnboardingSpotlight();
+    try {
+      applyEidKirkelDemo();
+    } catch {
+      /* noop */
+    }
+    dispatch({ type: 'SET_LOGIN_AUTH_METHOD', payload: 'address' });
+    setConfirmedAccessMethod('demo');
+  };
+
   const content = (
-    <div
-      className="clara-prelogin-shell-pad intro-dark-body relative mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] sm:mx-2"
-      style={{
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-      }}
-      onPointerDown={() => {
-        if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-        try {
-          void window.speechSynthesis.getVoices();
-          if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-        } catch {
-          // ignore
-        }
-      }}
-    >
-          {/* --- Meta-Ebene: Einführungs-Pill + Schritt 2/8 + Kurzzeile ---
-              Einheitlicher dunkler Streifen über allen 8 Einführungs-Screens.
-              Auf Step 2 (eID) kommt die knappe Sicherheits-/Vertrauens-Zeile
-              in gleichem Font direkt unter die Pill-Zeile. */}
-          <IntroMetaStrip
-            stepNumber={2}
-            metaFramingLine={INTRO_EID_FRAMING_SHORT}
-            onSkip={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
-            onClose={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
-          />
+    <div className="clara-prelogin-shell-pad intro-device-chrome-shell intro-dark-body relative mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] p-[3px] sm:mx-2 sm:p-1">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.65rem] border border-neutral-200/95 bg-white">
+        <IntroMetaStrip
+          surface="light"
+          stepNumber={2}
+          showClaraVoice
+          metaFramingLine={INTRO_EID_FRAMING_SHORT}
+          onSkip={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
+          onClose={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
+        />
 
-          <div className="flex-shrink-0 px-6 pt-4 pb-3 text-center">
-            <h1 className="text-2xl font-extrabold leading-none tracking-tight text-white">
-              {APP_DISPLAY_NAME}
-            </h1>
-            <p className="mt-1.5 text-[11px] tracking-wide text-white/65">
-              Informieren · Mitreden · Mitgestalten
+        <div className="flex-shrink-0 border-b border-neutral-100 px-4 pb-2 pt-2 text-center sm:px-5 sm:pb-2.5 sm:pt-2.5">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-neutral-500">Zugang · Schritt 2</p>
+          <div className="mt-1 truncate text-sm font-bold tracking-wide leading-none text-[#003366]">{APP_DISPLAY_NAME}</div>
+          <p className="mx-auto mt-0.5 max-w-[20rem] text-[11px] leading-tight text-neutral-500">{APP_TAGLINE}</p>
+          <h1 className="mt-2 text-[1.2rem] font-extrabold leading-tight tracking-tight text-[#1A2B45] sm:text-[1.35rem]">
+            Sicherer Bürgerzugang
+          </h1>
+          <p className="mx-auto mt-1 max-w-[17.5rem] text-[10px] font-medium leading-snug text-neutral-600 sm:max-w-none sm:text-[11px]">
+            {INTRO_ACCESS_SCREEN_TAGLINE}
+          </p>
+        </div>
+
+        <div
+          id="login-main-scroll"
+          className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-4 pb-3 sm:px-5 sm:pb-4"
+          style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
+        >
+          <div className="space-y-2.5 sm:space-y-3">
+            <ClaraStepPanel
+              surface="light"
+              label="Sicherer Bürgerzugang"
+              short={claraAccessShortPlain}
+              long={claraAccessLongPlain}
+              showTopicTitle
+              hideShortWhenCollapsed
+            />
+            <p className="px-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
+              Zugangspfad wählen
             </p>
-          </div>
+            <p className="px-0.5 text-[9px] leading-snug text-neutral-500 [@media(max-height:720px)]:block hidden">
+              Nach unten scrollen: EU-Wallet und Demo-Modus folgen.
+            </p>
 
-          <div
-            id="login-main-scroll"
-            className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 pb-6 sm:pb-8"
-            style={{ overscrollBehavior: 'contain' }}
-          >
-            <div className="space-y-4">
-              <div
-                className="rounded-2xl px-4 py-3"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.06)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                }}
-              >
-                <h2 className="text-base font-bold text-white">
-                  {INTRO_EID_CARD_TITLE}
-                </h2>
-                <p className="mt-1.5 text-[11px] leading-relaxed text-white/85 [text-wrap:pretty]">
-                  {du ? INTRO_EID_CARD_BODY_DU : INTRO_EID_CARD_BODY_SIE}
-                </p>
-                <p className="mt-2.5 text-[10.5px] leading-relaxed text-white/70 [text-wrap:pretty]">
-                  {INTRO_EID_CARD_PRESENTATION_HINT}
-                </p>
-                <button
-                  type="button"
-                  onClick={handleEidDemoClick}
-                  onAnimationEnd={onOnboardingSpotlightAnimationEnd}
-                  className={`btn-gov-primary mt-3 ${onboardingSpotlight === 'eid' ? 'onboarding-heartbeat' : ''}`}
+            <div className={accessPathCardClass}>
+              <div className="flex items-start justify-between gap-2">
+                <span
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#003366] text-[10px] font-bold text-white"
+                  aria-hidden
                 >
-                  {INTRO_EID_CTA}
-                </button>
-                <p className="mt-2 text-[10px] text-white/60">
-                  <span className="font-semibold text-white/80">Sitzung:</span> Hauptstraße 1, 66459 Kirkel
+                  1
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h2 className={accessPathTitleClass}>{INTRO_EID_CARD_TITLE}</h2>
+                  <p className="mt-1 text-[9.5px] font-semibold uppercase tracking-wide text-emerald-800">
+                    {INTRO_EID_CARD_STATUS}
+                  </p>
+                  <p className={accessPathBodyClass}>{du ? INTRO_EID_CARD_BODY_DU : INTRO_EID_CARD_BODY_SIE}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleEidDemoClick}
+                onAnimationEnd={onOnboardingSpotlightAnimationEnd}
+                className={`btn-gov-primary mt-2 w-full min-h-[44px] text-[12px] font-bold sm:mt-2.5 sm:text-[13px] ${
+                  onboardingSpotlight === 'eid' ? 'onboarding-heartbeat' : ''
+                }`}
+              >
+                {INTRO_EID_CTA}
+              </button>
+            </div>
+
+            <div className={accessPathCardClass}>
+              <div className="flex items-start justify-between gap-2">
+                <span
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[#003366]/40 bg-white text-[10px] font-bold text-[#003366]"
+                  aria-hidden
+                >
+                  2
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="mb-2 flex items-start gap-2.5">
+                    <div
+                      className="flex h-11 w-11 shrink-0 items-center justify-center gap-0.5 rounded-lg border border-slate-200 bg-white px-1 shadow-sm"
+                      aria-hidden
+                    >
+                      <Settings className="h-[1.125rem] w-[1.125rem] text-[#003366]" strokeWidth={2} />
+                      <ListChecks className="h-[1.125rem] w-[1.125rem] text-[#0055A4]" strokeWidth={2} />
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className={accessPathTitleClass}>{INTRO_WALLET_CARD_TITLE}</h2>
+                      <p className="mt-0.5 text-[9px] font-medium text-neutral-500">{INTRO_WALLET_KONZEPTION_LABEL}</p>
+                    </div>
+                  </div>
+                  <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="inline-flex max-w-full rounded-full bg-[#E8F0FB] px-2 py-0.5 text-[9px] font-semibold leading-tight text-[#003366]">
+                      {INTRO_WALLET_BADGE}
+                    </span>
+                  </div>
+                  <p className={accessPathBodyClass}>{INTRO_WALLET_CARD_BODY}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setWalletInfoOpen((p) => !p)}
+                className="mt-2 flex min-h-[44px] w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-[12px] font-semibold text-[#1A2B45] transition hover:bg-slate-50 active:bg-slate-100 sm:mt-2.5"
+                aria-expanded={walletInfoOpen}
+                aria-controls="login-eu-wallet-info"
+              >
+                {INTRO_WALLET_CTA}
+              </button>
+              {walletInfoOpen ? (
+                <div
+                  id="login-eu-wallet-info"
+                  className="mt-2 rounded-lg border border-[#BFD9FF] bg-[#F0F6FF] px-2.5 py-2 text-[10px] leading-relaxed text-[#1A2B45] sm:text-[10.5px]"
+                  role="region"
+                  aria-label="EU Digital Identity Wallet — Information"
+                >
+                  <p className="whitespace-pre-line">{INTRO_WALLET_INFO_TEXT}</p>
+                  <p className="mt-1.5 text-[9.5px] font-semibold text-[#003366] sm:text-[10px]">
+                    {INTRO_WALLET_INFO_HINT}
+                  </p>
+                </div>
+              ) : null}
+              <div className="mt-2.5 border-t border-neutral-200/80 pt-2">
+                <p className="mb-1.5 text-[9px] font-semibold uppercase tracking-wide text-neutral-500">
+                  Perspektivischer Ablauf
+                </p>
+                <ol className="flex flex-wrap gap-1.5" role="list">
+                  {INTRO_WALLET_PROCESS_STEPS.map((label, i) => (
+                    <li
+                      key={label}
+                      className="inline-flex items-center gap-1 rounded-md border border-neutral-200/90 bg-white/90 px-1.5 py-1 text-[9px] font-medium leading-tight text-neutral-700"
+                    >
+                      <span className="tabular-nums text-[8px] font-bold text-[#003366]">{i + 1}</span>
+                      {label}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+
+            <div className={accessPathCardClass}>
+              <div className="flex items-start justify-between gap-2">
+                <span
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white text-[10px] font-bold text-neutral-600"
+                  aria-hidden
+                >
+                  3
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h2 className={accessPathTitleClass}>{INTRO_DEMO_MODE_TITLE}</h2>
+                  <p className={accessPathBodyClass}>{INTRO_DEMO_MODE_BODY}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleDemoModeClick}
+                className="btn-gov-primary mt-2 w-full min-h-[44px] text-[12px] font-bold sm:mt-2.5 sm:text-[13px]"
+              >
+                {INTRO_DEMO_MODE_CTA}
+              </button>
+            </div>
+
+            <div className="rounded-xl border border-dashed border-neutral-300/90 bg-white/80 px-2.5 py-2 text-[10px] leading-snug text-neutral-700 sm:px-3 sm:py-2.5 sm:text-[10.5px] sm:leading-relaxed">
+              {du ? INTRO_TRUST_HINT_DU : INTRO_TRUST_HINT_SIE}
+            </div>
+
+            {confirmedAccessMethod ? (
+              <div className="rounded-xl border border-emerald-200/90 bg-emerald-50/90 px-2.5 py-2 shadow-sm ring-1 ring-emerald-600/10 sm:px-3 sm:py-2.5">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-emerald-800/90">Status</p>
+                <h3 className="mt-0.5 text-[13px] font-bold leading-snug text-emerald-950 sm:text-sm">
+                  {INTRO_ACCESS_CONFIRMED_TITLE}
+                </h3>
+                <p className="mt-1 text-[10px] font-semibold leading-snug text-emerald-900 sm:text-[10.5px]">
+                  {INTRO_ACCESS_CONFIRMED_LEVELS}
+                </p>
+                <p className="mt-1 text-[10px] leading-relaxed text-emerald-900/95 sm:text-[10.5px]">
+                  {INTRO_ACCESS_CONFIRMED_BODY}
+                </p>
+                <p className="mt-1.5 border-t border-emerald-200/80 pt-1.5 text-[9.5px] text-emerald-800/95 sm:text-[10px]">
+                  <span className="font-semibold text-emerald-950">Sitzung:</span> Hauptstraße 1, 66459 Kirkel
                   {demoWahlkreis ? <span> · {demoWahlkreis}</span> : null}
                 </p>
               </div>
-            </div>
+            ) : null}
           </div>
+        </div>
 
-          <div
-            className="flex-shrink-0 space-y-2 px-5 pt-3 intro-action-bar-pad"
-            style={{ borderTop: '1px solid rgba(255, 255, 255, 0.10)' }}
-          >
-            <div className="flex gap-2">
-              <button type="button" onClick={reopenProductIntro} className={loginNavBackClass}>
-                Zurück
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  cancelOnboardingSpotlight();
-                  handleProceedToApp();
-                }}
-                onAnimationEnd={onOnboardingSpotlightAnimationEnd}
-                className={`${loginNavNextClass}${onboardingSpotlight === 'weiter' ? ' onboarding-heartbeat' : ''}`}
-              >
-                Weiter
-              </button>
-            </div>
+        <div className="flex-shrink-0 space-y-2 border-t border-neutral-200 bg-[#F7F9FC] px-4 pt-2.5 intro-action-bar-pad sm:px-5 sm:pt-3">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => (onBackToEntry ? onBackToEntry() : reopenProductIntro())}
+              className={loginNavBackClass}
+            >
+              Zurück
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                cancelOnboardingSpotlight();
+                if (!confirmedAccessMethod) return;
+                handleProceedToApp();
+              }}
+              onAnimationEnd={onOnboardingSpotlightAnimationEnd}
+              disabled={!confirmedAccessMethod}
+              className={`${loginNavNextClass}${onboardingSpotlight === 'weiter' ? ' onboarding-heartbeat' : ''}${
+                confirmedAccessMethod ? '' : ' opacity-60 cursor-not-allowed'
+              }`}
+            >
+              WEITER
+            </button>
           </div>
+        </div>
+      </div>
     </div>
   );
 

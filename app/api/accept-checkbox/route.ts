@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
-  countAcceptanceEvents,
   countTokenSessions,
   findAccessTokenByRawToken,
   isTokenExpired,
@@ -47,11 +46,6 @@ export async function POST(request: NextRequest) {
     const activeSessions = await countTokenSessions(tokenRecord.id);
     if (activeSessions >= tokenRecord.max_devices) {
       await deactivateOtherSessionsForToken(tokenRecord.id);
-    }
-
-    const acceptanceCount = await countAcceptanceEvents(tokenRecord.id);
-    if (acceptanceCount >= tokenRecord.max_views) {
-      return NextResponse.json({ success: false, error: 'Maximale Zugriffe erreicht.' }, { status: 403 });
     }
 
     const { redirectTo, rawSessionToken, sessionExpiresAt } =

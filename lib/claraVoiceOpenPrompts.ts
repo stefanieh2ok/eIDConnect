@@ -1,18 +1,28 @@
 /** Pre-Login Voice-Overlay: gleiche Texte wie ClaraVoiceInterface (eine Quelle). */
 export const ANREDE_VOICE_PROMPT =
-  'Sag klar „Du" oder „Sie", je nachdem, wie du angesprochen werden möchtest. Oder wähle die Buttons im Fenster.';
+  'Sagen Sie zum Beispiel „Du“ oder „Sie“, je nachdem, wie Sie angesprochen werden möchten. Sie können auch die Schaltflächen im Fenster nutzen.';
 
 export const ENTRY_VOICE_PROMPT_DU =
-  'Möchtest du die Einführung starten, oder direkt in die App? Sag zum Beispiel: Einführung starten, oder: direkt zur App. Oder nutz die Tasten oben.';
+  'Möchtest du die Einführung starten, oder direkt in die App? Sag zum Beispiel: Ja, Einführung starten, oder: direkt zur App. Oder nutz die Tasten.';
 
 export const ENTRY_VOICE_PROMPT_SIE =
-  'Möchten Sie die Einführung starten, oder direkt in die App? Sagen Sie zum Beispiel: Einführung starten, oder: direkt zur App. Oder nutzen Sie die Tasten oben.';
+  'Möchten Sie die Einführung starten, oder direkt in die App? Sagen Sie zum Beispiel: Ja, Einführung starten, oder: direkt zur App. Oder nutzen Sie die Tasten.';
 
 export const EID_VOICE_PROMPT_DU =
-  'Im eID-Schritt kannst du Fragen dazu stellen, oder im Fenster mit dem Button fortfahren. Die ausführliche eID-Erläuterung findest du in der laufenden Einführung oben.';
+  'Du kannst hier Fragen stellen — zum Beispiel zur eID, zur EU Digital Identity Wallet, zu Abstimmungen, Wahlen oder zum Politikbarometer. Clara erklärt dir den Unterschied neutral und Schritt für Schritt.';
 
 export const EID_VOICE_PROMPT_SIE =
-  'Im eID-Schritt können Sie Fragen dazu stellen, oder im Fenster mit dem Button fortfahren. Die ausführliche eID-Erläuterung finden Sie in der laufenden Einführung oben.';
+  'Sie können hier Fragen stellen — zum Beispiel zur eID, zur EU Digital Identity Wallet, zu Abstimmungen, Wahlen oder zum Politikbarometer. Clara erklärt Ihnen den Unterschied neutral und Schritt für Schritt.';
+
+/**
+ * Eingeloggter Produkt-Walkthrough: nur Anzeige im Voice-Panel — **kein** TTS beim Öffnen
+ * (Nutzung: Mic aktivieren, Nutzer spricht; keine zusätzliche Clara-Ansage).
+ */
+export const WALKTHROUGH_VOICE_OPEN_LINE_DU =
+  'Stelle eine Frage zu diesem Einführungsschritt — oder nutze die Steuerung im Fenster oben.';
+
+export const WALKTHROUGH_VOICE_OPEN_LINE_SIE =
+  'Stellen Sie eine Frage zu diesem Einführungsschritt — oder nutzen Sie die Steuerung im Fenster oben.';
 
 export function getVoiceOpenPromptAndDisplay(params: {
   preLoginVoicePhase: 'anrede' | 'entry' | 'eid' | null;

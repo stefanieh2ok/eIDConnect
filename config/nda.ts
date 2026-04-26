@@ -63,7 +63,7 @@ export const NDA_SIGNATURE_HINT_RECEIVING =
 export const NDA_RETURN_EMAIL_PRIMARY = 'stefanie.hook@hookai.eu';
 export const NDA_RETURN_EMAIL_SECONDARY = 'stefanie.h2ok@gmail.com';
 
-/** Vollständiger NDA-Volltext (Governikus / DeinDeutschland / Bürger App) */
+/** Vollständiger NDA-Volltext (Governikus / frühere Arbeitstitel / HookAI Civic Demo) */
 export const NDA_FULL_TEXT = `GEHEIMHALTUNGSVEREINBARUNG / NDA
 für den Zugang zu einer vertraulichen Demo-Umgebung
 
@@ -93,7 +93,7 @@ Die vorliegende Vereinbarung wird zwischen der Offenlegenden Partei und der Empf
 
 2. Zweck der Offenlegung
 
-Die Offenlegende Partei gewährt der Empfangenden Partei Zugang zu einer vertraulichen Demo-, Test- oder Präsentationsumgebung einer digitalen Civic-Tech-/GovTech-Lösung mit dem Arbeitstitel „DeinDeutschland“ / „Bürger App“ sowie zu damit verbundenen Informationen, Unterlagen, Konzepten und technischen bzw. geschäftlichen Inhalten.
+Die Offenlegende Partei gewährt der Empfangenden Partei Zugang zu einer vertraulichen Demo-, Test- oder Präsentationsumgebung einer digitalen Civic-Tech-/GovTech-Lösung unter der öffentlich geführten Demo „HookAI Civic Demo“ (frühere interne Arbeitstitel u. a. „DeinDeutschland“, „Bürger App“) sowie zu damit verbundenen Informationen, Unterlagen, Konzepten und technischen bzw. geschäftlichen Inhalten.
 
 Die Offenlegung erfolgt ausschließlich zum Zweck der Prüfung einer möglichen geschäftlichen, technischen, strategischen oder partnerschaftlichen Zusammenarbeit.
 

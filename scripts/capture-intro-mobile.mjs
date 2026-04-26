@@ -88,7 +88,7 @@ async function main() {
     await capture(page, 'intro-kalender.png', async () => clickNav(page, 'Kalender'));
     await capture(page, 'intro-meldungen.png', async () => clickNav(page, 'Meldungen'));
     await capture(page, 'intro-praemien.png', async () =>
-      page.getByRole('button', { name: 'Punkte & Prämien öffnen' }).first().click({ timeout: 10000 }),
+      page.getByRole('button', { name: 'Beteiligungsstatus öffnen' }).first().click({ timeout: 10000 }),
     );
   } finally {
     await browser.close();

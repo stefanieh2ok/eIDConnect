@@ -33,9 +33,9 @@ const RewardSystem: React.FC<RewardSystemProps> = ({ user, onLevelUp }) => {
   const badges: Badge[] = [
     // Wahl-Badges
     { id: 'erstwahl', name: 'Erstwähler', description: 'Erste Wahl abgegeben', icon: '🗳️', points: 100, unlocked: user.badges.includes('erstwahl'), category: 'wahl', requirement: '1 Wahl' },
-    { id: 'bundeswahl', name: 'Bundesbürger', description: 'An Bundestagswahl teilgenommen', icon: '🇩🇪', points: 100, unlocked: user.badges.includes('bundeswahl'), category: 'wahl', requirement: 'Bundestagswahl' },
-    { id: 'landeswahl', name: 'Landesbürger', description: 'An Landtagswahl teilgenommen', icon: '🏛️', points: 75, unlocked: user.badges.includes('landeswahl'), category: 'wahl', requirement: 'Landtagswahl' },
-    { id: 'kommunalwahl', name: 'Kommunalbürger', description: 'An Kommunalwahl teilgenommen', icon: '🏘️', points: 50, unlocked: user.badges.includes('kommunalwahl'), category: 'wahl', requirement: 'Kommunalwahl' },
+    { id: 'bundeswahl', name: 'Bundestagswahl', description: 'An Bundestagswahl teilgenommen', icon: '🇩🇪', points: 100, unlocked: user.badges.includes('bundeswahl'), category: 'wahl', requirement: 'Bundestagswahl' },
+    { id: 'landeswahl', name: 'Landtagswahl', description: 'An Landtagswahl teilgenommen', icon: '🏛️', points: 75, unlocked: user.badges.includes('landeswahl'), category: 'wahl', requirement: 'Landtagswahl' },
+    { id: 'kommunalwahl', name: 'Kommunalwahl', description: 'An Kommunalwahl teilgenommen', icon: '🏘️', points: 50, unlocked: user.badges.includes('kommunalwahl'), category: 'wahl', requirement: 'Kommunalwahl' },
     { id: 'alle-ebenen', name: 'Föderalismus-Experte', description: 'Auf allen 5 Ebenen gewählt', icon: '⭐', points: 500, unlocked: user.badges.includes('alle-ebenen'), category: 'wahl', requirement: 'Alle Ebenen' },
     
     // Engagement-Badges
@@ -58,8 +58,8 @@ const RewardSystem: React.FC<RewardSystemProps> = ({ user, onLevelUp }) => {
 
   // Level-System
   const levels = [
-    { level: 1, name: 'Bürger', min: 0, max: 100, color: '#6B7280', icon: '👤' },
-    { level: 2, name: 'Aktiver Bürger', min: 100, max: 500, color: '#3B82F6', icon: '⭐' },
+    { level: 1, name: 'Einsteiger:in', min: 0, max: 100, color: '#6B7280', icon: '👤' },
+    { level: 2, name: 'Aktiv mitwirkend', min: 100, max: 500, color: '#3B82F6', icon: '⭐' },
     { level: 3, name: 'Demokrat', min: 500, max: 1000, color: '#8B5CF6', icon: '🏛️' },
     { level: 4, name: 'Demokratie-Experte', min: 1000, max: 2000, color: '#F59E0B', icon: '🎓' },
     { level: 5, name: 'Demokratie-Champion', min: 2000, max: 5000, color: '#EF4444', icon: '👑' },
@@ -145,7 +145,7 @@ const RewardSystem: React.FC<RewardSystemProps> = ({ user, onLevelUp }) => {
               <h3 className="font-bold text-green-800 mb-2">Nächste Vorteile</h3>
               <ul className="text-sm text-green-700 space-y-1">
                 <li>• Persönliche Demokratie-Beratung</li>
-                <li>• Einladung zu Bürgerforen</li>
+                <li>• Einladung zu Beteiligungs- und Dialogformaten</li>
                 <li>• Beta-Tester für neue Funktionen</li>
                 <li>• Exklusive Events</li>
               </ul>

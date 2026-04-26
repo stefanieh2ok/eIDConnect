@@ -2,7 +2,7 @@ import type { IntroOverlayStepId } from '@/data/introOverlayMarketing';
 
 /**
  * Pro Walkthrough-Screen: UI (short/long) und **Spoken** (`speakSegments*`) getrennt.
- * Premium tonality: Wert, Orientierung, kein defensives Demo-Vokabular.
+ * HookAI Civic Demo — GovTech-Ton, keine Gamification, kein Stimmungsbarometer.
  */
 export type WalkthroughClaraBlock = {
   label: string;
@@ -20,166 +20,154 @@ export type WalkthroughClaraBlock = {
 export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClaraBlock> = {
   abstimmen: {
     label: 'Abstimmen',
-    line10sDu:
-      'Hier siehst du aktuelle Themen auf einen Blick und kannst klar, schnell und informiert daran mitwirken.',
-    line10sSie:
-      'Hier sehen Sie aktuelle Themen auf einen Blick und können klar, schnell und informiert daran mitwirken.',
-    shortDu: 'Aktuelle Themen klar erfassen, einordnen und direkt daran mitwirken.',
-    shortSie: 'Aktuelle Themen klar erfassen, einordnen und direkt daran mitwirken.',
+    line10sDu: 'Beteiligungen werden verständlich eingeordnet – mit Pro, Contra und neutralem Kontext.',
+    line10sSie: 'Beteiligungen werden verständlich eingeordnet – mit Pro, Contra und neutralem Kontext.',
+    shortDu: 'Beteiligungen werden verständlich eingeordnet – mit Pro, Contra und neutralem Kontext.',
+    shortSie: 'Beteiligungen werden verständlich eingeordnet – mit Pro, Contra und neutralem Kontext.',
     longDu:
-      'Hier siehst du aktuelle Themen auf einen Blick.\n\n' +
-      'Du kannst zwischen Dafür, Dagegen und Enthaltung wählen.\n\n' +
-      'Wenn du mehr Kontext brauchst, helfen dir Clara und vertiefende Informationen beim Einordnen.\n\n' +
-      'So wird Beteiligung einfacher, verständlicher und zugänglicher.',
+      'In diesem Bereich sehen Nutzerinnen und Nutzer aktuelle Beteiligungen und Abstimmungen.\n\n' +
+      'Wichtig ist die ausgewogene Einordnung: Pro- und Contra-Argumente werden sichtbar gemacht, damit Entscheidungen besser nachvollzogen werden können.\n\n' +
+      'Die App gibt keine Empfehlung ab. Sie unterstützt Orientierung, Transparenz und informierte Mitwirkung.',
     longSie:
-      'Hier sehen Sie aktuelle Themen auf einen Blick.\n\n' +
-      'Sie können zwischen Dafür, Dagegen und Enthaltung wählen.\n\n' +
-      'Wenn Sie mehr Kontext brauchen, helfen Ihnen Clara und vertiefende Informationen beim Einordnen.\n\n' +
-      'So wird Beteiligung einfacher, verständlicher und zugänglicher.',
+      'In diesem Bereich sehen Nutzerinnen und Nutzer aktuelle Beteiligungen und Abstimmungen.\n\n' +
+      'Wichtig ist die ausgewogene Einordnung: Pro- und Contra-Argumente werden sichtbar gemacht, damit Entscheidungen besser nachvollzogen werden können.\n\n' +
+      'Die App gibt keine Empfehlung ab. Sie unterstützt Orientierung, Transparenz und informierte Mitwirkung.',
     speakSegmentsDu: [
-      'Hier findest du aktuelle Themen, an denen du direkt mitwirken kannst.',
-      'Du stimmst klar und intuitiv ab: dafür, dagegen oder Enthaltung.',
-      'Wenn du mehr Orientierung brauchst, bekommst du zusätzliche Informationen direkt im Kontext.',
-      'So wird Beteiligung schneller, verständlicher und alltagstauglich.',
+      'In diesem Bereich siehst du aktuelle Beteiligungen und Abstimmungen.',
+      'Entscheidend ist nicht nur der Abstimmungsbutton, sondern die Einordnung davor. Deshalb sollten Pro- und Contra-Argumente sichtbar sein.',
+      'Die App hilft dir, Positionen besser zu verstehen — ohne dir eine Richtung vorzugeben.',
     ],
     speakSegmentsSie: [
-      'Hier finden Sie aktuelle Themen, an denen Sie direkt mitwirken können.',
-      'Sie stimmen klar und intuitiv ab: dafür, dagegen oder Enthaltung.',
-      'Wenn Sie mehr Orientierung brauchen, bekommen Sie zusätzliche Informationen direkt im Kontext.',
-      'So wird Beteiligung schneller, verständlicher und alltagstauglich.',
+      'In diesem Bereich sehen Sie aktuelle Beteiligungen und Abstimmungen.',
+      'Entscheidend ist nicht nur der Abstimmungsbutton, sondern die Einordnung davor. Deshalb sollten Pro- und Contra-Argumente sichtbar sein.',
+      'Die App hilft Ihnen, Positionen besser zu verstehen — ohne Ihnen eine Richtung vorzugeben.',
     ],
   },
   wahlen: {
     label: 'Wahlen',
-    line10sDu:
-      'Hier findest du Wahlen, Stimmzettel und politische Informationen in einer Struktur, die Orientierung leichter macht.',
-    line10sSie:
-      'Hier finden Sie Wahlen, Stimmzettel und politische Informationen in einer Struktur, die Orientierung leichter macht.',
-    shortDu: 'Wahlen, Stimmzettel und politische Informationen strukturiert an einem Ort.',
-    shortSie: 'Wahlen, Stimmzettel und politische Informationen strukturiert an einem Ort.',
+    line10sDu: 'Wahlen, Stimmzettel und Programme werden strukturiert zugänglich gemacht.',
+    line10sSie: 'Wahlen, Stimmzettel und Programme werden strukturiert zugänglich gemacht.',
+    shortDu: 'Wahlen, Stimmzettel und Programme werden strukturiert zugänglich gemacht.',
+    shortSie: 'Wahlen, Stimmzettel und Programme werden strukturiert zugänglich gemacht.',
     longDu:
-      'Hier erhältst du einen klaren Zugang zu Wahlen, Stimmzetteln, Programmen, Kandidaten und weiteren relevanten Informationen.\n\n' +
-      'Die Inhalte sind so aufgebaut, dass Orientierung leichter fällt und Zusammenhänge schneller verständlich werden.\n\n' +
-      'Wo vorgesehen, lassen sich auch Ergebnisse und weiterführende Informationen einsehen.',
+      'Dieser Bereich bündelt Informationen zu Wahlen, Stimmzetteln, Kandidierenden und Programmen.\n\n' +
+      'Die Darstellung soll Orientierung erleichtern, ohne politische Bewertungen oder Wahlempfehlungen zu erzeugen.\n\n' +
+      'Wo vorgesehen, können Ergebnisse und weiterführende Informationen nachvollziehbar eingesehen werden.',
     longSie:
-      'Hier erhalten Sie einen klaren Zugang zu Wahlen, Stimmzetteln, Programmen, Kandidaten und weiteren relevanten Informationen.\n\n' +
-      'Die Inhalte sind so aufgebaut, dass Orientierung leichter fällt und Zusammenhänge schneller verständlich werden.\n\n' +
-      'Wo vorgesehen, lassen sich auch Ergebnisse und weiterführende Informationen einsehen.',
+      'Dieser Bereich bündelt Informationen zu Wahlen, Stimmzetteln, Kandidierenden und Programmen.\n\n' +
+      'Die Darstellung soll Orientierung erleichtern, ohne politische Bewertungen oder Wahlempfehlungen zu erzeugen.\n\n' +
+      'Wo vorgesehen, können Ergebnisse und weiterführende Informationen nachvollziehbar eingesehen werden.',
     speakSegmentsDu: [
-      'Dieser Bereich bündelt Wahlen und die dazugehörigen Informationen in einer klaren Struktur.',
-      'Du findest Stimmzettel, Hintergründe, Programme und weitere Inhalte, die Orientierung schaffen.',
-      'So wird politische Information zugänglicher, ohne an Tiefe zu verlieren.',
+      'Der Wahlbereich bündelt Informationen, die sonst oft an verschiedenen Stellen liegen: Stimmzettel, Programme, Kandidierende und Ergebnisse.',
+      'Clara kann Begriffe erklären oder Inhalte verständlich zusammenfassen.',
+      'Eine Wahlempfehlung gibt die App aber nicht.',
     ],
     speakSegmentsSie: [
-      'Dieser Bereich bündelt Wahlen und die dazugehörigen Informationen in einer klaren Struktur.',
-      'Sie finden Stimmzettel, Hintergründe, Programme und weitere Inhalte, die Orientierung schaffen.',
-      'So wird politische Information zugänglicher, ohne an Tiefe zu verlieren.',
+      'Der Wahlbereich bündelt Informationen, die sonst oft an verschiedenen Stellen liegen: Stimmzettel, Programme, Kandidierende und Ergebnisse.',
+      'Clara kann Begriffe erklären oder Inhalte verständlich zusammenfassen.',
+      'Eine Wahlempfehlung gibt die App aber nicht.',
     ],
   },
   kalender: {
     label: 'Kalender',
-    line10sDu:
-      'Im Kalender behältst du wichtige Termine, Fristen und Beteiligungen zentral im Blick.',
-    line10sSie:
-      'Im Kalender behalten Sie wichtige Termine, Fristen und Beteiligungen zentral im Blick.',
-    shortDu: 'Wichtige Termine, Fristen und Beteiligungen zentral im Blick.',
-    shortSie: 'Wichtige Termine, Fristen und Beteiligungen zentral im Blick.',
+    line10sDu: 'Termine, Fristen und Beteiligungen werden an einem Ort gebündelt.',
+    line10sSie: 'Termine, Fristen und Beteiligungen werden an einem Ort gebündelt.',
+    shortDu: 'Termine, Fristen und Beteiligungen werden an einem Ort gebündelt.',
+    shortSie: 'Termine, Fristen und Beteiligungen werden an einem Ort gebündelt.',
     longDu:
-      'Der Kalender bündelt relevante Termine rund um Wahlen, Abstimmungen und weitere Beteiligungsformate.\n\n' +
-      'So wird sichtbar, was ansteht, was Fristen hat und wann Beteiligung möglich ist.\n\n' +
-      'Das erleichtert Planung, Orientierung und rechtzeitige Teilnahme.',
+      'Der Kalender zeigt relevante Termine rund um Wahlen, Abstimmungen und Beteiligungsverfahren.\n\n' +
+      'So wird sichtbar, was ansteht, welche Fristen gelten und wann Mitwirkung möglich ist.\n\n' +
+      'Wenn Interessenschwerpunkte gesetzt wurden, können passende Termine dezent hervorgehoben werden – ohne politische Empfehlung.',
     longSie:
-      'Der Kalender bündelt relevante Termine rund um Wahlen, Abstimmungen und weitere Beteiligungsformate.\n\n' +
-      'So wird sichtbar, was ansteht, was Fristen hat und wann Beteiligung möglich ist.\n\n' +
-      'Das erleichtert Planung, Orientierung und rechtzeitige Teilnahme.',
+      'Der Kalender zeigt relevante Termine rund um Wahlen, Abstimmungen und Beteiligungsverfahren.\n\n' +
+      'So wird sichtbar, was ansteht, welche Fristen gelten und wann Mitwirkung möglich ist.\n\n' +
+      'Wenn Interessenschwerpunkte gesetzt wurden, können passende Termine dezent hervorgehoben werden – ohne politische Empfehlung.',
     speakSegmentsDu: [
-      'Im Kalender siehst du, was wann relevant wird.',
-      'Wahlen, Beteiligungen und Fristen sind übersichtlich zusammengeführt.',
-      'So behältst du wichtige Termine im Blick und kannst einfacher zum richtigen Zeitpunkt handeln.',
+      'Der Kalender zeigt dir, welche Termine, Fristen und Beteiligungen anstehen.',
+      'Wenn du im Politikbarometer Themen wie Digitalisierung oder Umwelt und Energie markierst, können passende Termine hier hervorgehoben werden.',
+      'Das ist keine Empfehlung, sondern nur ein Hinweis auf thematische Relevanz.',
     ],
     speakSegmentsSie: [
-      'Im Kalender sehen Sie, was wann relevant wird.',
-      'Wahlen, Beteiligungen und Fristen sind übersichtlich zusammengeführt.',
-      'So behalten Sie wichtige Termine im Blick und können einfacher zum richtigen Zeitpunkt handeln.',
+      'Der Kalender zeigt Ihnen, welche Termine, Fristen und Beteiligungen anstehen.',
+      'Wenn Sie im Politikbarometer Themen wie Digitalisierung oder Umwelt und Energie markieren, können passende Termine hier hervorgehoben werden.',
+      'Das ist keine Empfehlung, sondern nur ein Hinweis auf thematische Relevanz.',
     ],
   },
   meldungen: {
     label: 'Meldungen',
-    line10sDu:
-      'Über diesen Bereich lassen sich Anliegen digital, geordnet und nachvollziehbar weitergeben.',
-    line10sSie:
-      'Über diesen Bereich lassen sich Anliegen digital, geordnet und nachvollziehbar weitergeben.',
-    shortDu: 'Anliegen strukturiert übermitteln und digital nachvollziehbar weitergeben.',
-    shortSie: 'Anliegen strukturiert übermitteln und digital nachvollziehbar weitergeben.',
+    line10sDu: 'Anliegen können digital, strukturiert und nachvollziehbar weitergegeben werden.',
+    line10sSie: 'Anliegen können digital, strukturiert und nachvollziehbar weitergegeben werden.',
+    shortDu: 'Anliegen können digital, strukturiert und nachvollziehbar weitergegeben werden.',
+    shortSie: 'Anliegen können digital, strukturiert und nachvollziehbar weitergegeben werden.',
     longDu:
-      'Über diesen Bereich lassen sich Hinweise, Anliegen oder konkrete Meldungen digital und geordnet erfassen.\n\n' +
-      'Die Informationen werden strukturiert vorbereitet, damit sie schneller an der richtigen Stelle ankommen und nachvollziehbar bearbeitet werden können.\n\n' +
-      'So wird Bürgerkommunikation einfacher, klarer und effizienter.',
+      'Über diesen Bereich lassen sich Hinweise, Anliegen oder konkrete Meldungen geordnet erfassen.\n\n' +
+      'Die Informationen werden so vorbereitet, dass sie schneller an der richtigen Stelle ankommen und nachvollziehbar bearbeitet werden können.\n\n' +
+      'Das macht Bürgerkommunikation klarer, einfacher und effizienter.',
     longSie:
-      'Über diesen Bereich lassen sich Hinweise, Anliegen oder konkrete Meldungen digital und geordnet erfassen.\n\n' +
-      'Die Informationen werden strukturiert vorbereitet, damit sie schneller an der richtigen Stelle ankommen und nachvollziehbar bearbeitet werden können.\n\n' +
-      'So wird Bürgerkommunikation einfacher, klarer und effizienter.',
+      'Über diesen Bereich lassen sich Hinweise, Anliegen oder konkrete Meldungen geordnet erfassen.\n\n' +
+      'Die Informationen werden so vorbereitet, dass sie schneller an der richtigen Stelle ankommen und nachvollziehbar bearbeitet werden können.\n\n' +
+      'Das macht Bürgerkommunikation klarer, einfacher und effizienter.',
     speakSegmentsDu: [
-      'Hier können Anliegen digital und strukturiert erfasst werden.',
-      'Das sorgt für einen klareren Ablauf und hilft, Informationen gezielt weiterzugeben.',
-      'Für Nutzerinnen und Nutzer wird Kommunikation damit einfacher, transparenter und besser nachvollziehbar.',
+      'Im Bereich Meldungen kannst du Anliegen strukturiert erfassen — zum Beispiel Hinweise aus deiner Kommune.',
+      'Die App hilft dabei, Informationen so aufzubereiten, dass sie verständlich und zuständigkeitsnah weitergegeben werden können.',
+      'So wird Bürgerkommunikation klarer und nachvollziehbarer.',
     ],
     speakSegmentsSie: [
-      'Hier können Anliegen digital und strukturiert erfasst werden.',
-      'Das sorgt für einen klareren Ablauf und hilft, Informationen gezielt weiterzugeben.',
-      'Für Nutzerinnen und Nutzer wird Kommunikation damit einfacher, transparenter und besser nachvollziehbar.',
+      'Im Bereich Meldungen können Sie Anliegen strukturiert erfassen — zum Beispiel Hinweise aus Ihrer Kommune.',
+      'Die App hilft dabei, Informationen so aufzubereiten, dass sie verständlich und zuständigkeitsnah weitergegeben werden können.',
+      'So wird Bürgerkommunikation klarer und nachvollziehbarer.',
     ],
   },
   praemien: {
-    label: 'Prämien',
-    line10sDu:
-      'Dieser Bereich ergänzt Beteiligung um ein freiwilliges Modell sichtbarer Anerkennung und zusätzlicher Anreize.',
-    line10sSie:
-      'Dieser Bereich ergänzt Beteiligung um ein freiwilliges Modell sichtbarer Anerkennung und zusätzlicher Anreize.',
-    shortDu: 'Freiwillige Aktivierung für sichtbare Anerkennung von Beteiligung.',
-    shortSie: 'Freiwillige Aktivierung für sichtbare Anerkennung von Beteiligung.',
+    label: 'Prämien & Beteiligungsstatus',
+    line10sDu: 'Eigene Beiträge werden transparent nachvollziehbar; optionale Prämien können freiwillig sichtbar sein.',
+    line10sSie: 'Eigene Beiträge werden transparent nachvollziehbar; optionale Prämien können freiwillig sichtbar sein.',
+    shortDu: 'Eigene Beiträge werden transparent nachvollziehbar; optionale Prämien können freiwillig sichtbar sein.',
+    shortSie: 'Eigene Beiträge werden transparent nachvollziehbar; optionale Prämien können freiwillig sichtbar sein.',
     longDu:
-      'Dieser Bereich ergänzt die App um ein freiwilliges Punkte- und Prämiensystem.\n\n' +
-      'Beteiligung kann damit sichtbar honoriert werden — transparent, optional und nachvollziehbar.\n\n' +
-      'So entsteht ein zusätzlicher Anreiz für wiederkehrende Mitwirkung, ohne die Nutzung zu überfrachten.',
+      'Dieser Bereich zeigt, welche Beiträge, Meldungen oder Beteiligungen bereits eingereicht wurden.\n\n' +
+      'Im Mittelpunkt steht Transparenz: Was wurde übermittelt, was ist bestätigt und was ist noch offen?\n\n' +
+      'Optional kann die Kommune zusätzlich ein freiwilliges Prämienprogramm als Dankeschön für aktive Beteiligung anzeigen.',
     longSie:
-      'Dieser Bereich ergänzt die App um ein freiwilliges Punkte- und Prämiensystem.\n\n' +
-      'Beteiligung kann damit sichtbar honoriert werden — transparent, optional und nachvollziehbar.\n\n' +
-      'So entsteht ein zusätzlicher Anreiz für wiederkehrende Mitwirkung, ohne die Nutzung zu überfrachten.',
+      'Dieser Bereich zeigt, welche Beiträge, Meldungen oder Beteiligungen bereits eingereicht wurden.\n\n' +
+      'Im Mittelpunkt steht Transparenz: Was wurde übermittelt, was ist bestätigt und was ist noch offen?\n\n' +
+      'Optional kann die Kommune zusätzlich ein freiwilliges Prämienprogramm als Dankeschön für aktive Beteiligung anzeigen.',
     speakSegmentsDu: [
-      'Dieser Bereich ergänzt Beteiligung um ein freiwilliges Modell sichtbarer Anerkennung und zusätzlicher Anreize.',
-      'Wer mitwirkt, kann Aktivität sichtbar machen und zusätzliche Anreize nutzen.',
-      'Das bleibt optional, ist sinnvoll integriert und leicht verständlich.',
+      'Dieser Bereich zeigt dir, welche Beiträge, Meldungen oder Beteiligungen du bereits eingereicht hast und welchen Status sie haben.',
+      'Du sollst sehen können, was offen, bestätigt oder abgeschlossen ist.',
+      'Optional kann die Kommune hier außerdem ein freiwilliges Prämienprogramm anzeigen.',
     ],
     speakSegmentsSie: [
-      'Dieser Bereich ergänzt Beteiligung um ein freiwilliges Modell sichtbarer Anerkennung und zusätzlicher Anreize.',
-      'Wer mitwirkt, kann Aktivität sichtbar machen und zusätzliche Anreize nutzen.',
-      'Das bleibt optional, ist sinnvoll integriert und leicht verständlich.',
+      'Dieser Bereich zeigt Ihnen, welche Beiträge, Meldungen oder Beteiligungen Sie bereits eingereicht haben und welchen Status sie haben.',
+      'Sie sollen sehen können, was offen, bestätigt oder abgeschlossen ist.',
+      'Optional kann die Kommune hier außerdem ein freiwilliges Prämienprogramm anzeigen.',
     ],
   },
   politikbarometer: {
     label: 'Politikbarometer',
-    line10sDu: 'Das Politikbarometer macht Entwicklungen, Stimmungen und Tendenzen schneller erfassbar.',
-    line10sSie: 'Das Politikbarometer macht Entwicklungen, Stimmungen und Tendenzen schneller erfassbar.',
-    shortDu: 'Stimmungen, Entwicklungen und Tendenzen schneller erfassen.',
-    shortSie: 'Stimmungen, Entwicklungen und Tendenzen schneller erfassen.',
+    line10sDu: 'Interessenschwerpunkte helfen, passende Beteiligungen im Kalender schneller zu erkennen.',
+    line10sSie: 'Interessenschwerpunkte helfen, passende Beteiligungen im Kalender schneller zu erkennen.',
+    shortDu: 'Interessenschwerpunkte helfen, passende Beteiligungen im Kalender schneller zu erkennen.',
+    shortSie: 'Interessenschwerpunkte helfen, passende Beteiligungen im Kalender schneller zu erkennen.',
     longDu:
-      'Das Politikbarometer verdichtet Beteiligung und Rückmeldungen zu einer schnellen Übersicht.\n\n' +
-      'So lassen sich Entwicklungen, Tendenzen und Schwerpunkte früher erkennen und besser einordnen.\n\n' +
-      'Der Bereich unterstützt Orientierung, ohne einzelne Themen aus dem Zusammenhang zu lösen.',
+      'Das Politikbarometer zeigt keine politische Bewertung und erstellt kein Meinungsprofil.\n\n' +
+      'Nutzerinnen und Nutzer können selbst Themen markieren, die ihnen besonders wichtig sind – zum Beispiel Digitalisierung, Umwelt und Energie oder Bildung.\n\n' +
+      'Passende Termine und Beteiligungen können dadurch im Kalender hervorgehoben werden. Das ist keine Empfehlung, sondern nur thematische Relevanz.',
     longSie:
-      'Das Politikbarometer verdichtet Beteiligung und Rückmeldungen zu einer schnellen Übersicht.\n\n' +
-      'So lassen sich Entwicklungen, Tendenzen und Schwerpunkte früher erkennen und besser einordnen.\n\n' +
-      'Der Bereich unterstützt Orientierung, ohne einzelne Themen aus dem Zusammenhang zu lösen.',
+      'Das Politikbarometer zeigt keine politische Bewertung und erstellt kein Meinungsprofil.\n\n' +
+      'Nutzerinnen und Nutzer können selbst Themen markieren, die ihnen besonders wichtig sind – zum Beispiel Digitalisierung, Umwelt und Energie oder Bildung.\n\n' +
+      'Passende Termine und Beteiligungen können dadurch im Kalender hervorgehoben werden. Das ist keine Empfehlung, sondern nur thematische Relevanz.',
     speakSegmentsDu: [
-      'Das Politikbarometer macht Entwicklungen schneller sichtbar.',
-      'Es hilft, Tendenzen einzuordnen und Beteiligung in einem größeren Zusammenhang zu sehen.',
-      'So entsteht Orientierung, ohne dass du dich erst durch viele Einzeldaten arbeiten musst.',
+      'Das Politikbarometer hilft dir, Themen zu markieren, die dir besonders wichtig sind.',
+      'Wenn du zum Beispiel Digitalisierung, Umwelt und Energie oder Bildung auswählst, kann der Kalender passende Termine und Beteiligungen hervorheben.',
+      'Wichtig ist: Die App bewertet nicht deine Meinung und leitet nichts aus deinem Verhalten ab.',
+      'Du kannst diese Auswahl später jederzeit in den Einstellungen ändern.',
     ],
     speakSegmentsSie: [
-      'Das Politikbarometer macht Entwicklungen schneller sichtbar.',
-      'Es hilft, Tendenzen einzuordnen und Beteiligung in einem größeren Zusammenhang zu sehen.',
-      'So entsteht Orientierung, ohne sich erst durch viele Einzeldaten arbeiten zu müssen.',
+      'Das Politikbarometer hilft Ihnen, Themen zu markieren, die Ihnen besonders wichtig sind.',
+      'Wenn Sie zum Beispiel Digitalisierung, Umwelt und Energie oder Bildung auswählen, kann der Kalender passende Termine und Beteiligungen hervorheben.',
+      'Wichtig ist: Die App bewertet nicht Ihre Meinung und leitet nichts aus Ihrem Verhalten ab.',
+      'Sie können diese Auswahl später jederzeit in den Einstellungen ändern.',
     ],
   },
 };
