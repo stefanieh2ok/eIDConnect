@@ -84,6 +84,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   const du = state.anrede === 'du';
   const [demoWahlkreis, setDemoWahlkreis] = useState<string>('');
   const [walletInfoOpen, setWalletInfoOpen] = useState(false);
+  /** EU-Wallet: Fließtext + Prozesszeile standard eingeklappt — weniger Scroll auf kleinen Screens. */
+  const [walletKonzeptOpen, setWalletKonzeptOpen] = useState(false);
   const [confirmedAccessMethod, setConfirmedAccessMethod] = useState<'eid' | 'demo' | null>('eid');
   type OnboardingSpotlight = 'off' | 'eid' | 'weiter';
   const [onboardingSpotlight, setOnboardingSpotlight] = useState<OnboardingSpotlight>('off');
@@ -254,9 +256,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
             <p className="px-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
               Zugangspfad wählen
             </p>
-            <p className="px-0.5 text-[9px] leading-snug text-neutral-500 [@media(max-height:720px)]:block hidden">
-              Nach unten scrollen: EU-Wallet und Demo-Modus folgen.
-            </p>
 
             <div className={accessPathCardClass}>
               <div className="flex items-start justify-between gap-2">
@@ -313,7 +312,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                       {INTRO_WALLET_BADGE}
                     </span>
                   </div>
-                  <p className={accessPathBodyClass}>{INTRO_WALLET_CARD_BODY}</p>
+                  <p
+                    className={`${accessPathBodyClass} ${walletKonzeptOpen ? '' : 'line-clamp-3'}`}
+                  >
+                    {INTRO_WALLET_CARD_BODY}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setWalletKonzeptOpen((o) => !o)}
+                    className="mt-1.5 w-full rounded-lg border border-slate-200/90 bg-white py-1.5 text-center text-[10px] font-semibold text-[#003366] transition hover:bg-slate-50"
+                    aria-expanded={walletKonzeptOpen}
+                    aria-controls="login-eu-wallet-konzept-ablauf"
+                  >
+                    {walletKonzeptOpen ? 'Konzept & Ablauf ausblenden' : 'Konzept & Ablauf anzeigen'}
+                  </button>
                 </div>
               </div>
               <button
@@ -338,22 +350,27 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                   </p>
                 </div>
               ) : null}
-              <div className="mt-2.5 border-t border-neutral-200/80 pt-2">
-                <p className="mb-1.5 text-[9px] font-semibold uppercase tracking-wide text-neutral-500">
-                  Perspektivischer Ablauf
-                </p>
-                <ol className="flex flex-wrap gap-1.5" role="list">
-                  {INTRO_WALLET_PROCESS_STEPS.map((label, i) => (
-                    <li
-                      key={label}
-                      className="inline-flex items-center gap-1 rounded-md border border-neutral-200/90 bg-white/90 px-1.5 py-1 text-[9px] font-medium leading-tight text-neutral-700"
-                    >
-                      <span className="tabular-nums text-[8px] font-bold text-[#003366]">{i + 1}</span>
-                      {label}
-                    </li>
-                  ))}
-                </ol>
-              </div>
+              {walletKonzeptOpen ? (
+                <div
+                  id="login-eu-wallet-konzept-ablauf"
+                  className="mt-2.5 border-t border-neutral-200/80 pt-2"
+                >
+                  <p className="mb-1.5 text-[9px] font-semibold uppercase tracking-wide text-neutral-500">
+                    Perspektivischer Ablauf
+                  </p>
+                  <ol className="flex flex-wrap gap-1.5" role="list">
+                    {INTRO_WALLET_PROCESS_STEPS.map((label, i) => (
+                      <li
+                        key={label}
+                        className="inline-flex items-center gap-1 rounded-md border border-neutral-200/90 bg-white/90 px-1.5 py-1 text-[9px] font-medium leading-tight text-neutral-700"
+                      >
+                        <span className="tabular-nums text-[8px] font-bold text-[#003366]">{i + 1}</span>
+                        {label}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              ) : null}
             </div>
 
             <div className={accessPathCardClass}>
