@@ -20,7 +20,8 @@
     "capture:intro": "node scripts/capture-demo-screens.mjs http://localhost:3002",
     "test:ui": "jest --testPathPattern=BuergerApp.ui",
     "deploy:vercel": "npx vercel@latest",
-    "deploy:vercel:prod": "npx vercel@latest --prod"
+    "deploy:vercel:prod": "npx vercel@latest --prod",
+    "repair:tailwind": "node scripts/repair-tailwind.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.0",
@@ -50,7 +51,7 @@
     "playwright": "^1.58.2",
     "postcss": "^8.4.0",
     "sharp": "^0.34.5",
-    "tailwindcss": "^3.3.0",
+    "tailwindcss": "3.4.17",
     "typescript": "^5.0.0"
   }
 }
