@@ -22,7 +22,7 @@ import type { IntroOverlayStepId } from '@/data/introOverlayMarketing';
 
 const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = {
   abstimmen: 'Haltung wählen · mit Daumen bestätigen · +250 Punkte',
-  wahlen: 'Erststimme · Stimmzettel wie bei der Bundestagswahl',
+  wahlen: 'BTW 2025 · Erst- und Zweitstimme (App-Daten)',
   kalender: 'März 2026 · Termine · Ebenen',
   meldungen: 'Spielplatz · Meldungstext (Demo)',
   praemien: 'Status · Demo',
@@ -475,44 +475,76 @@ function IntroAbstimmenSnapshot({ du }: { du: boolean }) {
   );
 }
 
-/** Stimmzettel-Ausschnitt: Bundestagswahl · Erststimme mit Kreuz bei Angela Merkel (Demo). */
+/**
+ * Stimmzettel-Ausschnitt: Inhalte aus `WAHLEN_DATA` / Bundestagswahl 2025 (`btw25`) —
+ * Kanzlerkandidaten und Parteien wie in der App gepflegt (keine erfundenen Namen).
+ */
 function IntroWahlenSnapshot() {
-  const btw = WAHLEN_DATA.find((w) => w.id === 'btw25');
-  const btwLabel = btw?.name?.includes('2025') ? 'Bundestagswahl 2025' : 'Bundestagswahl';
-  const rows: { list: string; cand: string; mark: boolean }[] = [
-    { list: 'CDU/CSU', cand: 'Angela Merkel', mark: true },
-    { list: 'SPD', cand: 'Beispielkandidat/in', mark: false },
-    { list: 'BÜNDNIS 90/Die Grünen', cand: 'Beispielkandidat/in', mark: false },
-    { list: 'AfD', cand: 'Beispielkandidat/in', mark: false },
-  ];
+  const btw = useMemo(() => WAHLEN_DATA.find((w) => w.id === 'btw25'), []);
+  const erst = btw?.kandidaten?.slice(0, 5) ?? [];
+  const zweit = btw?.parteien?.slice(0, 6) ?? [];
+
+  if (!btw) {
+    return (
+      <div className="w-full max-w-[258px] rounded-lg border border-neutral-300 bg-amber-50 px-2 py-2 text-[9px] text-neutral-800">
+        Bundestagswahl-Daten (btw25) nicht gefunden.
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-[258px] overflow-hidden rounded-lg border border-neutral-800/50 bg-[#FFF4A8] px-2 pb-1.5 pt-1.5 shadow-md">
       <p className="text-[7px] font-bold tracking-[0.12em] text-neutral-900">STIMMZETTEL</p>
-      <p className="mt-0.5 text-[7.5px] font-bold leading-tight text-neutral-900">{btwLabel}</p>
-      <p className="text-[6.5px] font-semibold leading-snug text-neutral-800">Erststimme · Wahlkreis (Demo)</p>
+      <p className="mt-0.5 text-[7.5px] font-bold leading-tight text-neutral-900">{btw.name}</p>
+      <p className="text-[6px] font-semibold leading-snug text-neutral-800">
+        {btw.datum} · {btw.wahlkreis} · Auszug Kanzlerkandidaten / Listen
+      </p>
       <div className="mt-1.5 border-t border-black/25 pt-1">
-        <p className="text-[6px] font-bold uppercase tracking-wide text-neutral-800">Bewerberinnen und Bewerber</p>
+        <p className="text-[6px] font-bold uppercase tracking-wide text-neutral-800">Erststimme · Bewerber</p>
         <div className="mt-1 space-y-0.5">
-          {rows.map((r) => (
+          {erst.map((k, i) => (
             <div
-              key={r.list}
+              key={`${k.partei}-${k.name}`}
               className="flex min-h-[22px] items-center gap-1.5 rounded border border-black/30 bg-[#FFEB8A] px-1 py-0.5"
             >
               <span
                 className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border-2 border-neutral-900 bg-white"
                 aria-hidden
               >
-                {r.mark ? <span className="text-[11px] font-black leading-none text-neutral-900">✗</span> : null}
+                {i === 0 ? (
+                  <span className="text-[11px] font-black leading-none text-neutral-900" title="Beispielmarkierung">
+                    ✗
+                  </span>
+                ) : null}
               </span>
               <div className="min-w-0 flex-1 leading-tight">
-                <span className="text-[7px] font-bold text-neutral-900">{r.list}</span>
-                <span className="text-[6.5px] font-semibold text-neutral-800"> — {r.cand}</span>
+                <span className="text-[7px] font-bold text-neutral-900">{k.partei}</span>
+                <span className="text-[6.5px] font-semibold text-neutral-800"> — {k.name}</span>
               </div>
             </div>
           ))}
         </div>
       </div>
-      <p className="mt-1 text-[5.5px] leading-tight text-neutral-700">Demo-Stimmzettel · kein amtliches Dokument</p>
+      <div className="mt-1.5 border-t border-black/20 pt-1">
+        <p className="text-[6px] font-bold uppercase tracking-wide text-neutral-800">Zweitstimme · Partei (Auszug)</p>
+        <div className="mt-1 space-y-0.5">
+          {zweit.map((p) => (
+            <div
+              key={p.name}
+              className="flex min-h-[20px] items-center gap-1.5 rounded border border-black/25 bg-[#FFEB8A] px-1 py-0.5"
+            >
+              <span
+                className="flex h-3.5 w-3.5 shrink-0 rounded-sm border-2 border-neutral-900/70 bg-white"
+                aria-hidden
+              />
+              <span className="text-[6.5px] font-semibold leading-tight text-neutral-900">{p.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className="mt-1 text-[5.5px] leading-tight text-neutral-700">
+        Inhalt wie in der App (`wahlen-deutschland` · Quellen dort) · kein Scan des amtlichen Wahlzettels
+      </p>
     </div>
   );
 }
