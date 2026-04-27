@@ -13,7 +13,7 @@ const AppNavigation: React.FC = () => {
 
   const sections = [
     { key: 'live' as Section, label: 'LIVE' },
-    { key: 'leaderboard' as Section, label: 'Beteiligungsstatus' },
+    { key: 'leaderboard' as Section, label: 'Prämien' },
     { key: 'wahlen' as Section, label: 'Wahlen' },
     { key: 'news' as Section, label: 'News' },
     { key: 'kalender' as Section, label: 'Kalender' }

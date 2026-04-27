@@ -32,10 +32,11 @@ export type RegistrationResidence = { plz: string; city: string };
 const VOTED_ELECTIONS_KEY = 'eidconnect_voted_elections';
 const ANREDE_KEY = 'eidconnect_anrede';
 const CONSENT_CLARA_PERSONALIZATION_KEY = 'eidconnect_consent_clara_personalization';
-const CONSENT_PRAEMIEN_KEY = 'eidconnect_consent_praemien';
+const CONSENT_LOCAL_BENEFITS_KEY = 'eidconnect_consent_local_benefits';
+const LEGACY_CONSENT_PRAEMIEN_KEY = 'eidconnect_consent_praemien';
 const CONSENT_PARTICIPATION_KEY = 'eidconnect_consent_participation';
 const PARTICIPATION_DATA_KEY = 'eidconnect_participation_data';
-/** Persistenter Demo-Zähler für den Bereich Beteiligungsstatus (intern, nicht als Motivationsanzeige). */
+/** Persistenter Demo-Zähler für den Bereich lokale Vorteile/Status (intern, nicht als Motivationsanzeige). */
 const DEMO_POINTS_TOTAL_KEY = 'eidconnect_demo_points_total';
 
 function readParticipationSnapshotFromStorage(): {
@@ -127,8 +128,8 @@ interface AppState {
   voteResult: VoteResult | null;
   votedElectionIds: string[];
   consentClaraPersonalization: boolean;
-  /** Zustimmung für optionale Statuszusatzfunktionen (freiwillig, privacy by default). */
-  consentPraemien: boolean;
+  /** Zustimmung für lokale Vorteile nach abgeschlossener Beteiligung/Rückmeldung. */
+  consentLocalBenefits: boolean;
   /** false = Nur-Vorschau (z. B. Adresse ohne Abstimmrecht) */
   canVote: boolean;
   /** Login-Weg: eID vs. Adress-Test */
@@ -174,7 +175,7 @@ type AppAction =
   | { type: 'RECORD_ELECTION_VOTE'; payload: string }
   | { type: 'HYDRATE_VOTED_ELECTIONS'; payload: string[] }
   | { type: 'SET_CONSENT_CLARA_PERSONALIZATION'; payload: boolean }
-  | { type: 'SET_CONSENT_PRAEMIEN'; payload: boolean }
+  | { type: 'SET_CONSENT_LOCAL_BENEFITS'; payload: boolean }
   | { type: 'SET_CAN_VOTE'; payload: boolean }
   | { type: 'SET_LOGIN_AUTH_METHOD'; payload: 'eid' | 'address' | null }
   | { type: 'SET_REGISTRATION_RESIDENCE'; payload: RegistrationResidence | null }
@@ -225,7 +226,7 @@ const initialState: AppState = {
   voteResult: null,
   votedElectionIds: [],
   consentClaraPersonalization: false,
-  consentPraemien: false,
+  consentLocalBenefits: false,
   canVote: true,
   loginAuthMethod: null,
   registrationResidence: null,
@@ -351,8 +352,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, votedElectionIds: action.payload };
     case 'SET_CONSENT_CLARA_PERSONALIZATION':
       return { ...state, consentClaraPersonalization: action.payload };
-    case 'SET_CONSENT_PRAEMIEN':
-      return { ...state, consentPraemien: action.payload };
+    case 'SET_CONSENT_LOCAL_BENEFITS':
+      return { ...state, consentLocalBenefits: action.payload };
     case 'SET_CAN_VOTE':
       return { ...state, canVote: action.payload };
     case 'SET_LOGIN_AUTH_METHOD':
@@ -464,18 +465,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(CONSENT_PRAEMIEN_KEY);
+      const raw =
+        localStorage.getItem(CONSENT_LOCAL_BENEFITS_KEY) ??
+        localStorage.getItem(LEGACY_CONSENT_PRAEMIEN_KEY);
       if (raw === 'true' || raw === 'false') {
-        dispatch({ type: 'SET_CONSENT_PRAEMIEN', payload: raw === 'true' });
+        dispatch({ type: 'SET_CONSENT_LOCAL_BENEFITS', payload: raw === 'true' });
       }
     } catch (_) {}
   }, []);
 
   useEffect(() => {
     try {
-      localStorage.setItem(CONSENT_PRAEMIEN_KEY, state.consentPraemien ? 'true' : 'false');
+      localStorage.setItem(CONSENT_LOCAL_BENEFITS_KEY, state.consentLocalBenefits ? 'true' : 'false');
+      localStorage.setItem(LEGACY_CONSENT_PRAEMIEN_KEY, state.consentLocalBenefits ? 'true' : 'false');
     } catch (_) {}
-  }, [state.consentPraemien]);
+  }, [state.consentLocalBenefits]);
 
   useLayoutEffect(() => {
     try {

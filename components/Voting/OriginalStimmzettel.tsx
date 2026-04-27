@@ -638,39 +638,39 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
         : { top: 'Verbandsgemeinde Kirkel', sub: 'Gemeinde Kirkel', candLine: '(Gemeinderat/Verbandsgemeinderat)' };
 
   return (
-    <div className="mx-auto max-w-4xl text-[13px] leading-relaxed text-gray-900 sm:text-[14px]">
+    <div className={`mx-auto max-w-4xl text-[13px] leading-relaxed text-gray-900 sm:text-[14px] ${introMode ? 'ballot-intro' : ''}`}>
       {/* Bundestagswahl Stimmzettel */}
       {level === 'bund' && (
-        <div className="space-y-4">
+        <div className={`${introMode ? 'space-y-2.5' : 'space-y-4'}`}>
           {/* Header mit Bundesadler-Placeholder */}
-          <div className="ballot-paper border-b-2 border-gray-900 pb-4 text-center">
-            <div className="flex items-center justify-center gap-4 mb-4">
+          <div className={`ballot-paper border-b-2 border-gray-900 text-center ${introMode ? 'pb-2.5' : 'pb-4'}`}>
+            <div className={`flex items-center justify-center gap-4 ${introMode ? 'mb-1.5' : 'mb-4'}`}>
               <h1
                 className={
                   introMode
-                    ? 'text-base font-bold tracking-tight text-gray-900 sm:text-xl'
+                    ? 'text-[12px] font-semibold tracking-tight text-gray-900 sm:text-[13px]'
                     : 'text-xl font-bold text-gray-900 sm:text-2xl'
                 }
               >
                 BUNDESTAGSWAHL
               </h1>
             </div>
-            <p className="text-sm font-semibold text-gray-700 sm:text-base">
+            <p className={introMode ? 'text-[11px] font-semibold text-gray-700' : 'text-sm font-semibold text-gray-700 sm:text-base'}>
               {formatGermanDate(bundElection?.datum) || '—'}
             </p>
-            <p className="mt-1 text-[12px] text-gray-700 sm:text-sm">Wahlkreis {wahlkreis || '—'}</p>
-            <div className="mt-3 border-2 border-blue-300 bg-blue-100 p-2.5 sm:mt-4 sm:p-4">
-              <p className="text-sm font-bold text-blue-900 sm:text-base">
+            <p className={introMode ? 'mt-0.5 text-[10px] text-gray-700' : 'mt-1 text-[12px] text-gray-700 sm:text-sm'}>Wahlkreis {wahlkreis || '—'}</p>
+            <div className={introMode ? 'mt-2 border-2 border-blue-300 bg-blue-100 p-2' : 'mt-3 border-2 border-blue-300 bg-blue-100 p-2.5 sm:mt-4 sm:p-4'}>
+              <p className={introMode ? 'text-[11px] font-bold text-blue-900' : 'text-sm font-bold text-blue-900 sm:text-base'}>
                 {t('Du hast 2 Stimmen', 'Sie haben 2 Stimmen')}
               </p>
             </div>
           </div>
 
           {/* Erststimme */}
-          <div className="ballot-paper border-2 border-gray-900 p-3 sm:p-6">
-            <div className="mb-4 sm:mb-6">
-              <h2 className="mb-1.5 text-lg font-bold text-gray-900 sm:mb-2 sm:text-xl">ERSTSTIMME</h2>
-              <p className="mb-3 text-[12px] text-gray-700 sm:mb-4 sm:text-sm">
+          <div className={`ballot-paper border-2 border-gray-900 ${introMode ? 'p-2.5' : 'p-3 sm:p-6'}`}>
+            <div className={introMode ? 'mb-2.5' : 'mb-4 sm:mb-6'}>
+              <h2 className={introMode ? 'mb-1 text-[12px] font-semibold leading-none text-gray-900 sm:text-[13px]' : 'mb-1.5 text-lg font-bold text-gray-900 sm:mb-2 sm:text-xl'}>ERSTSTIMME</h2>
+              <p className={introMode ? 'mb-2 text-[10px] text-gray-700' : 'mb-3 text-[12px] text-gray-700 sm:mb-4 sm:text-sm'}>
                 (Wahl eines Wahlkreisabgeordneten)
               </p>
             </div>
@@ -686,14 +686,14 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       checked={selectedErststimme === kandidat.name}
                     onChange={(e) => setSelectedErststimme(e.target.value)}
                     disabled={!canVote}
-                      className="ballot-checkbox"
+                      className={`ballot-checkbox ${introMode ? 'ballot-checkbox--intro' : ''}`}
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[14px] font-bold text-gray-900 sm:text-[15px]">{index + 1}.</span>
-                        <span className="text-[14px] font-bold text-gray-900 sm:text-[15px]">{kandidat.name}</span>
+                        <span className={introMode ? 'text-[10px] font-bold text-gray-900' : 'text-[14px] font-bold text-gray-900 sm:text-[15px]'}>{index + 1}.</span>
+                        <span className={introMode ? 'text-[10px] font-bold text-gray-900' : 'text-[14px] font-bold text-gray-900 sm:text-[15px]'}>{kandidat.name}</span>
                       </div>
-                      <div className="mt-0.5 text-xs text-gray-700 sm:mt-1 sm:text-sm">
+                      <div className={introMode ? 'mt-0.5 text-[10px] text-gray-700' : 'mt-0.5 text-xs text-gray-700 sm:mt-1 sm:text-sm'}>
                         {kandidat.parteiLang || partyFullName(kandidat.partei)}
                       </div>
                       <div className="mt-1">
@@ -721,10 +721,10 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
           </div>
 
           {/* Zweitstimme */}
-          <div className="ballot-paper border-2 border-gray-900 p-3 sm:p-6">
-            <div className="mb-4 sm:mb-6">
-              <h2 className="mb-1.5 text-lg font-bold text-gray-900 sm:mb-2 sm:text-xl">ZWEITSTIMME</h2>
-              <p className="mb-3 text-[12px] text-gray-700 sm:mb-4 sm:text-sm">
+          <div className={`ballot-paper border-2 border-gray-900 ${introMode ? 'p-2.5' : 'p-3 sm:p-6'}`}>
+            <div className={introMode ? 'mb-2.5' : 'mb-4 sm:mb-6'}>
+              <h2 className={introMode ? 'mb-1 text-[12px] font-semibold leading-none text-gray-900 sm:text-[13px]' : 'mb-1.5 text-lg font-bold text-gray-900 sm:mb-2 sm:text-xl'}>ZWEITSTIMME</h2>
+              <p className={introMode ? 'mb-2 text-[10px] text-gray-700' : 'mb-3 text-[12px] text-gray-700 sm:mb-4 sm:text-sm'}>
                 (Wahl einer Landesliste - entscheidet über die Sitzverteilung im Bundestag)
               </p>
             </div>
@@ -740,11 +740,11 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       checked={selectedZweitstimme === partei.kuerzel}
                     onChange={(e) => setSelectedZweitstimme(e.target.value)}
                     disabled={!canVote}
-                      className="ballot-checkbox"
+                      className={`ballot-checkbox ${introMode ? 'ballot-checkbox--intro' : ''}`}
                     />
                     <div className="flex-1 min-w-0">
-                      <div className="text-[14px] font-bold text-gray-900 sm:text-[15px]">{partei.kuerzel}</div>
-                      <div className="text-xs text-gray-700 sm:text-sm">
+                      <div className={introMode ? 'text-[10px] font-bold text-gray-900' : 'text-[14px] font-bold text-gray-900 sm:text-[15px]'}>{partei.kuerzel}</div>
+                      <div className={introMode ? 'text-[10px] text-gray-700' : 'text-xs text-gray-700 sm:text-sm'}>
                         {partyFullName(partei.kuerzel) || partei.name}
                       </div>
                       <div className="mt-1">

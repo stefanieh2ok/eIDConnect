@@ -83,6 +83,18 @@ function parseGermanDateToTs(dateStr?: string): number | null {
   return Number.isNaN(iso) ? null : iso;
 }
 
+/**
+ * Entfernt versehentliche Zeilenumbrüche innerhalb von Wörtern
+ * (z. B. "Gemeinderatswa\nhl"), damit Titel ruhig und sauber umbrechen.
+ */
+function normalizeElectionName(name: string): string {
+  return name
+    .replace(/([A-Za-zÄÖÜäöüß])\s*\n\s*([A-Za-zÄÖÜäöüß])/g, '$1$2')
+    .replace(/\s*\n\s*/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 type ElectionStatus = 'offen' | 'demnaechst' | 'abgeschlossen' | 'archiviert';
 
 function getElectionStatus(wahl: Wahl, nowTs: number): ElectionStatus {
@@ -535,21 +547,23 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
     return badge;
   };
 
+  const sectionCardClass = 'card-content p-4';
+
   return (
-    <div>
-      <div className="flex items-start justify-between mb-2">
+    <div className="card-section p-2.5">
+      <div className="mb-2 flex items-start justify-between">
         <div>
-          <h2 className="text-lg font-semibold" style={{ color: 'var(--gov-heading)' }}>Wahlen</h2>
-          <div className="mt-0.5 text-[11px] text-neutral-500">
+          <h2 className="t-h2">Wahlen</h2>
+          <div className="t-meta mt-0.5">
             {selectionLabelForSection('wahlen', state.activeLocation)}
           </div>
-          <div className="text-[10px] text-neutral-500">Informations- und Orientierungsansicht</div>
+          <div className="t-caption">Informations- und Orientierungsansicht</div>
         </div>
         <button
           type="button"
           onClick={() => setFilterSheetOpen(true)}
           aria-label={`Filter öffnen${activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}`}
-          className="inline-flex h-9 items-center justify-center rounded-full border border-neutral-200 bg-white/75 px-3 text-[11px] font-semibold text-neutral-700 shadow-sm backdrop-blur hover:bg-white"
+          className="app-filter-btn h-9 px-3 hover:bg-neutral-50"
         >
           Filter{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}
         </button>
@@ -580,15 +594,15 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
       )}
 
       {/* Segmentsteuerung + Chips (Filter nur bei Bedarf über Bottom Sheet) */}
-      <div className="mb-2">
+      <div className="app-segment mb-3">
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => setShowArchiv(false)}
-            className={`rounded-xl text-[11px] py-2 font-semibold transition ${
+            className={`app-segment-btn w-full py-2 transition ${
               !showArchiv
-                ? 'bg-[#003d80] text-white shadow-sm'
-                : 'bg-white/60 text-gray-700 border border-gray-200'
+                ? 'app-segment-btn--active'
+                : 'bg-white text-gray-700 border border-gray-200'
             }`}
           >
             Aktuell
@@ -596,10 +610,10 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
           <button
             type="button"
             onClick={() => setShowArchiv(true)}
-            className={`rounded-xl text-[11px] py-2 font-semibold transition ${
+            className={`app-segment-btn w-full py-2 transition ${
               showArchiv
-                ? 'bg-[#003d80] text-white shadow-sm'
-                : 'bg-white/60 text-gray-700 border border-gray-200'
+                ? 'app-segment-btn--active'
+                : 'bg-white text-gray-700 border border-gray-200'
             }`}
           >
             Ergebnisse
@@ -612,7 +626,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
             <button
               type="button"
               onClick={clearRegionFilter}
-              className="inline-flex items-center gap-1 rounded-full border border-[#BFD9FF] bg-[#F7FAFF] px-3 py-1 text-[10px] font-semibold text-[#003366]"
+              className="app-chip"
             >
               {selectedRegionLabel}
               <span aria-hidden>×</span>
@@ -622,7 +636,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
             <button
               type="button"
               onClick={clearRegionFilter}
-              className="inline-flex items-center gap-1 rounded-full border border-[#BFD9FF] bg-[#F7FAFF] px-3 py-1 text-[10px] font-semibold text-[#003366]"
+              className="app-chip"
             >
               {selectedLevelUiLabel}
               <span aria-hidden>×</span>
@@ -634,7 +648,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
             <button
               type="button"
               onClick={clearTimeframeFilter}
-              className="inline-flex items-center gap-1 rounded-full border border-[#BFD9FF] bg-[#F7FAFF] px-3 py-1 text-[10px] font-semibold text-[#003366]"
+              className="app-chip"
             >
               {timeframeChipLabel}
               <span aria-hidden>×</span>
@@ -646,7 +660,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
             <button
               type="button"
               onClick={() => setStatusUi('all')}
-              className="inline-flex items-center gap-1 rounded-full border border-[#BFD9FF] bg-[#F7FAFF] px-3 py-1 text-[10px] font-semibold text-[#003366]"
+              className="app-chip"
             >
               {statusChipLabel}
               <span aria-hidden>×</span>
@@ -947,7 +961,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
       )}
       
       {wahlenToRender.length === 0 ? (
-        <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+        <div className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
           {!showArchiv ? (
             <>
               <p className="text-[11px] font-medium text-slate-700">
@@ -1002,6 +1016,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
         </div>
       ) : (
         wahlenToRender.map(wahl => {
+          const normalizedName = normalizeElectionName(wahl.name);
           const badge = getLevelBadge(wahl.level);
           const hasVoted = votedIds.includes(wahl.id);
           const status = getElectionStatus(wahl, nowTs);
@@ -1019,11 +1034,11 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
           };
           const canParticipate = status === 'offen';
           return (
-            <div key={wahl.id} className="glass-panel rounded-2xl p-4 sm:p-5 mb-4 border border-gray-200/60">
+            <div key={wahl.id} className={`${sectionCardClass} mb-4 sm:p-5`}>
               <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
-                  <h3 className="text-lg font-bold leading-snug break-words" style={{ color: 'var(--gov-heading)' }}>
-                    {wahl.name}
+                  <h3 className="t-body-lg font-semibold leading-tight break-words" style={{ color: 'var(--gov-heading)' }}>
+                    {normalizedName}
                   </h3>
                   {wahl.datum !== 'aktuell' && (
                     <div className="mt-1 text-[11px] text-gray-600">{wahl.datum}</div>
@@ -1048,7 +1063,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
 
               <button
                 onClick={() => handleStimmzettelClick(wahl)}
-                className="w-full py-3 rounded-xl font-semibold transition-opacity"
+                className="btn-gov-primary mt-1 w-full rounded-xl py-3 font-semibold transition-opacity"
                 // Amtlicher Stimmzettel-Look: kräftiges Amtsgelb (#FBBF24) / #0A2540
                 // bei Abstimmung (offen) und bei reiner Stimmzettel-Vorschau
                 // (abgeschlossen: "Stimmzettel ansehen"). "Termin ansehen" (demnaechst)
@@ -1074,7 +1089,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
               )}
 
               {showArchiv && (
-                <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-3">
+                <div className="app-card-subtle mt-4 p-3">
                   <div className="text-[11px] font-semibold text-neutral-900">Wahlergebnis</div>
                   {wahl.ergebnis?.parteien && wahl.ergebnis.parteien.length > 0 ? (
                     <div className="mt-2 space-y-2">

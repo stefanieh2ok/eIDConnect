@@ -13,6 +13,7 @@ import {
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
+import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 function isFinePointerDevice(): boolean {
   return (
@@ -122,6 +123,7 @@ export function IntroEntryBranch({
             onSkip={onDirectToApp}
           />
           <div className="border-b border-neutral-200 px-4 pb-3 pt-3 sm:px-6 sm:pt-4 sm:pb-4">
+            <ProductIdentityHeader className="mb-2" />
             <ClaraStepPanel
               surface="light"
               label={INTRO_ENTRY_UI_TITLE}
@@ -134,14 +136,14 @@ export function IntroEntryBranch({
             <button
               type="button"
               onClick={onStart}
-              className="btn-gov-primary w-full min-h-[48px] text-[13px] font-extrabold"
+              className="btn-primary t-button w-full min-h-[48px]"
             >
               {INTRO_ENTRY_START}
             </button>
             <button
               type="button"
               onClick={onDirectToApp}
-              className="min-h-[48px] w-full rounded-xl border border-slate-300 bg-[#F7F9FC] py-2.5 text-[12px] font-semibold text-[#1A2B45] transition hover:bg-slate-100"
+              className="btn-secondary t-button min-h-[48px] w-full"
             >
               {INTRO_ENTRY_DIRECT}
             </button>

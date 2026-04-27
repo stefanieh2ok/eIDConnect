@@ -41,11 +41,11 @@ export const APP_HIGHLIGHTS_FOR_LATER = [
   },
   {
     emoji: '🧾',
-    title: 'Beteiligungsstatus nachvollziehen',
+    title: 'Prämien & Status',
     body: (du: boolean) =>
       du
-        ? 'Du siehst nachvollziehbar, welche Beiträge bereits eingereicht wurden und welchen Status sie haben.'
-        : 'Sie sehen nachvollziehbar, welche Beiträge bereits eingereicht wurden und welchen Status sie haben.',
+        ? 'Du siehst Prämien nach Einwilligung sowie den nachvollziehbaren Status deiner Beteiligungen.'
+        : 'Sie sehen Prämien nach Einwilligung sowie den nachvollziehbaren Status Ihrer Beteiligungen.',
   },
   {
     emoji: '🤖',

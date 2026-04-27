@@ -39,7 +39,7 @@ export function IphoneFrame({
       }
     >
       <div
-        className="app-device-frame relative flex w-full flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-none ring-0 [filter:none]"
+        className="app-device-frame relative flex w-full flex-col overflow-hidden rounded-[2.75rem] border-[12px] border-[#1c1c1e] shadow-none ring-0 [filter:none] [transform:translateZ(0)]"
         style={{
           width: `min(${DEVICE_WIDTH_PX}px, calc(100% - 0.75rem))`,
           aspectRatio: '393 / 852',
@@ -54,6 +54,11 @@ export function IphoneFrame({
         {/* Dynamic Island */}
         <div className="app-device-notch pointer-events-none absolute left-1/2 top-3 z-20 h-7 w-[126px] -translate-x-1/2 rounded-full bg-black" />
         <div className="app-device-content relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden pt-10">
+          <div className="app-confidential-watermark" aria-hidden>
+            <span className="app-confidential-watermark__line top-[16%] text-[18px]">HookAI · Confidential</span>
+            <span className="app-confidential-watermark__line top-[44%] text-[18px]">HookAI · Confidential</span>
+            <span className="app-confidential-watermark__line top-[72%] text-[18px]">HookAI · Confidential</span>
+          </div>
           {children}
         </div>
         {/* Home-Indikator */}

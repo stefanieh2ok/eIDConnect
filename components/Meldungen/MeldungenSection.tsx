@@ -78,27 +78,28 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
   };
 
   const selectedKat = KATEGORIEN.find((k) => k.id === kategorie);
+  const shellClass = embeddedInWalkthrough ? 'card-section p-2.5' : 'card-section p-3';
 
   return (
-    <div className={embeddedInWalkthrough ? 'walkthrough-meldungen-embed' : undefined}>
+    <div className={`${embeddedInWalkthrough ? 'walkthrough-meldungen-embed' : ''} ${shellClass}`}>
         <div className={`flex items-start justify-between ${embeddedInWalkthrough ? 'mb-2' : 'mb-3'}`}>
           <div>
-            <h2 className={embeddedInWalkthrough ? 'text-base font-semibold text-gray-900' : 'text-lg font-semibold text-gray-900'}>
+            <h2 className={embeddedInWalkthrough ? 't-card-title' : 't-h2'}>
               Meldungen
             </h2>
-            <div className="mt-0.5 text-[11px] text-neutral-500">
+            <div className="t-meta mt-0.5">
               {selectionLabelForSection('meldungen', state.activeLocation, state.residenceLocation)}
             </div>
           </div>
           <SectionLevelFilterIcon section="meldungen" />
       </div>
-      {/* Header */}
-      <div
-        className={embeddedInWalkthrough ? 'rounded-2xl text-white p-4 mb-3' : 'rounded-2xl text-white p-5 mb-4'}
-        style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
-      >
-        <h2 className="text-base font-bold mb-1">Meldungen an {gemeinde}</h2>
-        <p className="text-xs opacity-80">
+      {/* Intro-Info, bewusst ruhig statt herohaft */}
+      <div className={embeddedInWalkthrough ? 'card-content mb-3 p-4' : 'card-content mb-4 p-4'}>
+        <div className="mb-2 inline-flex items-center rounded-full border border-[#CFE0F7] bg-[#F4F8FE] px-2.5 py-1 text-[10px] font-semibold text-[#1F4F8A]">
+          Kommunaler Service
+        </div>
+        <h2 className="t-card-title mb-1">Meldungen an {gemeinde}</h2>
+        <p className="t-body-sm">
           {du
             ? `Melde Probleme oder Anliegen direkt an die Gemeindeverwaltung ${gemeinde}.`
             : `Hinweise und Anliegen können direkt an die Gemeindeverwaltung ${gemeinde} gesendet werden.`}
@@ -107,28 +108,33 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
 
       {/* Step: Kategorie wählen */}
       {step === 'kategorie' && (
-        <div>
-          <p className="text-sm font-semibold text-[#1A2B45] mb-3">
+        <div className="card-content p-3">
+          <p className="mb-2.5 text-sm font-semibold text-[#1A2B45]">
             {du ? 'Was möchtest du melden?' : 'Was möchten Sie melden?'}
           </p>
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             {KATEGORIEN.map((k) => (
               <button
                 key={k.id}
                 onClick={() => { setKategorie(k.id); setStep('details'); }}
-                className="w-full flex items-center gap-3 p-4 bg-white rounded-2xl border text-left transition-all hover:border-[#0055A4] hover:shadow-sm group"
+                className="card-compact group w-full text-left transition-all hover:border-[#8EB1DE] hover:bg-[#FBFDFF] hover:shadow-md active:translate-y-[1px]"
                 style={{ borderColor: 'var(--gov-border, #D6E0EE)' }}
               >
-                <div>
-                  <div className="text-sm font-semibold text-[#1A2B45]">{k.label}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">{k.hint}</div>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[14px] font-semibold leading-snug text-[#1A2B45]">{k.label}</div>
+                    <div className="mt-0.5 text-xs text-gray-500">{k.hint}</div>
+                  </div>
+                  <span className="text-sm font-semibold text-neutral-400 transition-colors group-hover:text-[#1F4F8A]" aria-hidden>
+                    &rsaquo;
+                  </span>
                 </div>
               </button>
             ))}
           </div>
 
           {/* Letzte Meldungen (Demo) */}
-          <div className="mt-5">
+          <div className="mt-5 rounded-xl border border-neutral-200 bg-[#FBFCFF] p-2.5">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
               Aktuelle Meldungen in {gemeinde}
             </p>
@@ -165,19 +171,20 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
 
       {/* Step: Details eingeben */}
       {step === 'details' && selectedKat && (
-        <div>
+        <div className="card-content p-3">
           <button
             onClick={() => setStep('kategorie')}
-            className="text-xs text-[#0055A4] mb-3 hover:underline flex items-center gap-1"
+            className="mb-3 inline-flex items-center gap-1 rounded-lg border border-transparent px-1.5 py-1 text-xs font-medium text-[#1F4F8A] hover:border-[#D6E0EE] hover:bg-white"
           >
             ← Kategorie ändern
           </button>
 
-          <div className="bg-[#E8F0FB] rounded-xl p-3 mb-4 flex items-center gap-2">
-            <span className="text-sm font-semibold text-[#003366]">{selectedKat.label}</span>
+          <div className="mb-4 rounded-xl border border-[#CFE0F7] bg-[#F6FAFF] p-3.5">
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-[#4F6F96]">Ausgewählte Kategorie</div>
+            <div className="mt-1 text-sm font-semibold text-[#1A2B45]">{selectedKat.label}</div>
           </div>
 
-          <div className="space-y-4">
+          <div className={`space-y-4.5 ${embeddedInWalkthrough ? 'pb-20' : 'pb-28'}`}>
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                 {du ? 'Deine Beschreibung *' : 'Ihre Beschreibung *'}
@@ -191,8 +198,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
                     ? 'Beschreibe das Problem so genau wie möglich...'
                     : 'Bitte beschreiben Sie das Problem so genau wie möglich...'
                 }
-                className="w-full border rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#0055A4]"
-                style={{ borderColor: 'var(--gov-border, #D6E0EE)' }}
+                className="form-textarea w-full resize-none"
               />
             </div>
 
@@ -206,12 +212,11 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
                   value={adresse}
                   onChange={(e) => setAdresse(e.target.value)}
                   placeholder={`z. B. Hauptstraße 12, ${gemeinde}`}
-                  className="flex-1 border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0055A4]"
-                  style={{ borderColor: 'var(--gov-border, #D6E0EE)' }}
+                  className="form-input flex-1"
                 />
                 <button
                   type="button"
-                  className="px-3 py-2 rounded-xl text-[#0055A4] border transition-colors hover:bg-[#E8F0FB]"
+                  className="btn-secondary min-w-[64px] text-sm"
                   style={{ borderColor: 'var(--gov-border, #D6E0EE)' }}
                   title="Aktuellen Standort verwenden"
                 >
@@ -223,8 +228,8 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
             {/* Foto */}
             <div className="space-y-2">
               <label
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed text-sm font-medium transition-colors cursor-pointer hover:border-[#0055A4] hover:text-[#0055A4]"
-                style={{ borderColor: 'var(--gov-border, #D6E0EE)', color: photos.length > 0 ? '#0055A4' : undefined }}
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-white py-3.5 text-sm font-medium transition-colors hover:border-[#7AA4D8] hover:text-[#1F4F8A]"
+                style={{ borderColor: 'var(--gov-border, #D6E0EE)', color: photos.length > 0 ? '#1F4F8A' : undefined }}
               >
                 {photos.length > 0
                   ? du
@@ -274,8 +279,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
               type="button"
               onClick={handleSenden}
               disabled={!beschreibung.trim()}
-              className="w-full py-3.5 rounded-2xl text-white font-bold text-sm disabled:opacity-40 transition-opacity hover:opacity-90"
-              style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
+              className="btn-primary t-button w-full transition-opacity hover:opacity-95 disabled:bg-neutral-300 disabled:text-neutral-100 disabled:opacity-100"
             >
               Meldung senden
             </button>
@@ -291,7 +295,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
 
       {/* Step: Bestätigung */}
       {step === 'bestaetigt' && (
-        <div className="text-center py-8">
+        <div className="card-content py-8 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
             style={{ background: 'var(--gov-accent-light, #E6F7F1)' }}>
             <span className="text-[#00A86B] text-sm font-bold">OK</span>
@@ -307,8 +311,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
           </p>
           <button
             onClick={handleNeu}
-            className="px-6 py-3 rounded-2xl text-white font-bold text-sm transition-opacity hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
+            className="rounded-2xl bg-[#003D80] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-95"
           >
             Neue Meldung erstellen
           </button>

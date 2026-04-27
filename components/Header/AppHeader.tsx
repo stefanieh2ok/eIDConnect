@@ -7,7 +7,7 @@ import { EbeneLevel, Location, Section } from '@/types';
 import { ListChecks, Settings } from 'lucide-react';
 import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
 import { normalizePlz, parseLegacyDemoAddress, suggestCityFromPlz } from '@/data/plzDemoLookup';
-import { APP_DISPLAY_NAME, APP_TAGLINE } from '@/lib/branding';
+import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
 
 // ─── Section Nav Config ────────────────────────────────────────────────────
@@ -284,6 +284,7 @@ const AppHeader: React.FC = () => {
                     du={!isFormal}
                     variant="compact"
                     density="tight"
+                    editableWithoutConsent
                     headingTitle="Interessen & Relevanz"
                     leadDu="Wähle Themen aus, zu denen Termine und Beteiligungsmöglichkeiten im Kalender hervorgehoben werden sollen."
                     leadSie="Wählen Sie Themen aus, zu denen Termine und Beteiligungsmöglichkeiten im Kalender hervorgehoben werden sollen."
@@ -350,6 +351,50 @@ const AppHeader: React.FC = () => {
                       Hervorhebungen deaktivieren
                     </button>
                   </div>
+                </section>
+
+                <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+                  <p className="text-xs font-semibold text-neutral-900">Prämien</p>
+                  <p className="mt-1 text-[11px] text-neutral-700">
+                    {t(
+                      'Aktiviere Prämien, wenn nach abgeschlossenen Beteiligungen oder Rückmeldungen passende Angebote verfügbar sind.',
+                      'Aktivieren Sie Prämien, wenn nach abgeschlossenen Beteiligungen oder Rückmeldungen passende Angebote verfügbar sind.',
+                    )}
+                  </p>
+                  <label className="mt-2 flex items-start gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-[11px] text-neutral-800">
+                    <input
+                      type="checkbox"
+                      checked={state.consentLocalBenefits}
+                      onChange={(e) => {
+                        dispatch({ type: 'SET_CONSENT_LOCAL_BENEFITS', payload: e.target.checked });
+                        showSettingsHint(
+                          e.target.checked ? 'Prämien aktiviert.' : 'Prämien deaktiviert.',
+                          e.target.checked ? 'Prämien aktiviert.' : 'Prämien deaktiviert.',
+                        );
+                      }}
+                      className="mt-0.5 h-4 w-4 rounded border-neutral-300 text-[#003366]"
+                    />
+                    <span>Prämien anzeigen</span>
+                  </label>
+                  <p className="mt-1.5 text-[10px] text-neutral-600">
+                    {t(
+                      'Deine konkrete Abstimmungsentscheidung wird dafür nicht ausgewertet.',
+                      'Die konkrete Abstimmungsentscheidung wird dafür nicht ausgewertet.',
+                    )}
+                  </p>
+                  <p className="mt-1 text-[10px] text-neutral-600">
+                    Diese Funktion ist freiwillig und kann jederzeit deaktiviert werden.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      dispatch({ type: 'SET_CONSENT_LOCAL_BENEFITS', payload: false });
+                      showSettingsHint('Prämien deaktiviert.', 'Prämien deaktiviert.');
+                    }}
+                    className="mt-2 w-full rounded-lg border border-neutral-300 bg-white py-1.5 text-[10.5px] font-semibold text-neutral-800 hover:bg-neutral-50"
+                  >
+                    Prämien deaktivieren
+                  </button>
                 </section>
 
                 <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-[11px] leading-relaxed text-neutral-800">
@@ -470,29 +515,22 @@ const AppHeader: React.FC = () => {
     >
       {/* ── Row 1: Brand + Status ── */}
       <div className="flex items-start justify-between gap-2 px-4 pt-1 pb-2">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <div className="truncate text-sm font-bold tracking-wide leading-none text-[#003366]">
-              {APP_DISPLAY_NAME}
-            </div>
-          </div>
-          <p className="mt-0.5 text-[11px] leading-tight text-neutral-500">{APP_TAGLINE}</p>
-        </div>
+        <ProductIdentityHeader className="flex-1" />
         <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             id="tour-rewards-btn"
             onClick={() => dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'leaderboard' })}
-            className="flex items-center gap-1.5 rounded-full px-3 py-1 border border-neutral-200 bg-white/70 hover:bg-white transition-colors"
-            aria-label="Beteiligungsstatus öffnen"
+            className="btn-pill flex min-h-[44px] items-center gap-1.5 border border-neutral-200 bg-white/70 px-3 py-1 hover:bg-white transition-colors"
+            aria-label="Prämien öffnen"
           >
             <ListChecks className="h-3.5 w-3.5 text-[#0055A4] shrink-0" aria-hidden />
-            <span className="text-xs font-bold text-neutral-900">Status</span>
+            <span className="t-badge text-neutral-900">Prämien</span>
           </button>
           <button
             type="button"
             onClick={() => setShowSettings(true)}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-neutral-200 bg-white/75 text-neutral-700 shadow-sm backdrop-blur hover:bg-white"
+            className="btn-icon inline-flex min-h-[44px] min-w-[44px] items-center justify-center border border-neutral-200 bg-white/75 text-neutral-700 shadow-sm backdrop-blur hover:bg-white"
             aria-label="Einstellungen öffnen"
           >
             <Settings size={14} />
@@ -510,7 +548,7 @@ const AppHeader: React.FC = () => {
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
         }}
       >
-        <div className="flex flex-wrap items-stretch justify-center gap-1 sm:justify-start">
+        <div className="flex min-h-[60px] flex-wrap items-stretch justify-center gap-1 sm:justify-start">
           {NAV_ITEMS.map((item) => {
             const isActive = state.activeSection === item.section;
             const showItem = !item.kommuneOnly || residencePath.includes('kommune');
@@ -526,9 +564,9 @@ const AppHeader: React.FC = () => {
                       : undefined
                 }
                 onClick={() => dispatch({ type: 'SET_ACTIVE_SECTION', payload: item.section })}
-                className={`min-h-[40px] flex flex-1 basis-0 items-center justify-center gap-1 rounded-full px-2 py-2 text-[11px] whitespace-nowrap transition-all sm:min-h-0 sm:flex-none sm:px-3 ${
+                className={`min-h-[44px] flex flex-1 basis-0 items-center justify-center gap-1 rounded-full px-3 py-2 text-[14px] whitespace-nowrap transition-all sm:min-h-[40px] sm:flex-none sm:px-3 ${
                   isActive
-                    ? 'bg-white font-extrabold text-[#003366] shadow-md ring-1 ring-white/80'
+                    ? 'bg-white font-bold text-[#003366] shadow-md ring-1 ring-white/80'
                     : 'font-semibold text-white/85 hover:bg-white/12 hover:text-white active:bg-white/18'
                 }`}
               >

@@ -57,7 +57,9 @@ const VotingControls: React.FC<VotingControlsProps> = ({
     >
       {useIntro ? introKicker : compact ? null : kicker}
       <p className={`text-center text-[9px] text-neutral-500 ${useCompactLayout ? 'mb-2' : 'mb-2.5'}`}>
-        Demo-Hinweis · keine echte Abstimmung
+        {du
+          ? 'Prämien, falls aktiviert, sind unabhängig davon, wie du abstimmst.'
+          : 'Prämien, falls aktiviert, sind unabhängig davon, wie Sie abstimmen.'}
       </p>
       <div className={`flex items-end justify-center ${useCompactLayout ? 'gap-3' : 'gap-4'}`}>
         <button

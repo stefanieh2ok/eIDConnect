@@ -7,7 +7,7 @@ import { VoteType, AbstimmungTab } from '@/types';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
 import ClaraVoiceInterface from '@/components/Clara/ClaraVoiceInterface';
-import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Minus, X } from 'lucide-react';
 import { SectionLevelFilterIcon, selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
 import { getVotingStatsForYear } from '@/lib/getVotingStatsForYear';
 
@@ -20,12 +20,24 @@ function voteResultHumanLabel(vote: string): string {
   return vote;
 }
 
+function isOpenDeadline(deadline?: string): boolean {
+  if (!deadline) return false;
+  const parts = deadline.trim().split('.');
+  if (parts.length !== 3) return false;
+  const [d, m, y] = parts.map(Number);
+  if (!d || !m || !y) return false;
+  const end = new Date(y, m - 1, d, 23, 59, 59).getTime();
+  return Date.now() <= end;
+}
+
 const LiveSection: React.FC = () => {
   const { state, dispatch } = useApp();
   const [abstimmungTab, setAbstimmungTab] = useState<AbstimmungTab>('aktuell');
   const [showClaraVoice, setShowClaraVoice] = useState(false);
   const [activeNow, setActiveNow] = useState(3_847_291);
   const [showStats, setShowStats] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkVoteState, setBulkVoteState] = useState<Record<string, VoteType>>({});
 
   const pendingAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingVoteMetaRef = useRef<{ fromIndex: number; points: number } | null>(null);
@@ -46,6 +58,10 @@ const LiveSection: React.FC = () => {
   );
 
   const du = state.anrede === 'du';
+  const openCards = useMemo(
+    () => (currentData?.cards || []).filter((c) => isOpenDeadline(c.deadline)),
+    [currentData?.cards],
+  );
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -137,28 +153,51 @@ const LiveSection: React.FC = () => {
     [currentCard, currentData?.canVote, executeVote]
   );
 
+  const handleBulkVote = useCallback(
+    (cardId: string, voteType: VoteType) => {
+      if (!currentData?.canVote) return;
+      const cardIndex = currentData.cards.findIndex((c) => c.id === cardId);
+      if (cardIndex < 0) return;
+      const card = currentData.cards[cardIndex];
+      dispatch({ type: 'SET_CURRENT_CARD_INDEX', payload: cardIndex });
+      dispatch({
+        type: 'HANDLE_VOTE',
+        payload: {
+          voteType,
+          card,
+          points: card.points,
+          earnedPoints: 0,
+        },
+      });
+      dispatch({ type: 'SET_VOTE_RESULT', payload: null });
+      setBulkVoteState((prev) => ({ ...prev, [cardId]: voteType }));
+    },
+    [currentData, dispatch],
+  );
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Abstimmen</h2>
-          <div className="mt-0.5 text-[11px] text-neutral-500">
+          <h2 className="t-h2">Abstimmen</h2>
+          <div className="t-meta mt-0.5">
             {selectionLabelForSection('live', state.activeLocation)}
           </div>
         </div>
         <SectionLevelFilterIcon section="live" />
       </div>
 
-      <div
-        className="min-w-0 rounded-xl px-3 py-2 break-words"
+      <button
+        type="button"
+        onClick={() => setBulkOpen(true)}
+        className="app-card min-w-0 px-3 py-2 break-words text-left"
         style={{
-          background: 'rgba(255,255,255,0.88)',
-          border: '1px solid var(--gov-border, #D6E0EE)',
-          boxShadow: '0 1px 6px rgba(0,40,100,0.06)',
+          background: 'rgba(255,255,255,0.96)',
         }}
+        aria-label="Liste der offenen Abstimmungen öffnen"
       >
-        <p className="text-[11px] font-semibold text-[#1A2B45]">Abstimmungen {VOTING_STATS_YEAR}</p>
-        <p className="mt-0.5 text-[10px] leading-snug text-neutral-600">
+        <p className="t-meta font-semibold text-[#1A2B45]">Abstimmungen {VOTING_STATS_YEAR}</p>
+        <p className="t-caption mt-0.5">
           {votingStats2026.total2026 > 0 ? (
             <>
               {VOTING_STATS_YEAR} · {votingStats2026.total2026} Abstimmungen verfügbar
@@ -168,25 +207,17 @@ const LiveSection: React.FC = () => {
             <>Für {VOTING_STATS_YEAR} sind in dieser Demo-Ansicht keine Abstimmungsdaten hinterlegt.</>
           )}
         </p>
-      </div>
+      </button>
 
       {/* ── Tab-Leiste: Aktuell / Ergebnisse ── */}
-      <div
-        className="flex gap-1 p-1 rounded-2xl"
-        style={{
-          background: 'rgba(255,255,255,0.85)',
-          backdropFilter: 'blur(8px)',
-          border: '1px solid var(--gov-border, #D6E0EE)',
-          boxShadow: '0 2px 8px rgba(0,40,100,0.06)',
-        }}
-      >
+      <div className="app-segment flex gap-1">
         {(['aktuell', 'ergebnisse'] as const).map((tab) => {
           const isActive = abstimmungTab === tab;
           return (
             <button
               key={tab}
               onClick={() => setAbstimmungTab(tab)}
-              className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
+              className={`app-segment-btn flex-1 py-2 transition-all ${isActive ? 'app-segment-btn--active' : 'border border-neutral-200 bg-white text-gray-700'}`}
               style={
                 isActive
                   ? {
@@ -194,7 +225,7 @@ const LiveSection: React.FC = () => {
                       color: '#fff',
                       boxShadow: '0 2px 8px rgba(0,60,150,0.20)',
                     }
-                  : { color: 'var(--gov-muted, #6B7A99)' }
+                  : undefined
               }
             >
               {tab === 'aktuell' ? (
@@ -224,10 +255,10 @@ const LiveSection: React.FC = () => {
       {/* ── Aktuelle Abstimmung ── */}
       {abstimmungTab === 'aktuell' && currentCard && (
         <>
-          <VotingCard card={currentCard} introProConExpanded />
+          <VotingCard card={currentCard} />
 
           {/* Voting-Buttons direkt unter der Karte */}
-          <VotingControls canVote={currentData.canVote} onVote={handleVote} du={du} />
+          <VotingControls canVote={currentData.canVote} onVote={handleVote} du={du} compact />
 
           {/* ── Live-Stats (einklappbar, sekundär) ── */}
           <div className="mt-1">
@@ -239,23 +270,17 @@ const LiveSection: React.FC = () => {
             </button>
 
             {showStats && (
-              <div
-                className="mt-1 rounded-2xl text-white px-4 py-3 flex items-center justify-between gap-3"
-                style={{
-                  background: 'linear-gradient(135deg, #002855 0%, #003d80 50%, #0055A4 100%)',
-                  boxShadow: '0 4px 16px rgba(0,40,120,0.20)',
-                }}
-              >
+              <div className="card-content mt-1 flex items-center justify-between gap-3 rounded-2xl bg-white text-[#162033]">
                 <div className="text-center flex-1">
-                  <div className="text-[9px] font-semibold tracking-widest uppercase opacity-55">Live</div>
-                  <div className="text-lg font-extrabold">{activeNow.toLocaleString('de-DE')}</div>
-                  <div className="text-[10px] opacity-55">Gerade aktiv</div>
+                  <div className="t-kicker opacity-55">Live</div>
+                  <div className="t-card-title">{activeNow.toLocaleString('de-DE')}</div>
+                  <div className="t-caption opacity-70">Gerade aktiv</div>
                 </div>
-                <div className="w-px h-10 bg-white/15" />
+                <div className="h-10 w-px bg-neutral-200" />
                 <div className="text-center flex-1">
-                  <div className="text-[9px] font-semibold tracking-widest uppercase opacity-55">Heute</div>
-                  <div className="text-lg font-extrabold">73,4%</div>
-                  <div className="text-[10px] opacity-55">Beteiligung</div>
+                  <div className="t-kicker opacity-55">Heute</div>
+                  <div className="t-card-title">73,4%</div>
+                  <div className="t-caption opacity-70">Beteiligung</div>
                 </div>
               </div>
             )}
@@ -275,18 +300,14 @@ const LiveSection: React.FC = () => {
         <div className="space-y-3">
           {currentData.vergangen && currentData.vergangen.length > 0 ? (
             currentData.vergangen.map((ergebnis) => (
-              <div
-                key={ergebnis.id}
-                className="bg-white rounded-2xl p-4 shadow-sm border-l-4"
-                style={{ borderLeftColor: ergebnis.ergebnis === 'Angenommen' ? '#22c55e' : '#ef4444' }}
-              >
+              <div key={ergebnis.id} className="card-content border-l-4" style={{ borderLeftColor: ergebnis.ergebnis === 'Angenommen' ? '#22c55e' : '#ef4444' }}>
                 <div className="flex justify-between items-start mb-1.5 gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className="text-[10px] text-gray-400 mb-0.5">Vorlage {ergebnis.nummer}</div>
-                    <h3 className="font-bold text-sm text-[#1A2B45] leading-snug">{ergebnis.title}</h3>
+                    <div className="t-caption mb-0.5">Vorlage {ergebnis.nummer}</div>
+                    <h3 className="t-card-title">{ergebnis.title}</h3>
                   </div>
                   <span
-                    className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    className={`badge-status flex-shrink-0 ${
                       ergebnis.ergebnis === 'Angenommen'
                         ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-700'
@@ -295,7 +316,7 @@ const LiveSection: React.FC = () => {
                     {ergebnis.ergebnis}
                   </span>
                 </div>
-                <div className="text-[10px] text-gray-400 mb-2">
+                <div className="t-caption mb-2">
                   {ergebnis.datum} · {ergebnis.votes.toLocaleString('de-DE')} Stimmen
                 </div>
                 <div
@@ -393,18 +414,9 @@ const LiveSection: React.FC = () => {
               {du ? 'Deine Auswahl wurde in der Demo erfasst.' : 'Ihre Auswahl wurde in der Demo erfasst.'}
             </h3>
             <p className="text-xs text-white/75 mb-4">{voteResultHumanLabel(state.voteResult.vote)}</p>
-            <div
-              className="rounded-xl px-4 py-2.5 text-sm text-white/90"
-              style={{ background: 'rgba(148,163,184,0.2)', border: '1px solid rgba(148,163,184,0.35)' }}
-            >
-              Demo-Hinweis · keine echte Abstimmung
-            </div>
-            <p className="mt-3 text-[10px] text-white/70">
-              Diese Auswahl dient nur der Demo ohne rechtliche Wirkung.
-            </p>
             <button
               type="button"
-              className="mt-4 w-full rounded-xl border border-white/25 py-2.5 text-xs font-semibold text-white/90 hover:bg-white/10"
+              className="mt-2 w-full rounded-xl border border-white/25 py-2.5 text-xs font-semibold text-white/90 hover:bg-white/10"
               onClick={(e) => {
                 e.stopPropagation();
                 performUndo();
@@ -412,6 +424,101 @@ const LiveSection: React.FC = () => {
             >
               Rückgängig (löscht diese Demo-Abstimmung)
             </button>
+          </div>
+        </div>
+      )}
+      {bulkOpen && (
+        <div className="fixed inset-0 z-[85] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Bulk-Abstimmung">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/35"
+            onClick={() => setBulkOpen(false)}
+            aria-label="Bulk-Abstimmung schließen"
+          />
+          <div className="relative z-10 mx-auto w-full max-w-[390px] rounded-t-3xl border border-neutral-200 bg-white p-3 shadow-2xl">
+            <div className="mb-2 flex items-center justify-between">
+              <div>
+                <p className="t-card-title text-[15px]">Offene Abstimmungen</p>
+                <p className="t-caption">Schnellabgabe im gleichen Daumen-Schema wie im Voting</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setBulkOpen(false)}
+                className="btn-icon inline-flex min-h-[40px] min-w-[40px] items-center justify-center"
+                aria-label="Bulk-Abstimmung schließen"
+                title="Schließen"
+              >
+                <X className="h-4 w-4 text-neutral-600" aria-hidden />
+              </button>
+            </div>
+            <div className="intro-scroll-visible max-h-[55vh] space-y-2 overflow-y-auto pr-0.5">
+              {openCards.length > 0 ? (
+                openCards.map((card) => {
+                  const selected = bulkVoteState[card.id];
+                  return (
+                    <div key={card.id} className="card-compact p-2.5">
+                      <div className="mb-1 text-[11px] font-semibold text-[#1A2B45]">{card.title}</div>
+                      <div className="mb-2 text-[10px] text-neutral-500">Frist {card.deadline}</div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleBulkVote(card.id, 'against')}
+                          className={`inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full border transition ${
+                            selected === 'against'
+                              ? 'border-red-500 bg-red-50 text-red-700 shadow-[0_2px_8px_rgba(239,68,68,0.22)]'
+                              : 'border-neutral-200 bg-white text-neutral-600'
+                          }`}
+                          aria-label="Ablehnen"
+                        >
+                          <ThumbsDown size={18} strokeWidth={2.2} aria-hidden />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleBulkVote(card.id, 'abstain')}
+                          className={`inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full border transition ${
+                            selected === 'abstain'
+                              ? 'border-slate-500 bg-slate-100 text-slate-700'
+                              : 'border-neutral-200 bg-white text-neutral-600'
+                          }`}
+                          aria-label="Enthalten"
+                        >
+                          <Minus size={18} strokeWidth={2.6} aria-hidden />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleBulkVote(card.id, 'for')}
+                          className={`inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full border transition ${
+                            selected === 'for'
+                              ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-[0_2px_8px_rgba(34,197,94,0.22)]'
+                              : 'border-neutral-200 bg-white text-neutral-600'
+                          }`}
+                          aria-label="Zustimmen"
+                        >
+                          <ThumbsUp size={18} strokeWidth={2.2} aria-hidden />
+                        </button>
+                        {selected ? (
+                          <span
+                            className={`ml-1 badge-status ${
+                              selected === 'for'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : selected === 'against'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            Gespeichert
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="card-info p-3 text-[11px] text-neutral-600">
+                  Aktuell keine offenen Abstimmungen in dieser Auswahl.
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

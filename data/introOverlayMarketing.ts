@@ -5,7 +5,7 @@ import { INTRO_WALKTHROUGH_CLARA } from '@/data/introWalkthroughClara';
  *
  * Framing-Prinzipien (State Clarity):
  * - Die gesamte Einführung hat 8 Schritte: Ansprache, eID, Abstimmen, Wahlen,
- *   Kalender, Meldungen, Beteiligungsstatus, Politikbarometer.
+ *   Kalender, Meldungen, Prämien, Politikbarometer.
  * - Ein globaler „EINFÜHRUNG"-Pill steht auf allen Screens als Meta-Ebene.
  * - Pro Schritt genau eine Framing-Zeile (Meta), NIE im Screen-Inhalt selbst.
  * - Wording: „So …" statt „Jetzt …" – signalisiert Vorschau statt Live-Aktion.
@@ -388,12 +388,12 @@ export const INTRO_OVERLAY_STEPS: IntroOverlayStepCopy[] = [
   },
   {
     id: 'praemien',
-    title: 'Im Überblick · Beteiligungsstatus',
+    title: 'Im Überblick · Prämien',
     body: INTRO_WALKTHROUGH_CLARA.praemien.longSie,
     bullets: [
-      { n: 1, title: 'Transparenz', text: 'Status von Beiträgen, Meldungen und Beteiligungen.' },
-      { n: 2, title: 'Nachvollziehbarkeit', text: 'Eingereicht, in Prüfung, bestätigt oder abgeschlossen.' },
-      { n: 3, title: 'Einordnung', text: 'Ohne Druck, ohne Wettbewerb, ohne politische Steuerungslogik.' },
+      { n: 1, title: 'Freiwillig', text: 'Prämien nur mit ausdrücklicher Einwilligung.' },
+      { n: 2, title: 'Unabhängig', text: 'Nicht von Zustimmung, Ablehnung oder Enthaltung abhängig.' },
+      { n: 3, title: 'Nachvollziehbar', text: 'Begründung über abgeschlossene Beteiligung oder Rückmeldung.' },
     ],
   },
   {
@@ -418,7 +418,7 @@ export const INTRO_OVERLAY_FRAMING_LINES_SIE: Record<IntroOverlayStepId, string>
   wahlen: 'Wahlinformationen gebündelt – ohne Wahlempfehlung.',
   kalender: 'Termine und Fristen – optional thematisch hervorgehoben.',
   meldungen: 'Anliegen strukturiert und nachvollziehbar weitergeben.',
-  praemien: 'Beteiligungsstatus transparent – ohne Wettbewerb oder Steuerungslogik.',
+  praemien: 'Prämien nur nach Einwilligung – unabhängig von Ihrer Abstimmungsentscheidung.',
   politikbarometer: 'Interessenschwerpunkte für Kalender-Relevanz – freiwillig, neutral.',
 };
 
@@ -427,7 +427,7 @@ export const INTRO_OVERLAY_FRAMING_LINES_DU: Record<IntroOverlayStepId, string> 
   wahlen: 'Wahlinformationen gebündelt – ohne Wahlempfehlung.',
   kalender: 'Termine und Fristen – optional thematisch hervorgehoben.',
   meldungen: 'Anliegen strukturiert und nachvollziehbar weitergeben.',
-  praemien: 'Beteiligungsstatus transparent – ohne Wettbewerb oder Steuerungslogik.',
+  praemien: 'Prämien nur nach Einwilligung – unabhängig von deiner Abstimmungsentscheidung.',
   politikbarometer: 'Interessenschwerpunkte für Kalender-Relevanz – freiwillig, neutral.',
 };
 

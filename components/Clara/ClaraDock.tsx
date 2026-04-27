@@ -25,7 +25,7 @@ import {
 
 const SECTION_LABEL: Record<string, string> = {
   live: 'Abstimmen',
-  leaderboard: 'Beteiligungsstatus',
+  leaderboard: 'Prämien',
   wahlen: 'Wahlen',
   kalender: 'Kalender',
   meldungen: 'Meldungen',
@@ -99,6 +99,7 @@ export default function ClaraDock({
   const [voiceOpeningSeed, setVoiceOpeningSeed] = useState<string | null>(null);
   const [externalPrompt, setExternalPrompt] = useState<string | null>(null);
   const [autoSend, setAutoSend] = useState(false);
+  const [autoOpenedFromNda, setAutoOpenedFromNda] = useState(false);
 
   /** Pre-Login oder Walkthrough: nur Mic oben rechts — volle Pille nur in der normalen App. */
   const showCompactMicOnly =
@@ -145,6 +146,25 @@ export default function ClaraDock({
     setVoiceUiNonce((n) => n + 1);
     setVoiceOpen(true);
   }, [speakVoice, preLoginVoicePhase, walkthroughActive, state.anrede, claraAiForVoice]);
+
+  /**
+   * NDA-Zugangsflow (mobil/redirect): Clara-Voice einmalig automatisch öffnen,
+   * damit die Begrüßung direkt sichtbar ist.
+   */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (autoOpenedFromNda) return;
+    if (preLoginVoicePhase == null) return;
+    try {
+      const shouldAutostart = window.sessionStorage.getItem('eidconnect_intro_autostart_once') === '1';
+      if (!shouldAutostart) return;
+      window.sessionStorage.removeItem('eidconnect_intro_autostart_once');
+    } catch {
+      return;
+    }
+    setAutoOpenedFromNda(true);
+    openVoiceSession();
+  }, [autoOpenedFromNda, openVoiceSession, preLoginVoicePhase]);
 
   useEffect(() => {
     if (!voiceOpen) setVoiceOpeningSeed(null);
@@ -451,7 +471,9 @@ export default function ClaraDock({
         backdropPosition={overlayPosition}
         voiceOpenNonce={voiceUiNonce}
         openingSeedLine={voiceOpeningSeed}
+        voiceOnlyMode={walkthroughActive || preLoginVoicePhase !== null}
         onSwitchToChat={() => {
+          if (walkthroughActive || preLoginVoicePhase !== null) return;
           setVoiceOpen(false);
           setChatOpen(true);
         }}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useLayoutEffect, useEffect, useCallback } from 'react';
+import React, { useState, useLayoutEffect, useEffect, useCallback, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import LoginScreen from '@/components/Login/LoginScreen';
 import AppHeader from '@/components/Header/AppHeader';
@@ -32,10 +32,10 @@ import { resetViewportScroll } from '@/lib/resetViewportScroll';
 import type { EbeneLevel, Location, Section } from '@/types';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
+import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
 import { DemoLaunchEffect } from '@/components/Effects/DemoLaunchEffect';
 import {
   isDemoLaunchEffectEnabled,
-  DEMO_LAUNCH_SESSION_STORAGE_KEY,
 } from '@/lib/demoLaunchEffectConfig';
 import { playDemoLaunchAudio } from '@/lib/playDemoLaunchAudio';
 
@@ -71,6 +71,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
   const [walkthroughStep, setWalkthroughStep] = useState<{ id: string; label: string } | null>(null);
   /** Optionaler Demo-/Pitch-Launch (nur bei User-Klick + NEXT_PUBLIC_ENABLE_DEMO_LAUNCH_EFFECT). */
   const [demoLaunchOpen, setDemoLaunchOpen] = useState(false);
+  const [demoLaunchDurationMs, setDemoLaunchDurationMs] = useState(1200);
   const isDevice = variant === 'device';
 
   const finishDemoLaunch = useCallback(() => {
@@ -89,15 +90,10 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
   }, []);
 
   /** Nur aus echten Click-Handlern (Walkthrough fertig / „Direkt zur App“). */
-  const tryStartDemoLaunchFromUserGesture = useCallback(() => {
+  const tryStartDemoLaunchFromUserGesture = useCallback((mode: 'full' | 'mini' = 'full') => {
     if (!isDemoLaunchEffectEnabled()) return;
     if (typeof window === 'undefined') return;
-    try {
-      if (window.sessionStorage.getItem(DEMO_LAUNCH_SESSION_STORAGE_KEY)) return;
-      window.sessionStorage.setItem(DEMO_LAUNCH_SESSION_STORAGE_KEY, '1');
-    } catch {
-      return;
-    }
+    setDemoLaunchDurationMs(mode === 'full' ? 1200 : 700);
     playDemoLaunchAudio();
     setDemoLaunchOpen(true);
   }, []);
@@ -110,6 +106,15 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     kalender: ['bund', 'land', 'kreis', 'kommune'],
     meldungen: ['kommune'],
   };
+  const locationLineForLaunch = useMemo(() => {
+    const kommune = activeLocationForLevel(state.residenceLocation, 'kommune');
+    const land = activeLocationForLevel(state.residenceLocation, 'land');
+    const bund = activeLocationForLevel(state.residenceLocation, 'bund');
+    const labels = [kommune, land, bund]
+      .map((loc) => DEMO_LOCATION_LABEL[loc] ?? String(loc))
+      .filter(Boolean);
+    return labels.join(' · ');
+  }, [state.residenceLocation]);
   const residencePathForLocation = (loc: Location): EbeneLevel[] => {
     const level = levelForResidenceLocation(loc);
     if (level === 'kommune') return ['bund', 'land', 'kreis', 'kommune'];
@@ -193,12 +198,14 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     const onOpen = () => {
       try {
         localStorage.removeItem(PRODUCT_INTRO_DONE_KEY);
+        writeWantsWalkthrough(true);
       } catch {}
+      dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'live' });
       setPostLoginIntroOpen(true);
     };
     window.addEventListener('eidconnect:open-intro', onOpen as any);
     return () => window.removeEventListener('eidconnect:open-intro', onOpen as any);
-  }, []);
+  }, [dispatch]);
 
   /** Tab-Titel immer setzen (auch vor Login) — sonst bleibt auf dem Handy oft ein alter Name aus Cache/PWA stehen. */
   useEffect(() => {
@@ -229,11 +236,12 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
         dispatch({ type: 'SET_LOGGED_IN', payload: true });
       }
       setPostLoginIntroOpen(false);
+      tryStartDemoLaunchFromUserGesture('mini');
     };
     window.addEventListener('eidconnect:skip-intro-all', onSkipAll as any);
     return () =>
       window.removeEventListener('eidconnect:skip-intro-all', onSkipAll as any);
-  }, [dispatch, state.anrede, state.isLoggedIn]);
+  }, [dispatch, state.anrede, state.isLoggedIn, tryStartDemoLaunchFromUserGesture]);
 
   // Default-Filter (passendste Ebene zum Wohnort) bei Section-Wechsel
   useEffect(() => {
@@ -253,7 +261,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
   }, [state.activeSection, state.residenceLocation, state.activeLocation, dispatch]);
 
   const finishProductIntro = () => {
-    tryStartDemoLaunchFromUserGesture();
+    tryStartDemoLaunchFromUserGesture('full');
     try {
       localStorage.setItem(PRODUCT_INTRO_DONE_KEY, 'true');
     } catch {}
@@ -342,7 +350,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     dispatch({ type: 'SET_LOGGED_IN', payload: true });
     setPostLoginIntroOpen(false);
     setPreLogin('ok');
-    tryStartDemoLaunchFromUserGesture();
+    tryStartDemoLaunchFromUserGesture('mini');
   };
 
   return (
@@ -388,6 +396,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                   <DemoIntroWalkthrough
                     du={state.anrede === 'du'}
                     residenceLocation={state.residenceLocation}
+                    startStepId="abstimmen"
                     onClose={finishProductIntro}
                     onFinish={finishProductIntro}
                     onBackFromFirstStep={backFromWalkthroughFirstStep}
@@ -413,7 +422,12 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
               <ScrollToTopButton />
               <StimmzettelModal />
               {demoLaunchOpen ? (
-                <DemoLaunchEffect open={demoLaunchOpen} onComplete={finishDemoLaunch} />
+                <DemoLaunchEffect
+                  open={demoLaunchOpen}
+                  onComplete={finishDemoLaunch}
+                  locationLine={locationLineForLaunch}
+                  durationMs={demoLaunchDurationMs}
+                />
               ) : null}
             </div>
           </>

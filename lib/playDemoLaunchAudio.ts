@@ -1,5 +1,5 @@
 /**
- * Kurze Launch-/Welcome-Audio (optional). Keine speechSynthesis — nur Assets unter /audio/.
+ * Kurzer, seriöser Chime (optional). Keine speechSynthesis — nur Assets unter /audio/.
  * Muss aus derselben User-Geste wie der UI-Start aufgerufen werden (Mobile Safari).
  */
 function playOne(src: string, volume = 0.38): Promise<void> {
@@ -30,10 +30,7 @@ export function playDemoLaunchAudio(): void {
 
   void (async () => {
     try {
-      await playOne('/audio/hookai-launch.mp3', 0.32);
-      const lang = (navigator.language || 'de').toLowerCase();
-      const welcome = /^de\b/i.test(lang) ? '/audio/hookai-welcome-de.mp3' : '/audio/hookai-welcome-en.mp3';
-      await playOne(welcome, 0.42);
+      await playOne('/audio/hookai-civic-ready.mp3', 0.34);
     } catch {
       /* absichtlich still */
     }

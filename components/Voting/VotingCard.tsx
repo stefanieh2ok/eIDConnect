@@ -25,6 +25,8 @@ interface VotingCardProps {
   introCompact?: boolean;
   /** Intro/Walkthrough: zusätzliche Zeile „Keine echte Abstimmung.“ unter dem Balken. */
   introDemoVoteDisclaimer?: boolean;
+  /** Bei Öffnen von Pro schließt Contra (und umgekehrt) für kompaktere Karten. */
+  singleOpenProCon?: boolean;
 }
 
 const VotingCard: React.FC<VotingCardProps> = memo(
@@ -34,20 +36,35 @@ const VotingCard: React.FC<VotingCardProps> = memo(
     introProConExpanded = false,
     introCompact = false,
     introDemoVoteDisclaimer = false,
+    singleOpenProCon = true,
   }) => {
     const [proOpen, setProOpen] = useState(introProConExpanded);
     const [conOpen, setConOpen] = useState(introProConExpanded);
     const proConLimit = introCompact ? 1 : 2;
 
+    const togglePro = () => {
+      setProOpen((prev) => {
+        const next = !prev;
+        if (next && singleOpenProCon) setConOpen(false);
+        return next;
+      });
+    };
+
+    const toggleCon = () => {
+      setConOpen((prev) => {
+        const next = !prev;
+        if (next && singleOpenProCon) setProOpen(false);
+        return next;
+      });
+    };
+
     return (
       <div
         className="rounded-2xl overflow-hidden"
         style={{
-          background: 'rgba(255,255,255,0.90)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+          background: '#ffffff',
           border: '1px solid var(--gov-border, #D6E0EE)',
-          boxShadow: '0 4px 24px rgba(0,40,100,0.10)',
+          boxShadow: '0 2px 10px rgba(0,40,100,0.08)',
         }}
       >
         {/* ── Header-Streifen (GovTech Dunkelblau) ── */}
@@ -170,9 +187,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
                 )}
               </span>
             </span>
-            <span className="text-[10px] font-semibold text-neutral-600">
-              Demo-Hinweis · keine echte Abstimmung
-            </span>
+            <span className="text-[10px] font-semibold text-neutral-500">Live-Verlauf</span>
           </div>
           {introDemoVoteDisclaimer ? (
             <p className="mt-1 text-[9px] leading-snug text-neutral-600">
@@ -182,12 +197,12 @@ const VotingCard: React.FC<VotingCardProps> = memo(
         </div>
 
         {/* ── Pro / Contra: einklappbar ── */}
-        <div className={`mx-4 ${introCompact ? 'mb-2 grid grid-cols-2 gap-1.5' : 'mb-3 grid grid-cols-2 gap-2'}`}>
-          <div className="overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/60">
+        <div className={`mx-4 ${introCompact ? 'mb-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2' : 'mb-2.5 grid grid-cols-1 gap-1.5 sm:grid-cols-2'}`}>
+          <div className="h-full overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/60">
             <button
               type="button"
-              className={`flex w-full items-center justify-between gap-1 px-2.5 text-left ${introCompact ? 'py-1.5' : 'py-2'}`}
-              onClick={() => setProOpen((o: boolean) => !o)}
+              className={`flex w-full min-h-[34px] items-center justify-between gap-1 px-2.5 text-left ${introCompact ? 'py-1.5' : 'py-1.5'}`}
+              onClick={togglePro}
               aria-expanded={proOpen}
               aria-controls="voting-pro-details"
               id="voting-pro-toggle"
@@ -217,11 +232,11 @@ const VotingCard: React.FC<VotingCardProps> = memo(
               </ul>
             ) : null}
           </div>
-          <div className="overflow-hidden rounded-xl border border-rose-200 bg-rose-50/60">
+          <div className="h-full overflow-hidden rounded-xl border border-rose-200 bg-rose-50/60">
             <button
               type="button"
-              className={`flex w-full items-center justify-between gap-1 px-2.5 text-left ${introCompact ? 'py-1.5' : 'py-2'}`}
-              onClick={() => setConOpen((o: boolean) => !o)}
+              className={`flex w-full min-h-[34px] items-center justify-between gap-1 px-2.5 text-left ${introCompact ? 'py-1.5' : 'py-1.5'}`}
+              onClick={toggleCon}
               aria-expanded={conOpen}
               aria-controls="voting-contra-details"
               id="voting-contra-toggle"

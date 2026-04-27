@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ndaConfig } from '@/config/nda';
 
 const INTRO_AUTOSTART_ONCE_KEY = 'eidconnect_intro_autostart_once';
 const INTRO_AUDIO_SESSION_KEY = 'eidconnect_intro_audio_v1';
@@ -43,7 +42,19 @@ function classifyApiError(raw: string | undefined | null): {
   return { display: MSG_SIGNING_UNAVAILABLE, issuerSetup: false };
 }
 
-export function AcceptNdaButton({ token }: { token: string }) {
+type AcceptNdaButtonProps = {
+  token: string;
+  returnEmailPrimary?: string;
+  returnEmailSecondary?: string;
+  sentenceBelowButton?: string;
+};
+
+export function AcceptNdaButton({
+  token,
+  returnEmailPrimary,
+  returnEmailSecondary,
+  sentenceBelowButton,
+}: AcceptNdaButtonProps) {
   const searchParams = useSearchParams();
   const [signingLoading, setSigningLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,23 +117,23 @@ export function AcceptNdaButton({ token }: { token: string }) {
   };
 
   const returnEmails =
-    ndaConfig.returnEmailPrimary && ndaConfig.returnEmailSecondary
-      ? `${ndaConfig.returnEmailPrimary} oder ${ndaConfig.returnEmailSecondary}`
-      : ndaConfig.returnEmailPrimary ?? '';
+    returnEmailPrimary && returnEmailSecondary
+      ? `${returnEmailPrimary} oder ${returnEmailSecondary}`
+      : returnEmailPrimary ?? '';
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-neutral-600">
+      <p className="t-body-sm">
         Alternativ können Sie die{' '}
         <strong>Druckversion</strong> ausdrucken, unterschreiben und die unterzeichnete PDF an{' '}
         {returnEmails ? (
           <>
-            <a href={`mailto:${ndaConfig.returnEmailPrimary}`} className="text-blue-600 underline">
-              {ndaConfig.returnEmailPrimary}
+            <a href={`mailto:${returnEmailPrimary}`} className="text-blue-600 underline">
+              {returnEmailPrimary}
             </a>
             {' oder '}
-            <a href={`mailto:${ndaConfig.returnEmailSecondary}`} className="text-blue-600 underline">
-              {ndaConfig.returnEmailSecondary}
+            <a href={`mailto:${returnEmailSecondary}`} className="text-blue-600 underline">
+              {returnEmailSecondary}
             </a>
           </>
         ) : (
@@ -131,8 +142,8 @@ export function AcceptNdaButton({ token }: { token: string }) {
         zurücksenden.
       </p>
 
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
-        <p className="font-medium">Nach der Unterzeichnung:</p>
+      <div className="card-info">
+        <p className="t-body-sm font-semibold text-[#003B71]">Nach der Unterzeichnung:</p>
         <p className="mt-1 text-blue-800">
           Sie werden automatisch zurückgeleitet. <strong>Die Seite wechselt dann in die Demo</strong> – Sie können
           direkt starten.
@@ -160,7 +171,7 @@ export function AcceptNdaButton({ token }: { token: string }) {
         type="button"
         onClick={handleDigitalSign}
         disabled={signingLoading}
-        className="w-full rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+        className="btn-primary t-button w-full"
       >
         {signingLoading
           ? 'In Bearbeitung …'
@@ -169,14 +180,14 @@ export function AcceptNdaButton({ token }: { token: string }) {
             : 'Digital signieren'}
       </button>
 
-      <p className="text-center text-sm">
-        <a href="#nda-fulltext" className="font-medium text-blue-600 underline hover:text-blue-700">
-          Vertraulichkeitserklärung ansehen
+      <p className="t-body-sm text-center">
+        <a href="/api/nda/download?disposition=inline" target="_blank" rel="noopener noreferrer" className="font-medium text-blue-600 underline hover:text-blue-700">
+          Vertraulichkeitserklärung als PDF ansehen
         </a>
       </p>
 
-      {ndaConfig.sentenceBelowButton ? (
-        <p className="text-xs text-neutral-500">{ndaConfig.sentenceBelowButton}</p>
+      {sentenceBelowButton ? (
+        <p className="text-xs text-neutral-500">{sentenceBelowButton}</p>
       ) : null}
 
       {(error || showReturnError || consentUrl || issuerSetupHint) && (

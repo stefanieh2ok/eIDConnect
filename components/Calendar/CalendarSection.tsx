@@ -560,11 +560,11 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
   };
 
   return (
-    <div>
+    <div className="card-section p-2.5">
         <div className="flex items-start justify-between mb-2">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Kalender</h2>
-            <div className="mt-0.5 text-[11px] text-neutral-500">
+            <h2 className="t-h2">Kalender</h2>
+            <div className="t-meta mt-0.5">
               Jahr: <span className="font-semibold text-neutral-700">{currentYear}</span> · <span>{selectionLabel}</span>
             </div>
           </div>
@@ -579,7 +579,8 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
             }}
           />
       </div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="card-content mb-3 p-2">
+      <div className="flex items-center justify-between">
         <button
           onClick={() => {
             if (currentMonthIndex === 0) {
@@ -589,17 +590,17 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
               setCurrentMonthIndex(prev => prev - 1);
             }
           }}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="app-filter-btn px-3 py-1.5 transition-colors hover:bg-neutral-50"
           aria-label="Vorheriger Monat"
         >
-          <span className="text-sm font-bold">Zurück</span>
+          <span className="t-meta font-semibold">Zurück</span>
         </button>
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-gray-900">{currentMonth.name}</h2>
+          <h2 className="t-card-title">{currentMonth.name}</h2>
           <select
             value={currentYear}
             onChange={(e) => setCurrentYear(Number(e.target.value))}
-            className="rounded-lg border border-neutral-200 bg-white/70 px-2 py-1 text-[11px] font-semibold text-neutral-800 backdrop-blur"
+            className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] font-semibold text-neutral-800"
             aria-label="Jahr auswählen"
           >
             {availableYears.map((y) => (
@@ -618,14 +619,15 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
               setCurrentMonthIndex(prev => prev + 1);
             }
           }}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="app-filter-btn px-3 py-1.5 transition-colors hover:bg-neutral-50"
           aria-label="Nächster Monat"
         >
-          <span className="text-sm font-bold">Weiter</span>
+          <span className="t-meta font-semibold">Weiter</span>
         </button>
       </div>
+      </div>
       
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
+      <div className="card-content p-4">
         <div className="grid grid-cols-7 gap-2 mb-3">
           {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(day => (
             <div key={day} className="text-center text-[10px] font-semibold text-gray-600 pb-2">
@@ -663,7 +665,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
               <button
                 key={i}
                 onClick={() => visible.length > 0 && handleCalendarClick(day)}
-                className={`relative aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-all border ${
+                className={`relative aspect-square flex flex-col items-center justify-center rounded-xl text-sm transition-all border ${
                   visible.length > 0
                     ? 'bg-white text-gray-900 hover:bg-gray-50 cursor-pointer border-neutral-200'
                     : 'bg-gray-50 text-gray-700 border-transparent'
@@ -716,7 +718,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="card-content mt-4 p-3">
         <h3 className="text-xs font-bold text-gray-700 mb-2">Legende</h3>
         <div className="space-y-2">
           {/* 1) Typ (Fill/Outline) */}
@@ -746,7 +748,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-5">
           <h3 className="text-xs font-bold text-gray-700 mb-2 mt-4">
             Termine im {currentMonth.name} {currentYear}
           </h3>

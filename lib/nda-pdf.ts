@@ -3,9 +3,9 @@ import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { ndaConfig } from '@/config/nda';
 
-const MARGIN = 50;
-const FONT_SIZE = 10;
-const LINE_HEIGHT = 14;
+const MARGIN = 62;
+const FONT_SIZE = 11;
+const LINE_HEIGHT = 15.95;
 const PAGE_WIDTH = 595;
 const PAGE_HEIGHT = 842;
 const TEXT_WIDTH = PAGE_WIDTH - 2 * MARGIN;
@@ -21,6 +21,25 @@ export type BuildNdaPdfResult = {
   signHerePosition: { x: number; y: number };
 };
 
+export type NdaPdfMeta = {
+  recipientName?: string;
+  recipientEmail?: string;
+  recipientCompany?: string;
+  accessId?: string;
+};
+
+function drawWatermark(page: any, font: any) {
+  page.drawText('HookAI · Confidential', {
+    x: 120,
+    y: 430,
+    size: 44,
+    font,
+    color: rgb(0.0, 0.23, 0.44),
+    opacity: 0.07,
+    rotate: { type: 'degrees', angle: -28 } as any,
+  });
+}
+
 /**
  * Erzeugt ein PDF mit dem NDA-Volltext und Unterschriftsblock für DocuSign (oder Download).
  * Deine Unterschrift (Offenlegende Partei) wird als Bild eingebettet, wenn NDA_SIGNATURE_IMAGE_PATH gesetzt ist.
@@ -28,17 +47,55 @@ export type BuildNdaPdfResult = {
  */
 export async function buildNdaPdfBuffer(): Promise<Buffer>;
 export async function buildNdaPdfBuffer(
-  opts: { withSignatureBlock: true }
+  opts: { withSignatureBlock: true; meta?: NdaPdfMeta }
 ): Promise<BuildNdaPdfResult>;
 export async function buildNdaPdfBuffer(
-  opts?: { withSignatureBlock?: boolean }
+  opts?: { withSignatureBlock?: boolean; meta?: NdaPdfMeta }
 ): Promise<Buffer | BuildNdaPdfResult> {
   const withSignatureBlock = opts?.withSignatureBlock ?? false;
+  const meta = opts?.meta;
 
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   let page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+  drawWatermark(page, font);
   let y = PAGE_HEIGHT - MARGIN;
+
+  page.drawText('Geheimhaltungsvereinbarung (NDA)', {
+    x: MARGIN,
+    y,
+    size: 16,
+    font,
+    color: rgb(0.08, 0.13, 0.2),
+  });
+  y -= 20;
+  page.drawText(`Datum: ${new Date().toLocaleString('de-DE')}`, {
+    x: MARGIN,
+    y,
+    size: 10.5,
+    font,
+    color: rgb(0.35, 0.42, 0.5),
+  });
+  y -= 14;
+  if (meta?.recipientName || meta?.recipientEmail || meta?.recipientCompany || meta?.accessId) {
+    const recipientLine = [
+      meta?.recipientName || null,
+      meta?.recipientCompany || null,
+      meta?.recipientEmail || null,
+      meta?.accessId ? `Zugangs-ID: ${meta.accessId}` : null,
+    ]
+      .filter(Boolean)
+      .join(' · ');
+    page.drawText(recipientLine, {
+      x: MARGIN,
+      y,
+      size: 10.5,
+      font,
+      color: rgb(0.35, 0.42, 0.5),
+    });
+    y -= 14;
+  }
+  y -= 4;
 
   const lines = ndaConfig.fullText.split(/\r?\n/);
 
@@ -48,6 +105,7 @@ export async function buildNdaPdfBuffer(
       y -= LINE_HEIGHT * 0.5;
       if (y < MARGIN) {
         page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+        drawWatermark(page, font);
         y = PAGE_HEIGHT - MARGIN;
       }
       continue;
@@ -67,6 +125,7 @@ export async function buildNdaPdfBuffer(
           y -= LINE_HEIGHT;
           if (y < MARGIN) {
             page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+            drawWatermark(page, font);
             y = PAGE_HEIGHT - MARGIN;
           }
           page.drawText(currentLine, {
@@ -87,6 +146,7 @@ export async function buildNdaPdfBuffer(
       y -= LINE_HEIGHT;
       if (y < MARGIN) {
         page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+        drawWatermark(page, font);
         y = PAGE_HEIGHT - MARGIN;
       }
       page.drawText(currentLine, {
@@ -104,6 +164,7 @@ export async function buildNdaPdfBuffer(
   if (withSignatureBlock) {
     if (y < MARGIN + SIGNATURE_BLOCK_HEIGHT) {
       page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+      drawWatermark(page, font);
       y = PAGE_HEIGHT - MARGIN;
       lastPageNumber = pdfDoc.getPageCount();
     }

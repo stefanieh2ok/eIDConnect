@@ -53,14 +53,14 @@ export function CheckboxAcceptButton({ token }: { token: string }) {
 
   return (
     <div className="space-y-4">
-      <label className="flex items-start gap-3 cursor-pointer select-none">
+      <label className="flex cursor-pointer select-none items-start gap-3">
         <input
           type="checkbox"
           checked={accepted}
           onChange={(e) => setAccepted(e.target.checked)}
-          className="mt-1 h-5 w-5 rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
+          className="mt-0.5 h-5 w-5 rounded border-neutral-300 text-blue-600"
         />
-        <span className="text-sm text-neutral-700">
+        <span className="t-body">
           Ich habe die Vertraulichkeitsvereinbarung gelesen und stimme den Bedingungen zu.
           Ich verpflichte mich, die Inhalte vertraulich zu behandeln.
         </span>
@@ -70,7 +70,7 @@ export function CheckboxAcceptButton({ token }: { token: string }) {
         type="button"
         onClick={handleAccept}
         disabled={!accepted || loading}
-        className="w-full rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40 border-2 border-[#0066CC]"
+        className="btn-primary t-button w-full"
       >
         {loading ? 'Wird vorbereitet …' : 'Zustimmen und Demo öffnen'}
       </button>

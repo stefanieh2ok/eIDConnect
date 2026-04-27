@@ -6,10 +6,10 @@ import { THEME_NAMES } from '@/data/constants';
 import type { UserPreferences } from '@/types';
 
 const DEFAULT_LEAD_DU =
-  'Das Politikbarometer zeigt keine politische Bewertung und erstellt kein Meinungsprofil. Du markierst selbst Themen, die dir wichtig sind – zum Beispiel Digitalisierung, Umwelt und Energie oder Bildung. Passende Termine und Beteiligungen können im Kalender hervorgehoben werden. Das ist keine Empfehlung, sondern nur thematische Relevanz.';
+  'Das Politikbarometer ist neutral und erstellt kein Meinungsprofil. Du markierst Themen, die dir wichtig sind; passende Termine werden im Kalender thematisch hervorgehoben.';
 
 const DEFAULT_LEAD_SIE =
-  'Das Politikbarometer zeigt keine politische Bewertung und erstellt kein Meinungsprofil. Sie markieren selbst Themen, die Ihnen wichtig sind – zum Beispiel Digitalisierung, Umwelt und Energie oder Bildung. Passende Termine und Beteiligungen können im Kalender hervorgehoben werden. Das ist keine Empfehlung, sondern nur thematische Relevanz.';
+  'Das Politikbarometer ist neutral und erstellt kein Meinungsprofil. Sie markieren Themen, die Ihnen wichtig sind; passende Termine werden im Kalender thematisch hervorgehoben.';
 
 /**
  * Politikbarometer (Themenkompass): selbst gewählte Interessenschwerpunkte für
@@ -31,6 +31,8 @@ type Props = {
   walkthroughFooterSie?: string;
   /** Extra kompakte Darstellung für enge Settings-Abschnitte. */
   density?: 'default' | 'tight';
+  /** Erlaubt Änderungen ohne aktivierte Einwilligung (z. B. in Einstellungen). */
+  editableWithoutConsent?: boolean;
 };
 
 export default function PolitikBarometerPanel({
@@ -42,19 +44,27 @@ export default function PolitikBarometerPanel({
   walkthroughFooterDu,
   walkthroughFooterSie,
   density = 'default',
+  editableWithoutConsent = false,
 }: Props) {
   const { state, dispatch } = useApp();
   const compact = variant === 'compact';
   const tight = density === 'tight';
+  const canEditPreferences = true;
   const title = headingTitle ?? 'Politikbarometer';
   const lead = du ? (leadDu ?? DEFAULT_LEAD_DU) : (leadSie ?? DEFAULT_LEAD_SIE);
   const walkFooter = du ? walkthroughFooterDu : walkthroughFooterSie;
+  const ensureConsentForPreferenceUse = () => {
+    if (state.consentClaraPersonalization || editableWithoutConsent) return;
+    dispatch({ type: 'SET_CONSENT_CLARA_PERSONALIZATION', payload: true });
+  };
 
   const handlePreferenceChange = (key: keyof UserPreferences, value: number) => {
+    ensureConsentForPreferenceUse();
     dispatch({ type: 'SET_PREFERENCES', payload: { [key]: value } });
   };
 
   const applyPreset = (preset: Partial<UserPreferences>) => {
+    ensureConsentForPreferenceUse();
     dispatch({ type: 'SET_PREFERENCES', payload: preset });
   };
 
@@ -73,44 +83,15 @@ export default function PolitikBarometerPanel({
         boxShadow: '0 1px 4px rgba(0,51,102,0.06)',
       }}
     >
-      <h2
-        className={`mb-1 font-bold ${compact ? (tight ? 'text-[12px]' : 'text-[13px]') : 'text-base'}`}
-        style={{ color: 'var(--gov-heading)' }}
-      >
+      <h2 className={`mb-1 font-bold ${compact ? (tight ? 'text-[11px]' : 'text-[12px]') : 'text-[15px]'}`} style={{ color: 'var(--gov-heading)' }}>
         {title}
       </h2>
       <p
-        className={`leading-relaxed ${compact ? (tight ? 'text-[10px]' : 'text-[10.5px]') : 'text-[11px]'}`}
+        className={`leading-relaxed ${compact ? (tight ? 'text-[9.5px]' : 'text-[10px]') : 'text-[10.5px]'}`}
         style={{ color: 'var(--gov-muted)' }}
       >
         {lead}
       </p>
-
-      <label
-        className={`relative mt-3 flex cursor-pointer items-start rounded-xl border bg-white ${tight ? 'gap-2 px-2.5 py-2' : 'gap-3 px-3 py-2.5'}`}
-        style={{ borderColor: 'var(--gov-border)' }}
-      >
-        <input
-          type="checkbox"
-          checked={state.consentClaraPersonalization}
-          onChange={(e) =>
-            dispatch({
-              type: 'SET_CONSENT_CLARA_PERSONALIZATION',
-              payload: e.target.checked,
-            })
-          }
-          className={`mt-0.5 flex-shrink-0 rounded ${tight ? 'h-3.5 w-3.5' : 'h-4 w-4'}`}
-          style={{ accentColor: 'var(--gov-btn)' }}
-        />
-        <span
-          className={`leading-snug ${compact ? (tight ? 'text-[10px]' : 'text-[10.5px]') : 'text-[11px]'}`}
-          style={{ color: 'var(--gov-body)' }}
-        >
-          {du
-            ? 'Einwilligung: Meine Interessenschwerpunkte dürfen genutzt werden, um passende Kalendertermine thematisch hervorzuheben — keine politische Empfehlung und keine Ableitung aus meinem übrigen Verhalten.'
-            : 'Einwilligung: Die von mir gewählten Interessenschwerpunkte dürfen genutzt werden, um passende Kalendertermine thematisch hervorzuheben — keine politische Empfehlung und keine Ableitung aus meinem übrigen Verhalten.'}
-        </span>
-      </label>
 
       <div className={`mt-3 flex flex-wrap ${tight ? 'gap-1.5' : 'gap-2'}`}>
         {(
@@ -141,14 +122,14 @@ export default function PolitikBarometerPanel({
             key={p.id}
             type="button"
             onClick={() => applyPreset(p.values)}
-            disabled={!state.consentClaraPersonalization}
+            disabled={!canEditPreferences}
             className={`rounded-full border font-semibold transition ${tight ? 'px-2.5 py-0.5 text-[10px]' : 'px-3 py-1 text-[11px]'}`}
             style={{
               borderColor: 'var(--gov-border)',
-              background: state.consentClaraPersonalization ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.60)',
+              background: canEditPreferences ? 'rgba(255,255,255,0.90)' : 'rgba(255,255,255,0.60)',
               color: 'var(--gov-heading)',
-              opacity: state.consentClaraPersonalization ? 1 : 0.55,
-              cursor: state.consentClaraPersonalization ? 'pointer' : 'not-allowed',
+              opacity: canEditPreferences ? 1 : 0.55,
+              cursor: canEditPreferences ? 'pointer' : 'not-allowed',
             }}
           >
             {p.label}
@@ -160,10 +141,10 @@ export default function PolitikBarometerPanel({
         {Object.entries(THEME_NAMES).map(([key, name]) => (
           <div key={key}>
             <div className={`${tight ? 'mb-1' : 'mb-1.5'} flex justify-between`}>
-              <span className={tight ? 'text-[10px] font-medium' : 'text-[11px] font-medium'} style={{ color: 'var(--gov-heading)' }}>
+              <span className={tight ? 'text-[9.5px] font-medium' : 'text-[10px] font-medium'} style={{ color: 'var(--gov-heading)' }}>
                 {name}
               </span>
-              <span className={`${tight ? 'text-[10px]' : 'text-[11px]'} font-bold tabular-nums`} style={{ color: 'var(--gov-heading)' }}>
+              <span className={`${tight ? 'text-[9.5px]' : 'text-[10px]'} font-bold tabular-nums`} style={{ color: 'var(--gov-heading)' }}>
                 {state.preferences[key as keyof UserPreferences]}%
               </span>
             </div>
@@ -174,23 +155,18 @@ export default function PolitikBarometerPanel({
               step={5}
               value={state.preferences[key as keyof UserPreferences]}
               onChange={(e) => handlePreferenceChange(key as keyof UserPreferences, Number(e.target.value))}
-              disabled={!state.consentClaraPersonalization}
+              disabled={!canEditPreferences}
               aria-label={`${name} · Interessenschwerpunkt`}
               className={`politik-barometer-range w-full max-w-full rounded-full ${compact ? (tight ? 'h-2' : 'h-2.5') : 'h-3'}`}
               style={{
                 ...sliderTrackStyle(state.preferences[key as keyof UserPreferences]),
-                opacity: state.consentClaraPersonalization ? 1 : 0.55,
-                cursor: state.consentClaraPersonalization ? 'pointer' : 'not-allowed',
+                opacity: canEditPreferences ? 1 : 0.55,
+                cursor: canEditPreferences ? 'pointer' : 'not-allowed',
               }}
             />
           </div>
         ))}
       </div>
-      {!state.consentClaraPersonalization && (
-        <p className={`mt-3 leading-snug ${tight ? 'text-[9.5px]' : 'text-[10px]'}`} style={{ color: 'var(--gov-muted)' }}>
-          Hinweis: Die Schieberegler werden erst aktiv, wenn die Einwilligung oben gesetzt ist.
-        </p>
-      )}
       {walkFooter ? (
         <p className={`mt-3 leading-snug ${tight ? 'text-[9.5px]' : 'text-[10px]'}`} style={{ color: 'var(--gov-muted)' }}>
           {walkFooter}

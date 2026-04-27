@@ -33,13 +33,13 @@ import {
   INTRO_WALLET_KONZEPTION_LABEL,
   INTRO_WALLET_PROCESS_STEPS,
 } from '@/data/introOverlayMarketing';
-import { APP_DISPLAY_NAME, APP_TAGLINE } from '@/lib/branding';
 import { writeWantsWalkthrough, type PreLoginPhase } from '@/lib/introPreLoginPhase';
 import { introEidLoginSpokenParts } from '@/lib/introSpokenTts';
 import { ListChecks, Settings } from 'lucide-react';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
+import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 const KIRKEL_STREET = 'Hauptstraße 1';
 const KIRKEL_PLZ = '66459';
@@ -48,11 +48,12 @@ const KIRKEL_CITY = 'Kirkel';
 const PRODUCT_INTRO_DONE_KEY = 'eidconnect_product_intro_done_v4';
 
 const loginNavBackClass =
-  'inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-xl border border-neutral-800 bg-black px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-900 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500';
-const loginNavNextClass = 'btn-gov-primary btn-gov-primary--flex min-h-[44px] min-w-0 flex-1 text-sm font-bold';
+  'inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-700 shadow-sm transition hover:bg-neutral-50 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500';
+const loginNavNextClass =
+  'inline-flex min-h-[46px] w-full min-w-0 items-center justify-center rounded-xl bg-[#003D80] px-3 text-sm font-bold tracking-[0.01em] text-white shadow-[0_4px_14px_rgba(0,61,128,0.28)] transition hover:bg-[#00366f] active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400';
 
 const accessPathCardClass =
-  'rounded-xl border border-neutral-200/90 bg-[#F7F9FC] px-2.5 py-2 shadow-sm sm:px-3 sm:py-2.5';
+  'rounded-xl border border-neutral-200 bg-[#F8FAFD] px-2.5 py-2.5 shadow-sm sm:px-3 sm:py-3';
 
 const accessPathTitleClass = 'text-[13px] font-bold leading-snug tracking-tight text-[#1A2B45] sm:text-[14px]';
 
@@ -88,7 +89,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   const [walletKonzeptOpen, setWalletKonzeptOpen] = useState(false);
   const [confirmedAccessMethod, setConfirmedAccessMethod] = useState<'eid' | 'demo' | null>('eid');
   type OnboardingSpotlight = 'off' | 'eid' | 'weiter';
-  const [onboardingSpotlight, setOnboardingSpotlight] = useState<OnboardingSpotlight>('off');
+  const [onboardingSpotlight] = useState<OnboardingSpotlight>('off');
 
   const reopenProductIntro = useCallback(() => {
     try {
@@ -137,29 +138,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     };
   }, [state.anrede, introSpeak, introSpeak?.readAloud, du, preLoginPhase]);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setOnboardingSpotlight('off');
-      return;
-    }
-    setOnboardingSpotlight('eid');
-  }, []);
-
-  const cancelOnboardingSpotlight = useCallback(() => {
-    setOnboardingSpotlight('off');
-  }, []);
-
-  const onOnboardingSpotlightAnimationEnd = useCallback((e: React.AnimationEvent<HTMLElement>) => {
-    if (e.target !== e.currentTarget) return;
-    const name = e.animationName || '';
-    if (!name.includes('eid-filter-heartbeat')) return;
-    setOnboardingSpotlight((prev) => {
-      if (prev === 'eid') return 'weiter';
-      if (prev === 'weiter') return 'off';
-      return prev;
-    });
-  }, []);
+  const cancelOnboardingSpotlight = useCallback(() => {}, []);
+  const onOnboardingSpotlightAnimationEnd = useCallback(() => {}, []);
 
   const applyEidKirkelDemo = () => {
     persistDemoFields(KIRKEL_STREET, KIRKEL_PLZ, KIRKEL_CITY);
@@ -229,12 +209,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
 
         <div className="flex-shrink-0 border-b border-neutral-100 px-4 pb-2 pt-2 text-center sm:px-5 sm:pb-2.5 sm:pt-2.5">
           <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-neutral-500">Zugang · Schritt 2</p>
-          <div className="mt-1 truncate text-sm font-bold tracking-wide leading-none text-[#003366]">{APP_DISPLAY_NAME}</div>
-          <p className="mx-auto mt-0.5 max-w-[20rem] text-[11px] leading-tight text-neutral-500">{APP_TAGLINE}</p>
-          <h1 className="mt-2 text-[1.2rem] font-extrabold leading-tight tracking-tight text-[#1A2B45] sm:text-[1.35rem]">
-            Sicherer Bürgerzugang
-          </h1>
-          <p className="mx-auto mt-1 max-w-[17.5rem] text-[10px] font-medium leading-snug text-neutral-600 sm:max-w-none sm:text-[11px]">
+          <ProductIdentityHeader className="mt-1 text-left" />
+          <p className="mt-1 text-[11px] font-medium leading-snug text-neutral-600">
             {INTRO_ACCESS_SCREEN_TAGLINE}
           </p>
         </div>
@@ -254,7 +230,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               hideShortWhenCollapsed
             />
             <p className="px-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
-              Zugangspfad wählen
+              Einordnung: künftige Authentifizierungswege
             </p>
 
             <div className={accessPathCardClass}>
@@ -267,21 +243,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                 </span>
                 <div className="min-w-0 flex-1">
                   <h2 className={accessPathTitleClass}>{INTRO_EID_CARD_TITLE}</h2>
-                  <p className="mt-1 text-[9.5px] font-semibold uppercase tracking-wide text-emerald-800">
-                    {INTRO_EID_CARD_STATUS}
+                  <p className="mt-1 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-emerald-800">
+                    Künftig · {INTRO_EID_CARD_STATUS}
                   </p>
                   <p className={accessPathBodyClass}>{du ? INTRO_EID_CARD_BODY_DU : INTRO_EID_CARD_BODY_SIE}</p>
+                  <p className={accessPathHintClass}>
+                    {du ? 'Konzeptionelle Einordnung: Der Zugang kann künftig über eID erfolgen.' : 'Konzeptionelle Einordnung: Der Zugang kann künftig über eID erfolgen.'}
+                  </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={handleEidDemoClick}
                 onAnimationEnd={onOnboardingSpotlightAnimationEnd}
-                className={`btn-gov-primary mt-2 w-full min-h-[44px] text-[12px] font-bold sm:mt-2.5 sm:text-[13px] ${
-                  onboardingSpotlight === 'eid' ? 'onboarding-heartbeat' : ''
-                }`}
+                className="mt-2 inline-flex min-h-[34px] w-full items-center justify-center rounded-lg border border-[#CFE0F7] bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] transition hover:bg-[#F4F8FE] sm:mt-2.5"
               >
-                {INTRO_EID_CTA}
+                Künftig per eID anmelden (Perspektive)
               </button>
             </div>
 
@@ -331,11 +308,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setWalletInfoOpen((p) => !p)}
-                className="mt-2 flex min-h-[44px] w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-3 text-[12px] font-semibold text-[#1A2B45] transition hover:bg-slate-50 active:bg-slate-100 sm:mt-2.5"
+                className="mt-2 inline-flex min-h-[34px] w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] transition hover:bg-slate-50 sm:mt-2.5"
                 aria-expanded={walletInfoOpen}
                 aria-controls="login-eu-wallet-info"
               >
-                {INTRO_WALLET_CTA}
+                Mehr zur Wallet-Perspektive
               </button>
               {walletInfoOpen ? (
                 <div
@@ -389,9 +366,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               <button
                 type="button"
                 onClick={handleDemoModeClick}
-                className="btn-gov-primary mt-2 w-full min-h-[44px] text-[12px] font-bold sm:mt-2.5 sm:text-[13px]"
+                className="mt-2 inline-flex min-h-[34px] w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] transition hover:bg-slate-50 sm:mt-2.5"
               >
-                {INTRO_DEMO_MODE_CTA}
+                Demo-Zugang verwenden
               </button>
             </div>
 
@@ -429,21 +406,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
             >
               Zurück
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                cancelOnboardingSpotlight();
-                if (!confirmedAccessMethod) return;
-                handleProceedToApp();
-              }}
-              onAnimationEnd={onOnboardingSpotlightAnimationEnd}
-              disabled={!confirmedAccessMethod}
-              className={`${loginNavNextClass}${onboardingSpotlight === 'weiter' ? ' onboarding-heartbeat' : ''}${
-                confirmedAccessMethod ? '' : ' opacity-60 cursor-not-allowed'
-              }`}
-            >
-              WEITER
-            </button>
+            <div className="flex-1 rounded-xl bg-[#EAF2FF] p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  cancelOnboardingSpotlight();
+                  if (!confirmedAccessMethod) return;
+                  handleProceedToApp();
+                }}
+                onAnimationEnd={onOnboardingSpotlightAnimationEnd}
+                disabled={!confirmedAccessMethod}
+                className={`${loginNavNextClass}${confirmedAccessMethod ? '' : ' opacity-60 cursor-not-allowed'}`}
+              >
+                Weiter
+              </button>
+            </div>
           </div>
         </div>
       </div>

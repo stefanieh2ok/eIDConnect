@@ -45,6 +45,8 @@ interface ClaraVoiceInterfaceProps {
    * Viewport-Sprünge im Walkthrough. `fixed`: volles Browser-Fenster (z. B. LiveSection).
    */
   backdropPosition?: 'fixed' | 'absolute';
+  /** Intro/Walkthrough: strikt Voice-only, kein Text-Chat-Fallback. */
+  voiceOnlyMode?: boolean;
 }
 
 function isSpeechRecognitionSupported() {
@@ -66,6 +68,7 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
   backdropPosition = 'fixed',
   voiceOpenNonce = 0,
   openingSeedLine = null,
+  voiceOnlyMode = false,
 }) => {
   const { state } = useApp();
   const [conversation, setConversation] = useState<string[]>([]);
@@ -87,7 +90,7 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
   const micBlocked =
     typeof voiceState.error === 'string' &&
     /not-allowed|denied|service-not-allowed/i.test(voiceState.error);
-  const isAppVoiceGreeting = preLoginVoicePhase == null;
+  const isAppVoiceGreeting = preLoginVoicePhase == null && !voiceOnlyMode;
   const userLinePrefix = addressMode === 'sie' ? 'Sie:' : 'Du:';
 
   useLayoutEffect(() => {
@@ -103,6 +106,17 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
       setConversation([openingSeedLine]);
     }
   }, [isOpen, voiceOpenNonce, openingSeedLine]);
+
+  /** Erste Mic-Geste soll direkt in die Aufnahme führen (kein zusätzlicher Klick). */
+  useEffect(() => {
+    if (!isOpen || voiceOpenNonce < 1) return;
+    if (!speechSupported) return;
+    if (voiceState.isListening) return;
+    const t = window.setTimeout(() => {
+      startListening();
+    }, 80);
+    return () => window.clearTimeout(t);
+  }, [isOpen, voiceOpenNonce, speechSupported, voiceState.isListening, startListening]);
 
   const handleVoiceInput = useCallback(
     async (transcript: string) => {
@@ -285,11 +299,11 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
       : 'Mikrofon­zugriff blockiert';
   const errorBody = !speechSupported
     ? addressMode === 'sie'
-      ? 'Ihr Browser unterstützt die Spracherkennung nicht (z. B. Firefox, mancher Privat-Modus). Sie können Clara stattdessen im Text-Chat fragen.'
-      : 'Dein Browser unterstützt die Spracherkennung nicht (z. B. Firefox, mancher Privat-Modus). Du kannst Clara stattdessen im Text-Chat fragen.'
+      ? 'Ihr Browser unterstützt die Spracherkennung nicht (z. B. Firefox, mancher Privat-Modus).'
+      : 'Dein Browser unterstützt die Spracherkennung nicht (z. B. Firefox, mancher Privat-Modus).'
     : addressMode === 'sie'
-      ? 'Bitte erlauben Sie in der Browser-Adressleiste den Mikrofon­zugriff für diese Seite und versuchen Sie es erneut – oder wechseln Sie in den Text-Chat.'
-      : 'Bitte erlaube in der Browser-Adressleiste den Mikrofon­zugriff für diese Seite und versuche es erneut – oder wechsle in den Text-Chat.';
+      ? 'Bitte erlauben Sie in der Browser-Adressleiste den Mikrofon­zugriff für diese Seite und versuchen Sie es erneut.'
+      : 'Bitte erlaube in der Browser-Adressleiste den Mikrofon­zugriff für diese Seite und versuche es erneut.';
 
   const backdropCls =
     backdropPosition === 'absolute'
@@ -402,7 +416,7 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
               <div className="min-w-0">
                 <div className="font-semibold">{errorTitle}</div>
                 <p className="mt-0.5 leading-snug">{errorBody}</p>
-                {onSwitchToChat ? (
+                {onSwitchToChat && !voiceOnlyMode ? (
                   <button
                     type="button"
                     onClick={handleSwitchToChat}
@@ -452,7 +466,7 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
               Neu
             </button>
 
-            {onSwitchToChat ? (
+            {onSwitchToChat && !voiceOnlyMode ? (
               <button
                 type="button"
                 onClick={handleSwitchToChat}

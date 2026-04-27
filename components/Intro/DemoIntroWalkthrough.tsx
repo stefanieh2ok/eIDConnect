@@ -9,11 +9,10 @@ import OriginalStimmzettel from '@/components/Voting/OriginalStimmzettel';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
 import { VOTING_DATA, WAHLEN_DATA } from '@/data/constants';
-import { CheckCircle, ListChecks, Send } from 'lucide-react';
+import { CheckCircle, Clock, Info, ListChecks, Send } from 'lucide-react';
 import {
   INTRO_CLOSING_SPOKEN_SEGMENTS_DU,
   INTRO_CLOSING_SPOKEN_SEGMENTS_SIE,
-  INTRO_FINISH_CTA_LABEL,
   INTRO_OUTRO_DROPDOWN_DU,
   INTRO_OUTRO_DROPDOWN_SIE,
   INTRO_OUTRO_LABEL,
@@ -22,11 +21,13 @@ import {
   introOverlayFramingLine,
   INTRO_OVERLAY_STEPS,
 } from '@/data/introOverlayMarketing';
+import type { IntroOverlayStepId } from '@/data/introOverlayMarketing';
 import { claraBlockForStep } from '@/data/introWalkthroughClara';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { INTRO_SCREENSHOTS } from '@/data/introScreenshots';
 import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
 import type { Location, Section, VotingCard as VotingCardModel } from '@/types';
+import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 function walkthroughSectionForStep(stepId: string): Section {
   switch (stepId) {
@@ -57,6 +58,8 @@ type Props = {
   onBackFromFirstStep?: () => void;
   /** Aktueller Walkthrough-Schritt für Clara-Kontext (Dock/Chat). */
   onWalkthroughStepChange?: (step: { id: string; label: string }) => void;
+  /** Gewünschter Einstiegsschritt (Standard: Abstimmen). */
+  startStepId?: IntroOverlayStepId;
 };
 
 const INTRO_KOMMUNE_VOTE_KEYS = new Set<string>([
@@ -354,12 +357,16 @@ function IntroScreenshotOrPreview({
 function BallotScroll({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="hide-scrollbar max-h-[min(100%,36rem)] min-h-[16rem] overflow-y-auto overflow-x-hidden rounded-xl border border-white/30 bg-white shadow-md"
+      className="intro-scroll-visible max-h-[min(100%,36rem)] min-h-[16rem] overflow-y-auto overflow-x-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
       <div className="p-2 text-gray-900">{children}</div>
     </div>
   );
+}
+
+function WalkthroughPreviewShell({ children }: { children: React.ReactNode }) {
+  return <div className="card-content min-h-0 w-full min-w-0 overflow-hidden rounded-xl p-2">{children}</div>;
 }
 
 /**
@@ -374,7 +381,6 @@ function IntroAbstimmenPreview({ card, du }: { card: VotingCardModel; du: boolea
           <VotingCard
             card={card}
             introBarIcons
-            introProConExpanded
             introCompact
             introDemoVoteDisclaimer
           />
@@ -421,17 +427,26 @@ function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
   const totalCells = Math.ceil((startPad + daysInMonth) / 7) * 7;
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white text-left shadow-md">
+    <div className="card-content rounded-xl p-0 text-left">
       <div
-        className="flex items-center justify-between rounded-t-xl px-3 py-2.5 text-white"
+        className="flex items-center justify-between rounded-t-xl px-2.5 py-2 text-white"
         style={{ background: 'linear-gradient(135deg, #002855 0%, #0055A4 100%)' }}
       >
-        <span className="text-[12px] font-bold">Kalender</span>
-        <span className="text-[10px] opacity-90">
+        <span className="text-[11px] font-semibold">Kalender</span>
+        <span className="text-[9px] opacity-90">
           März {previewYear} · Kirkel, Saarland, Saarpfalz & Bund
         </span>
       </div>
       <div className="p-2">
+        <div className="card-compact mb-2 flex items-center justify-between px-2 py-1.5">
+          <button type="button" className="btn-secondary btn-pill min-h-[32px] px-2.5 py-1 text-[8px]">
+            Zurück
+          </button>
+          <span className="text-[9px] font-semibold text-[#1A2B45]">März {previewYear}</span>
+          <button type="button" className="btn-secondary btn-pill min-h-[32px] px-2.5 py-1 text-[8px]">
+            Weiter
+          </button>
+        </div>
         <div className="grid grid-cols-7 gap-0.5 text-center text-[8px] font-semibold text-neutral-500">
           {days.map((d) => (
             <span key={d}>{d}</span>
@@ -463,10 +478,7 @@ function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
             {rows.slice(0, 10).map((r) => (
-              <div
-                key={`${r.kind}-${r.title}-${r.dateStr}`}
-                className="flex items-start gap-1.5 rounded-lg border border-neutral-200/90 bg-neutral-50/90 px-2 py-1.5 text-[9px] text-neutral-800"
-              >
+              <div key={`${r.kind}-${r.title}-${r.dateStr}`} className="app-card-subtle flex items-start gap-1.5 rounded-lg px-2 py-1.5 text-[9px] text-neutral-800">
                 {levelBadge(r.level)}
                 <div className="min-w-0 flex-1 leading-snug">
                   <span className="font-semibold text-[#1A2B45]">
@@ -483,7 +495,7 @@ function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
   );
 }
 
-function BeteiligungsstatusIntroPreview({ communeName }: { communeName: string }) {
+function PraemienIntroPreview({ communeName }: { communeName: string }) {
   const rows = useMemo(
     () =>
       [
@@ -516,20 +528,37 @@ function BeteiligungsstatusIntroPreview({ communeName }: { communeName: string }
   );
 
   return (
-    <div className="flex min-h-0 max-h-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white text-left shadow-md">
+    <div className="relative w-full min-w-0 max-w-full shrink-0 [transform:translateZ(0)]">
+      <div className="card-content flex min-h-0 max-h-full flex-col overflow-hidden rounded-xl p-0 text-left">
       <div
-        className="shrink-0 rounded-t-xl p-3 text-white"
+        className="shrink-0 rounded-t-xl px-2.5 py-2 text-white"
         style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
       >
-        <div className="text-sm font-bold leading-snug">Beteiligungsstatus</div>
-        <div className="text-[10px] opacity-90">Nachvollziehbarkeit · {communeName}</div>
+        <div className="text-[11px] font-semibold leading-snug">Prämien</div>
+        <div className="text-[9px] opacity-90">Freiwillige Anerkennung · {communeName}</div>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col space-y-2 overflow-hidden p-3">
-        <p className="shrink-0 text-[10px] leading-snug text-neutral-600">
-          Übersicht über eingereichte Beiträge, Meldungen und Beteiligungen mit transparentem Rückmeldestatus.
-        </p>
+      <div className="flex min-h-0 flex-1 flex-col space-y-2 overflow-hidden p-2.5">
+        <div className="shrink-0 grid grid-cols-2 gap-1">
+          {[
+            'Einwilligung erforderlich',
+            'Beteiligung abgeschlossen',
+            'Prämie verfügbar',
+            'Eingelöst / abgeschlossen',
+          ].map((label, idx) => {
+            const Icon = idx === 0 ? Info : idx === 1 ? ListChecks : idx === 2 ? Clock : CheckCircle;
+            return (
+              <div
+                key={label}
+                className="flex items-center gap-1 rounded-md border border-neutral-200 bg-[#F7F9FC] px-1.5 py-1 text-[8.5px] text-neutral-700"
+              >
+                <Icon className="h-3 w-3 shrink-0 text-[#0055A4]" aria-hidden />
+                <span>{label}</span>
+              </div>
+            );
+          })}
+        </div>
         <div
-          className="min-h-0 max-h-[12rem] flex-1 space-y-1.5 overflow-y-auto pr-0.5"
+          className="intro-scroll-visible min-h-0 max-h-[12rem] flex-1 space-y-1.5 overflow-y-auto pr-0.5"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {rows.map((r) => {
@@ -549,9 +578,7 @@ function BeteiligungsstatusIntroPreview({ communeName }: { communeName: string }
             );
           })}
         </div>
-        <div className="shrink-0 rounded-lg border border-dashed border-[#BFD9FF] bg-[#F0F6FF] px-2.5 py-2 text-[9px] text-[#003366]">
-          Demo-Hinweis · Statusansicht zur Nachvollziehbarkeit, keine rechtlich wirksame Bearbeitung
-        </div>
+      </div>
       </div>
     </div>
   );
@@ -564,6 +591,7 @@ export default function DemoIntroWalkthrough({
   onFinish,
   onBackFromFirstStep,
   onWalkthroughStepChange,
+  startStepId = 'abstimmen',
 }: Props) {
   const { dispatch } = useApp();
   const communeKey = introCommuneVoteKey(residenceLocation);
@@ -571,8 +599,14 @@ export default function DemoIntroWalkthrough({
   const previewCard = VOTING_DATA[communeKey]?.cards?.[0] ?? VOTING_DATA.kirkel.cards[0];
   const du = _du;
   const steps = INTRO_OVERLAY_STEPS;
-
-  const [idx, setIdx] = useState(0);
+  const initialIdx = useMemo(() => {
+    const i = steps.findIndex((s) => s.id === startStepId);
+    return i >= 0 ? i : 0;
+  }, [startStepId, steps]);
+  const [idx, setIdx] = useState(initialIdx);
+  useEffect(() => {
+    setIdx(initialIdx);
+  }, [initialIdx]);
   const step = steps[idx];
   const isLast = idx >= steps.length - 1;
   const isAbstimmenStep = step.id === 'abstimmen';
@@ -627,14 +661,16 @@ export default function DemoIntroWalkthrough({
             alt="Bereich Kalender"
             useScreenshot={false}
           >
-            <IntroKalenderPreview communeKey={communeKey} />
+            <WalkthroughPreviewShell>
+              <IntroKalenderPreview communeKey={communeKey} />
+            </WalkthroughPreviewShell>
           </IntroScreenshotOrPreview>
         );
       case 'meldungen':
         return (
-          <div className="min-h-0 w-full min-w-0 overflow-hidden rounded-xl border border-white/20 bg-[#F7F9FC]">
+          <div className="app-section-shell min-h-0 w-full min-w-0 overflow-hidden rounded-xl bg-[#F8FAFD]">
             <div
-              className="max-h-[min(100%,34rem)] min-h-[14rem] overflow-y-auto overscroll-contain p-2 sm:p-2.5"
+              className="p-2 sm:p-2.5"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               <MeldungenSection embeddedInWalkthrough />
@@ -642,15 +678,16 @@ export default function DemoIntroWalkthrough({
           </div>
         );
       case 'praemien':
-        return <BeteiligungsstatusIntroPreview communeName={communeName} />;
+        return (
+          <WalkthroughPreviewShell>
+            <PraemienIntroPreview communeName={communeName} />
+          </WalkthroughPreviewShell>
+        );
       case 'politikbarometer':
         return (
-          <PolitikBarometerPanel
-            du={du}
-            variant="compact"
-            walkthroughFooterDu="Du kannst diese Auswahl später jederzeit in den Einstellungen ändern."
-            walkthroughFooterSie="Sie können diese Auswahl später jederzeit in den Einstellungen ändern."
-          />
+          <WalkthroughPreviewShell>
+            <PolitikBarometerPanel du={du} variant="compact" density="tight" />
+          </WalkthroughPreviewShell>
         );
       default:
         return null;
@@ -715,10 +752,10 @@ export default function DemoIntroWalkthrough({
       return;
     }
     if (!speechStartedRef.current || speechAutoAdvancedRef.current) return;
+    if (isLast) return;
 
     speechAutoAdvancedRef.current = true;
-    if (isLast) onFinish();
-    else setIdx((p) => Math.min(steps.length - 1, p + 1));
+    setIdx((p) => Math.min(steps.length - 1, p + 1));
   }, [isIntroSpeaking, idx, step.id, isLast, onFinish, speakApi?.readAloud, steps.length]);
 
   const liveAnnouncement = `Bereich ${clara.label}. ${clara.line10s} ${framingLine || clara.short}`.trim();
@@ -758,12 +795,13 @@ export default function DemoIntroWalkthrough({
           <div
             className={`flex-shrink-0 px-3 sm:px-4 ${isAbstimmenStep ? 'pb-0.5 pt-1.5' : 'pb-1 pt-2.5'}`}
           >
-            <h2 className="text-[15px] font-extrabold leading-tight tracking-tight text-[#1A2B45] sm:text-[16px]">
-              Im Überblick · {clara.label}
+            <ProductIdentityHeader />
+            <h2 className="mt-1 t-card-title leading-tight">
+              {clara.label}
             </h2>
             <p
               className={`font-medium text-[#374151] [text-wrap:pretty] ${
-                isAbstimmenStep ? 'mt-1 line-clamp-2 text-[10px] leading-snug' : 'mt-1.5 text-[11px] leading-snug'
+                isAbstimmenStep ? 'mt-1 line-clamp-2 text-[9.5px] leading-snug' : 'mt-1 text-[10px] leading-snug'
               }`}
             >
               {clara.line10s}
@@ -772,7 +810,7 @@ export default function DemoIntroWalkthrough({
               <WalkthroughInfoDetails
                 surface="light"
                 primaryLong={clara.long}
-                showOutro={isLast}
+                showOutro={false}
                 outroShort={du ? INTRO_OUTRO_SHORT_DU : INTRO_OUTRO_SHORT_SIE}
                 outroLong={du ? INTRO_OUTRO_DROPDOWN_DU : INTRO_OUTRO_DROPDOWN_SIE}
               />
@@ -801,7 +839,7 @@ export default function DemoIntroWalkthrough({
                   className={
                     isAbstimmenStep
                       ? 'flex w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2'
-                      : 'intro-walkthrough-scroll hide-scrollbar flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2'
+                      : 'intro-walkthrough-scroll intro-scroll-visible flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2'
                   }
                 >
                   <div
@@ -819,7 +857,13 @@ export default function DemoIntroWalkthrough({
             </div>
           </div>
 
-          <div className="relative z-[45] flex flex-shrink-0 gap-2 border-t border-neutral-200 bg-[#F7F9FC] px-3 pt-2.5 intro-action-bar-pad sm:px-4">
+          <div className="relative z-[45] flex flex-shrink-0 flex-col gap-2 border-t border-neutral-200 bg-[#F7F9FC] px-3 pt-2.5 intro-action-bar-pad sm:px-4">
+            {isLast ? (
+              <p className="t-body-sm text-center text-neutral-600">
+                Demo startet jetzt mit einem kurzen Übergang.
+              </p>
+            ) : null}
+            <div className="flex gap-2">
             <button
               type="button"
               onClick={() => {
@@ -832,20 +876,27 @@ export default function DemoIntroWalkthrough({
                 }
                 setIdx((p) => Math.max(0, p - 1));
               }}
-              className="inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-xl border border-black/80 bg-black px-3 text-[11px] font-semibold text-white shadow-sm transition hover:bg-neutral-900 active:scale-[0.99] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/50"
+              className="btn-ghost t-button inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center px-3"
             >
               Zurück
             </button>
             <button
               type="button"
-              onClick={() => (isLast ? onFinish() : setIdx((p) => Math.min(steps.length - 1, p + 1)))}
+              onClick={() => {
+                speechAutoAdvancedRef.current = true;
+                speechStartedRef.current = false;
+                speakApi?.stopIntroSpeech();
+                if (isLast) onFinish();
+                else setIdx((p) => Math.min(steps.length - 1, p + 1));
+              }}
               className={
-                'btn-gov-primary btn-gov-primary--flex min-h-[44px] min-w-0 flex-1 text-[11px] font-extrabold ' +
+                'btn-primary t-button min-h-[44px] min-w-0 flex-1 text-[15px] font-bold ' +
                 (isLast ? 'whitespace-nowrap' : '')
               }
             >
-              {isLast ? INTRO_FINISH_CTA_LABEL : 'Weiter'}
+              {isLast ? 'App starten' : 'Weiter'}
             </button>
+            </div>
           </div>
           </div>
         </div>

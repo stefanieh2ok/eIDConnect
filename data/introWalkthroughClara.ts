@@ -117,28 +117,30 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
     ],
   },
   praemien: {
-    label: 'Beteiligungsstatus',
-    line10sDu: 'Eigene Beiträge und Rückmeldungen werden transparent nachvollziehbar.',
-    line10sSie: 'Eigene Beiträge und Rückmeldungen werden transparent nachvollziehbar.',
-    shortDu: 'Eigene Beiträge und Rückmeldungen werden transparent nachvollziehbar.',
-    shortSie: 'Eigene Beiträge und Rückmeldungen werden transparent nachvollziehbar.',
+    label: 'Prämien',
+    line10sDu: 'Prämien sind freiwillig, nur nach Einwilligung und unabhängig von deiner Entscheidung.',
+    line10sSie: 'Prämien sind freiwillig, nur nach Einwilligung und unabhängig von Ihrer Entscheidung.',
+    shortDu: 'Prämien sind freiwillig, nur nach Einwilligung und unabhängig von deiner Entscheidung.',
+    shortSie: 'Prämien sind freiwillig, nur nach Einwilligung und unabhängig von Ihrer Entscheidung.',
     longDu:
-      'Dieser Bereich zeigt, welche Beiträge, Meldungen oder Beteiligungen bereits eingereicht wurden.\n\n' +
-      'Der Fokus liegt auf Transparenz: Was wurde übermittelt, was ist bestätigt und was ist noch offen?\n\n' +
-      'So bleibt Beteiligung nachvollziehbar, ohne Druck, Gamification oder politische Steuerungslogik.',
+      'In diesem Bereich kannst du sehen, ob Prämien für Beteiligung verfügbar sind.\n\n' +
+      'Wichtig ist: Das funktioniert nur, wenn du ausdrücklich einwilligst. Die Prämien hängen nicht davon ab, wie du abstimmst, sondern nur davon, ob eine Beteiligung oder Rückmeldung abgeschlossen wurde.\n\n' +
+      'Du kannst diese Funktion jederzeit in den Einstellungen deaktivieren.',
     longSie:
-      'Dieser Bereich zeigt, welche Beiträge, Meldungen oder Beteiligungen bereits eingereicht wurden.\n\n' +
-      'Der Fokus liegt auf Transparenz: Was wurde übermittelt, was ist bestätigt und was ist noch offen?\n\n' +
-      'So bleibt Beteiligung nachvollziehbar, ohne Druck, Gamification oder politische Steuerungslogik.',
+      'In diesem Bereich können Sie sehen, ob Prämien für Beteiligung verfügbar sind.\n\n' +
+      'Wichtig ist: Das funktioniert nur, wenn Sie ausdrücklich einwilligen. Die Prämien hängen nicht davon ab, wie Sie abstimmen, sondern nur davon, ob eine Beteiligung oder Rückmeldung abgeschlossen wurde.\n\n' +
+      'Sie können diese Funktion jederzeit in den Einstellungen deaktivieren.',
     speakSegmentsDu: [
-      'Dieser Bereich zeigt dir, welche Beiträge oder Meldungen du bereits eingereicht hast und welchen Status sie haben.',
-      'Es geht um Nachvollziehbarkeit und klare Statusinformationen.',
-      'Du sollst sehen können, was offen, bestätigt oder abgeschlossen ist.',
+      'In diesem Bereich kannst du sehen, ob Prämien für Beteiligung verfügbar sind.',
+      'Wichtig ist: Das funktioniert nur, wenn du ausdrücklich einwilligst.',
+      'Die Prämien hängen nicht davon ab, wie du abstimmst, sondern nur davon, ob eine Beteiligung oder Rückmeldung abgeschlossen wurde.',
+      'Du kannst diese Funktion jederzeit in den Einstellungen deaktivieren.',
     ],
     speakSegmentsSie: [
-      'Dieser Bereich zeigt Ihnen, welche Beiträge oder Meldungen Sie bereits eingereicht haben und welchen Status sie haben.',
-      'Es geht um Nachvollziehbarkeit und klare Statusinformationen.',
-      'Sie sollen sehen können, was offen, bestätigt oder abgeschlossen ist.',
+      'In diesem Bereich können Sie sehen, ob Prämien für Beteiligung verfügbar sind.',
+      'Wichtig ist: Das funktioniert nur, wenn Sie ausdrücklich einwilligen.',
+      'Die Prämien hängen nicht davon ab, wie Sie abstimmen, sondern nur davon, ob eine Beteiligung oder Rückmeldung abgeschlossen wurde.',
+      'Sie können diese Funktion jederzeit in den Einstellungen deaktivieren.',
     ],
   },
   politikbarometer: {

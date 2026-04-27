@@ -72,120 +72,90 @@ export default async function AccessPage({ params }: AccessPageProps) {
     email: tokenRecord.email,
     company: tokenRecord.company,
   });
-  const isGovRecipient =
-    tokenRecord.email.toLowerCase().endsWith('@governikus.de') ||
-    (tokenRecord.company ?? '').toLowerCase().includes('governikus');
-  const recipientBlock = [
-    tokenRecord.full_name,
-    tokenRecord.company ? tokenRecord.company : null,
-    tokenRecord.email,
-    '',
-    '– nachfolgend „Empfangende Partei“ –',
-  ]
-    .filter(Boolean)
-    .join('\n');
-  const ndaFullTextForView = isGovRecipient
-    ? ndaConfig.fullText
-    : ndaConfig.fullText
-        .replace(
-          /und\s*\n\s*Governikus[\s\S]*?– nachfolgend „Empfangende Partei“ –/m,
-          `und\n\n${recipientBlock}`
-        )
-        .replace(
-          /und\s*\n\s*Personalisierter Empfänger laut Zugangslink[\s\S]*?– nachfolgend „Empfangende Partei“ –/m,
-          `und\n\n${recipientBlock}`
-        );
-
-  const glassCard =
-    // Helles Gerät, aber lesbarer Kontrast: leicht dunkleres Frosted-Glas + Dark Text.
-    // Kein sm:-Padding: sonst schaltet auf Desktop der Viewport um und wirkt „nicht iPhone“.
-    'rounded-2xl border border-neutral-200 bg-white/65 p-4 shadow-sm backdrop-blur-xl';
+  const ndaDownloadUrl = `/api/nda/download?token=${encodeURIComponent(token)}`;
+  const ndaInlineUrl = `/api/nda/download?token=${encodeURIComponent(token)}&disposition=inline`;
 
   return (
     <IphoneFrame>
       <div
-        className="flex h-full min-h-0 flex-col overflow-y-auto rounded-b-[1.75rem] px-2 pb-3 pt-1"
+        className="flex h-full min-h-0 flex-col overflow-y-auto rounded-b-[1.75rem] px-2 pb-[88px] pt-1"
         style={{
-          // Kein starker Farbverlauf mehr: iPhoneFrame liefert den Hintergrund, hier nur „clean“.
           background: 'transparent',
         }}
       >
         <div className="mx-auto w-full max-w-[360px] space-y-4 pb-6 text-neutral-950">
-          <div className={glassCard}>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-600">
-              Vertraulicher Zugriff
-            </p>
-            <h1 className="mt-2 text-lg font-semibold tracking-tight text-neutral-900">{ndaConfig.header}</h1>
-            <p className="mt-3 text-xs leading-relaxed text-neutral-700">
-              Für den Zugriff auf vertrauliche Inhalte ist vorab eine digitale Unterzeichnung der
-              Vertraulichkeitserklärung erforderlich.
-            </p>
-            <p className="mt-2 text-xs leading-relaxed text-neutral-700">
-              Die Unterzeichnung wird über den vorgesehenen Signaturdienst der Organisation durchgeführt.
+          <div className="card-section">
+            <p className="t-kicker">Vertraulicher Zugriff</p>
+            <h1 className="t-h1 mt-2">{ndaConfig.header || 'Vertraulicher Demo-Zugang'}</h1>
+            <p className="t-body mt-3">
+              Dieser personalisierte Zugang ist ausschließlich für die benannte Person bestimmt.
+              Für Tester erfolgt die Freigabe über die bestätigte NDA-Zustimmung im nächsten Schritt.
             </p>
 
-            <div className="mt-4 rounded-xl border border-neutral-200 bg-white/60 p-3 shadow-sm backdrop-blur">
-              <p className="text-xs font-semibold text-neutral-900">Personalisierter Demo-Zugang</p>
-              <div className="mt-2 space-y-1 text-xs text-neutral-800">
+            <div className="card-content mt-4">
+              <p className="t-card-title">Personalisierter Demo-Zugang</p>
+              <div className="mt-2 space-y-1">
                 <p>
-                  <span className="font-medium text-neutral-900">Empfänger:</span> {tokenRecord.full_name}
+                  <span className="t-meta font-semibold text-neutral-900">Empfänger:</span>{' '}
+                  <span className="t-body-sm text-neutral-800">{tokenRecord.full_name}</span>
                 </p>
                 {tokenRecord.company ? (
                   <p>
-                    <span className="font-medium text-neutral-900">Firma:</span> {tokenRecord.company}
+                    <span className="t-meta font-semibold text-neutral-900">Organisation:</span>{' '}
+                    <span className="t-body-sm text-neutral-800">{tokenRecord.company}</span>
                   </p>
                 ) : null}
                 <p>
-                  <span className="font-medium text-neutral-900">E-Mail:</span> {tokenRecord.email}
+                  <span className="t-meta font-semibold text-neutral-900">E-Mail:</span>{' '}
+                  <span className="t-body-sm text-neutral-800">{tokenRecord.email}</span>
                 </p>
               </div>
             </div>
           </div>
 
-          <section className={glassCard}>
-            <h2 className="text-sm font-semibold text-neutral-900">Druckversion</h2>
-            <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
-              Druckoptimierte Ansicht öffnen – im Systemdialog als PDF speichern oder ausdrucken, z. B. für Ablage
-              oder die Rechtsabteilung.
+          <section className="card-content">
+            <h2 className="t-h2">Geheimhaltungsvereinbarung / NDA</h2>
+            <p className="t-body-sm mt-1">
+              PDF-Dokument für Ablage, Prüfung oder Ausdruck.
             </p>
-            <a
-              href={`/legal/demo-nda?print=1&returnTo=${encodeURIComponent(`/access/${token}`)}`}
-              className="mt-3 flex w-full items-center justify-center rounded-xl px-4 py-3 text-center text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-95"
-              style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
-            >
-              PDF drucken
-            </a>
+            <div className="mt-3 grid grid-cols-1 gap-2">
+              <a href={ndaDownloadUrl} className="btn-primary t-button inline-flex items-center justify-center">
+                PDF herunterladen
+              </a>
+              <a
+                href={ndaInlineUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary t-button inline-flex items-center justify-center"
+              >
+                PDF drucken
+              </a>
+            </div>
           </section>
 
-          <section className={glassCard}>
-            <h2 className="text-sm font-semibold text-neutral-900">Kurzfassung</h2>
-            <ul className="mt-3 space-y-2 text-xs leading-relaxed text-neutral-800">
-              {ndaConfig.gateSummary.map((item, i) => (
-                <li key={i} className="rounded-lg border border-neutral-200 bg-white/55 px-3 py-2">
+          <section className="card-content">
+            <h2 className="t-h2">Kurzfassung</h2>
+            <ul className="mt-3 space-y-2">
+              {ndaConfig.gateSummary.slice(0, 4).map((item, i) => (
+                <li key={i} className="card-compact t-body-sm">
                   {item}
                 </li>
               ))}
             </ul>
           </section>
 
-          <section className={glassCard}>
-            <h2 className="text-sm font-semibold text-neutral-900" id="nda-fulltext">
-              Vertraulichkeitserklärung (Volltext)
-            </h2>
-            <div
-              className="mt-3 max-h-[min(42vh,18rem)] overflow-y-auto rounded-xl border border-neutral-200 bg-white/70 p-3 backdrop-blur"
-              style={{ WebkitOverflowScrolling: 'touch' }}
-            >
-              <pre className="whitespace-pre-wrap font-sans text-[11px] leading-relaxed text-neutral-800">
-                {ndaFullTextForView}
-              </pre>
-            </div>
-            <p className="mt-3 border-t border-neutral-200 pt-3 text-[10px] text-neutral-600">{ndaConfig.footer}</p>
+          <section className="card-content">
+            <p className="t-caption">{ndaConfig.footer}</p>
             <div className="mt-5 border-t border-neutral-200 pt-4">
               {tokenRecord.require_docusign === false ? (
                 <CheckboxAcceptButton token={token} />
               ) : (
-                <AcceptNdaButton token={token} />
+                <AcceptNdaButton
+                  token={token}
+                  returnEmailPrimary={ndaConfig.returnEmailPrimary}
+                  returnEmailSecondary={ndaConfig.returnEmailSecondary}
+                  sentenceBelowButton={ndaConfig.sentenceBelowButton}
+                />
               )}
             </div>
           </section>
