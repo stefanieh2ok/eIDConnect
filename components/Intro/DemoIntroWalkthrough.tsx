@@ -4,10 +4,9 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import { useApp } from '@/context/AppContext';
 import { useIntroIsSpeaking, useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { activeLocationForLevel } from '@/lib/activeLocationForLevel';
-import { VOTING_DATA, WAHLEN_DATA } from '@/data/constants';
+import { DEMO_POINTS_PER_ABSTIMMUNG, VOTING_DATA, WAHLEN_DATA } from '@/data/constants';
 import VotingCard from '@/components/Voting/VotingCard';
-import VotingControls from '@/components/Voting/VotingControls';
-import { ListChecks, Send } from 'lucide-react';
+import { ListChecks, Minus, Send, ThumbsDown, ThumbsUp } from 'lucide-react';
 import {
   INTRO_CLOSING_SPOKEN_SEGMENTS_DU,
   INTRO_CLOSING_SPOKEN_SEGMENTS_SIE,
@@ -22,17 +21,17 @@ import {
 import type { IntroOverlayStepId } from '@/data/introOverlayMarketing';
 
 const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = {
-  abstimmen: 'Wie in der App · Balken · Daumen',
-  wahlen: 'Stimmabgabe · Demo',
-  kalender: 'Termine · Wahl / Abstimmung erkennbar',
-  meldungen: 'Fall · Bearbeitungsstatus',
+  abstimmen: 'Haltung wählen · mit Daumen bestätigen · +250 Punkte',
+  wahlen: 'Erststimme · Stimmzettel wie bei der Bundestagswahl',
+  kalender: 'März 2026 · Termine · Ebenen',
+  meldungen: 'Spielplatz · Meldungstext (Demo)',
   praemien: 'Status · Demo',
-  politikbarometer: 'Themen-Schwerpunkte',
+  politikbarometer: 'Alle Regler starten in der Mitte (50 %)',
 };
 import { claraBlockForStep } from '@/data/introWalkthroughClara';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
-import type { Location, Section, VotingCard as VotingCardModel } from '@/types';
+import type { Location, Section, VoteType, VotingCard as VotingCardModel } from '@/types';
 import { APP_DISPLAY_NAME, APP_TAGLINE } from '@/lib/branding';
 
 function walkthroughSectionForStep(stepId: string): Section {
@@ -324,20 +323,37 @@ function WalkthroughPreviewShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function WalkthroughFocusVisual({ caption, children }: { caption?: string; children: React.ReactNode }) {
+function WalkthroughFocusVisual({
+  caption,
+  children,
+  scrollable,
+}: {
+  caption?: string;
+  children: React.ReactNode;
+  /** Lange Vorschau (Kalender/Meldungen) voll scrollbar, nicht unten abgeschnitten. */
+  scrollable?: boolean;
+}) {
   return (
     <div className="walkthrough-preview-visual min-h-0 w-full flex-none">
-      <div className="walkthrough-preview-visual-inner">{children}</div>
+      <div
+        className={
+          'walkthrough-preview-visual-inner ' +
+          (scrollable ? 'max-h-[min(44vh,268px)] !items-start !justify-start overflow-y-auto py-1' : '')
+        }
+      >
+        {children}
+      </div>
       {caption ? <div className="walkthrough-preview-caption">{caption}</div> : null}
     </div>
   );
 }
 
 /**
- * Gleiche Bausteine wie im Live-Bereich (VotingCard + Daumen), kompakt ohne Pro/Contra-Blöcke —
- * entspricht dem „Tinder“-Karten-Ausschnitt in der App, nicht einer vereinfachten Emoji-Karte.
+ * Wie in der Live-Ansicht: echte VotingCard, dann Haltung wählen und mit grünem Daumen bestätigen
+ * (Demo-Punkte wie in der App).
  */
 function IntroAbstimmenSnapshot({ du }: { du: boolean }) {
+  const { dispatch } = useApp();
   const previewCard = useMemo((): VotingCardModel => {
     const list = VOTING_DATA.kirkel?.cards ?? [];
     const base = list.find((c) => c.id === 'kirkel-5') ?? list[0];
@@ -346,9 +362,34 @@ function IntroAbstimmenSnapshot({ du }: { du: boolean }) {
       title: 'Digitale Verwaltung in Kirkel ausbauen',
     };
   }, []);
+  const [choice, setChoice] = useState<VoteType | null>(null);
+  const [done, setDone] = useState(false);
+
+  const pick = (v: VoteType) => {
+    if (done) return;
+    setChoice(v);
+  };
+
+  const confirmWithThumb = () => {
+    if (!choice || done) return;
+    dispatch({
+      type: 'HANDLE_VOTE',
+      payload: {
+        voteType: choice,
+        card: previewCard,
+        points: previewCard.points,
+        earnedPoints: DEMO_POINTS_PER_ABSTIMMUNG,
+      },
+    });
+    setDone(true);
+    window.setTimeout(() => dispatch({ type: 'SET_VOTE_RESULT', payload: null }), 2400);
+  };
+
+  const labelFor = (v: VoteType) =>
+    v === 'for' ? 'Zustimmen' : v === 'against' ? 'Ablehnen' : 'Enthalten';
 
   return (
-    <div className="w-full min-w-0 max-w-[min(100%,292px)] overflow-hidden">
+    <div className="w-full min-w-0 max-w-[min(100%,292px)] overflow-hidden rounded-2xl border border-[#D6E0EE] shadow-sm">
       <VotingCard
         card={previewCard}
         introCompact
@@ -356,47 +397,131 @@ function IntroAbstimmenSnapshot({ du }: { du: boolean }) {
         introHideProCon
         introProConExpanded={false}
       />
-      <VotingControls canVote du={du} onVote={() => {}} walkthroughVisualPreview />
+      <div
+        className="border-t border-[#D6E0EE] bg-white px-2 pb-2 pt-2"
+        style={{ boxShadow: '0 2px 12px rgba(0,51,102,0.06)' }}
+      >
+        {!done ? (
+          <>
+            <p className="mb-1.5 text-center text-[9px] font-semibold text-neutral-600">
+              {du ? '1. Wähle deine Haltung · 2. Bestätige mit dem grünen Daumen' : '1. Wählen Sie Ihre Haltung · 2. Bestätigen Sie mit dem grünen Daumen'}
+            </p>
+            <div className="flex items-end justify-center gap-2">
+              {(['against', 'abstain', 'for'] as const).map((v) => {
+                const on = choice === v;
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => pick(v)}
+                    className={`flex flex-col items-center gap-0.5 rounded-xl px-1 py-1 transition ${
+                      on ? 'ring-2 ring-[#0055A4] ring-offset-1' : 'opacity-90 hover:opacity-100'
+                    }`}
+                    aria-pressed={on}
+                  >
+                    <div
+                      className={
+                        'flex h-11 w-11 items-center justify-center rounded-full border-[3px] bg-white shadow-sm ' +
+                        (v === 'against'
+                          ? 'border-red-500'
+                          : v === 'for'
+                            ? 'border-emerald-500'
+                            : 'border-neutral-300')
+                      }
+                    >
+                      {v === 'against' ? (
+                        <ThumbsDown className="h-5 w-5 text-red-500" strokeWidth={2.2} aria-hidden />
+                      ) : v === 'for' ? (
+                        <ThumbsUp className="h-5 w-5 text-emerald-600" strokeWidth={2.2} aria-hidden />
+                      ) : (
+                        <Minus className="h-4 w-4 text-neutral-500" strokeWidth={2.2} aria-hidden />
+                      )}
+                    </div>
+                    <span className="max-w-[4.5rem] text-center text-[7.5px] font-bold uppercase leading-tight text-neutral-700">
+                      {labelFor(v)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-2 flex flex-col items-center gap-1">
+              <button
+                type="button"
+                disabled={!choice}
+                onClick={confirmWithThumb}
+                className="inline-flex items-center gap-2 rounded-full border-[3px] border-emerald-500 bg-white px-4 py-2 text-[10px] font-bold text-emerald-800 shadow-md transition enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+                style={{ boxShadow: choice ? '0 4px 14px rgba(34,197,94,0.35)' : undefined }}
+              >
+                <ThumbsUp className="h-5 w-5 text-emerald-600" strokeWidth={2.3} aria-hidden />
+                {du ? 'Mit Daumen bestätigen' : 'Mit Daumen bestätigen'}
+              </button>
+              {!choice ? (
+                <span className="text-[8px] text-neutral-500">{du ? 'Zuerst eine Haltung antippen' : 'Zuerst eine Haltung antippen'}</span>
+              ) : null}
+            </div>
+          </>
+        ) : (
+          <div className="flex flex-col items-center gap-1 py-1 text-center">
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-900">
+              +{DEMO_POINTS_PER_ABSTIMMUNG} Punkte
+            </span>
+            <p className="text-[9px] font-medium text-neutral-600">
+              {du ? 'So werden Demo-Punkte in der App gutgeschrieben.' : 'So werden Demo-Punkte in der App gutgeschrieben.'}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-/** Stimmzettel: nur Wahlvorschlag + 3 Listenzeilen — Fokus auf Kreuzfeld, kein Leerraum. */
+/** Stimmzettel-Ausschnitt: Bundestagswahl · Erststimme mit Kreuz bei Angela Merkel (Demo). */
 function IntroWahlenSnapshot() {
-  const rows = ['Partei A', 'Partei B', 'Partei C'] as const;
+  const btw = WAHLEN_DATA.find((w) => w.id === 'btw25');
+  const btwLabel = btw?.name?.includes('2025') ? 'Bundestagswahl 2025' : 'Bundestagswahl';
+  const rows: { list: string; cand: string; mark: boolean }[] = [
+    { list: 'CDU/CSU', cand: 'Angela Merkel', mark: true },
+    { list: 'SPD', cand: 'Beispielkandidat/in', mark: false },
+    { list: 'BÜNDNIS 90/Die Grünen', cand: 'Beispielkandidat/in', mark: false },
+    { list: 'AfD', cand: 'Beispielkandidat/in', mark: false },
+  ];
   return (
-    <div className="w-full max-w-[236px] overflow-hidden rounded-xl border border-neutral-500/70 bg-[#FFE066] px-2 pb-1.5 pt-1.5 shadow-md">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-[8px] font-bold tracking-[0.14em] text-neutral-900">STIMMZETTEL</p>
-          <p className="mt-0.5 text-[7.5px] font-semibold leading-tight text-neutral-800">Bundestagswahl · Demo</p>
+    <div className="w-full max-w-[258px] overflow-hidden rounded-lg border border-neutral-800/50 bg-[#FFF4A8] px-2 pb-1.5 pt-1.5 shadow-md">
+      <p className="text-[7px] font-bold tracking-[0.12em] text-neutral-900">STIMMZETTEL</p>
+      <p className="mt-0.5 text-[7.5px] font-bold leading-tight text-neutral-900">{btwLabel}</p>
+      <p className="text-[6.5px] font-semibold leading-snug text-neutral-800">Erststimme · Wahlkreis (Demo)</p>
+      <div className="mt-1.5 border-t border-black/25 pt-1">
+        <p className="text-[6px] font-bold uppercase tracking-wide text-neutral-800">Bewerberinnen und Bewerber</p>
+        <div className="mt-1 space-y-0.5">
+          {rows.map((r) => (
+            <div
+              key={r.list}
+              className="flex min-h-[22px] items-center gap-1.5 rounded border border-black/30 bg-[#FFEB8A] px-1 py-0.5"
+            >
+              <span
+                className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border-2 border-neutral-900 bg-white"
+                aria-hidden
+              >
+                {r.mark ? <span className="text-[11px] font-black leading-none text-neutral-900">✗</span> : null}
+              </span>
+              <div className="min-w-0 flex-1 leading-tight">
+                <span className="text-[7px] font-bold text-neutral-900">{r.list}</span>
+                <span className="text-[6.5px] font-semibold text-neutral-800"> — {r.cand}</span>
+              </div>
+            </div>
+          ))}
         </div>
-        <span className="shrink-0 rounded border border-black/35 bg-[#FFEB8A] px-1 py-0.5 text-[7px] font-bold text-neutral-900">
-          1×
-        </span>
       </div>
-      <div className="mt-1.5 space-y-0.5">
-        {rows.map((partei) => (
-          <div
-            key={partei}
-            className="flex min-h-[24px] items-center gap-2 rounded border border-black/28 bg-[#FFEB8A] px-1.5 py-1"
-          >
-            <span
-              className="h-3 w-3 shrink-0 rounded-sm border-2 border-neutral-900/80 bg-white shadow-[inset_0_0_0_1px_rgba(0,0,0,0.15)]"
-              aria-hidden
-            />
-            <span className="text-[9px] font-semibold leading-none text-neutral-900">{partei}</span>
-          </div>
-        ))}
-      </div>
+      <p className="mt-1 text-[5.5px] leading-tight text-neutral-700">Demo-Stimmzettel · kein amtliches Dokument</p>
     </div>
   );
 }
 
 function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
   const days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-  const previewMonth = 4;
+  const previewMonth = 3;
   const previewYear = 2026;
+  const monthNames = ['', 'Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
   const rows = useMemo(() => introCalendarRowsFromFixtures(communeKey), [communeKey]);
   const highlightDays = useMemo(() => {
     const s = new Set<number>();
@@ -407,41 +532,52 @@ function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
     return s;
   }, [rows]);
 
+  const landRow = useMemo(
+    () => rows.find((r) => r.level === 'land' && r.kind === 'wahl' && parseDeDeadline(r.dateStr)?.m === previewMonth),
+    [rows],
+  );
+  const kreisRow = useMemo(
+    () => rows.find((r) => r.level === 'kreis' && parseDeDeadline(r.dateStr)?.m === previewMonth),
+    [rows],
+  );
+
   const firstDowSun0 = new Date(previewYear, previewMonth - 1, 1).getDay();
   const startPad = (firstDowSun0 + 6) % 7;
   const daysInMonth = new Date(previewYear, previewMonth, 0).getDate();
   const totalCells = Math.ceil((startPad + daysInMonth) / 7) * 7;
 
   return (
-    <div className="w-full max-w-[280px] rounded-xl border border-neutral-200 bg-white p-2 text-left shadow-sm">
-      <div className="mb-1.5 flex items-center justify-center gap-2">
-        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-neutral-200 text-[9px] text-neutral-500">
+    <div className="w-full max-w-[272px] rounded-lg border border-neutral-200 bg-white px-1.5 pb-1.5 pt-1 text-left shadow-sm">
+      <div className="mb-1 flex items-center justify-center gap-1.5">
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-neutral-200 text-[7px] text-neutral-500">
           ◀
         </span>
-        <span className="text-[10px] font-bold text-[#1A2B45]">
-          April {previewYear}
+        <span className="text-[9px] font-bold text-[#1A2B45]">
+          {monthNames[previewMonth]} {previewYear}
         </span>
-        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-neutral-200 text-[9px] text-neutral-500">
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-neutral-200 text-[7px] text-neutral-500">
           ▶
         </span>
       </div>
-      <div className="grid grid-cols-7 gap-0.5 text-center text-[7px] font-semibold text-neutral-500">
+      <div className="grid grid-cols-7 gap-px text-center text-[6px] font-semibold text-neutral-500">
         {days.map((d) => (
-          <span key={d}>{d}</span>
+          <span key={d} className="truncate">
+            {d}
+          </span>
         ))}
       </div>
-      <div className="mt-0.5 grid grid-cols-7 gap-0.5 text-[8px] text-neutral-500">
+      <div className="mt-px grid grid-cols-7 gap-px text-[6.5px] text-neutral-600">
         {Array.from({ length: totalCells }, (_, i) => {
           const dayNum = i - startPad + 1;
           if (dayNum < 1 || dayNum > daysInMonth) {
-            return <span key={i} className="flex h-5 items-center justify-center rounded" aria-hidden />;
+            return <span key={i} className="flex h-[1.125rem] items-center justify-center rounded-sm" aria-hidden />;
           }
           const on = highlightDays.has(dayNum);
           return (
             <span
               key={i}
-              className={`flex h-5 items-center justify-center rounded ${
-                on ? 'bg-[#E8F0FB] font-semibold text-[#003366] ring-1 ring-[#0055A4]/20' : ''
+              className={`flex h-[1.125rem] items-center justify-center rounded-sm ${
+                on ? 'bg-[#E8F0FB] font-semibold text-[#003366] ring-1 ring-[#0055A4]/25' : ''
               }`}
             >
               {dayNum}
@@ -449,31 +585,112 @@ function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
           );
         })}
       </div>
-      <p className="mt-1.5 border-t border-neutral-100 pt-1.5 text-center text-[7px] leading-snug text-neutral-500">
-        <span className="font-semibold text-[#003366]">●</span> Wahl &nbsp;
-        <span className="font-semibold text-[#0055A4]">○</span> Abstimmung · Ebenen farbig
+      <p className="mt-1 border-t border-neutral-100 pt-1 text-center text-[6px] leading-snug text-neutral-500">
+        <span className="font-semibold text-[#003366]">●</span> Wahl{' '}
+        <span className="font-semibold text-[#0055A4]">○</span> Abstimmung
       </p>
+      <div className="mt-1 space-y-0.5">
+        <div className="rounded border border-violet-200 bg-violet-50/90 px-1 py-0.5 text-[6px] leading-tight text-violet-950">
+          <span className="font-bold text-violet-800">Land</span> · {landRow?.title ?? 'Landtagswahl Saarland · März (Demo)'}
+        </div>
+        <div className="rounded border border-amber-200 bg-amber-50/90 px-1 py-0.5 text-[6px] leading-tight text-amber-950">
+          <span className="font-bold text-amber-900">Kreis</span> · {kreisRow?.title ?? 'Kreistag Saarpfalz · März (Demo)'}
+        </div>
+      </div>
     </div>
   );
 }
 
-/** Ein konkreter Demo-Fall mit sichtbarem Status — kein Kategorie-Menü. */
+const INTRO_MELDUNG_RATTEN_DU =
+  'Rattenplage am Sandkasten auf dem Spielplatz Bürgerpark — mehrere Tiere, starker Geruch. Bitte um dringende Kontrolle und Sanierung.';
+const INTRO_MELDUNG_RATTEN_SIE =
+  'Rattenplage am Sandkasten auf dem Spielplatz Bürgerpark — mehrere Tiere, starker Geruch. Bitte um dringende Kontrolle und Sanierung.';
+
+/** Wie Meldungen in der App: Kategorie Spielplatz, dann Text mit Schreibmaschinen-Effekt. */
 function IntroMeldungenSnapshot({ du }: { du: boolean }) {
-  return (
-    <div className="w-full max-w-[260px] rounded-xl border border-neutral-200 bg-white p-2.5 text-left shadow-sm">
-      <p className="text-[8px] font-bold uppercase tracking-wide text-[#0055A4]">
-        {du ? 'Dein Anliegen' : 'Ihr Anliegen'}
-      </p>
-      <p className="mt-1 line-clamp-2 text-[10px] font-semibold leading-snug text-[#1A2B45]">
-        Straßenlaterne defekt · Hauptstraße 12, Kirkel
-      </p>
-      <p className="mt-1 text-[8px] text-neutral-600">Kategorie: Straße / Weg</p>
-      <div className="mt-2 inline-flex items-center rounded-full border border-amber-300/90 bg-amber-50 px-2.5 py-0.5 text-[9px] font-bold tracking-tight text-amber-950">
-        In Prüfung
+  const [screen, setScreen] = useState<'kat' | 'detail'>('kat');
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const full = du ? INTRO_MELDUNG_RATTEN_DU : INTRO_MELDUNG_RATTEN_SIE;
+  const [typedLen, setTypedLen] = useState(0);
+
+  useEffect(() => {
+    setReduceMotion(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
+
+  useEffect(() => {
+    if (screen !== 'detail') {
+      setTypedLen(0);
+      return;
+    }
+    if (reduceMotion) {
+      setTypedLen(full.length);
+      return;
+    }
+    setTypedLen(0);
+    const id = window.setInterval(() => {
+      setTypedLen((n) => {
+        if (n >= full.length) return n;
+        const next = n + 1;
+        if (next >= full.length) window.clearInterval(id);
+        return next;
+      });
+    }, 32);
+    return () => window.clearInterval(id);
+  }, [screen, full, reduceMotion]);
+
+  if (screen === 'kat') {
+    return (
+      <div className="w-full max-w-[280px] rounded-xl border border-neutral-200 bg-white p-2.5 text-left shadow-sm">
+        <p className="text-[12px] font-semibold text-[#1A2B45]">
+          {du ? 'Was möchtest du melden?' : 'Was möchten Sie melden?'}
+        </p>
+        <button
+          type="button"
+          onClick={() => setScreen('detail')}
+          className="card-compact mt-2 flex min-h-[56px] w-full items-center justify-between gap-2 rounded-xl border border-[#D6E0EE] bg-white px-2.5 py-2 text-left transition hover:border-[#8EB1DE] hover:bg-[#FBFDFF] active:translate-y-px"
+        >
+          <div>
+            <div className="text-[12px] font-semibold text-[#1A2B45]">Spielplatz</div>
+            <div className="mt-0.5 text-[10px] text-neutral-500">Defekte Geräte, Hygiene, Schädlinge</div>
+          </div>
+          <span className="text-sm font-semibold text-neutral-400" aria-hidden>
+            ›
+          </span>
+        </button>
       </div>
-      <p className="mt-1.5 text-[7.5px] leading-snug text-neutral-500">
-        {du ? 'Du erhältst eine Rückmeldung, sobald die Gemeinde den Vorgang bearbeitet hat.' : 'Sie erhalten eine Rückmeldung, sobald die Gemeinde den Vorgang bearbeitet hat.'}
-      </p>
+    );
+  }
+
+  const typingDone = typedLen >= full.length;
+
+  return (
+    <div className="w-full max-w-[280px] rounded-xl border border-neutral-200 bg-white p-2.5 text-left shadow-sm">
+      <button
+        type="button"
+        onClick={() => setScreen('kat')}
+        className="mb-2 inline-flex items-center gap-1 rounded-lg border border-transparent px-1 py-0.5 text-[10px] font-medium text-[#1F4F8A] hover:border-[#D6E0EE] hover:bg-slate-50"
+      >
+        ← {du ? 'Kategorie ändern' : 'Kategorie ändern'}
+      </button>
+      <div className="mb-2 rounded-lg border border-[#CFE0F7] bg-[#F6FAFF] px-2 py-1.5">
+        <p className="text-[8px] font-semibold uppercase tracking-wide text-[#4F6F96]">
+          {du ? 'Ausgewählte Kategorie' : 'Ausgewählte Kategorie'}
+        </p>
+        <p className="text-[11px] font-bold text-[#1A2B45]">Spielplatz</p>
+      </div>
+      <p className="mb-1 text-[9px] font-semibold text-neutral-700">{du ? 'Beschreibung' : 'Beschreibung'}</p>
+      <div
+        className="min-h-[4.25rem] rounded-lg border border-neutral-200 bg-[#FAFBFC] px-2 py-1.5 text-[10px] leading-snug text-[#1A2B45]"
+        aria-live="polite"
+      >
+        {full.slice(0, typedLen)}
+        {!typingDone ? <span className="intro-typewriter-caret ml-px inline-block w-px bg-[#0055A4]" aria-hidden /> : null}
+      </div>
+      {typingDone ? (
+        <div className="mt-2 inline-flex items-center rounded-full border border-amber-300/90 bg-amber-50 px-2.5 py-0.5 text-[9px] font-bold text-amber-950">
+          In Prüfung
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -572,8 +789,9 @@ export default function DemoIntroWalkthrough({
       }
     })();
     if (!inner) return null;
+    const scrollable = step.id === 'kalender' || step.id === 'meldungen';
     return (
-      <WalkthroughFocusVisual caption={caption}>
+      <WalkthroughFocusVisual caption={caption} scrollable={scrollable}>
         <WalkthroughPreviewShell>{inner}</WalkthroughPreviewShell>
       </WalkthroughFocusVisual>
     );
@@ -693,7 +911,7 @@ export default function DemoIntroWalkthrough({
                   aria-hidden
                 >
                   <span
-                    className="absolute left-1/2 top-1/2 block w-[120%] select-none text-center text-[clamp(2rem,11vw,3.25rem)] font-bold uppercase leading-none tracking-[0.22em] text-[#0f172a]/[0.055]"
+                    className="absolute left-1/2 top-1/2 block w-[120%] select-none text-center text-[clamp(2rem,11vw,3.25rem)] font-bold uppercase leading-none tracking-[0.22em] text-[#0f172a]/[0.09]"
                     style={{ transform: 'translate(-50%, -50%) rotate(-14deg)' }}
                   >
                     HookAI Demo

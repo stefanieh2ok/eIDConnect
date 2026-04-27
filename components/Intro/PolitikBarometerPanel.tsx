@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useApp } from '@/context/AppContext';
 import { THEME_NAMES } from '@/data/constants';
 import type { UserPreferences } from '@/types';
@@ -50,6 +50,7 @@ export default function PolitikBarometerPanel({
   heroPreview = false,
 }: Props) {
   const { state, dispatch } = useApp();
+  const heroNeutralApplied = useRef(false);
   const compact = variant === 'compact';
   const tight = density === 'tight';
   const canEditPreferences = true;
@@ -68,6 +69,27 @@ export default function PolitikBarometerPanel({
     ensureConsentForPreferenceUse();
     dispatch({ type: 'SET_PREFERENCES', payload: { [key]: value } });
   };
+
+  /** Walkthrough: alle Themen in der Mitte (50 %) — Regler wirken sofort „lebendig“. */
+  useEffect(() => {
+    if (!heroPreview) {
+      heroNeutralApplied.current = false;
+      return;
+    }
+    if (heroNeutralApplied.current) return;
+    heroNeutralApplied.current = true;
+    dispatch({
+      type: 'SET_PREFERENCES',
+      payload: {
+        umwelt: 50,
+        finanzen: 50,
+        bildung: 50,
+        digital: 50,
+        soziales: 50,
+        sicherheit: 50,
+      },
+    });
+  }, [heroPreview, dispatch]);
 
   const applyPreset = (preset: Partial<UserPreferences>) => {
     ensureConsentForPreferenceUse();
