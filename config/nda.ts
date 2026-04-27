@@ -27,7 +27,7 @@ export const NDA_ERROR_SAVE =
 
 /** Checkbox-Text */
 export const NDA_CHECKBOX_TEXT =
-  'Ich habe die Vertraulichkeitsvereinbarung gelesen, verstanden und akzeptiere sie.';
+  'NDA gelesen, Inhalte vertraulich.';
 
 /** Kurzer Hinweis über der Checkbox */
 export const NDA_HINT_ABOVE_CHECKBOX =

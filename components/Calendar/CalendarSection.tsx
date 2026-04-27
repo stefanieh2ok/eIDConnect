@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { VOTING_DATA } from '@/data/constants';
 import { WAHLEN_DATA } from '@/data/constants';
@@ -563,8 +564,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
     <div className="card-section p-2.5">
         <div className="flex items-start justify-between mb-2">
           <div>
-            <h2 className="t-h2">Kalender</h2>
-            <div className="t-meta mt-0.5">
+            <div className="t-meta">
               Jahr: <span className="font-semibold text-neutral-700">{currentYear}</span> · <span>{selectionLabel}</span>
             </div>
           </div>
@@ -593,7 +593,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
           className="app-filter-btn px-3 py-1.5 transition-colors hover:bg-neutral-50"
           aria-label="Vorheriger Monat"
         >
-          <span className="t-meta font-semibold">Zurück</span>
+          <ChevronLeft className="h-4 w-4 text-neutral-700" aria-hidden />
         </button>
         <div className="flex items-center gap-3">
           <h2 className="t-card-title">{currentMonth.name}</h2>
@@ -622,7 +622,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
           className="app-filter-btn px-3 py-1.5 transition-colors hover:bg-neutral-50"
           aria-label="Nächster Monat"
         >
-          <span className="t-meta font-semibold">Weiter</span>
+          <ChevronRight className="h-4 w-4 text-neutral-700" aria-hidden />
         </button>
       </div>
       </div>

@@ -17,6 +17,7 @@
     "fetch-wikidata": "node scripts/fetch-wikidata-politiker.mjs",
     "check": "npm run lint && npx tsc --noEmit && npm test -- --passWithNoTests && echo OK: Alle Pruefungen bestanden",
     "smoke": "node scripts/smoke-check-ui.mjs",
+    "precheck:responsive": "node scripts/pre-check-responsive.mjs",
     "capture:intro": "node scripts/capture-demo-screens.mjs http://localhost:3002",
     "test:ui": "jest --testPathPattern=BuergerApp.ui",
     "deploy:vercel": "npx vercel@latest",

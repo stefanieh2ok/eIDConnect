@@ -11,7 +11,9 @@ export default function ProductIdentityHeader({ className = '' }: ProductIdentit
   return (
     <div className={`min-w-0 text-left ${className}`}>
       <div className="t-app-title truncate leading-none text-[#003366]">{APP_DISPLAY_NAME}</div>
-      <p className="t-app-subtitle mt-0.5 leading-tight text-left">{APP_TAGLINE}</p>
+      <p className="t-app-subtitle mt-0.5 whitespace-nowrap text-[10px] leading-tight sm:text-[10.5px] text-left">
+        {APP_TAGLINE}
+      </p>
     </div>
   );
 }

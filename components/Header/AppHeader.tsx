@@ -542,13 +542,13 @@ const AppHeader: React.FC = () => {
           Senior-UI: eigener Kontrast-Streifen statt „Pillen auf Glas“ — aktiver Tab invertiert (hell auf dunkel),
           inaktiv dezent hell; so wirkt die Menüzeile nicht mehr unter dem Seiteninhalt „weg“. */}
       <div
-        className="border-t border-white/10 px-2 pb-2 pt-1.5"
+        className="border-t border-white/10 px-2 pb-1.5 pt-1.5"
         style={{
           background: 'linear-gradient(180deg, #002855 0%, #003366 55%, #002f5c 100%)',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
         }}
       >
-        <div className="flex min-h-[60px] flex-wrap items-stretch justify-center gap-1 sm:justify-start">
+        <div className="scrollbar-hide flex min-h-[44px] items-stretch gap-1 overflow-x-auto overflow-y-hidden whitespace-nowrap">
           {NAV_ITEMS.map((item) => {
             const isActive = state.activeSection === item.section;
             const showItem = !item.kommuneOnly || residencePath.includes('kommune');
@@ -564,7 +564,7 @@ const AppHeader: React.FC = () => {
                       : undefined
                 }
                 onClick={() => dispatch({ type: 'SET_ACTIVE_SECTION', payload: item.section })}
-                className={`min-h-[44px] flex flex-1 basis-0 items-center justify-center gap-1 rounded-full px-3 py-2 text-[14px] whitespace-nowrap transition-all sm:min-h-[40px] sm:flex-none sm:px-3 ${
+                className={`flex h-[36px] shrink-0 items-center justify-center gap-1 rounded-full px-3 py-1.5 text-[12px] whitespace-nowrap transition-all ${
                   isActive
                     ? 'bg-white font-bold text-[#003366] shadow-md ring-1 ring-white/80'
                     : 'font-semibold text-white/85 hover:bg-white/12 hover:text-white active:bg-white/18'

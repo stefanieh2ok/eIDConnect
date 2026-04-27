@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ndaConfig } from '@/config/nda';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
+import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 export const metadata: Metadata = {
   title: `Vertraulichkeitserklärung – ${APP_DISPLAY_NAME}`,
@@ -25,7 +26,8 @@ export default async function DemoNdaPage({ searchParams }: Props) {
       <header className="sticky top-0 z-10 border-b border-[#DDE7F2] bg-white px-4 py-3 print:hidden">
         <div className="mx-auto flex max-w-[900px] items-center justify-between">
           <div>
-            <h1 className="t-card-title">Geheimhaltungsvereinbarung (NDA)</h1>
+            <ProductIdentityHeader />
+            <h1 className="t-card-title mt-1">Geheimhaltungsvereinbarung (NDA)</h1>
             <p className="t-meta mt-0.5">Dokumentansicht · {APP_DISPLAY_NAME}</p>
           </div>
           <div className="flex items-center gap-2">

@@ -553,8 +553,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
     <div className="card-section p-2.5">
       <div className="mb-2 flex items-start justify-between">
         <div>
-          <h2 className="t-h2">Wahlen</h2>
-          <div className="t-meta mt-0.5">
+          <div className="t-meta">
             {selectionLabelForSection('wahlen', state.activeLocation)}
           </div>
           <div className="t-caption">Informations- und Orientierungsansicht</div>
@@ -1037,7 +1036,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
             <div key={wahl.id} className={`${sectionCardClass} mb-4 sm:p-5`}>
               <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
-                  <h3 className="t-body-lg font-semibold leading-tight break-words" style={{ color: 'var(--gov-heading)' }}>
+                  <h3 className="t-body-lg font-semibold leading-tight break-normal hyphens-none" style={{ color: 'var(--gov-heading)' }}>
                     {normalizedName}
                   </h3>
                   {wahl.datum !== 'aktuell' && (

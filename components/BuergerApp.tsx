@@ -12,7 +12,6 @@ import MeldungenSection from '@/components/Meldungen/MeldungenSection';
 import StimmzettelModal from '@/components/Modals/StimmzettelModal';
 import IntroOverlay from '@/components/Intro/IntroOverlay';
 import DemoIntroWalkthrough from '@/components/Intro/DemoIntroWalkthrough';
-import DemoExpectationBanner from '@/components/DemoExpectationBanner';
 import { AnredeGate } from '@/components/Intro/AnredeGate';
 import { IntroEntryBranch } from '@/components/Intro/IntroEntryBranch';
 import {
@@ -71,15 +70,17 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
   const [walkthroughStep, setWalkthroughStep] = useState<{ id: string; label: string } | null>(null);
   /** Optionaler Demo-/Pitch-Launch (nur bei User-Klick + NEXT_PUBLIC_ENABLE_DEMO_LAUNCH_EFFECT). */
   const [demoLaunchOpen, setDemoLaunchOpen] = useState(false);
-  const [demoLaunchDurationMs, setDemoLaunchDurationMs] = useState(1200);
+  const [demoLaunchDurationMs, setDemoLaunchDurationMs] = useState(3300);
   const isDevice = variant === 'device';
 
   const finishDemoLaunch = useCallback(() => {
     setDemoLaunchOpen(false);
     if (typeof window === 'undefined') return;
+    resetViewportScroll();
     requestAnimationFrame(() => {
       const el = document.getElementById('main-scroll');
       if (!el) return;
+      el.scrollTop = 0;
       try {
         el.setAttribute('tabindex', '-1');
         el.focus({ preventScroll: true });
@@ -93,7 +94,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
   const tryStartDemoLaunchFromUserGesture = useCallback((mode: 'full' | 'mini' = 'full') => {
     if (!isDemoLaunchEffectEnabled()) return;
     if (typeof window === 'undefined') return;
-    setDemoLaunchDurationMs(mode === 'full' ? 1200 : 700);
+    setDemoLaunchDurationMs(mode === 'full' ? 3300 : 1500);
     playDemoLaunchAudio();
     setDemoLaunchOpen(true);
   }, []);
@@ -412,7 +413,6 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                 className="scrollbar-hide flex-1 min-h-0 overflow-y-auto scroll-smooth outline-none"
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
-                <DemoExpectationBanner />
                 <div className="px-3 pt-3 pb-clara-dock-safe">
                   {renderSection()}
                   <SecurityFaqFooter />
@@ -434,7 +434,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
         )}
         <ClaraDock
           toolbarZClassName={
-            !state.isLoggedIn || walkthroughChrome ? 'z-[620]' : 'z-[80]'
+            !state.isLoggedIn || walkthroughChrome ? 'z-[620]' : 'z-[140]'
           }
           compactMicOnlyMode={state.isLoggedIn ? walkthroughChrome : undefined}
           suppressCompactMic={!state.isLoggedIn || walkthroughChrome}

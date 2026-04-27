@@ -23,7 +23,6 @@ import {
   INTRO_ACCESS_CLARA_PANEL_SHORT_SIE,
   INTRO_TRUST_HINT_DU,
   INTRO_TRUST_HINT_SIE,
-  INTRO_ACCESS_SCREEN_TAGLINE,
   INTRO_WALLET_BADGE,
   INTRO_WALLET_CARD_BODY,
   INTRO_WALLET_CARD_TITLE,
@@ -131,7 +130,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     const parts = introEidLoginSpokenParts(du);
     const t = window.setTimeout(() => {
       introSpeak.speakIntroParts(parts, 'eid-demo-login');
-    }, 450);
+    }, 120);
     return () => {
       window.clearTimeout(t);
       introSpeak.stopIntroSpeech();
@@ -196,7 +195,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   const content = (
-    <div className="clara-prelogin-shell-pad intro-device-chrome-shell intro-dark-body relative mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] p-[3px] sm:mx-2 sm:p-1">
+    <div className="clara-prelogin-shell-pad--tight intro-device-chrome-shell intro-dark-body relative mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] p-[3px] sm:mx-2 sm:p-1">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.65rem] border border-neutral-200/95 bg-white">
         <IntroMetaStrip
           surface="light"
@@ -207,12 +206,22 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
           onClose={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
         />
 
-        <div className="flex-shrink-0 border-b border-neutral-100 px-4 pb-2 pt-2 text-center sm:px-5 sm:pb-2.5 sm:pt-2.5">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-neutral-500">Zugang · Schritt 2</p>
-          <ProductIdentityHeader className="mt-1 text-left" />
-          <p className="mt-1 text-[11px] font-medium leading-snug text-neutral-600">
-            {INTRO_ACCESS_SCREEN_TAGLINE}
-          </p>
+        <div className="flex-shrink-0 border-b border-neutral-100 px-4 pb-2 pt-2 sm:px-5 sm:pb-2.5 sm:pt-2.5">
+          <ProductIdentityHeader className="text-left" />
+          <div
+            className="mt-2.5 flex items-stretch justify-center gap-0 rounded-lg border border-[#D6E0EE] bg-[#F8FAFD] px-1 py-1.5 sm:mt-3"
+            aria-label="Zugangsperspektiven: eID und EU Digital Identity Wallet"
+          >
+            <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-center">
+              <span className="text-[11px] font-bold tracking-tight text-[#003366]">eID</span>
+              <span className="text-[8px] font-medium leading-tight text-neutral-600">Online-Ausweis</span>
+            </div>
+            <div className="w-px shrink-0 self-stretch bg-[#D6E0EE]" aria-hidden />
+            <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-center">
+              <span className="text-[11px] font-bold tracking-tight text-[#003366]">EU Wallet</span>
+              <span className="text-[8px] font-medium leading-tight text-neutral-600">Digitale Identität</span>
+            </div>
+          </div>
         </div>
 
         <div
@@ -229,10 +238,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               showTopicTitle
               hideShortWhenCollapsed
             />
-            <p className="px-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
-              Einordnung: künftige Authentifizierungswege
-            </p>
-
             <div className={accessPathCardClass}>
               <div className="flex items-start justify-between gap-2">
                 <span

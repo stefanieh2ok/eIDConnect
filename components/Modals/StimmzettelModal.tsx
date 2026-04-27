@@ -67,76 +67,53 @@ const StimmzettelModal: React.FC = () => {
 
   return (
     <>
-      <div className="intro-safe-overlay z-[99998] flex items-center justify-center p-4" style={{
-        background: 'linear-gradient(135deg, #E8F0F8 0%, #D0DCE8 50%, #B8C8D8 100%)'
-      }}>
-        {/*
-         * iPhone-Mockup-Rahmen: Auf Desktop 393×852 (iPhone 15 Pro Maße),
-         * auf echten iPhones/Smartphones schrumpft der Rahmen mit `min(...)` auf
-         * den tatsaechlich verfuegbaren Viewport – sonst wird der untere Teil
-         * (inkl. „Teilnahme in Demo bestaetigen"-Button) von der Safari-URL-
-         * Leiste abgeschnitten.
-         */}
+      <div className="absolute inset-0 z-[99998] flex flex-col overflow-hidden rounded-b-[1.75rem] bg-[#EEF3F8]">
         <div
-          className="relative"
-          style={{
-            width: 'min(393px, calc(100vw - 2rem))',
-            height: 'min(852px, calc(100dvh - 2rem))',
-            maxHeight: '100dvh',
-          }}
+          className="flex items-center justify-between px-4 py-2.5 text-white"
+          style={{ background: 'linear-gradient(135deg, #0A2540 0%, #1E3A5F 100%)' }}
         >
-          {/* iPhone Notch – gleiche Größe wie Hauptapp */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-8 bg-black rounded-b-3xl z-50" />
+          <button
+            onClick={handleClose}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white"
+            aria-label="Stimmzettel schließen"
+          >
+            <span className="text-base font-bold leading-none">×</span>
+          </button>
+          <h2 className="mx-2 truncate text-[15px] font-bold" style={{ letterSpacing: '-0.01em' }}>
+            Stimmzettel
+          </h2>
+          <div className="w-8 flex-shrink-0" />
+        </div>
 
-          <div className="w-full h-full bg-gray-50 rounded-[3rem] shadow-2xl overflow-hidden border-[14px] border-black relative flex flex-col">
-            {/* iPhone Header – kompakt */}
-            <div className="text-white px-4 py-3 flex-shrink-0 flex justify-between items-center" style={{background: 'linear-gradient(135deg, #0A2540 0%, #1E3A5F 100%)'}}>
-              <button
-                onClick={handleClose}
-                className="flex items-center gap-1.5 text-white min-w-0"
-              >
-                <span className="text-base font-bold leading-none">x</span>
-                <span className="text-sm font-bold truncate">Zurück</span>
-              </button>
-                <h2 className="text-base font-extrabold truncate mx-2" style={{letterSpacing: '-0.01em'}}>Stimmzettel</h2>
-              <div className="w-14 flex-shrink-0"></div>
-            </div>
-            
-            {/* Content Area – Scrollbar in Akzentfarbe für gute Sichtbarkeit.
-                Safe-Area + großzügiger Bottom-Pad, damit der primaere „Teilnahme in
-                Demo bestaetigen"-Button zuverlaessig erreichbar bleibt. */}
-            <div
-              className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden stimmzettel-scroll"
-              style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 24px)' }}
-            >
-              <div className="p-3 max-w-full">
-                {voteSuccess ? (
-                  <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Auswahl in der Demo gespeichert</h3>
-                    <p className="text-gray-600">Die Eingabe ist nur Teil der Konzeptdemo und hat keine rechtliche Wirkung.</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="mb-3 rounded-xl border border-neutral-200 bg-white p-3 text-[12px] leading-relaxed text-neutral-700">
-                      <span className="font-semibold">Status:</span>{' '}
-                      {isVotingOpen ? 'Laeuft aktuell (Demo-Teilnahme moeglich)' : 'Abgeschlossen / Ergebnisansicht (nicht mehr abstimmbar)'}
-                    </div>
-
-                    <OriginalStimmzettel
-                      level={level as any}
-                      wahlkreis={state.selectedWahl?.wahlkreis}
-                      selectedWahl={state.selectedWahl}
-                      du={state.anrede === 'du'}
-                      canVote={isVotingOpen}
-                      kommuneBallot={level === 'kommune' ? kommuneBallot : undefined}
-                      onVote={handleVote}
-                      onKIAnalysis={handleKIAnalysis}
-                      onOpenClaraChat={handleOpenClaraChat}
-                    />
-                  </>
-                )}
+        <div
+          className="stimmzettel-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
+          style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 32px)' }}
+        >
+          <div className="p-3 max-w-full">
+            {voteSuccess ? (
+              <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                <h3 className="mb-2 text-2xl font-bold text-gray-900">Auswahl gespeichert</h3>
+                <p className="text-gray-600">Nur Teil der Konzeptdemo, ohne rechtliche Wirkung.</p>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="mb-3 rounded-xl border border-neutral-200 bg-white p-3 text-[12px] text-neutral-700">
+                  {isVotingOpen ? 'Status: Laufend (Demo-Teilnahme möglich)' : 'Status: Abgeschlossen / Ergebnisansicht'}
+                </div>
+
+                <OriginalStimmzettel
+                  level={level as any}
+                  wahlkreis={state.selectedWahl?.wahlkreis}
+                  selectedWahl={state.selectedWahl}
+                  du={state.anrede === 'du'}
+                  canVote={isVotingOpen}
+                  kommuneBallot={level === 'kommune' ? kommuneBallot : undefined}
+                  onVote={handleVote}
+                  onKIAnalysis={handleKIAnalysis}
+                  onOpenClaraChat={handleOpenClaraChat}
+                />
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -157,18 +134,18 @@ const StimmzettelModal: React.FC = () => {
             {/* iPhone Notch – gleiche Größe wie Hauptapp */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-8 bg-black rounded-b-3xl z-50" />
 
-            <div className="w-full h-full bg-gray-50 rounded-[3rem] shadow-2xl overflow-hidden border-[14px] border-black relative flex flex-col">
+            <div className="w-full h-full bg-gray-50 rounded-[3rem] shadow-2xl overflow-hidden border-[14px] border-black relative flex flex-col pt-9">
               {/* iPhone Header – kompakt */}
               <div className="text-white px-4 py-3 flex-shrink-0 flex justify-between items-center" style={{background: 'linear-gradient(135deg, #0A2540 0%, #1E3A5F 100%)'}}>
                 <button
                   onClick={() => setShowClaraChat(false)}
-                  className="flex items-center gap-1.5 text-white min-w-0"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white"
+                  aria-label="Clara Chat schließen"
                 >
-                  <span className="text-base font-bold leading-none">x</span>
-                  <span className="text-sm font-bold truncate">Zurück</span>
+                  <span className="text-base font-bold leading-none">×</span>
                 </button>
                 <h2 className="text-lg font-black truncate mx-2" style={{letterSpacing: '-0.02em'}}>Clara Chat</h2>
-                <div className="w-14 flex-shrink-0"></div>
+                <div className="w-8 flex-shrink-0"></div>
               </div>
               
               {/* Content Area – Clara füllt Höhe, Chat scrollt innen */}

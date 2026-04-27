@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { AcceptNdaButton } from '@/components/security/AcceptNdaButton';
 import { GATE_SUMMARY } from '@/lib/nda-content';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
+import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 export default function DemoAccessPage() {
   const searchParams = useSearchParams();
@@ -23,34 +24,33 @@ export default function DemoAccessPage() {
 
   return (
     <IphoneFrame>
-      <div className="flex h-full min-h-0 flex-col overflow-y-auto rounded-b-[1.75rem] px-2 pb-4">
-        <div className="mx-auto w-full max-w-[360px] flex-1 space-y-3 text-gray-900">
-          <p className="text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-600">
-            Vertraulicher Zugang
-          </p>
+      <div className="flex h-full min-h-0 flex-col overflow-y-auto rounded-b-[1.75rem] px-2 pb-[88px] pt-1">
+        <div className="mx-auto w-full max-w-[360px] flex-1 space-y-4 pb-6 text-neutral-950">
+          <div className="card-section">
+            <ProductIdentityHeader />
+            <p className="t-kicker mt-2">Vertraulicher Zugang</p>
 
-          <p className="px-1 text-center text-[13px] font-semibold leading-snug text-neutral-900">
-            {GATE_SUMMARY.strictSentence}
-          </p>
+            <p className="t-body mt-3">{GATE_SUMMARY.strictSentence}</p>
 
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white/65 p-4 shadow-sm backdrop-blur-xl">
-            <div className="mb-4 space-y-3 text-[13px] leading-relaxed text-neutral-800">
+            <div className="card-content mt-4 space-y-2.5">
               {GATE_SUMMARY.summaryParagraphs.map((para, i) => (
-                <p key={i}>{para}</p>
+                <p key={i} className="t-body-sm">{para}</p>
               ))}
             </div>
+          </div>
+
+          <section className="card-content">
             <Link
               href={`/legal/demo-nda?print=1&returnTo=${encodeURIComponent(`/demo/access?token=${encodeURIComponent(token)}`)}`}
-              className="mb-4 flex w-full items-center justify-center rounded-xl px-4 py-3 text-center text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-95"
-              style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
+              className="btn-secondary t-button mb-3 inline-flex w-full items-center justify-center"
             >
               PDF drucken
             </Link>
 
-            <div className="rounded-xl border border-white/20 bg-white/95 p-3 text-neutral-900 shadow-inner">
+            <div className="rounded-xl border border-neutral-200 bg-[#F8FAFC] p-3">
               <AcceptNdaButton token={token} />
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </IphoneFrame>

@@ -347,8 +347,33 @@ function SourceTrustBadge({ data, du }: { data: unknown; du: boolean }) {
             : 'Keine verifizierbare Primärquelle in der Demo – bitte offizielle Stellen prüfen'
       }
     >
-      {ok ? 'Primärquelle' : 'nicht verifiziert'}
+      {ok ? 'Primärquelle verfügbar' : 'Demo-Platzhalter'}
     </span>
+  );
+}
+
+function PrimarySourceMeta({ data, du }: { data: unknown; du: boolean }) {
+  const sources = collectSourceLinks(data);
+  if (sources.length > 0) {
+    const primary = sources[0];
+    return (
+      <a
+        href={primary.url}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-1 inline-block text-[10px] font-medium text-[#0055A4] underline decoration-[#BFD9FF] underline-offset-2 hover:opacity-90"
+        title={primary.url}
+      >
+        Primärquelle öffnen: {primary.label}
+      </a>
+    );
+  }
+  return (
+    <p className="mt-1 text-[10px] text-amber-700">
+      {du
+        ? 'Demo-Platzhalter – externe Programme noch nicht angebunden.'
+        : 'Demo-Platzhalter – externe Programme noch nicht angebunden.'}
+    </p>
   );
 }
 
@@ -481,9 +506,10 @@ const ClaraInfoModal: React.FC<ClaraInfoModalProps> = ({ data, type, du, onClose
           </button>
           <button
             onClick={onClose}
-            className="px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-gray-300 bg-white text-gray-700 transition-colors hover:bg-gray-50"
+            aria-label="Fenster schließen"
           >
-            Schließen
+            ×
           </button>
         </div>
       </div>
@@ -645,11 +671,11 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
           {/* Header mit Bundesadler-Placeholder */}
           <div className={`ballot-paper border-b-2 border-gray-900 text-center ${introMode ? 'pb-2.5' : 'pb-4'}`}>
             <div className={`flex items-center justify-center gap-4 ${introMode ? 'mb-1.5' : 'mb-4'}`}>
-              <h1
+            <h1
                 className={
                   introMode
                     ? 'text-[12px] font-semibold tracking-tight text-gray-900 sm:text-[13px]'
-                    : 'text-xl font-bold text-gray-900 sm:text-2xl'
+                    : 'text-lg font-bold tracking-tight text-gray-900 sm:text-xl'
                 }
               >
                 BUNDESTAGSWAHL
@@ -698,6 +724,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       </div>
                       <div className="mt-1">
                         <SourceTrustBadge data={kandidat} du={du} />
+                        <PrimarySourceMeta data={kandidat} du={du} />
                       </div>
                     </div>
                   </label>
@@ -749,6 +776,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       </div>
                       <div className="mt-1">
                         <SourceTrustBadge data={partei} du={du} />
+                        <PrimarySourceMeta data={partei} du={du} />
                       </div>
                     </div>
                   </label>
@@ -813,7 +841,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
         <div className="space-y-4">
           {/* Header */}
           <div className="ballot-paper border-b-2 border-gray-900 pb-4 text-center">
-            <h1 className="mb-2 text-xl font-bold text-gray-900 sm:text-2xl">LANDTAGSWAHL SAARLAND</h1>
+            <h1 className="mb-2 text-lg font-bold tracking-tight text-gray-900 sm:text-xl">LANDTAGSWAHL SAARLAND</h1>
             <p className="text-sm font-semibold text-gray-700 sm:text-base">
               {landElection?.datum === 'aktuell'
                 ? 'Frühjahr 2027'
@@ -862,6 +890,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       </div>
                       <div className="mt-1">
                         <SourceTrustBadge data={kandidat} du={du} />
+                        <PrimarySourceMeta data={kandidat} du={du} />
                       </div>
                     </div>
                   </label>
@@ -925,7 +954,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
       {level === 'kreis' && (
         <div className="space-y-4">
           <div className="ballot-paper border-b-2 border-gray-900 pb-4 text-center">
-            <h1 className="mb-2 text-xl font-bold text-gray-900 sm:text-2xl">
+            <h1 className="mb-2 text-lg font-bold tracking-tight text-gray-900 sm:text-xl break-words">
               {String(kreisElection?.name || 'KREISWAHL').toUpperCase()}
             </h1>
             <p className="text-sm font-semibold text-gray-700 sm:text-base">
@@ -964,6 +993,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                         <div className="text-xs text-gray-700 sm:text-sm">{partyFullName(partei.kuerzel) || partei.name}</div>
                         <div className="mt-1">
                           <SourceTrustBadge data={partei} du={du} />
+                          <PrimarySourceMeta data={partei} du={du} />
                         </div>
                       </div>
                     </label>
@@ -1018,6 +1048,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                         </div>
                         <div className="mt-1">
                           <SourceTrustBadge data={kandidat} du={du} />
+                          <PrimarySourceMeta data={kandidat} du={du} />
                         </div>
                       </div>
                     </div>
@@ -1086,7 +1117,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
           {/* Header */}
           <div className="ballot-paper text-center pb-4 border-b-2 border-gray-900 px-2">
             <h1 className="mb-2 text-[1rem] font-bold leading-tight text-gray-900 sm:text-xl sm:leading-snug">
-              GEMEINDERATS&shy;WAHL
+              GEMEINDERATSWAHL
             </h1>
             <p className="text-sm font-semibold text-gray-700">{kommuneHead.top}</p>
             <p className="mt-1 text-[12px] text-gray-700">{kommuneHead.sub}</p>
@@ -1142,6 +1173,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       </div>
                       <div className="mt-1">
                         <SourceTrustBadge data={kandidat} du={du} />
+                        <PrimarySourceMeta data={kandidat} du={du} />
                       </div>
                     </div>
                   </label>
@@ -1173,6 +1205,9 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
               >
                 Frag Clara zu dieser Wahl
               </button>
+              <p className="mt-2 text-[11px] text-gray-600">
+                Parteiprogramme werden hier als Demo-Platzhalter angezeigt und sind derzeit nicht produktiv angebunden.
+              </p>
             </div>
           ) : null}
 

@@ -25,7 +25,7 @@ interface VotingCardProps {
   introCompact?: boolean;
   /** Intro/Walkthrough: zusätzliche Zeile „Keine echte Abstimmung.“ unter dem Balken. */
   introDemoVoteDisclaimer?: boolean;
-  /** Bei Öffnen von Pro schließt Contra (und umgekehrt) für kompaktere Karten. */
+  /** Legacy-Option: exklusives Verhalten von Pro/Contra (Standard: aus). */
   singleOpenProCon?: boolean;
 }
 
@@ -36,11 +36,10 @@ const VotingCard: React.FC<VotingCardProps> = memo(
     introProConExpanded = false,
     introCompact = false,
     introDemoVoteDisclaimer = false,
-    singleOpenProCon = true,
+    singleOpenProCon = false,
   }) => {
     const [proOpen, setProOpen] = useState(introProConExpanded);
     const [conOpen, setConOpen] = useState(introProConExpanded);
-    const proConLimit = introCompact ? 1 : 2;
 
     const togglePro = () => {
       setProOpen((prev) => {
@@ -220,7 +219,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
                 aria-labelledby="voting-pro-toggle"
                 className={`space-y-1 border-t border-emerald-200/80 px-2.5 pt-1 leading-snug text-emerald-950 ${introCompact ? 'pb-1.5 text-[9px]' : 'pb-2.5 text-[10px]'}`}
               >
-                {(card.kiAnalysis?.pros ?? []).slice(0, proConLimit).map((p, i) => (
+                {(card.kiAnalysis?.pros ?? []).map((p, i) => (
                   <li key={i} className="flex gap-1">
                     <span className="mt-[2px] text-emerald-700">•</span>
                     <span>{enforceFactDetail(p.text)}</span>
@@ -254,7 +253,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
                 aria-labelledby="voting-contra-toggle"
                 className={`space-y-1 border-t border-rose-200/80 px-2.5 pt-1 leading-snug text-rose-950 ${introCompact ? 'pb-1.5 text-[9px]' : 'pb-2.5 text-[10px]'}`}
               >
-                {(card.kiAnalysis?.cons ?? []).slice(0, proConLimit).map((c, i) => (
+                {(card.kiAnalysis?.cons ?? []).map((c, i) => (
                   <li key={i} className="flex gap-1">
                     <span className="mt-[2px] text-rose-700">•</span>
                     <span>{enforceFactDetail(c.text)}</span>

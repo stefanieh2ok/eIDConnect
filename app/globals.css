@@ -1123,7 +1123,113 @@ body {
  * verschwindet. Wird an `.flex-shrink-0` Footer-Zeilen ergänzt.
  */
 .intro-action-bar-pad {
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
+  /* Always keep CTA controls above browser chrome: safe-area + optical room. */
+  padding-bottom: calc(max(env(safe-area-inset-bottom, 0px), 0px) + clamp(16px, 2.6vh, 24px));
+}
+
+.intro-walkthrough-cta {
+  position: sticky;
+  bottom: 0;
+  /* Keeps Zurück/Weiter above in-app chrome when the device shell scrolls. */
+  z-index: 50;
+  box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.06);
+}
+
+@supports (padding: max(0px)) {
+  .intro-walkthrough-cta {
+    bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+  }
+}
+
+/* Walkthrough shell adapts on compact mobile heights so controls remain visible. */
+@media (max-width: 640px) {
+  .intro-walkthrough-shell {
+    padding: 0.2rem 0.2rem 0.35rem;
+  }
+}
+
+@media (max-width: 640px) and (max-height: 760px) {
+  .intro-walkthrough-shell {
+    padding: 0.1rem 0.1rem 0.25rem;
+  }
+
+  .intro-walkthrough-device {
+    border-radius: 1.45rem;
+  }
+
+  .intro-walkthrough-inner {
+    border-radius: 1.25rem;
+  }
+
+  .intro-walkthrough-focus-card {
+    max-height: min(72dvh, 100%) !important;
+  }
+}
+
+/* Walkthrough: eine zentrierte Preview-Karte (Apple-ähnliches Onboarding) */
+.intro-walkthrough-focus-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Align with card horizontal padding (premium, consistent margins). */
+  padding: 0.35rem 0.75rem;
+}
+
+.intro-walkthrough-focus-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+  align-self: center;
+  width: 100%;
+  max-width: min(100%, 26rem);
+  max-height: min(78dvh, 100%);
+  min-height: 0;
+  border-radius: 1.125rem;
+  background: #ffffff;
+  box-shadow:
+    0 10px 40px rgba(15, 23, 42, 0.1),
+    0 0 0 1px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.walkthrough-preview-visual {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0.65rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+}
+
+.walkthrough-preview-visual-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.4rem;
+  overflow: hidden;
+}
+
+.walkthrough-preview-caption {
+  flex-shrink: 0;
+  margin: 0 0.4rem 0.4rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.45rem;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: rgba(15, 23, 42, 0.92);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  pointer-events: none;
+  text-align: center;
 }
 
 /** Haupt-Scroll: letzte Zeilen & Footer bleiben oberhalb der Clara-Pille */
@@ -1145,10 +1251,19 @@ body {
   padding-bottom: min(11rem, 30vh);
 }
 
+/* Login "Sicherer Bürgerzugang": kompakter als Anrede/Entry, damit weniger Scroll nötig ist. */
+.clara-prelogin-shell-pad--tight {
+  padding-bottom: min(5rem, 16vh);
+}
+
 /* Kurze Viewports (viele Smartphones): weniger „Leerfläche“, EU-Wallet schneller im Scrollbereich */
 @media (max-height: 740px) {
   .clara-prelogin-shell-pad {
     padding-bottom: min(6rem, 18vh);
+  }
+
+  .clara-prelogin-shell-pad--tight {
+    padding-bottom: min(3.5rem, 10vh);
   }
 }
 
@@ -1279,6 +1394,15 @@ body {
   animation: demoLaunchPanelRight 460ms ease-in forwards;
 }
 
+.demo-launch-particle {
+  width: 5px;
+  height: 5px;
+  opacity: 0;
+  background: radial-gradient(circle, rgba(165, 243, 252, 0.95) 0%, rgba(56, 189, 248, 0.2) 70%);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+  animation: demoLaunchParticle 1500ms ease-out infinite;
+}
+
 @keyframes demoLaunchFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -1308,6 +1432,30 @@ body {
 @keyframes demoLaunchPanelRight {
   from { transform: translateX(0); opacity: 0.55; }
   to { transform: translateX(105%); opacity: 0; }
+}
+
+@keyframes demoLaunchParticle {
+  0% { opacity: 0; transform: translateY(8px) scale(0.8); }
+  25% { opacity: 0.85; }
+  100% { opacity: 0; transform: translateY(-14px) scale(1); }
+}
+
+.walkthrough-preview-card {
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.walkthrough-preview-crop {
+  width: 100%;
+  min-height: 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.walkthrough-preview-crop::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Einheitlicher Dark-Body fuer alle Intro-Screens (AnredeGate, LoginScreen,

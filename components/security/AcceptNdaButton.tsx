@@ -91,19 +91,19 @@ export function AcceptNdaButton({ token, children }: AcceptNdaButtonProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {children}
 
-      <label className="flex items-start gap-3 text-sm text-neutral-700 cursor-pointer">
+      <label className="flex cursor-pointer items-center gap-2 text-neutral-700">
         <input
           type="checkbox"
           checked={accepted}
           onChange={(e) => setAccepted(e.target.checked)}
-          className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600"
+          className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600"
           aria-describedby="accept-desc"
         />
-        <span id="accept-desc">
-          Ich habe die Vertraulichkeitsvereinbarung gelesen, verstanden und akzeptiere sie.
+        <span id="accept-desc" className="t-body-sm leading-tight">
+          NDA gelesen, Inhalte vertraulich.
         </span>
       </label>
 

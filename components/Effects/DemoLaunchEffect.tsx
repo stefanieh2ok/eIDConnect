@@ -22,17 +22,17 @@ function usePrefersReducedMotion(): boolean {
   }, []);
 }
 
-const STATUS_LINES = ['Bürgerzugang bestätigt', 'Zuständigkeit erkannt', 'Demo-Daten geladen'] as const;
+const STATUS_LINES = ['Bürgerzugang bestätigt', 'Demo-Daten geladen'] as const;
 
 export function DemoLaunchEffect({
   open,
   onComplete,
   locationLine,
-  durationMs = 1200,
+  durationMs = 3300,
 }: DemoLaunchEffectProps) {
   const reduced = usePrefersReducedMotion();
   const style = getDemoLaunchStyle();
-  const effectiveDuration = reduced ? Math.min(durationMs, 550) : durationMs;
+  const effectiveDuration = reduced ? Math.min(durationMs, 900) : durationMs;
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
@@ -58,11 +58,11 @@ export function DemoLaunchEffect({
 
   const timings = useMemo(
     () => ({
-      fadeIn: reduced ? 120 : 240,
-      sealIn: reduced ? 150 : 360,
-      statusStart: reduced ? 220 : 520,
-      lineStep: reduced ? 120 : 260,
-      openingStart: reduced ? 640 : Math.max(1300, effectiveDuration - 700),
+      fadeIn: reduced ? 220 : 420,
+      sealIn: reduced ? 0 : 620,
+      statusStart: reduced ? 0 : 960,
+      lineStep: reduced ? 0 : 520,
+      openingStart: reduced ? 0 : Math.max(2350, effectiveDuration - 900),
     }),
     [effectiveDuration, reduced],
   );
@@ -85,7 +85,7 @@ export function DemoLaunchEffect({
     >
       <button
         type="button"
-        className="absolute right-3 top-3 rounded-lg px-2 py-1 text-[10px] font-medium text-white/70 underline-offset-2 hover:text-white hover:underline"
+        className="absolute right-3 top-3 rounded-lg px-2 py-1 text-[10px] font-medium text-white/55 hover:text-white/75"
         onClick={end}
       >
         Überspringen
@@ -93,29 +93,35 @@ export function DemoLaunchEffect({
 
       <div className="pointer-events-none relative z-10 flex w-full max-w-[min(21.5rem,92vw)] flex-col items-center px-5 text-center">
         <p className="text-[11px] font-semibold tracking-[0.12em] text-cyan-100/95">HookAI Civic Demo</p>
-        <p className="mt-1 text-[12px] text-slate-200/90">Informieren. Verstehen. Mitwirken.</p>
 
-        <div
-          className={`relative mt-5 h-[112px] w-[112px] ${reduced ? '' : 'demo-seal-rise'}`}
-          style={{ animationDuration: `${timings.sealIn}ms` }}
-          aria-hidden
-        >
-          <div className="absolute inset-0 rounded-full border border-cyan-200/70 bg-[radial-gradient(circle_at_30%_30%,rgba(196,181,253,0.25),transparent_55%),radial-gradient(circle_at_70%_72%,rgba(103,232,249,0.24),transparent_58%)]" />
-          <div className="absolute inset-[9px] rounded-full border border-white/45 bg-[rgba(11,22,44,0.58)] backdrop-blur-sm" />
-          {!reduced ? <div className="absolute inset-[-1px] rounded-full border border-cyan-200/60 demo-seal-ring-spin" /> : null}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="rounded-full border border-white/35 px-3 py-1 text-[10px] font-semibold text-white/90">
-              Identity Seal
-            </span>
+        {!reduced ? (
+          <div
+            className="relative mt-5 h-[112px] w-[112px] demo-seal-rise"
+            style={{ animationDuration: `${timings.sealIn}ms` }}
+            aria-hidden
+          >
+            <div className="absolute inset-0 rounded-full border border-cyan-200/70 bg-[radial-gradient(circle_at_30%_30%,rgba(196,181,253,0.25),transparent_55%),radial-gradient(circle_at_70%_72%,rgba(103,232,249,0.24),transparent_58%)]" />
+            <div className="absolute inset-[9px] rounded-full border border-white/45 bg-[rgba(11,22,44,0.58)] backdrop-blur-sm" />
+            <div className="absolute inset-[-1px] rounded-full border border-cyan-200/60 demo-seal-ring-spin" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="rounded-full border border-white/35 px-3 py-1 text-[10px] font-semibold text-white/90">
+                Identity Seal
+              </span>
+            </div>
           </div>
-        </div>
+        ) : null}
+
+        <p className="mt-5 text-[14px] font-semibold text-white/95">Demo wird geöffnet</p>
+        <p className="mt-1.5 text-[10px] leading-relaxed text-slate-300/85">
+          Keine produktive Abstimmung. Keine rechtswirksame Stimmabgabe.
+        </p>
 
         <div className="mt-5 w-full rounded-xl border border-white/15 bg-white/[0.04] px-3 py-2.5 text-left backdrop-blur-sm" aria-live="polite">
           {STATUS_LINES.map((line, idx) => (
             <div
               key={line}
-              className="demo-status-line flex items-center gap-2 text-[11px] leading-6 text-slate-100/95"
-              style={{ animationDelay: `${timings.statusStart + idx * timings.lineStep}ms` }}
+              className={`${reduced ? '' : 'demo-status-line'} flex items-center gap-2 text-[11px] leading-6 text-slate-100/95`}
+              style={reduced ? undefined : { animationDelay: `${timings.statusStart + idx * timings.lineStep}ms` }}
             >
               <CheckCircle className="h-3.5 w-3.5 text-cyan-200/90" aria-hidden />
               <span>{line}</span>
@@ -125,23 +131,25 @@ export function DemoLaunchEffect({
 
         {locationLine ? (
           <p
-            className="demo-status-line mt-2 text-[10px] text-slate-300/85"
-            style={{ animationDelay: `${timings.statusStart + STATUS_LINES.length * timings.lineStep}ms` }}
+            className={`${reduced ? '' : 'demo-status-line'} mt-2 text-[10px] text-slate-300/85`}
+            style={reduced ? undefined : { animationDelay: `${timings.statusStart + STATUS_LINES.length * timings.lineStep}ms` }}
           >
             {locationLine}
           </p>
         ) : null}
 
-        <p
-          className="demo-status-line mt-2.5 text-[11px] font-medium text-white/85"
-          style={{ animationDelay: `${timings.statusStart + (STATUS_LINES.length + 1) * timings.lineStep}ms` }}
-        >
-          App wird geöffnet
-        </p>
+        {!reduced ? (
+          <p
+            className="demo-status-line mt-2.5 text-[11px] font-medium text-white/85"
+            style={{ animationDelay: `${timings.statusStart + (STATUS_LINES.length + 1) * timings.lineStep}ms` }}
+          >
+            App wird geöffnet
+          </p>
+        ) : null}
       </div>
 
-      {!reduced ? (
-        <>
+        {!reduced ? (
+          <>
           <div
             className="pointer-events-none absolute inset-x-0 bottom-0 h-[48%] bg-gradient-to-t from-[#020617]/95 via-[#020617]/50 to-transparent"
             aria-hidden

@@ -22,6 +22,8 @@ const KATEGORIEN: { id: MeldungKategorie; label: string; hint: string }[] = [
 ];
 
 type Step = 'kategorie' | 'details' | 'bestaetigt';
+type MeldungsStatus = 'offen' | 'in_bearbeitung' | 'erledigt';
+type StatusFilter = 'alle' | MeldungsStatus;
 
 function demoMeldungenForGemeinde(gemeinde: string) {
   return [
@@ -49,6 +51,8 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
   const [beschreibung, setBeschreibung] = useState('');
   const [adresse, setAdresse] = useState('');
   const [photos, setPhotos] = useState<File[]>([]);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('alle');
+  const [dringlichkeit, setDringlichkeit] = useState(2);
 
   const photoPreviews = useMemo(() => {
     return photos.map((file) => ({
@@ -75,21 +79,22 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
     setBeschreibung('');
     setAdresse('');
     setPhotos([]);
+    setDringlichkeit(2);
   };
 
   const selectedKat = KATEGORIEN.find((k) => k.id === kategorie);
+  const filteredDemoListe = useMemo(
+    () => demoListe.filter((m) => statusFilter === 'alle' || m.status === statusFilter),
+    [demoListe, statusFilter],
+  );
+  const dringlichkeitLabel = dringlichkeit === 1 ? 'Niedrig' : dringlichkeit === 2 ? 'Mittel' : 'Hoch';
   const shellClass = embeddedInWalkthrough ? 'card-section p-2.5' : 'card-section p-3';
 
   return (
     <div className={`${embeddedInWalkthrough ? 'walkthrough-meldungen-embed' : ''} ${shellClass}`}>
         <div className={`flex items-start justify-between ${embeddedInWalkthrough ? 'mb-2' : 'mb-3'}`}>
-          <div>
-            <h2 className={embeddedInWalkthrough ? 't-card-title' : 't-h2'}>
-              Meldungen
-            </h2>
-            <div className="t-meta mt-0.5">
-              {selectionLabelForSection('meldungen', state.activeLocation, state.residenceLocation)}
-            </div>
+          <div className="t-meta mt-0.5">
+            {selectionLabelForSection('meldungen', state.activeLocation, state.residenceLocation)}
           </div>
           <SectionLevelFilterIcon section="meldungen" />
       </div>
@@ -98,7 +103,6 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
         <div className="mb-2 inline-flex items-center rounded-full border border-[#CFE0F7] bg-[#F4F8FE] px-2.5 py-1 text-[10px] font-semibold text-[#1F4F8A]">
           Kommunaler Service
         </div>
-        <h2 className="t-card-title mb-1">Meldungen an {gemeinde}</h2>
         <p className="t-body-sm">
           {du
             ? `Melde Probleme oder Anliegen direkt an die Gemeindeverwaltung ${gemeinde}.`
@@ -108,7 +112,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
 
       {/* Step: Kategorie wählen */}
       {step === 'kategorie' && (
-        <div className="card-content p-3">
+        <div className="card-content p-3 pb-24">
           <p className="mb-2.5 text-sm font-semibold text-[#1A2B45]">
             {du ? 'Was möchtest du melden?' : 'Was möchten Sie melden?'}
           </p>
@@ -117,7 +121,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
               <button
                 key={k.id}
                 onClick={() => { setKategorie(k.id); setStep('details'); }}
-                className="card-compact group w-full text-left transition-all hover:border-[#8EB1DE] hover:bg-[#FBFDFF] hover:shadow-md active:translate-y-[1px]"
+                className="card-compact group min-h-[68px] w-full text-left transition-all hover:border-[#8EB1DE] hover:bg-[#FBFDFF] hover:shadow-md active:translate-y-[1px] active:border-[#78D9D0] active:bg-[#F3FCFB]"
                 style={{ borderColor: 'var(--gov-border, #D6E0EE)' }}
               >
                 <div className="flex items-center justify-between gap-3">
@@ -135,10 +139,46 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
 
           {/* Letzte Meldungen (Demo) */}
           <div className="mt-5 rounded-xl border border-neutral-200 bg-[#FBFCFF] p-2.5">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-              Aktuelle Meldungen in {gemeinde}
-            </p>
-            {demoListe.map((m) => (
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                Aktuelle Meldungen in {gemeinde}
+              </p>
+              <div className="flex items-center gap-1 rounded-full border border-[#D6E0EE] bg-white p-1">
+                {[
+                  { id: 'alle', label: 'Alle' },
+                  { id: 'offen', label: 'Offen' },
+                  { id: 'in_bearbeitung', label: 'In Bearb.' },
+                  { id: 'erledigt', label: 'Erledigt' },
+                ].map((option) => {
+                  const active = statusFilter === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setStatusFilter(option.id as StatusFilter)}
+                      className="rounded-full px-2 py-1 text-[10px] font-semibold transition-colors"
+                      style={
+                        active
+                          ? {
+                              color: '#0F766E',
+                              border: '1px solid #7ADFD4',
+                              backgroundColor: '#ECFEFC',
+                            }
+                          : undefined
+                      }
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {filteredDemoListe.length === 0 ? (
+              <p className="rounded-xl border border-[#D6E0EE] bg-white p-3 text-xs text-gray-500">
+                Für diesen Status liegen aktuell keine Demo-Meldungen vor.
+              </p>
+            ) : null}
+            {filteredDemoListe.map((m) => (
               <div
                 key={m.id}
                 className="flex items-start gap-3 bg-white rounded-xl p-3 mb-2 border"
@@ -185,6 +225,32 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
           </div>
 
           <div className={`space-y-4.5 ${embeddedInWalkthrough ? 'pb-20' : 'pb-28'}`}>
+            <div className="rounded-xl border border-[#CFE7E3] bg-[#F4FCFA] p-3">
+              <div className="mb-1.5 flex items-center justify-between gap-2">
+                <label htmlFor="dringlichkeit-range" className="text-xs font-semibold text-[#1A2B45]">
+                  Priorität
+                </label>
+                <span className="rounded-full border border-[#7ADFD4] bg-[#ECFEFC] px-2 py-0.5 text-[10px] font-semibold text-[#0F766E]">
+                  {dringlichkeitLabel}
+                </span>
+              </div>
+              <input
+                id="dringlichkeit-range"
+                type="range"
+                min={1}
+                max={3}
+                step={1}
+                value={dringlichkeit}
+                onChange={(e) => setDringlichkeit(Number(e.target.value))}
+                className="w-full accent-[#16B8AE]"
+              />
+              <div className="mt-1 flex justify-between text-[10px] text-gray-500">
+                <span>Niedrig</span>
+                <span>Mittel</span>
+                <span>Hoch</span>
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                 {du ? 'Deine Beschreibung *' : 'Ihre Beschreibung *'}

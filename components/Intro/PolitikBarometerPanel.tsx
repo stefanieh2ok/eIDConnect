@@ -33,6 +33,8 @@ type Props = {
   density?: 'default' | 'tight';
   /** Erlaubt Änderungen ohne aktivierte Einwilligung (z. B. in Einstellungen). */
   editableWithoutConsent?: boolean;
+  /** Walkthrough: nur Schieberegler-Chips, kein Fließtext — eine Idee pro Karte. */
+  heroPreview?: boolean;
 };
 
 export default function PolitikBarometerPanel({
@@ -45,6 +47,7 @@ export default function PolitikBarometerPanel({
   walkthroughFooterSie,
   density = 'default',
   editableWithoutConsent = false,
+  heroPreview = false,
 }: Props) {
   const { state, dispatch } = useApp();
   const compact = variant === 'compact';
@@ -52,7 +55,10 @@ export default function PolitikBarometerPanel({
   const canEditPreferences = true;
   const title = headingTitle ?? 'Politikbarometer';
   const lead = du ? (leadDu ?? DEFAULT_LEAD_DU) : (leadSie ?? DEFAULT_LEAD_SIE);
-  const walkFooter = du ? walkthroughFooterDu : walkthroughFooterSie;
+  const walkFooter = heroPreview ? undefined : du ? walkthroughFooterDu : walkthroughFooterSie;
+  const themeEntries = heroPreview
+    ? (['umwelt', 'finanzen'] as const).map((k) => [k, THEME_NAMES[k]] as const)
+    : Object.entries(THEME_NAMES);
   const ensureConsentForPreferenceUse = () => {
     if (state.consentClaraPersonalization || editableWithoutConsent) return;
     dispatch({ type: 'SET_CONSENT_CLARA_PERSONALIZATION', payload: true });
@@ -76,23 +82,28 @@ export default function PolitikBarometerPanel({
 
   return (
     <div
-      className={`rounded-2xl ${compact ? (tight ? 'px-2.5 py-2' : 'px-3 py-2.5') : 'px-4 py-3'}`}
+      className={`rounded-2xl ${compact ? (tight ? 'px-2.5 py-2' : 'px-3 py-2.5') : 'px-4 py-3'} ${heroPreview ? 'py-2' : ''}`}
       style={{
         background: 'var(--gov-surface)',
         border: '1px solid var(--gov-border)',
         boxShadow: '0 1px 4px rgba(0,51,102,0.06)',
       }}
     >
-      <h2 className={`mb-1 font-bold ${compact ? (tight ? 'text-[11px]' : 'text-[12px]') : 'text-[15px]'}`} style={{ color: 'var(--gov-heading)' }}>
-        {title}
-      </h2>
-      <p
-        className={`leading-relaxed ${compact ? (tight ? 'text-[9.5px]' : 'text-[10px]') : 'text-[10.5px]'}`}
-        style={{ color: 'var(--gov-muted)' }}
-      >
-        {lead}
-      </p>
+      {!heroPreview ? (
+        <>
+          <h2 className={`mb-1 font-bold ${compact ? (tight ? 'text-[11px]' : 'text-[12px]') : 'text-[15px]'}`} style={{ color: 'var(--gov-heading)' }}>
+            {title}
+          </h2>
+          <p
+            className={`leading-relaxed ${compact ? (tight ? 'text-[9.5px]' : 'text-[10px]') : 'text-[10.5px]'}`}
+            style={{ color: 'var(--gov-muted)' }}
+          >
+            {lead}
+          </p>
+        </>
+      ) : null}
 
+      {!heroPreview ? (
       <div className={`mt-3 flex flex-wrap ${tight ? 'gap-1.5' : 'gap-2'}`}>
         {(
           [
@@ -136,15 +147,36 @@ export default function PolitikBarometerPanel({
           </button>
         ))}
       </div>
+      ) : null}
 
-      <div className={`${compact ? (tight ? 'mt-2.5 space-y-2' : 'mt-3 space-y-2.5') : 'mt-4 space-y-3.5'}`}>
-        {Object.entries(THEME_NAMES).map(([key, name]) => (
+      <div
+        className={`${compact ? (tight ? 'mt-2.5 space-y-2' : 'mt-3 space-y-2.5') : 'mt-4 space-y-3.5'} ${
+          heroPreview ? '!mt-0 space-y-2.5' : ''
+        }`}
+      >
+        {themeEntries.map(([key, name]) => (
           <div key={key}>
-            <div className={`${tight ? 'mb-1' : 'mb-1.5'} flex justify-between`}>
-              <span className={tight ? 'text-[9.5px] font-medium' : 'text-[10px] font-medium'} style={{ color: 'var(--gov-heading)' }}>
+            <div className={`${heroPreview ? 'mb-1' : tight ? 'mb-1' : 'mb-1.5'} flex justify-between gap-2`}>
+              <span
+                className={
+                  heroPreview
+                    ? 'min-w-0 flex-1 text-[11px] font-semibold leading-tight text-[#0f172a]'
+                    : tight
+                      ? 'text-[9.5px] font-medium'
+                      : 'text-[10px] font-medium'
+                }
+                style={heroPreview ? undefined : { color: 'var(--gov-heading)' }}
+              >
                 {name}
               </span>
-              <span className={`${tight ? 'text-[9.5px]' : 'text-[10px]'} font-bold tabular-nums`} style={{ color: 'var(--gov-heading)' }}>
+              <span
+                className={
+                  heroPreview
+                    ? 'shrink-0 text-[11px] font-bold tabular-nums text-[#0f172a]'
+                    : `${tight ? 'text-[9.5px]' : 'text-[10px]'} font-bold tabular-nums`
+                }
+                style={heroPreview ? undefined : { color: 'var(--gov-heading)' }}
+              >
                 {state.preferences[key as keyof UserPreferences]}%
               </span>
             </div>
@@ -157,7 +189,9 @@ export default function PolitikBarometerPanel({
               onChange={(e) => handlePreferenceChange(key as keyof UserPreferences, Number(e.target.value))}
               disabled={!canEditPreferences}
               aria-label={`${name} · Interessenschwerpunkt`}
-              className={`politik-barometer-range w-full max-w-full rounded-full ${compact ? (tight ? 'h-2' : 'h-2.5') : 'h-3'}`}
+              className={`politik-barometer-range w-full max-w-full rounded-full ${
+                heroPreview ? 'h-3' : compact ? (tight ? 'h-2' : 'h-2.5') : 'h-3'
+              }`}
               style={{
                 ...sliderTrackStyle(state.preferences[key as keyof UserPreferences]),
                 opacity: canEditPreferences ? 1 : 0.55,

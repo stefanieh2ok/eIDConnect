@@ -41,13 +41,13 @@ const LeaderboardSection: React.FC = () => {
         icon: Clock,
       },
       {
-        label: 'Bestätigt',
+        label: 'Verfügbar',
         value: confirmed,
         hint: 'Eingang dokumentiert',
         icon: CheckCircle,
       },
       {
-        label: 'Abgeschlossen',
+        label: 'Eingelöst',
         value: completed,
         hint: 'Vorgang in der Demo abgeschlossen',
         icon: CheckCircle,
@@ -60,11 +60,10 @@ const LeaderboardSection: React.FC = () => {
     <div className="space-y-5">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="t-h2">Prämien</h2>
-          <p className="t-meta mt-1">
+          <p className="t-meta">
             {du
-              ? 'Freiwillige Anerkennung für Beteiligung — unabhängig von deiner Entscheidung.'
-              : 'Freiwillige Anerkennung für Beteiligung — unabhängig von Ihrer Entscheidung.'}
+              ? 'Freiwillige Anerkennung – nur nach Einwilligung und unabhängig von deiner Entscheidung.'
+              : 'Freiwillige Anerkennung – nur nach Einwilligung und unabhängig von Ihrer Entscheidung.'}
           </p>
           <div className="t-meta mt-0.5">
             {selectionLabelForSection('leaderboard', state.activeLocation, state.residenceLocation)}
@@ -73,33 +72,34 @@ const LeaderboardSection: React.FC = () => {
         <SectionLevelFilterIcon section="leaderboard" />
       </div>
 
-      <div className="card-content">
+      <div className="card-content py-3">
         <div className="flex items-start gap-2 text-[11px] text-neutral-700">
           <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#0055A4]" aria-hidden />
           <p className="t-body-sm">
-            Dieser Bereich zeigt, welche Beiträge, Meldungen oder Beteiligungen bereits eingereicht wurden und welchen
-            Status sie haben.
+            {du
+              ? 'Hier siehst du freiwillige Prämien und den Status deiner Demo-Vorgänge.'
+              : 'Hier sehen Sie freiwillige Prämien und den Status Ihrer Demo-Vorgänge.'}
           </p>
         </div>
       </div>
 
-      <div className="space-y-2.5">
+      <div className="space-y-2">
         {rows.map((row) => {
           const Icon = row.icon;
           return (
             <div
               key={row.label}
-              className="flex items-start gap-2.5 rounded-xl border border-neutral-200 bg-[#F7F9FC] px-3 py-2"
+              className="flex items-start gap-2 rounded-xl border border-neutral-200 bg-[#F7F9FC] px-2.5 py-1.5"
             >
-              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[#0055A4]" aria-hidden />
+              <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#0055A4]" aria-hidden />
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-[11px] font-semibold text-neutral-900">{row.label}</p>
-                  <span className="rounded-full border border-neutral-300 bg-white px-2 py-0.5 text-[11px] font-bold text-neutral-900">
+                  <span className="rounded-full border border-neutral-300 bg-white px-1.5 py-0.5 text-[10px] font-bold text-neutral-900">
                     {row.value.toLocaleString('de-DE')}
                   </span>
                 </div>
-                <p className="mt-0.5 text-[10px] text-neutral-600">{row.hint}</p>
+                <p className="mt-0.5 text-[9.5px] text-neutral-600">{row.hint}</p>
               </div>
             </div>
           );
@@ -107,8 +107,7 @@ const LeaderboardSection: React.FC = () => {
       </div>
 
       <div className="card-content">
-        <h3 className="t-card-title">Prämien</h3>
-        <p className="t-body-sm mt-1">
+        <p className="t-body-sm">
           Nach Einwilligung können Prämien für abgeschlossene Beteiligungen oder Rückmeldungen angezeigt werden.
         </p>
 

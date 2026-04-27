@@ -12,7 +12,8 @@ import { introAnredeGateSpokenParts } from '@/lib/introSpokenTts';
 import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
-import { useOptionalIntroOverlay } from '@/components/Intro/IntroOverlay';
+import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
+import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 import type { Anrede } from '@/types';
 
 const INTRO_AUDIO_SESSION_KEY = 'eidconnect_intro_audio_v1';
@@ -37,7 +38,8 @@ type Props = {
 export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position = 'fixed' }: Props) {
   const { state, dispatch } = useApp();
   const [pending, setPending] = useState<Anrede | null>(null);
-  const intro = useOptionalIntroOverlay();
+  /** Stabile Referenz — nicht `useOptionalIntroOverlay()` (merged Objekt wechselt bei jedem TTS-Tick). */
+  const speakApi = useIntroSpeakApi();
   const { speakParts, stopSpeaking } = useClaraVoiceContext();
   const hasUnlockedSpeechRef = useRef(false);
   const hasSpokenIntroRef = useRef(false);
@@ -52,10 +54,10 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
   }, [isOpen, state.anrede]);
 
   useEffect(() => {
-    if (!isOpen || !intro) return;
+    if (!isOpen || !speakApi) return;
     // Auf dem Anrede-Screen soll Clara zuverlässig hörbar starten.
-    if (!intro.readAloud) {
-      intro.setReadAloud(true);
+    if (!speakApi.readAloud) {
+      speakApi.setReadAloud(true);
     }
     try {
       if (typeof window !== 'undefined') {
@@ -64,7 +66,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
     } catch {
       // ignore
     }
-  }, [isOpen, intro]);
+  }, [isOpen, speakApi, speakApi?.readAloud, speakApi?.setReadAloud]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -77,10 +79,10 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
 
   useEffect(() => {
     if (!isOpen) return;
-    if (!intro?.readAloud) {
+    if (!speakApi?.readAloud) {
       stopSpeaking();
     }
-  }, [isOpen, intro?.readAloud, stopSpeaking]);
+  }, [isOpen, speakApi?.readAloud, stopSpeaking]);
 
   const shellClass = useMemo(() => {
     if (variant === 'inline') return 'w-full';
@@ -116,7 +118,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
 
   const speakGateFromUserGesture = useCallback(
     (choice: 'du' | 'sie' | null) => {
-      if (!intro?.readAloud) return;
+      if (!speakApi?.readAloud) return;
       unlockSpeechOnGesture();
       stopSpeaking();
       speakParts(introAnredeGateSpokenParts(choice));
@@ -125,15 +127,15 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
         hasSelectedSalutationRef.current = true;
       }
     },
-    [intro?.readAloud, speakParts, stopSpeaking, unlockSpeechOnGesture],
+    [speakApi?.readAloud, speakParts, stopSpeaking, unlockSpeechOnGesture],
   );
 
   const maybeStartNeutralIntroFromGesture = useCallback(() => {
-    if (!intro?.readAloud) return;
+    if (!speakApi?.readAloud) return;
     if (hasSelectedSalutationRef.current) return;
     if (hasSpokenIntroRef.current) return;
     speakGateFromUserGesture(null);
-  }, [intro?.readAloud, speakGateFromUserGesture]);
+  }, [speakApi?.readAloud, speakGateFromUserGesture]);
 
   const speakSalutationPickFromGesture = useCallback(
     (a: Anrede) => {
@@ -169,56 +171,60 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
       lastReadAloud.current = null;
       return;
     }
-    if (lastReadAloud.current === false && intro?.readAloud) {
+    if (lastReadAloud.current === false && speakApi?.readAloud) {
       hasSpokenIntroRef.current = false;
       hasSelectedSalutationRef.current = false;
       lastSpokenSalutationRef.current = null;
     }
-    lastReadAloud.current = Boolean(intro?.readAloud);
-  }, [isOpen, intro?.readAloud]);
+    lastReadAloud.current = Boolean(speakApi?.readAloud);
+  }, [isOpen, speakApi?.readAloud]);
 
   /**
-   * Desktop (Maus / feiner Pointer): `speechSynthesis` darf hier zuverlässig ohne vorherigen Tap starten.
-   * Touch-Geräte (iOS): weiterhin nur über echte Pointer-/Touch-Gesten (s. `onPointerDownCapture`), sonst Stille.
+   * Desktop: kurzer verzögerter Start ohne Tap.
+   * Touch (iOS): kein Timer — blockiertes Autoplay würde `hasSpokenIntroRef` setzen und Folge-Taps blockieren.
    */
   useEffect(() => {
-    if (!isOpen || !intro?.readAloud) return;
+    if (!isOpen || !speakApi?.readAloud) return;
     if (!isFinePointerDevice()) return;
     if (hasSpokenIntroRef.current || hasSelectedSalutationRef.current) return;
 
     const id = window.setTimeout(() => {
-      if (!intro?.readAloud) return;
+      if (!speakApi?.readAloud) return;
       if (hasSpokenIntroRef.current || hasSelectedSalutationRef.current) return;
       speakGateFromUserGesture(null);
-    }, 450);
+    }, 100);
 
     return () => window.clearTimeout(id);
-  }, [isOpen, intro?.readAloud, speakGateFromUserGesture]);
+  }, [isOpen, speakApi?.readAloud, speakGateFromUserGesture]);
 
   /**
-   * Safari/Desktop-Fallback: falls Autostart geblockt wird, sprechen wir beim ersten
-   * realen User-Input (Maus/Keyboard/Touch) sofort den neutralen Einstieg.
+   * Fallback: erster echter Input startet Claras Vorstellung (iOS: `touchstart` + Capture).
    */
   useEffect(() => {
-    if (!isOpen || !intro?.readAloud) return;
+    if (!isOpen || !speakApi?.readAloud) return;
     if (hasSpokenIntroRef.current || hasSelectedSalutationRef.current) return;
 
-    const startOnFirstInput = () => {
-      if (!intro?.readAloud) return;
+    const startOnFirstInput = (ev: Event) => {
+      const el = ev.target as HTMLElement | null;
+      if (el?.closest?.('.intro-meta-strip')) return;
+      if (!speakApi?.readAloud) return;
       if (hasSpokenIntroRef.current || hasSelectedSalutationRef.current) return;
       speakGateFromUserGesture(null);
     };
 
-    window.addEventListener('pointerdown', startOnFirstInput, { passive: true, once: true });
+    const cap = { passive: true, once: true, capture: true } as const;
+    window.addEventListener('pointerdown', startOnFirstInput, cap);
+    window.addEventListener('touchstart', startOnFirstInput, cap);
     window.addEventListener('keydown', startOnFirstInput, { once: true });
     window.addEventListener('mousemove', startOnFirstInput, { passive: true, once: true });
 
     return () => {
-      window.removeEventListener('pointerdown', startOnFirstInput);
+      window.removeEventListener('pointerdown', startOnFirstInput, cap);
+      window.removeEventListener('touchstart', startOnFirstInput, cap);
       window.removeEventListener('keydown', startOnFirstInput);
       window.removeEventListener('mousemove', startOnFirstInput);
     };
-  }, [isOpen, intro?.readAloud, speakGateFromUserGesture]);
+  }, [isOpen, speakApi?.readAloud, speakGateFromUserGesture]);
 
   const dialogRef = useRef<HTMLDivElement | null>(null);
   useLayoutEffect(() => {
@@ -270,10 +276,10 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
         }
         return;
       }
-      if (!intro?.readAloud) return;
+      if (!speakApi?.readAloud) return;
       maybeStartNeutralIntroFromGesture();
     },
-    [intro?.readAloud, maybeStartNeutralIntroFromGesture, speakSalutationPickFromGesture],
+    [speakApi?.readAloud, maybeStartNeutralIntroFromGesture, speakSalutationPickFromGesture],
   );
 
   if (!isOpen) return null;
@@ -331,6 +337,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
           />
 
           <div className="border-b border-neutral-200 px-4 pb-3 pt-3 sm:px-5 sm:pt-4 sm:pb-4">
+            <ProductIdentityHeader className="mb-2" />
             <div
               onPointerDown={(e) => {
                 if (e.button !== 0) return;

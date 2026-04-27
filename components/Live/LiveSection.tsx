@@ -62,6 +62,10 @@ const LiveSection: React.FC = () => {
     () => (currentData?.cards || []).filter((c) => isOpenDeadline(c.deadline)),
     [currentData?.cards],
   );
+  const bulkSavedCount = useMemo(
+    () => Object.values(bulkVoteState).filter(Boolean).length,
+    [bulkVoteState],
+  );
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -178,11 +182,8 @@ const LiveSection: React.FC = () => {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-start justify-between">
-        <div>
-          <h2 className="t-h2">Abstimmen</h2>
-          <div className="t-meta mt-0.5">
-            {selectionLabelForSection('live', state.activeLocation)}
-          </div>
+        <div className="t-meta mt-0.5">
+          {selectionLabelForSection('live', state.activeLocation)}
         </div>
         <SectionLevelFilterIcon section="live" />
       </div>
@@ -196,7 +197,7 @@ const LiveSection: React.FC = () => {
         }}
         aria-label="Liste der offenen Abstimmungen öffnen"
       >
-        <p className="t-meta font-semibold text-[#1A2B45]">Abstimmungen {VOTING_STATS_YEAR}</p>
+        <p className="t-meta font-semibold text-[#1A2B45]">Abstimmungen {VOTING_STATS_YEAR} · Kartenansicht</p>
         <p className="t-caption mt-0.5">
           {votingStats2026.total2026 > 0 ? (
             <>
@@ -431,82 +432,104 @@ const LiveSection: React.FC = () => {
         <div className="fixed inset-0 z-[85] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Bulk-Abstimmung">
           <button
             type="button"
-            className="absolute inset-0 bg-black/35"
+            className="absolute inset-0 bg-black/22"
             onClick={() => setBulkOpen(false)}
             aria-label="Bulk-Abstimmung schließen"
           />
-          <div className="relative z-10 mx-auto w-full max-w-[390px] rounded-t-3xl border border-neutral-200 bg-white p-3 shadow-2xl">
+          <div className="relative z-10 mx-auto w-full max-w-[390px] rounded-t-3xl border border-neutral-200 bg-[#F8FAFD] p-3 shadow-2xl">
             <div className="mb-2 flex items-center justify-between">
               <div>
-                <p className="t-card-title text-[15px]">Offene Abstimmungen</p>
-                <p className="t-caption">Schnellabgabe im gleichen Daumen-Schema wie im Voting</p>
+                <p className="t-card-title text-[15px]">Offene Abstimmungen {VOTING_STATS_YEAR}</p>
+                <p className="t-caption">Schnellabgabe · gleiche Logik wie Kartenansicht</p>
               </div>
               <button
                 type="button"
                 onClick={() => setBulkOpen(false)}
                 className="btn-icon inline-flex min-h-[40px] min-w-[40px] items-center justify-center"
                 aria-label="Bulk-Abstimmung schließen"
-                title="Schließen"
               >
                 <X className="h-4 w-4 text-neutral-600" aria-hidden />
               </button>
             </div>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="text-[10px] text-neutral-500">
+                Zurück zu den einzelnen Karten jederzeit über <span className="font-semibold">×</span>.
+              </p>
+              <button
+                type="button"
+                onClick={() => setBulkOpen(false)}
+                className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[10px] font-semibold text-neutral-700 hover:bg-neutral-50"
+              >
+                Zur Kartenansicht
+              </button>
+            </div>
+            {bulkSavedCount > 0 ? (
+              <div className="mb-2 rounded-xl border border-[#D6E8E5] bg-[#F2FBF9] px-2.5 py-1.5 text-[11px] font-medium text-[#0F766E]">
+                {bulkSavedCount} Auswahl{bulkSavedCount > 1 ? 'en' : ''} gespeichert
+              </div>
+            ) : null}
             <div className="intro-scroll-visible max-h-[55vh] space-y-2 overflow-y-auto pr-0.5">
               {openCards.length > 0 ? (
                 openCards.map((card) => {
                   const selected = bulkVoteState[card.id];
                   return (
-                    <div key={card.id} className="card-compact p-2.5">
-                      <div className="mb-1 text-[11px] font-semibold text-[#1A2B45]">{card.title}</div>
+                    <div
+                      key={card.id}
+                      className="app-card p-2.5"
+                      style={{
+                        borderColor: selected ? '#CFE7E3' : 'var(--gov-border, #D6E0EE)',
+                        background: selected ? '#FCFFFE' : 'rgba(255,255,255,0.98)',
+                      }}
+                    >
+                      <div className="mb-1 flex items-start justify-between gap-2">
+                        <div className="text-[11px] font-semibold text-[#1A2B45]">{card.title}</div>
+                        {selected ? (
+                          <span className="mt-0.5 inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#14B8A6]" aria-label="Auswahl gespeichert" />
+                        ) : null}
+                      </div>
                       <div className="mb-2 text-[10px] text-neutral-500">Frist {card.deadline}</div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
                         <button
                           type="button"
                           onClick={() => handleBulkVote(card.id, 'against')}
-                          className={`inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full border transition ${
+                          className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border-[3px] transition ${
                             selected === 'against'
-                              ? 'border-red-500 bg-red-50 text-red-700 shadow-[0_2px_8px_rgba(239,68,68,0.22)]'
-                              : 'border-neutral-200 bg-white text-neutral-600'
+                              ? 'border-red-500 bg-red-500 text-white shadow-[0_4px_14px_rgba(239,68,68,0.30)]'
+                              : 'border-red-500 bg-white text-red-500'
                           }`}
                           aria-label="Ablehnen"
                         >
-                          <ThumbsDown size={18} strokeWidth={2.2} aria-hidden />
+                          <ThumbsDown size={20} strokeWidth={2.2} aria-hidden />
                         </button>
                         <button
                           type="button"
                           onClick={() => handleBulkVote(card.id, 'abstain')}
-                          className={`inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full border transition ${
+                          className={`inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-full border-2 transition ${
                             selected === 'abstain'
                               ? 'border-slate-500 bg-slate-100 text-slate-700'
-                              : 'border-neutral-200 bg-white text-neutral-600'
+                              : 'border-neutral-300 bg-white text-neutral-500'
                           }`}
                           aria-label="Enthalten"
                         >
-                          <Minus size={18} strokeWidth={2.6} aria-hidden />
+                          <Minus size={17} strokeWidth={2.6} aria-hidden />
                         </button>
                         <button
                           type="button"
                           onClick={() => handleBulkVote(card.id, 'for')}
-                          className={`inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-full border transition ${
+                          className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border-[3px] transition ${
                             selected === 'for'
-                              ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-[0_2px_8px_rgba(34,197,94,0.22)]'
-                              : 'border-neutral-200 bg-white text-neutral-600'
+                              ? 'border-emerald-500 bg-emerald-500 text-white shadow-[0_4px_14px_rgba(34,197,94,0.30)]'
+                              : 'border-emerald-500 bg-white text-emerald-600'
                           }`}
                           aria-label="Zustimmen"
                         >
-                          <ThumbsUp size={18} strokeWidth={2.2} aria-hidden />
+                          <ThumbsUp size={20} strokeWidth={2.2} aria-hidden />
                         </button>
                         {selected ? (
-                          <span
-                            className={`ml-1 badge-status ${
-                              selected === 'for'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : selected === 'against'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-slate-100 text-slate-700'
-                            }`}
-                          >
-                            Gespeichert
+                          <span className="ml-0.5 text-[10px] font-medium text-[#0F766E]">
+                            {voteResultHumanLabel(
+                              selected === 'for' ? 'DAFÜR' : selected === 'against' ? 'DAGEGEN' : 'ENTHALTEN',
+                            )}
                           </span>
                         ) : null}
                       </div>

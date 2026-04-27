@@ -4,12 +4,8 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import { useApp } from '@/context/AppContext';
 import { useIntroIsSpeaking, useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { activeLocationForLevel } from '@/lib/activeLocationForLevel';
-import MeldungenSection from '@/components/Meldungen/MeldungenSection';
-import OriginalStimmzettel from '@/components/Voting/OriginalStimmzettel';
-import VotingCard from '@/components/Voting/VotingCard';
-import VotingControls from '@/components/Voting/VotingControls';
 import { VOTING_DATA, WAHLEN_DATA } from '@/data/constants';
-import { CheckCircle, Clock, Info, ListChecks, Send } from 'lucide-react';
+import { ListChecks, Send } from 'lucide-react';
 import {
   INTRO_CLOSING_SPOKEN_SEGMENTS_DU,
   INTRO_CLOSING_SPOKEN_SEGMENTS_SIE,
@@ -22,12 +18,20 @@ import {
   INTRO_OVERLAY_STEPS,
 } from '@/data/introOverlayMarketing';
 import type { IntroOverlayStepId } from '@/data/introOverlayMarketing';
+
+const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = {
+  abstimmen: 'Eine Karte · Pro/Contra · Daumen',
+  wahlen: 'Stimmabgabe · Demo',
+  kalender: 'Termine · Wahl / Abstimmung erkennbar',
+  meldungen: 'Fall · Bearbeitungsstatus',
+  praemien: 'Status · Demo',
+  politikbarometer: 'Themen-Schwerpunkte',
+};
 import { claraBlockForStep } from '@/data/introWalkthroughClara';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
-import { INTRO_SCREENSHOTS } from '@/data/introScreenshots';
 import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
-import type { Location, Section, VotingCard as VotingCardModel } from '@/types';
-import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
+import type { Location, Section } from '@/types';
+import { APP_DISPLAY_NAME, APP_TAGLINE } from '@/lib/branding';
 
 function walkthroughSectionForStep(stepId: string): Section {
   switch (stepId) {
@@ -92,9 +96,6 @@ const COMMUNE_DISPLAY: Record<string, string> = {
   berlin: 'Berlin',
   muenchen: 'München',
 };
-
-const noopVote = () => {};
-const noopKi = () => {};
 
 function parseDeDeadline(s: string): { d: number; m: number; y: number } | null {
   const m = s.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
@@ -225,7 +226,7 @@ function WalkthroughInfoDetails({
   const [openOutro, setOpenOutro] = useState(false);
   const onLight = surface === 'light';
   return (
-    <div className="mb-1.5 w-full min-w-0 space-y-1.5 [text-wrap:balance]">
+    <div className="mb-0 w-full min-w-0 space-y-1.5 [text-wrap:balance]">
       <div
         className={
           'group overflow-hidden rounded-xl border ' +
@@ -238,7 +239,7 @@ function WalkthroughInfoDetails({
           type="button"
           onClick={() => setOpenMain((v) => !v)}
           className={
-            'inline-flex w-full cursor-pointer list-none items-center justify-between gap-2 py-1.5 pl-2.5 pr-2.5 text-[10.5px] font-semibold transition [&::-webkit-details-marker]:hidden ' +
+            'inline-flex w-full cursor-pointer list-none items-center justify-between gap-2 py-1.5 pl-2.5 pr-2.5 text-[11px] font-semibold transition [&::-webkit-details-marker]:hidden ' +
             (onLight ? 'text-[#003366] hover:bg-slate-100/80' : 'text-sky-100/95 hover:bg-white/5')
           }
           aria-expanded={openMain}
@@ -256,7 +257,7 @@ function WalkthroughInfoDetails({
           <div className="min-h-0 overflow-hidden">
             <p
               className={
-                'border-t px-2.5 pb-2.5 pt-1.5 text-[10.5px] leading-relaxed [text-wrap:pretty] whitespace-pre-line ' +
+                'border-t px-2.5 pb-2.5 pt-1.5 text-[11px] leading-relaxed [text-wrap:pretty] whitespace-pre-line ' +
                 (onLight
                   ? 'border-slate-200 text-neutral-700'
                   : 'border-white/10 text-white/[0.86]')
@@ -313,79 +314,72 @@ function WalkthroughInfoDetails({
   );
 }
 
-/** PNG unter public/intro/ optional; sonst eingebaute Vorschau (siehe data/introScreenshots.ts). */
-function IntroScreenshotOrPreview({
-  src,
-  alt,
-  children,
-  useScreenshot = true,
-  noClip = false,
-}: {
-  src: string;
-  alt: string;
-  children: React.ReactNode;
-  useScreenshot?: boolean;
-  /** Wenn true: kein overflow:hidden (z. B. Abstimmen-Intro mit Skalierung, Daumen sichtbar). */
-  noClip?: boolean;
-}) {
-  const [showShot, setShowShot] = useState(false);
-  const effectiveShowShot = useScreenshot && showShot;
-  return (
-    <div
-      className={
-        'relative w-full shrink-0 rounded-xl ' + (noClip ? 'overflow-visible' : 'overflow-hidden')
-      }
-    >
-      <div className={effectiveShowShot ? 'hidden' : 'block'}>{children}</div>
-      <img
-        src={src}
-        alt={alt}
-        className={
-          effectiveShowShot
-            ? 'mx-auto w-full rounded-xl border border-white/35 shadow-none'
-            : 'pointer-events-none absolute h-0 w-0 opacity-0'
-        }
-        loading="eager"
-        decoding="async"
-        onLoad={() => setShowShot(true)}
-        onError={() => setShowShot(false)}
-      />
-    </div>
-  );
-}
-
-function BallotScroll({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="intro-scroll-visible max-h-[min(100%,36rem)] min-h-[16rem] overflow-y-auto overflow-x-hidden rounded-xl border border-neutral-200 bg-white shadow-sm"
-      style={{ WebkitOverflowScrolling: 'touch' }}
-    >
-      <div className="p-2 text-gray-900">{children}</div>
-    </div>
-  );
-}
-
 function WalkthroughPreviewShell({ children }: { children: React.ReactNode }) {
-  return <div className="card-content min-h-0 w-full min-w-0 overflow-hidden rounded-xl p-2">{children}</div>;
+  return (
+    <div className="walkthrough-preview-card flex min-h-0 w-full max-w-[280px] flex-col sm:max-w-[300px]">
+      <div className="walkthrough-preview-crop flex min-h-0 flex-col items-center justify-center">{children}</div>
+    </div>
+  );
 }
 
-/**
- * Abstimmungskarte wie in der App. Daumen-Buttons in der Führung ohne reales
- * Stimmverhalten, damit der Screen ruhig und lesbar bleibt.
- */
-function IntroAbstimmenPreview({ card, du }: { card: VotingCardModel; du: boolean }) {
+function WalkthroughFocusVisual({ caption, children }: { caption?: string; children: React.ReactNode }) {
   return (
-    <div className="relative w-full min-w-0 max-w-full shrink-0 [transform:translateZ(0)]">
-      <div className="rounded-2xl border border-neutral-200 bg-white shadow-none">
-        <div className="p-1 sm:p-1.5 pb-2">
-          <VotingCard
-            card={card}
-            introBarIcons
-            introCompact
-            introDemoVoteDisclaimer
-          />
-          <VotingControls canVote onVote={noopVote} introWalkthrough du={du} />
+    <div className="walkthrough-preview-visual min-h-0 w-full flex-none">
+      <div className="walkthrough-preview-visual-inner">{children}</div>
+      {caption ? <div className="walkthrough-preview-caption">{caption}</div> : null}
+    </div>
+  );
+}
+
+/** Nur Kern-Interaktion: eine Abstimmungskarte mit Daumen — kein Listen-Chrome. */
+function IntroAbstimmenSnapshot() {
+  return (
+    <div className="w-full max-w-[260px] rounded-xl border border-[#D6E0EE] bg-white p-2.5 shadow-sm">
+      <p className="text-[8px] font-bold uppercase tracking-wide text-[#0055A4]">Abstimmung · Kirkel</p>
+      <p className="mt-1 line-clamp-2 text-[10px] font-semibold leading-snug text-[#1A2B45]">Radweg Kirkel – Limbach (Lückenschluss)</p>
+      <p className="mt-1 text-[8px] text-neutral-500">Frist 15.04.2026</p>
+      <div className="mt-2.5 flex items-center justify-center gap-3 rounded-lg border border-neutral-200 bg-[#F8FAFC] py-2">
+        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-red-500 text-[16px] leading-none text-red-500">
+          👎
+        </span>
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-neutral-300 text-[12px] text-neutral-500">
+          —
+        </span>
+        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-emerald-500 text-[16px] leading-none text-emerald-600">
+          👍
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/** Stimmzettel: nur Wahlvorschlag + 3 Listenzeilen — Fokus auf Kreuzfeld, kein Leerraum. */
+function IntroWahlenSnapshot() {
+  const rows = ['Partei A', 'Partei B', 'Partei C'] as const;
+  return (
+    <div className="w-full max-w-[236px] overflow-hidden rounded-xl border border-neutral-500/70 bg-[#FFE066] px-2 pb-1.5 pt-1.5 shadow-md">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[8px] font-bold tracking-[0.14em] text-neutral-900">STIMMZETTEL</p>
+          <p className="mt-0.5 text-[7.5px] font-semibold leading-tight text-neutral-800">Bundestagswahl · Demo</p>
         </div>
+        <span className="shrink-0 rounded border border-black/35 bg-[#FFEB8A] px-1 py-0.5 text-[7px] font-bold text-neutral-900">
+          1×
+        </span>
+      </div>
+      <div className="mt-1.5 space-y-0.5">
+        {rows.map((partei) => (
+          <div
+            key={partei}
+            className="flex min-h-[24px] items-center gap-2 rounded border border-black/28 bg-[#FFEB8A] px-1.5 py-1"
+          >
+            <span
+              className="h-3 w-3 shrink-0 rounded-sm border-2 border-neutral-900/80 bg-white shadow-[inset_0_0_0_1px_rgba(0,0,0,0.15)]"
+              aria-hidden
+            />
+            <span className="text-[9px] font-semibold leading-none text-neutral-900">{partei}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -393,7 +387,7 @@ function IntroAbstimmenPreview({ card, du }: { card: VotingCardModel; du: boolea
 
 function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
   const days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-  const previewMonth = 3;
+  const previewMonth = 4;
   const previewYear = 2026;
   const rows = useMemo(() => introCalendarRowsFromFixtures(communeKey), [communeKey]);
   const highlightDays = useMemo(() => {
@@ -405,180 +399,97 @@ function IntroKalenderPreview({ communeKey }: { communeKey: string }) {
     return s;
   }, [rows]);
 
-  const levelBadge = (level: IntroCalRow['level']) => {
-    const map = {
-      bund: 'bg-slate-600 text-white',
-      land: 'bg-[#0c2d5c] text-white',
-      kreis: 'bg-[#0055A4] text-white',
-      kommune: 'bg-[#38bdf8] text-[#0c2d5c]',
-    } as const;
-    const label = { bund: 'Bund', land: 'Land', kreis: 'Kreis', kommune: 'Kommune' }[level];
-    return (
-      <span className={`shrink-0 rounded px-1.5 py-0.5 text-[8px] font-bold ${map[level]}`}>{label}</span>
-    );
-  };
-
-  const kindLabel = (r: IntroCalRow) =>
-    r.kind === 'wahl' ? 'Wahl' : r.kind === 'beteiligung' ? 'Beteiligung' : 'Abstimmung';
-
   const firstDowSun0 = new Date(previewYear, previewMonth - 1, 1).getDay();
   const startPad = (firstDowSun0 + 6) % 7;
   const daysInMonth = new Date(previewYear, previewMonth, 0).getDate();
   const totalCells = Math.ceil((startPad + daysInMonth) / 7) * 7;
 
   return (
-    <div className="card-content rounded-xl p-0 text-left">
-      <div
-        className="flex items-center justify-between rounded-t-xl px-2.5 py-2 text-white"
-        style={{ background: 'linear-gradient(135deg, #002855 0%, #0055A4 100%)' }}
-      >
-        <span className="text-[11px] font-semibold">Kalender</span>
-        <span className="text-[9px] opacity-90">
-          März {previewYear} · Kirkel, Saarland, Saarpfalz & Bund
+    <div className="w-full max-w-[280px] rounded-xl border border-neutral-200 bg-white p-2 text-left shadow-sm">
+      <div className="mb-1.5 flex items-center justify-center gap-2">
+        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-neutral-200 text-[9px] text-neutral-500">
+          ◀
+        </span>
+        <span className="text-[10px] font-bold text-[#1A2B45]">
+          April {previewYear}
+        </span>
+        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-neutral-200 text-[9px] text-neutral-500">
+          ▶
         </span>
       </div>
-      <div className="p-2">
-        <div className="card-compact mb-2 flex items-center justify-between px-2 py-1.5">
-          <button type="button" className="btn-secondary btn-pill min-h-[32px] px-2.5 py-1 text-[8px]">
-            Zurück
-          </button>
-          <span className="text-[9px] font-semibold text-[#1A2B45]">März {previewYear}</span>
-          <button type="button" className="btn-secondary btn-pill min-h-[32px] px-2.5 py-1 text-[8px]">
-            Weiter
-          </button>
-        </div>
-        <div className="grid grid-cols-7 gap-0.5 text-center text-[8px] font-semibold text-neutral-500">
-          {days.map((d) => (
-            <span key={d}>{d}</span>
-          ))}
-        </div>
-        <div className="mt-1 grid grid-cols-7 gap-0.5 text-[9px] text-neutral-500">
-          {Array.from({ length: totalCells }, (_, i) => {
-            const dayNum = i - startPad + 1;
-            if (dayNum < 1 || dayNum > daysInMonth) {
-              return <span key={i} className="flex h-6 items-center justify-center rounded" aria-hidden />;
-            }
-            const on = highlightDays.has(dayNum);
-            return (
-              <span
-                key={i}
-                className={`flex h-6 items-center justify-center rounded ${
-                  on ? 'bg-[#E8F0FB] font-semibold text-[#003366] ring-1 ring-[#0055A4]/25' : ''
-                }`}
-              >
-                {dayNum}
-              </span>
-            );
-          })}
-        </div>
-        <div className="mt-2 space-y-1 border-t border-neutral-100 pt-2">
-          <p className="text-[9px] font-semibold text-[#1A2B45]">Auszug · gebündelt nach Ebene</p>
-          <div
-            className="min-h-[11rem] max-h-60 space-y-1 overflow-y-auto pr-0.5"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
-            {rows.slice(0, 10).map((r) => (
-              <div key={`${r.kind}-${r.title}-${r.dateStr}`} className="app-card-subtle flex items-start gap-1.5 rounded-lg px-2 py-1.5 text-[9px] text-neutral-800">
-                {levelBadge(r.level)}
-                <div className="min-w-0 flex-1 leading-snug">
-                  <span className="font-semibold text-[#1A2B45]">
-                    {kindLabel(r)} · {r.title}
-                  </span>
-                  <span className="mt-0.5 block text-[8.5px] text-neutral-600">Frist / Termin · {r.dateStr}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      <div className="grid grid-cols-7 gap-0.5 text-center text-[7px] font-semibold text-neutral-500">
+        {days.map((d) => (
+          <span key={d}>{d}</span>
+        ))}
       </div>
+      <div className="mt-0.5 grid grid-cols-7 gap-0.5 text-[8px] text-neutral-500">
+        {Array.from({ length: totalCells }, (_, i) => {
+          const dayNum = i - startPad + 1;
+          if (dayNum < 1 || dayNum > daysInMonth) {
+            return <span key={i} className="flex h-5 items-center justify-center rounded" aria-hidden />;
+          }
+          const on = highlightDays.has(dayNum);
+          return (
+            <span
+              key={i}
+              className={`flex h-5 items-center justify-center rounded ${
+                on ? 'bg-[#E8F0FB] font-semibold text-[#003366] ring-1 ring-[#0055A4]/20' : ''
+              }`}
+            >
+              {dayNum}
+            </span>
+          );
+        })}
+      </div>
+      <p className="mt-1.5 border-t border-neutral-100 pt-1.5 text-center text-[7px] leading-snug text-neutral-500">
+        <span className="font-semibold text-[#003366]">●</span> Wahl &nbsp;
+        <span className="font-semibold text-[#0055A4]">○</span> Abstimmung · Ebenen farbig
+      </p>
     </div>
   );
 }
 
-function PraemienIntroPreview({ communeName }: { communeName: string }) {
-  const rows = useMemo(
-    () =>
-      [
-        {
-          icon: Send,
-          title: 'Meldung · defekte Straßenlaterne',
-          status: 'Eingereicht',
-          hint: `${communeName} · Demo`,
-        },
-        {
-          icon: CheckCircle,
-          title: 'Hinweis · Spielplatz Bürgerpark',
-          status: 'In Prüfung',
-          hint: 'Bearbeitung durch Fachbereich',
-        },
-        {
-          icon: CheckCircle,
-          title: 'Rückmeldung · Bürgerdialog Haushalt',
-          status: 'Bestätigt',
-          hint: 'Eingang dokumentiert',
-        },
-        {
-          icon: ListChecks,
-          title: 'Beteiligung · digitales Bürgerportal',
-          status: 'Abgeschlossen',
-          hint: 'Nur Demo-Daten',
-        },
-      ] as const,
-    [communeName],
-  );
-
+/** Ein konkreter Demo-Fall mit sichtbarem Status — kein Kategorie-Menü. */
+function IntroMeldungenSnapshot({ du }: { du: boolean }) {
   return (
-    <div className="relative w-full min-w-0 max-w-full shrink-0 [transform:translateZ(0)]">
-      <div className="card-content flex min-h-0 max-h-full flex-col overflow-hidden rounded-xl p-0 text-left">
-      <div
-        className="shrink-0 rounded-t-xl px-2.5 py-2 text-white"
-        style={{ background: 'linear-gradient(135deg, #003366 0%, #0055A4 100%)' }}
-      >
-        <div className="text-[11px] font-semibold leading-snug">Prämien</div>
-        <div className="text-[9px] opacity-90">Freiwillige Anerkennung · {communeName}</div>
+    <div className="w-full max-w-[260px] rounded-xl border border-neutral-200 bg-white p-2.5 text-left shadow-sm">
+      <p className="text-[8px] font-bold uppercase tracking-wide text-[#0055A4]">
+        {du ? 'Dein Anliegen' : 'Ihr Anliegen'}
+      </p>
+      <p className="mt-1 line-clamp-2 text-[10px] font-semibold leading-snug text-[#1A2B45]">
+        Straßenlaterne defekt · Hauptstraße 12, Kirkel
+      </p>
+      <p className="mt-1 text-[8px] text-neutral-600">Kategorie: Straße / Weg</p>
+      <div className="mt-2 inline-flex items-center rounded-full border border-amber-300/90 bg-amber-50 px-2.5 py-0.5 text-[9px] font-bold tracking-tight text-amber-950">
+        In Prüfung
       </div>
-      <div className="flex min-h-0 flex-1 flex-col space-y-2 overflow-hidden p-2.5">
-        <div className="shrink-0 grid grid-cols-2 gap-1">
-          {[
-            'Einwilligung erforderlich',
-            'Beteiligung abgeschlossen',
-            'Prämie verfügbar',
-            'Eingelöst / abgeschlossen',
-          ].map((label, idx) => {
-            const Icon = idx === 0 ? Info : idx === 1 ? ListChecks : idx === 2 ? Clock : CheckCircle;
-            return (
-              <div
-                key={label}
-                className="flex items-center gap-1 rounded-md border border-neutral-200 bg-[#F7F9FC] px-1.5 py-1 text-[8.5px] text-neutral-700"
-              >
-                <Icon className="h-3 w-3 shrink-0 text-[#0055A4]" aria-hidden />
-                <span>{label}</span>
-              </div>
-            );
-          })}
+      <p className="mt-1.5 text-[7.5px] leading-snug text-neutral-500">
+        {du ? 'Du erhältst eine Rückmeldung, sobald die Gemeinde den Vorgang bearbeitet hat.' : 'Sie erhalten eine Rückmeldung, sobald die Gemeinde den Vorgang bearbeitet hat.'}
+      </p>
+    </div>
+  );
+}
+
+/** Prämien: ein klarer Status + optional zweite Zeile — ohne Status-Raster. */
+function PraemienIntroPreview({ communeName }: { communeName: string }) {
+  return (
+    <div className="relative w-full max-w-[260px] shrink-0 [transform:translateZ(0)]">
+      <div className="rounded-xl border border-neutral-200 bg-white p-2.5 text-left shadow-sm">
+        <div className="flex items-start gap-2 rounded-lg border border-[#0055A4]/20 bg-[#F0F6FF] px-2 py-2">
+          <ListChecks className="mt-0.5 h-4 w-4 shrink-0 text-[#0055A4]" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold leading-snug text-[#1A2B45]">Hinweis · Spielplatz Bürgerpark</p>
+            <p className="mt-1 text-[12px] font-bold leading-none text-[#003366]">In Prüfung</p>
+            <p className="mt-1 text-[8px] text-neutral-600">{communeName} · Demo</p>
+          </div>
         </div>
-        <div
-          className="intro-scroll-visible min-h-0 max-h-[12rem] flex-1 space-y-1.5 overflow-y-auto pr-0.5"
-          style={{ WebkitOverflowScrolling: 'touch' }}
-        >
-          {rows.map((r) => {
-            const Icon = r.icon;
-            return (
-              <div
-                key={r.title}
-                className="flex items-start gap-2 rounded-lg border border-neutral-200/90 bg-[#F7F9FC] px-2 py-1.5 text-[10px]"
-              >
-                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[#0055A4]" aria-hidden />
-                <div className="min-w-0 flex-1 leading-snug">
-                  <div className="font-semibold text-neutral-900">{r.title}</div>
-                  <div className="mt-0.5 text-[9px] font-semibold text-[#003366]">{r.status}</div>
-                  <div className="mt-0.5 text-[9px] text-neutral-600">{r.hint}</div>
-                </div>
-              </div>
-            );
-          })}
+        <div className="mt-1.5 flex items-center gap-2 rounded-md border border-neutral-200 bg-[#F8FAFC] px-2 py-1">
+          <Send className="h-3.5 w-3.5 shrink-0 text-[#0055A4]" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[9px] font-semibold text-neutral-900">Meldung · Laterne Hauptstraße</p>
+            <p className="text-[8.5px] font-bold text-emerald-800">Eingereicht</p>
+          </div>
         </div>
-      </div>
       </div>
     </div>
   );
@@ -596,7 +507,6 @@ export default function DemoIntroWalkthrough({
   const { dispatch } = useApp();
   const communeKey = introCommuneVoteKey(residenceLocation);
   const communeName = COMMUNE_DISPLAY[communeKey] ?? communeKey;
-  const previewCard = VOTING_DATA[communeKey]?.cards?.[0] ?? VOTING_DATA.kirkel.cards[0];
   const du = _du;
   const steps = INTRO_OVERLAY_STEPS;
   const initialIdx = useMemo(() => {
@@ -609,7 +519,6 @@ export default function DemoIntroWalkthrough({
   }, [initialIdx]);
   const step = steps[idx];
   const isLast = idx >= steps.length - 1;
-  const isAbstimmenStep = step.id === 'abstimmen';
 
   const framingLine = introOverlayFramingLine(step.id, du);
   const clara = useMemo(() => claraBlockForStep(step.id, du), [step.id, du]);
@@ -626,73 +535,41 @@ export default function DemoIntroWalkthrough({
   }, [clara.line10s, clara.speakSegments, isLast, du]);
 
   const preview = useMemo(() => {
-    switch (step.id) {
-      case 'abstimmen':
-        return (
-          <IntroScreenshotOrPreview
-            src={INTRO_SCREENSHOTS.beteiligung}
-            alt="Bereich Abstimmen"
-            useScreenshot={false}
-            noClip
-          >
-            <IntroAbstimmenPreview card={previewCard} du={_du} />
-          </IntroScreenshotOrPreview>
-        );
-      case 'wahlen':
-        return (
-          <IntroScreenshotOrPreview src={INTRO_SCREENSHOTS.wahlen} alt="Bereich Wahlen – Stimmzettel" useScreenshot>
-            <BallotScroll>
-              <OriginalStimmzettel
-                level="bund"
-                wahlkreis="Saarbrücken"
-                canVote
-                introMode
-                du={du}
-                onVote={noopVote}
-                onKIAnalysis={noopKi}
-              />
-            </BallotScroll>
-          </IntroScreenshotOrPreview>
-        );
-      case 'kalender':
-        return (
-          <IntroScreenshotOrPreview
-            src={INTRO_SCREENSHOTS.kalender}
-            alt="Bereich Kalender"
-            useScreenshot={false}
-          >
-            <WalkthroughPreviewShell>
-              <IntroKalenderPreview communeKey={communeKey} />
-            </WalkthroughPreviewShell>
-          </IntroScreenshotOrPreview>
-        );
-      case 'meldungen':
-        return (
-          <div className="app-section-shell min-h-0 w-full min-w-0 overflow-hidden rounded-xl bg-[#F8FAFD]">
-            <div
-              className="p-2 sm:p-2.5"
-              style={{ WebkitOverflowScrolling: 'touch' }}
-            >
-              <MeldungenSection embeddedInWalkthrough />
-            </div>
-          </div>
-        );
-      case 'praemien':
-        return (
-          <WalkthroughPreviewShell>
-            <PraemienIntroPreview communeName={communeName} />
-          </WalkthroughPreviewShell>
-        );
-      case 'politikbarometer':
-        return (
-          <WalkthroughPreviewShell>
-            <PolitikBarometerPanel du={du} variant="compact" density="tight" />
-          </WalkthroughPreviewShell>
-        );
-      default:
-        return null;
-    }
-  }, [step.id, previewCard, communeName, du, communeKey]);
+    const caption = WALKTHROUGH_FOCUS_CAPTIONS[step.id as IntroOverlayStepId];
+    const inner = (() => {
+      switch (step.id) {
+        case 'abstimmen':
+          return <IntroAbstimmenSnapshot />;
+        case 'wahlen':
+          return <IntroWahlenSnapshot />;
+        case 'kalender':
+          return <IntroKalenderPreview communeKey={communeKey} />;
+        case 'meldungen':
+          return <IntroMeldungenSnapshot du={du} />;
+        case 'praemien':
+          return <PraemienIntroPreview communeName={communeName} />;
+        case 'politikbarometer':
+          return (
+            <PolitikBarometerPanel
+              du={du}
+              variant="compact"
+              density="tight"
+              leadDu=""
+              leadSie=""
+              heroPreview
+            />
+          );
+        default:
+          return null;
+      }
+    })();
+    if (!inner) return null;
+    return (
+      <WalkthroughFocusVisual caption={caption}>
+        <WalkthroughPreviewShell>{inner}</WalkthroughPreviewShell>
+      </WalkthroughFocusVisual>
+    );
+  }, [step.id, communeKey, communeName, du]);
 
   const speakApi = useIntroSpeakApi();
   const isIntroSpeaking = useIntroIsSpeaking();
@@ -735,7 +612,7 @@ export default function DemoIntroWalkthrough({
     speechAutoAdvancedRef.current = false;
     const t = window.setTimeout(() => {
       speakApi.speakIntroParts(speakParts, speechKey);
-    }, 120);
+    }, 60);
     return () => {
       window.clearTimeout(t);
       speakApi.stopIntroSpeech();
@@ -758,7 +635,7 @@ export default function DemoIntroWalkthrough({
     setIdx((p) => Math.min(steps.length - 1, p + 1));
   }, [isIntroSpeaking, idx, step.id, isLast, onFinish, speakApi?.readAloud, steps.length]);
 
-  const liveAnnouncement = `Bereich ${clara.label}. ${clara.line10s} ${framingLine || clara.short}`.trim();
+  const liveAnnouncement = `Bereich ${clara.label}. ${clara.short} ${framingLine}`.trim();
 
   const exitIntroOrBackToEid = idx === 0 ? (onBackFromFirstStep ?? onClose) : onClose;
   const skipIntroOrBackToEid = idx === 0 ? (onBackFromFirstStep ?? onFinish) : onFinish;
@@ -780,9 +657,9 @@ export default function DemoIntroWalkthrough({
         {liveAnnouncement}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-1 pb-1 pt-1 sm:px-2">
-        <div className="intro-device-chrome-shell intro-dark-body flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] p-[3px] sm:p-1">
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.65rem] border border-neutral-200/95 bg-white">
+      <div className="intro-walkthrough-shell flex min-h-0 flex-1 flex-col overflow-hidden px-2 pb-2 pt-1.5 sm:px-2.5 sm:pb-2.5 sm:pt-2">
+        <div className="intro-walkthrough-device intro-device-chrome-shell intro-dark-body flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] p-[3px] sm:p-1">
+          <div className="intro-walkthrough-inner flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.65rem] border border-neutral-200/95 bg-white">
           <IntroMetaStrip
             surface="light"
             stepNumber={null}
@@ -792,72 +669,58 @@ export default function DemoIntroWalkthrough({
             closeAriaLabel={idx === 0 ? 'Zurück zur eID-Demo' : undefined}
           />
 
-          <div
-            className={`flex-shrink-0 px-3 sm:px-4 ${isAbstimmenStep ? 'pb-0.5 pt-1.5' : 'pb-1 pt-2.5'}`}
-          >
-            <ProductIdentityHeader />
-            <h2 className="mt-1 t-card-title leading-tight">
-              {clara.label}
-            </h2>
-            <p
-              className={`font-medium text-[#374151] [text-wrap:pretty] ${
-                isAbstimmenStep ? 'mt-1 line-clamp-2 text-[9.5px] leading-snug' : 'mt-1 text-[10px] leading-snug'
-              }`}
-            >
-              {clara.line10s}
-            </p>
-            <div className="mt-1.5">
-              <WalkthroughInfoDetails
-                surface="light"
-                primaryLong={clara.long}
-                showOutro={false}
-                outroShort={du ? INTRO_OUTRO_SHORT_DU : INTRO_OUTRO_SHORT_SIE}
-                outroLong={du ? INTRO_OUTRO_DROPDOWN_DU : INTRO_OUTRO_DROPDOWN_SIE}
-              />
-            </div>
+          <div className="shrink-0 px-4 pb-1.5 pt-1 text-center sm:px-4">
+            <span className="text-[11px] font-bold tracking-tight text-[#003366]">{APP_DISPLAY_NAME}</span>
+            <span className="mx-1.5 text-neutral-300" aria-hidden>
+              ·
+            </span>
+            <span className="text-[10px] font-medium leading-snug text-neutral-500">{APP_TAGLINE}</span>
           </div>
 
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 pb-1 sm:px-4">
-            <div className="mt-0 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-              <div
-                className={`relative flex min-h-0 w-full min-w-0 flex-1 flex-col rounded-2xl border border-neutral-200/90 bg-[#F7F9FC] p-1 shadow-none sm:p-1.5 ${
-                  isAbstimmenStep
-                    ? 'intro-walkthrough-scroll overflow-x-hidden overflow-y-auto overscroll-contain'
-                    : 'min-h-0 overflow-hidden'
-                }`}
-                style={
-                  isAbstimmenStep
-                    ? {
-                        minHeight: 0,
-                        /* Im Geräterahmen: an Elternhöhe koppeln, nicht an Viewport (dvh). */
-                        maxHeight: 'min(100%, 56rem)',
-                      }
-                    : { minHeight: 0, maxHeight: '100%' }
-                }
-              >
+          <div className="intro-walkthrough-scroll flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
+            <div className="intro-walkthrough-focus-stage min-h-0 min-w-0 flex-1">
+              <div className="intro-walkthrough-focus-card">
                 <div
-                  className={
-                    isAbstimmenStep
-                      ? 'flex w-full min-w-0 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2'
-                      : 'intro-walkthrough-scroll intro-scroll-visible flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-contain pb-2'
-                  }
+                  className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit]"
+                  aria-hidden
                 >
-                  <div
-                    key={step.id}
-                    className={
-                      isAbstimmenStep
-                        ? 'flex w-full min-w-0 flex-col'
-                        : 'flex w-full min-w-0 flex-1 flex-col'
-                    }
+                  <span
+                    className="absolute left-1/2 top-1/2 block w-[120%] select-none text-center text-[clamp(2rem,11vw,3.25rem)] font-bold uppercase leading-none tracking-[0.22em] text-[#0f172a]/[0.055]"
+                    style={{ transform: 'translate(-50%, -50%) rotate(-14deg)' }}
                   >
-                    {preview}
-                  </div>
+                    HookAI Demo
+                  </span>
+                </div>
+                <div className="relative z-[1] flex min-h-0 flex-col">
+                <div className="shrink-0 border-b border-neutral-100/90 px-4 pb-2.5 pt-3 sm:px-4">
+                  <h2 className="text-[1.0625rem] font-bold leading-snug tracking-tight text-[#0f172a] sm:text-lg">
+                    {step.title}
+                  </h2>
+                  <p className="mt-1.5 line-clamp-2 text-[12px] font-medium leading-snug text-neutral-600 sm:text-[13px]">
+                    {clara.short}
+                  </p>
+                </div>
+                <div
+                  key={step.id}
+                  className="flex min-h-0 min-w-0 flex-none flex-col overflow-hidden px-3 pb-2 pt-2 sm:px-4"
+                >
+                  {preview}
+                </div>
+                <div className="shrink-0 border-t border-neutral-100/90 px-3 pb-2 pt-1.5 sm:px-4 sm:pb-2 sm:pt-2">
+                  <WalkthroughInfoDetails
+                    surface="light"
+                    primaryLong={clara.long}
+                    showOutro={false}
+                    outroShort={du ? INTRO_OUTRO_SHORT_DU : INTRO_OUTRO_SHORT_SIE}
+                    outroLong={du ? INTRO_OUTRO_DROPDOWN_DU : INTRO_OUTRO_DROPDOWN_SIE}
+                  />
+                </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="relative z-[45] flex flex-shrink-0 flex-col gap-2 border-t border-neutral-200 bg-[#F7F9FC] px-3 pt-2.5 intro-action-bar-pad sm:px-4">
+          <div className="intro-walkthrough-cta relative mt-auto flex flex-shrink-0 flex-col gap-2 border-t border-neutral-200/95 bg-white px-4 pt-2.5 intro-action-bar-pad sm:px-4">
             {isLast ? (
               <p className="t-body-sm text-center text-neutral-600">
                 Demo startet jetzt mit einem kurzen Übergang.

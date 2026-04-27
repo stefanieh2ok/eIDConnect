@@ -5,6 +5,7 @@ import { AcceptNdaButton } from '@/components/access/accept-nda-button';
 import { CheckboxAcceptButton } from '@/components/access/checkbox-accept-button';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
+import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 export const metadata = {
   title: `Vertraulicher Demo-Zugang – ${APP_DISPLAY_NAME}`,
@@ -85,6 +86,7 @@ export default async function AccessPage({ params }: AccessPageProps) {
       >
         <div className="mx-auto w-full max-w-[360px] space-y-4 pb-6 text-neutral-950">
           <div className="card-section">
+            <ProductIdentityHeader />
             <p className="t-kicker">Vertraulicher Zugriff</p>
             <h1 className="t-h1 mt-2">{ndaConfig.header || 'Vertraulicher Demo-Zugang'}</h1>
             <p className="t-body mt-3">
@@ -114,7 +116,7 @@ export default async function AccessPage({ params }: AccessPageProps) {
           </div>
 
           <section className="card-content">
-            <h2 className="t-h2">Geheimhaltungsvereinbarung / NDA</h2>
+            <h2 className="t-h2">Geheimhaltungsvereinbarung</h2>
             <p className="t-body-sm mt-1">
               PDF-Dokument für Ablage, Prüfung oder Ausdruck.
             </p>

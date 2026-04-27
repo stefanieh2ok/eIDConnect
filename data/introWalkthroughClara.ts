@@ -20,16 +20,16 @@ export type WalkthroughClaraBlock = {
 export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClaraBlock> = {
   abstimmen: {
     label: 'Abstimmen',
-    line10sDu: 'Beteiligungen werden verständlich eingeordnet – mit Pro, Contra und neutralem Kontext.',
-    line10sSie: 'Beteiligungen werden verständlich eingeordnet – mit Pro, Contra und neutralem Kontext.',
-    shortDu: 'Beteiligungen werden verständlich eingeordnet – mit Pro, Contra und neutralem Kontext.',
-    shortSie: 'Beteiligungen werden verständlich eingeordnet – mit Pro, Contra und neutralem Kontext.',
+    line10sDu: 'Pro und Contra helfen dir, Abstimmungen schnell einzuordnen.',
+    line10sSie: 'Pro und Contra helfen Ihnen, Abstimmungen schnell einzuordnen.',
+    shortDu: 'Pro und Contra helfen dir, Abstimmungen schnell einzuordnen.',
+    shortSie: 'Pro und Contra helfen Ihnen, Abstimmungen schnell einzuordnen.',
     longDu:
-      'In diesem Bereich sehen Nutzerinnen und Nutzer aktuelle Beteiligungen und Abstimmungen.\n\n' +
-      'Die Entscheidung erfolgt bewusst über sichtbare Daumen-Buttons, nicht durch Wischen am Bildschirm. Pro- und Contra-Argumente bleiben sichtbar, um Orientierung zu geben — ohne Empfehlung oder Richtungsvorgabe.',
+      'Du stimmst über sichtbare Daumen-Buttons ab und kannst davor Pro und Contra vergleichen.\n\n' +
+      'Die App bleibt neutral und gibt keine Richtung vor.',
     longSie:
-      'In diesem Bereich sehen Nutzerinnen und Nutzer aktuelle Beteiligungen und Abstimmungen.\n\n' +
-      'Die Entscheidung erfolgt bewusst über sichtbare Daumen-Buttons, nicht durch Wischen am Bildschirm. Pro- und Contra-Argumente bleiben sichtbar, um Orientierung zu geben — ohne Empfehlung oder Richtungsvorgabe.',
+      'Sie stimmen über sichtbare Daumen-Buttons ab und können davor Pro und Contra vergleichen.\n\n' +
+      'Die App bleibt neutral und gibt keine Richtung vor.',
     speakSegmentsDu: [
       'In diesem Bereich siehst du aktuelle Beteiligungen und Abstimmungen. Die Entscheidung erfolgt bewusst über die Daumen-Buttons, nicht durch Wischen am Bildschirm.',
       'Vorher helfen dir Pro- und Contra-Argumente, die Positionen besser einzuordnen.',
@@ -43,18 +43,16 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
   },
   wahlen: {
     label: 'Wahlen',
-    line10sDu: 'Wahlen, Stimmzettel und Programme werden strukturiert zugänglich gemacht.',
-    line10sSie: 'Wahlen, Stimmzettel und Programme werden strukturiert zugänglich gemacht.',
-    shortDu: 'Wahlen, Stimmzettel und Programme werden strukturiert zugänglich gemacht.',
-    shortSie: 'Wahlen, Stimmzettel und Programme werden strukturiert zugänglich gemacht.',
+    line10sDu: 'Stimmzettel, Kandidierende und Programme sind gebündelt erreichbar.',
+    line10sSie: 'Stimmzettel, Kandidierende und Programme sind gebündelt erreichbar.',
+    shortDu: 'Stimmzettel, Kandidierende und Programme sind gebündelt erreichbar.',
+    shortSie: 'Stimmzettel, Kandidierende und Programme sind gebündelt erreichbar.',
     longDu:
-      'Dieser Bereich bündelt Informationen zu Wahlen, Stimmzetteln, Kandidierenden und Programmen.\n\n' +
-      'Die Darstellung soll Orientierung erleichtern, ohne politische Bewertungen oder Wahlempfehlungen zu erzeugen.\n\n' +
-      'Wo vorgesehen, können Ergebnisse und weiterführende Informationen nachvollziehbar eingesehen werden.',
+      'Alle Wahlinfos sind an einem Ort gebündelt: Stimmzettel, Kandidierende und Programme.\n\n' +
+      'Clara erklärt Inhalte neutral, ohne Wahlempfehlung.',
     longSie:
-      'Dieser Bereich bündelt Informationen zu Wahlen, Stimmzetteln, Kandidierenden und Programmen.\n\n' +
-      'Die Darstellung soll Orientierung erleichtern, ohne politische Bewertungen oder Wahlempfehlungen zu erzeugen.\n\n' +
-      'Wo vorgesehen, können Ergebnisse und weiterführende Informationen nachvollziehbar eingesehen werden.',
+      'Alle Wahlinfos sind an einem Ort gebündelt: Stimmzettel, Kandidierende und Programme.\n\n' +
+      'Clara erklärt Inhalte neutral, ohne Wahlempfehlung.',
     speakSegmentsDu: [
       'Der Wahlbereich bündelt Informationen, die sonst oft an verschiedenen Stellen liegen: Stimmzettel, Programme, Kandidierende und Ergebnisse.',
       'Clara kann Begriffe erklären oder Inhalte verständlich zusammenfassen.',
@@ -68,18 +66,16 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
   },
   kalender: {
     label: 'Kalender',
-    line10sDu: 'Termine, Fristen und Beteiligungen werden an einem Ort gebündelt.',
-    line10sSie: 'Termine, Fristen und Beteiligungen werden an einem Ort gebündelt.',
-    shortDu: 'Termine, Fristen und Beteiligungen werden an einem Ort gebündelt.',
-    shortSie: 'Termine, Fristen und Beteiligungen werden an einem Ort gebündelt.',
+    line10sDu: 'Termine und Fristen sind in einem Kalender gebündelt.',
+    line10sSie: 'Termine und Fristen sind in einem Kalender gebündelt.',
+    shortDu: 'Termine und Fristen sind in einem Kalender gebündelt.',
+    shortSie: 'Termine und Fristen sind in einem Kalender gebündelt.',
     longDu:
-      'Der Kalender zeigt relevante Termine rund um Wahlen, Abstimmungen und Beteiligungsverfahren.\n\n' +
-      'So wird sichtbar, was ansteht, welche Fristen gelten und wann Mitwirkung möglich ist.\n\n' +
-      'Wenn Interessenschwerpunkte gesetzt wurden, können passende Termine dezent hervorgehoben werden – ohne politische Empfehlung.',
+      'Du siehst, was ansteht und bis wann Beteiligung möglich ist.\n\n' +
+      'Optional werden passende Termine aus dem Politikbarometer hervorgehoben.',
     longSie:
-      'Der Kalender zeigt relevante Termine rund um Wahlen, Abstimmungen und Beteiligungsverfahren.\n\n' +
-      'So wird sichtbar, was ansteht, welche Fristen gelten und wann Mitwirkung möglich ist.\n\n' +
-      'Wenn Interessenschwerpunkte gesetzt wurden, können passende Termine dezent hervorgehoben werden – ohne politische Empfehlung.',
+      'Sie sehen, was ansteht und bis wann Beteiligung möglich ist.\n\n' +
+      'Optional werden passende Termine aus dem Politikbarometer hervorgehoben.',
     speakSegmentsDu: [
       'Der Kalender zeigt dir, welche Termine, Fristen und Beteiligungen anstehen.',
       'Wenn du im Politikbarometer Themen wie Digitalisierung oder Umwelt und Energie markierst, können passende Termine hier hervorgehoben werden.',
@@ -93,18 +89,16 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
   },
   meldungen: {
     label: 'Meldungen',
-    line10sDu: 'Anliegen können digital, strukturiert und nachvollziehbar weitergegeben werden.',
-    line10sSie: 'Anliegen können digital, strukturiert und nachvollziehbar weitergegeben werden.',
-    shortDu: 'Anliegen können digital, strukturiert und nachvollziehbar weitergegeben werden.',
-    shortSie: 'Anliegen können digital, strukturiert und nachvollziehbar weitergegeben werden.',
+    line10sDu: 'Anliegen werden digital erfasst und zuständig weitergeleitet.',
+    line10sSie: 'Anliegen werden digital erfasst und zuständig weitergeleitet.',
+    shortDu: 'Anliegen werden digital erfasst und zuständig weitergeleitet.',
+    shortSie: 'Anliegen werden digital erfasst und zuständig weitergeleitet.',
     longDu:
-      'Über diesen Bereich lassen sich Hinweise, Anliegen oder konkrete Meldungen geordnet erfassen.\n\n' +
-      'Die Informationen werden so vorbereitet, dass sie schneller an der richtigen Stelle ankommen und nachvollziehbar bearbeitet werden können.\n\n' +
-      'Das macht Bürgerkommunikation klarer, einfacher und effizienter.',
+      'Hinweise und Meldungen werden strukturiert aufgenommen.\n\n' +
+      'So kommen sie schneller bei der zuständigen Stelle an und bleiben nachvollziehbar.',
     longSie:
-      'Über diesen Bereich lassen sich Hinweise, Anliegen oder konkrete Meldungen geordnet erfassen.\n\n' +
-      'Die Informationen werden so vorbereitet, dass sie schneller an der richtigen Stelle ankommen und nachvollziehbar bearbeitet werden können.\n\n' +
-      'Das macht Bürgerkommunikation klarer, einfacher und effizienter.',
+      'Hinweise und Meldungen werden strukturiert aufgenommen.\n\n' +
+      'So kommen sie schneller bei der zuständigen Stelle an und bleiben nachvollziehbar.',
     speakSegmentsDu: [
       'Im Bereich Meldungen kannst du Anliegen strukturiert erfassen — zum Beispiel Hinweise aus deiner Kommune.',
       'Die App hilft dabei, Informationen so aufzubereiten, dass sie verständlich und zuständigkeitsnah weitergegeben werden können.',
@@ -118,18 +112,16 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
   },
   praemien: {
     label: 'Prämien',
-    line10sDu: 'Prämien sind freiwillig, nur nach Einwilligung und unabhängig von deiner Entscheidung.',
-    line10sSie: 'Prämien sind freiwillig, nur nach Einwilligung und unabhängig von Ihrer Entscheidung.',
-    shortDu: 'Prämien sind freiwillig, nur nach Einwilligung und unabhängig von deiner Entscheidung.',
-    shortSie: 'Prämien sind freiwillig, nur nach Einwilligung und unabhängig von Ihrer Entscheidung.',
+    line10sDu: 'Prämien sind freiwillig und nur mit Einwilligung aktiv.',
+    line10sSie: 'Prämien sind freiwillig und nur mit Einwilligung aktiv.',
+    shortDu: 'Prämien sind freiwillig und nur mit Einwilligung aktiv.',
+    shortSie: 'Prämien sind freiwillig und nur mit Einwilligung aktiv.',
     longDu:
-      'In diesem Bereich kannst du sehen, ob Prämien für Beteiligung verfügbar sind.\n\n' +
-      'Wichtig ist: Das funktioniert nur, wenn du ausdrücklich einwilligst. Die Prämien hängen nicht davon ab, wie du abstimmst, sondern nur davon, ob eine Beteiligung oder Rückmeldung abgeschlossen wurde.\n\n' +
-      'Du kannst diese Funktion jederzeit in den Einstellungen deaktivieren.',
+      'Prämien werden nur nach ausdrücklicher Einwilligung angezeigt.\n\n' +
+      'Sie sind unabhängig von deiner Abstimmungsrichtung und jederzeit deaktivierbar.',
     longSie:
-      'In diesem Bereich können Sie sehen, ob Prämien für Beteiligung verfügbar sind.\n\n' +
-      'Wichtig ist: Das funktioniert nur, wenn Sie ausdrücklich einwilligen. Die Prämien hängen nicht davon ab, wie Sie abstimmen, sondern nur davon, ob eine Beteiligung oder Rückmeldung abgeschlossen wurde.\n\n' +
-      'Sie können diese Funktion jederzeit in den Einstellungen deaktivieren.',
+      'Prämien werden nur nach ausdrücklicher Einwilligung angezeigt.\n\n' +
+      'Sie sind unabhängig von Ihrer Abstimmungsrichtung und jederzeit deaktivierbar.',
     speakSegmentsDu: [
       'In diesem Bereich kannst du sehen, ob Prämien für Beteiligung verfügbar sind.',
       'Wichtig ist: Das funktioniert nur, wenn du ausdrücklich einwilligst.',
@@ -145,18 +137,16 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
   },
   politikbarometer: {
     label: 'Politikbarometer',
-    line10sDu: 'Interessenschwerpunkte helfen, passende Beteiligungen im Kalender schneller zu erkennen.',
-    line10sSie: 'Interessenschwerpunkte helfen, passende Beteiligungen im Kalender schneller zu erkennen.',
-    shortDu: 'Interessenschwerpunkte helfen, passende Beteiligungen im Kalender schneller zu erkennen.',
-    shortSie: 'Interessenschwerpunkte helfen, passende Beteiligungen im Kalender schneller zu erkennen.',
+    line10sDu: 'Themen markieren, passende Termine im Kalender schneller finden.',
+    line10sSie: 'Themen markieren, passende Termine im Kalender schneller finden.',
+    shortDu: 'Themen markieren, passende Termine im Kalender schneller finden.',
+    shortSie: 'Themen markieren, passende Termine im Kalender schneller finden.',
     longDu:
-      'Das Politikbarometer zeigt keine politische Bewertung und erstellt kein Meinungsprofil.\n\n' +
-      'Nutzerinnen und Nutzer können selbst Themen markieren, die ihnen besonders wichtig sind – zum Beispiel Digitalisierung, Umwelt und Energie oder Bildung.\n\n' +
-      'Passende Termine und Beteiligungen können dadurch im Kalender hervorgehoben werden. Das ist keine Empfehlung, sondern nur thematische Relevanz.',
+      'Du markierst Themen wie Bildung oder Digitalisierung für bessere Orientierung.\n\n' +
+      'Die App erstellt kein Meinungsprofil und gibt keine Empfehlung.',
     longSie:
-      'Das Politikbarometer zeigt keine politische Bewertung und erstellt kein Meinungsprofil.\n\n' +
-      'Nutzerinnen und Nutzer können selbst Themen markieren, die ihnen besonders wichtig sind – zum Beispiel Digitalisierung, Umwelt und Energie oder Bildung.\n\n' +
-      'Passende Termine und Beteiligungen können dadurch im Kalender hervorgehoben werden. Das ist keine Empfehlung, sondern nur thematische Relevanz.',
+      'Sie markieren Themen wie Bildung oder Digitalisierung für bessere Orientierung.\n\n' +
+      'Die App erstellt kein Meinungsprofil und gibt keine Empfehlung.',
     speakSegmentsDu: [
       'Das Politikbarometer hilft dir, Themen zu markieren, die dir besonders wichtig sind.',
       'Wenn du zum Beispiel Digitalisierung, Umwelt und Energie oder Bildung auswählst, kann der Kalender passende Termine und Beteiligungen hervorheben.',

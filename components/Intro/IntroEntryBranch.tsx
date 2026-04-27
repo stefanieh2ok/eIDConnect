@@ -15,14 +15,6 @@ import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
-function isFinePointerDevice(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(hover: hover) and (pointer: fine)').matches
-  );
-}
-
 type Props = {
   open: boolean;
   du: boolean;
@@ -60,19 +52,18 @@ export function IntroEntryBranch({
     entryIntroPlayedRef.current = true;
   }, [du, speakApi]);
 
-  /** Desktop: kurzes Delay ok. Touch: erst nach User-Geste (s. onPointerDownCapture). */
+  /** Früher Start auch auf Mobile, damit Clara direkt einführt. */
   useEffect(() => {
     if (!open || !speakApi) return;
     if (!speakApi.readAloud) {
       speakApi.stopIntroSpeech();
       return;
     }
-    if (!isFinePointerDevice()) return;
     if (entryIntroPlayedRef.current) return;
     const t = window.setTimeout(() => {
       if (entryIntroPlayedRef.current) return;
       speakEntry();
-    }, 200);
+    }, 90);
     return () => {
       clearTimeout(t);
     };
