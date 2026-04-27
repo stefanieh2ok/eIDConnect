@@ -25,6 +25,8 @@ interface VotingCardProps {
   introCompact?: boolean;
   /** Intro/Walkthrough: zusätzliche Zeile „Keine echte Abstimmung.“ unter dem Balken. */
   introDemoVoteDisclaimer?: boolean;
+  /** Walkthrough-Vorschau: Pro/Contra-Blöcke ausblenden (kompakter „Tinder“-Ausschnitt). */
+  introHideProCon?: boolean;
   /** Legacy-Option: exklusives Verhalten von Pro/Contra (Standard: aus). */
   singleOpenProCon?: boolean;
 }
@@ -36,6 +38,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
     introProConExpanded = false,
     introCompact = false,
     introDemoVoteDisclaimer = false,
+    introHideProCon = false,
     singleOpenProCon = false,
   }) => {
     const [proOpen, setProOpen] = useState(introProConExpanded);
@@ -196,6 +199,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
         </div>
 
         {/* ── Pro / Contra: einklappbar ── */}
+        {!introHideProCon ? (
         <div className={`mx-4 ${introCompact ? 'mb-2 grid grid-cols-1 gap-1.5 sm:grid-cols-2' : 'mb-2.5 grid grid-cols-1 gap-1.5 sm:grid-cols-2'}`}>
           <div className="h-full overflow-hidden rounded-xl border border-emerald-200 bg-emerald-50/60">
             <button
@@ -266,6 +270,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
             ) : null}
           </div>
         </div>
+        ) : null}
       </div>
     );
   }

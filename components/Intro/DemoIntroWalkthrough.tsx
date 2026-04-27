@@ -5,6 +5,8 @@ import { useApp } from '@/context/AppContext';
 import { useIntroIsSpeaking, useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { activeLocationForLevel } from '@/lib/activeLocationForLevel';
 import { VOTING_DATA, WAHLEN_DATA } from '@/data/constants';
+import VotingCard from '@/components/Voting/VotingCard';
+import VotingControls from '@/components/Voting/VotingControls';
 import { ListChecks, Send } from 'lucide-react';
 import {
   INTRO_CLOSING_SPOKEN_SEGMENTS_DU,
@@ -20,7 +22,7 @@ import {
 import type { IntroOverlayStepId } from '@/data/introOverlayMarketing';
 
 const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = {
-  abstimmen: 'Eine Karte · Pro/Contra · Daumen',
+  abstimmen: 'Wie in der App · Balken · Daumen',
   wahlen: 'Stimmabgabe · Demo',
   kalender: 'Termine · Wahl / Abstimmung erkennbar',
   meldungen: 'Fall · Bearbeitungsstatus',
@@ -30,7 +32,7 @@ const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = 
 import { claraBlockForStep } from '@/data/introWalkthroughClara';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
-import type { Location, Section } from '@/types';
+import type { Location, Section, VotingCard as VotingCardModel } from '@/types';
 import { APP_DISPLAY_NAME, APP_TAGLINE } from '@/lib/branding';
 
 function walkthroughSectionForStep(stepId: string): Section {
@@ -331,24 +333,30 @@ function WalkthroughFocusVisual({ caption, children }: { caption?: string; child
   );
 }
 
-/** Nur Kern-Interaktion: eine Abstimmungskarte mit Daumen — kein Listen-Chrome. */
-function IntroAbstimmenSnapshot() {
+/**
+ * Gleiche Bausteine wie im Live-Bereich (VotingCard + Daumen), kompakt ohne Pro/Contra-Blöcke —
+ * entspricht dem „Tinder“-Karten-Ausschnitt in der App, nicht einer vereinfachten Emoji-Karte.
+ */
+function IntroAbstimmenSnapshot({ du }: { du: boolean }) {
+  const previewCard = useMemo((): VotingCardModel => {
+    const list = VOTING_DATA.kirkel?.cards ?? [];
+    const base = list.find((c) => c.id === 'kirkel-5') ?? list[0];
+    return {
+      ...base,
+      title: 'Digitale Verwaltung in Kirkel ausbauen',
+    };
+  }, []);
+
   return (
-    <div className="w-full max-w-[260px] rounded-xl border border-[#D6E0EE] bg-white p-2.5 shadow-sm">
-      <p className="text-[8px] font-bold uppercase tracking-wide text-[#0055A4]">Abstimmung · Kirkel</p>
-      <p className="mt-1 line-clamp-2 text-[10px] font-semibold leading-snug text-[#1A2B45]">Radweg Kirkel – Limbach (Lückenschluss)</p>
-      <p className="mt-1 text-[8px] text-neutral-500">Frist 15.04.2026</p>
-      <div className="mt-2.5 flex items-center justify-center gap-3 rounded-lg border border-neutral-200 bg-[#F8FAFC] py-2">
-        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-red-500 text-[16px] leading-none text-red-500">
-          👎
-        </span>
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-neutral-300 text-[12px] text-neutral-500">
-          —
-        </span>
-        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-emerald-500 text-[16px] leading-none text-emerald-600">
-          👍
-        </span>
-      </div>
+    <div className="w-full min-w-0 max-w-[min(100%,292px)] overflow-hidden">
+      <VotingCard
+        card={previewCard}
+        introCompact
+        introDemoVoteDisclaimer
+        introHideProCon
+        introProConExpanded={false}
+      />
+      <VotingControls canVote du={du} onVote={() => {}} walkthroughVisualPreview />
     </div>
   );
 }
@@ -539,7 +547,7 @@ export default function DemoIntroWalkthrough({
     const inner = (() => {
       switch (step.id) {
         case 'abstimmen':
-          return <IntroAbstimmenSnapshot />;
+          return <IntroAbstimmenSnapshot du={du} />;
         case 'wahlen':
           return <IntroWahlenSnapshot />;
         case 'kalender':
