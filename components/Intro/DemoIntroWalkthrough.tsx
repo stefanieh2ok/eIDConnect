@@ -40,7 +40,7 @@ const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = 
 
 const WALKTHROUGH_STEP_SUBTITLE: Partial<Record<IntroOverlayStepId, string>> = {
   // UX/Legal positioning: makes it unmistakable this is a preview, not “I’m voting here”.
-  wahlen: 'Informationen & Vorschau',
+  wahlen: 'Wahlvorschau: Kandidierende, Programme und verifizierte Quellen.',
 };
 
 function walkthroughSectionForStep(stepId: string): Section {
@@ -306,17 +306,22 @@ function IntroWahlenWalkthroughDemo() {
   const erst = useMemo(() => btw?.kandidaten?.slice(0, 5) ?? [], [btw]);
   const zweit = useMemo(() => btw?.parteien?.slice(0, 6) ?? [], [btw]);
 
-  const [phase, setPhase] = useState<'idle' | 'focus' | 'tick' | 'program'>('idle');
+  const [phase, setPhase] = useState<'idle' | 'focus' | 'tick' | 'program' | 'source'>('idle');
+  const sourcePrimaryUrl = 'https://www.cdu.de/wahlprogramm-von-cdu-und-csu/';
+  const sourcePdfUrl =
+    'https://www.cdu.de/app/uploads/2025/01/km_btw_2025_wahlprogramm_langfassung_ansicht.pdf';
 
   useEffect(() => {
     setPhase('idle');
     const t0 = window.setTimeout(() => setPhase('focus'), 650);
     const t1 = window.setTimeout(() => setPhase('tick'), 980);
     const t2 = window.setTimeout(() => setPhase('program'), 1380);
+    const t3 = window.setTimeout(() => setPhase('source'), 1700);
     return () => {
       window.clearTimeout(t0);
       window.clearTimeout(t1);
       window.clearTimeout(t2);
+      window.clearTimeout(t3);
     };
   }, []);
 
@@ -396,9 +401,12 @@ function IntroWahlenWalkthroughDemo() {
             </div>
           </div>
 
-          <div
+          <a
+            href={sourcePrimaryUrl}
+            target="_blank"
+            rel="noopener noreferrer"
             className={
-              'mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition-[max-height,opacity,transform] duration-500 ease-out ' +
+              'mt-3 block overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition-[max-height,opacity,transform] duration-500 ease-out ' +
               (phase === 'program' ? 'max-h-[240px] opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-1')
             }
           >
@@ -406,11 +414,35 @@ function IntroWahlenWalkthroughDemo() {
               <div className="text-[10px] font-bold uppercase tracking-wide text-slate-600">
                 Programmauszug · {cdu?.name ?? 'CDU/CSU'}
               </div>
+              <div className="mt-1 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-800">
+                Verifizierte Quelle · CDU/CSU
+              </div>
               <div className="mt-1 text-[11px] leading-snug text-slate-800 [text-wrap:pretty]">
                 {(cdu as any)?.programm ?? 'Programmauszug ist in der Demo hinterlegt.'}
               </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <span
+                  className={
+                    'inline-flex items-center rounded-md border px-2 py-1 text-[10px] font-semibold text-[#003366] ' +
+                    (phase === 'source'
+                      ? 'border-[#7AA4D8] bg-[#EAF3FF] shadow-[0_0_0_2px_rgba(59,130,246,0.22)]'
+                      : 'border-slate-200 bg-white')
+                  }
+                >
+                  Offizielle Quelle öffnen
+                </span>
+                <a
+                  href={sourcePdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-700 hover:bg-slate-50"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  PDF (Langfassung)
+                </a>
+              </div>
             </div>
-          </div>
+          </a>
         </div>
       </div>
     </div>

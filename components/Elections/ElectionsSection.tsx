@@ -562,7 +562,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
               return `Auswahl: ${lvlLabel}${region && region !== 'Deutschland' ? ` · ${region}` : ''}`;
             })()}
           </div>
-          <div className="t-caption">Informations- und Orientierungsansicht</div>
+          <div className="t-caption">Wahlvorschau: Kandidierende, Programme und verifizierte Quellen.</div>
         </div>
         <button
           type="button"

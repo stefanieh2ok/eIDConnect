@@ -45,29 +45,31 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
   },
   wahlen: {
     label: 'Wahlen',
-    line10sDu: 'Wahlen ist hier eine Vorschau: Informationen und Programme gebündelt.',
-    line10sSie: 'Wahlen ist hier eine Vorschau: Informationen und Programme gebündelt.',
-    shortDu: 'Wahlvorschau: Stimmzettel, Kandidierende und Programme gebündelt.',
-    shortSie: 'Wahlvorschau: Stimmzettel, Kandidierende und Programme gebündelt.',
+    line10sDu: 'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl.',
+    line10sSie: 'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl.',
+    shortDu: 'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl.',
+    shortSie: 'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl.',
     longDu:
-      'Hier siehst du eine Wahlvorschau: Stimmzettel, Kandidierende und Programme an einem Ort.\n\n' +
-      'Clara erklärt Begriffe neutral — ohne Wahlempfehlung und ohne aktive Stimmabgabe in dieser Demo.',
+      'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl.\n\n' +
+      'Du kannst dich über Kandidierende, Parteien und Programme informieren.\n\n' +
+      'Programmquellen werden verlinkt und als offizielle Quelle gekennzeichnet.\n\n' +
+      'Perspektivisch kann dieser Bereich um sicheres eVoting ergänzt werden – aber nur mit klarer Trennung von Identität und Entscheidung.',
     longSie:
-      'Hier sehen Sie eine Wahlvorschau: Stimmzettel, Kandidierende und Programme an einem Ort.\n\n' +
-      'Clara erklärt Begriffe neutral — ohne Wahlempfehlung und ohne aktive Stimmabgabe in dieser Demo.',
+      'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl.\n\n' +
+      'Sie können sich über Kandidierende, Parteien und Programme informieren.\n\n' +
+      'Programmquellen werden verlinkt und als offizielle Quelle gekennzeichnet.\n\n' +
+      'Perspektivisch kann dieser Bereich um sicheres eVoting ergänzt werden – aber nur mit klarer Trennung von Identität und Entscheidung.',
     speakSegmentsDu: [
-      'Hier siehst du eine Wahlvorschau, damit du dich informieren kannst: Stimmzettel, Programme, Kandidierende und Ergebnisse.',
-      'Clara kann Begriffe erklären oder Inhalte verständlich zusammenfassen.',
-      'Wichtig: In dieser Demo wird hier nicht gewählt.',
-      'Eine Wahlempfehlung gibt die App nicht.',
-      'Perspektivisch kann dieser Bereich um sichere, autorisierte eVoting-Prozesse ergänzt werden.',
+      'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl.',
+      'Du kannst dich über Kandidierende, Parteien und Programme informieren.',
+      'Programmquellen werden verlinkt und als offizielle Quelle gekennzeichnet.',
+      'Perspektivisch kann dieser Bereich um sicheres eVoting ergänzt werden – aber nur mit klarer Trennung von Identität und Entscheidung.',
     ],
     speakSegmentsSie: [
-      'Hier sehen Sie eine Wahlvorschau, damit Sie sich informieren können: Stimmzettel, Programme, Kandidierende und Ergebnisse.',
-      'Clara kann Begriffe erklären oder Inhalte verständlich zusammenfassen.',
-      'Wichtig: In dieser Demo wird hier nicht gewählt.',
-      'Eine Wahlempfehlung gibt die App nicht.',
-      'Perspektivisch kann dieser Bereich um sichere, autorisierte eVoting-Prozesse ergänzt werden.',
+      'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl.',
+      'Sie können sich über Kandidierende, Parteien und Programme informieren.',
+      'Programmquellen werden verlinkt und als offizielle Quelle gekennzeichnet.',
+      'Perspektivisch kann dieser Bereich um sicheres eVoting ergänzt werden – aber nur mit klarer Trennung von Identität und Entscheidung.',
     ],
   },
   kalender: {
