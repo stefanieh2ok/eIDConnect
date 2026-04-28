@@ -554,7 +554,13 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
       <div className="mb-2 flex items-start justify-between">
         <div>
           <div className="t-meta">
-            {selectionLabelForSection('wahlen', state.activeLocation)}
+            {(() => {
+              const lvl = levelForResidenceLocation(state.activeLocation);
+              const lvlLabel = lvl === 'bund' ? 'Bund' : lvl === 'land' ? 'Land' : lvl === 'kreis' ? 'Kreis' : 'Kommune';
+              const region = DEMO_LOCATION_LABEL[state.activeLocation] ?? String(state.activeLocation);
+              // One clean line instead of “Auswahl: …” + redundant chips.
+              return `Auswahl: ${lvlLabel}${region && region !== 'Deutschland' ? ` · ${region}` : ''}`;
+            })()}
           </div>
           <div className="t-caption">Informations- und Orientierungsansicht</div>
         </div>
@@ -620,24 +626,10 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
         </div>
 
         <div className="mt-2 flex flex-wrap gap-2">
-          {/* Region / Ebene Chips */}
-          {selectedRegionLabel !== 'Deutschland' ? (
-            <button
-              type="button"
-              onClick={clearRegionFilter}
-              className="app-chip"
-            >
-              {selectedRegionLabel}
-              <span aria-hidden>×</span>
-            </button>
-          ) : null}
-          {selectedLevelUiLabel ? (
-            <button
-              type="button"
-              onClick={clearRegionFilter}
-              className="app-chip"
-            >
-              {selectedLevelUiLabel}
+          {/* Region/Ebene (kombiniert, um Redundanz zu vermeiden) */}
+          {state.activeLocation !== 'bundesweit' ? (
+            <button type="button" onClick={clearRegionFilter} className="app-chip">
+              {(selectedLevelUiLabel || 'Bund') + (selectedRegionLabel !== 'Deutschland' ? ` · ${selectedRegionLabel}` : '')}
               <span aria-hidden>×</span>
             </button>
           ) : null}
