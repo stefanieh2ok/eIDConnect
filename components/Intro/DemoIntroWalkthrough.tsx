@@ -29,6 +29,7 @@ import { APP_DISPLAY_NAME, APP_TAGLINE } from '@/lib/branding';
 import { DEMO_POINTS_PER_ABSTIMMUNG, VOTING_DATA, WAHLEN_DATA } from '@/data/constants';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
+import HookAiCivicLogo from '@/components/ui/HookAiCivicLogo';
 
 const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = {
   abstimmen: 'Echte Abstimmungs-Ansicht wie in der App',
@@ -706,23 +707,18 @@ export default function DemoIntroWalkthrough({
           <div
             className={
               fillDeviceFrame
-                ? 'shrink-0 px-2 pb-0.5 pt-0.5 text-center sm:px-2.5'
-                : 'shrink-0 px-4 pb-1.5 pt-1 text-center sm:px-4'
+                ? 'shrink-0 px-2 pb-0.5 pt-0.5 text-left sm:px-2.5'
+                : 'shrink-0 px-4 pb-1.5 pt-1 text-left sm:px-4'
             }
           >
-            <div className="mb-0.5 flex justify-center">
+            <div className="mb-0.5 flex justify-start">
               <span className="inline-flex items-center rounded-full border border-violet-200 bg-violet-50 px-2.5 py-0.5 text-[10px] font-bold tracking-tight text-violet-950">
                 Vorschau – Demo-Modus
               </span>
             </div>
-            <div className="flex items-center justify-center gap-1.5">
-              <img
-                src="/logo.svg"
-                alt={APP_DISPLAY_NAME}
-                className="h-6 w-auto max-w-[180px] object-contain"
-                loading="eager"
-                decoding="async"
-              />
+            <div className="flex items-center justify-start gap-2">
+              <HookAiCivicLogo variant="light" alt={APP_DISPLAY_NAME} className="h-5 w-auto max-w-[130px]" />
+              <span className="text-[11px] font-semibold tracking-tight text-[#003366]">HookAI Civic Demo</span>
             </div>
             <span className="text-[10px] font-medium leading-snug text-neutral-500">{APP_TAGLINE}</span>
           </div>

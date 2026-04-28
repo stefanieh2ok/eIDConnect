@@ -14,6 +14,7 @@ import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
+import HookAiCivicLogo from '@/components/ui/HookAiCivicLogo';
 
 type Props = {
   open: boolean;
@@ -83,9 +84,16 @@ export function IntroEntryBranch({
       aria-modal="true"
       aria-label="Einstieg Einführung"
     >
-      <div className="absolute inset-0 bg-[#020712]" aria-hidden />
+      <div className="absolute inset-0 bg-[#0B2A3C]" aria-hidden />
+      <div className="pointer-events-none absolute inset-x-0 top-6 z-[1] flex justify-center">
+        <HookAiCivicLogo
+          variant="dark"
+          className="intro-logo-enter h-10 w-auto max-w-[220px]"
+          alt="HookAI Civic"
+        />
+      </div>
       <div
-        className="clara-prelogin-shell-pad intro-device-chrome-shell intro-dark-body relative w-full max-w-[400px] overflow-hidden rounded-[1.85rem] p-[3px] sm:max-w-[440px] sm:p-1"
+        className="clara-prelogin-shell-pad intro-device-chrome-shell intro-dark-body relative z-[2] w-full max-w-[400px] overflow-hidden rounded-[1.85rem] p-[3px] sm:max-w-[440px] sm:p-1"
         style={{ maxHeight: 'min(calc(100dvh - 1.5rem), 100%)' }}
       >
         <div

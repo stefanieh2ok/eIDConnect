@@ -1,0 +1,41 @@
+<svg width="600" height="140" viewBox="0 0 600 140" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="coreGradientDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A45BFF"/>
+      <stop offset="100%" stop-color="#FF8A63"/>
+    </linearGradient>
+    <filter id="turquoiseGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect x="20" y="30" width="60" height="60" rx="10" fill="#FFFFFF"/>
+
+  <g stroke="#FFFFFF" stroke-width="4" stroke-linecap="round">
+    <line x1="10" y1="50" x2="20" y2="50"/>
+    <line x1="10" y1="70" x2="20" y2="70"/>
+    <line x1="80" y1="50" x2="90" y2="50"/>
+    <line x1="80" y1="70" x2="90" y2="70"/>
+    <line x1="40" y1="20" x2="40" y2="30"/>
+    <line x1="60" y1="20" x2="60" y2="30"/>
+    <line x1="40" y1="90" x2="40" y2="100"/>
+    <line x1="60" y1="90" x2="60" y2="100"/>
+  </g>
+
+  <circle cx="50" cy="60" r="18" fill="url(#coreGradientDark)"/>
+
+  <path d="M10 25 Q50 -5 90 25" stroke="#17B7B0" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#turquoiseGlow)"/>
+  <path d="M10 95 Q50 125 90 95" stroke="#17B7B0" stroke-width="6" fill="none" stroke-linecap="round" filter="url(#turquoiseGlow)"/>
+
+  <text x="110" y="65" font-family="Inter, Arial, sans-serif" font-size="36" fill="#FFFFFF">
+    HookAI Civic
+  </text>
+
+  <text x="110" y="95" font-family="Inter, Arial, sans-serif" font-size="16" fill="#CFD7E1">
+    Informieren. Verstehen. Mitwirken.
+  </text>
+</svg>
