@@ -256,14 +256,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
           }}
         >
           {scrollMaxPx > 60 ? (
-            <div className="intro-login-scroll-slider pointer-events-auto sticky top-2 z-[5] ml-auto mr-0.5 w-4">
+            <div className="intro-login-scroll-rail pointer-events-none absolute right-1 top-3 z-[5] flex h-[calc(100%-0.75rem)] w-5 items-start justify-center">
               <input
                 type="range"
                 min={0}
                 max={100}
                 value={scrollPct}
                 aria-label="Scroll"
-                className="intro-vertical-slider w-4"
+                className="intro-vertical-slider pointer-events-auto w-4"
                 onChange={(e) => {
                   const pct = Number(e.target.value);
                   setScrollPct(pct);
@@ -453,30 +453,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
         </div>
 
         <div className="flex-shrink-0 space-y-2 border-t border-neutral-200 bg-[#F7F9FC] px-4 pt-2.5 intro-action-bar-pad sm:px-5 sm:pt-3">
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => (onBackToEntry ? onBackToEntry() : reopenProductIntro())}
-              className={loginNavBackClass}
-            >
-              Zurück
-            </button>
-            <div className="flex-1 rounded-xl bg-[#EAF2FF] p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  cancelOnboardingSpotlight();
-                  if (!confirmedAccessMethod) return;
-                  handleProceedToApp();
-                }}
-                onAnimationEnd={onOnboardingSpotlightAnimationEnd}
-                disabled={!confirmedAccessMethod}
-                className={`${loginNavNextClass}${confirmedAccessMethod ? '' : ' opacity-60 cursor-not-allowed'}`}
-              >
-                Weiter
-              </button>
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={() => (onBackToEntry ? onBackToEntry() : reopenProductIntro())}
+            className={loginNavBackClass}
+          >
+            Zurück
+          </button>
         </div>
       </div>
     </div>

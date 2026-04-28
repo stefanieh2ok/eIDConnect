@@ -780,7 +780,7 @@ body {
 /* Login/eID screen: vertical scroll slider (subtle hint there is more content). */
 .intro-vertical-slider {
   appearance: none;
-  height: 120px;
+  height: 100%;
   writing-mode: bt-lr;
   -webkit-appearance: none;
   width: 14px;
