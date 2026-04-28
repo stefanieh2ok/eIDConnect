@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
@@ -89,6 +89,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   const [confirmedAccessMethod, setConfirmedAccessMethod] = useState<'eid' | 'demo' | null>('eid');
   type OnboardingSpotlight = 'off' | 'eid' | 'weiter';
   const [onboardingSpotlight] = useState<OnboardingSpotlight>('off');
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [scrollPct, setScrollPct] = useState(0);
+  const [scrollMaxPx, setScrollMaxPx] = useState(0);
 
   const reopenProductIntro = useCallback(() => {
     try {
@@ -176,6 +179,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     dispatch({ type: 'SET_LOGGED_IN', payload: true });
   };
 
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const recompute = () => {
+      const max = Math.max(0, el.scrollHeight - el.clientHeight);
+      setScrollMaxPx(max);
+      const pct = max > 0 ? Math.round((el.scrollTop / max) * 100) : 0;
+      setScrollPct(Math.min(100, Math.max(0, pct)));
+    };
+    recompute();
+    window.addEventListener('resize', recompute, { passive: true });
+    return () => window.removeEventListener('resize', recompute as any);
+  }, []);
+
   const claraAccessLongPlain = useMemo(() => introEidLoginSpokenParts(du).join(' '), [du]);
   const claraAccessShortPlain = useMemo(() => {
     const main = du ? INTRO_ACCESS_CLARA_PANEL_SHORT_DU : INTRO_ACCESS_CLARA_PANEL_SHORT_SIE;
@@ -226,9 +243,38 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
 
         <div
           id="login-main-scroll"
-          className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-4 pb-3 sm:px-5 sm:pb-4"
+          ref={scrollRef}
+          className="scrollbar-hide relative min-h-0 flex-1 overflow-y-auto px-4 pb-3 sm:px-5 sm:pb-4"
           style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
+          onScroll={() => {
+            const el = scrollRef.current;
+            if (!el) return;
+            const max = Math.max(0, el.scrollHeight - el.clientHeight);
+            setScrollMaxPx(max);
+            const pct = max > 0 ? Math.round((el.scrollTop / max) * 100) : 0;
+            setScrollPct(Math.min(100, Math.max(0, pct)));
+          }}
         >
+          {scrollMaxPx > 60 ? (
+            <div className="intro-login-scroll-slider pointer-events-auto sticky top-2 z-[5] ml-auto mr-0.5 w-4">
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={scrollPct}
+                aria-label="Scroll"
+                className="intro-vertical-slider w-4"
+                onChange={(e) => {
+                  const pct = Number(e.target.value);
+                  setScrollPct(pct);
+                  const el = scrollRef.current;
+                  if (!el) return;
+                  const max = Math.max(0, el.scrollHeight - el.clientHeight);
+                  el.scrollTop = (pct / 100) * max;
+                }}
+              />
+            </div>
+          ) : null}
           <div className="space-y-2.5 sm:space-y-3">
             <ClaraStepPanel
               surface="light"
@@ -238,7 +284,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               showTopicTitle
               hideShortWhenCollapsed
             />
-            <div className={accessPathCardClass}>
+            <div className={`${accessPathCardClass} intro-login-heartbeat`}>
               <div className="flex items-start justify-between gap-2">
                 <span
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#003366] text-[10px] font-bold text-white"
@@ -267,7 +313,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               </button>
             </div>
 
-            <div className={accessPathCardClass}>
+            <div className={`${accessPathCardClass} intro-login-heartbeat`}>
               <div className="flex items-start justify-between gap-2">
                 <span
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[#003366]/40 bg-white text-[10px] font-bold text-[#003366]"
@@ -370,10 +416,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               </div>
               <button
                 type="button"
-                onClick={handleDemoModeClick}
-                className="mt-2 inline-flex min-h-[34px] w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] transition hover:bg-slate-50 sm:mt-2.5"
+                onClick={() => {
+                  // Step 3 is completed by the “Weiter” action; keep it logically inside this card.
+                  handleDemoModeClick();
+                  handleProceedToApp();
+                }}
+                className="mt-2 inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-[#003D80] px-3 text-[12px] font-bold tracking-[0.01em] text-white shadow-[0_4px_14px_rgba(0,61,128,0.28)] transition hover:bg-[#00366f] active:scale-[0.99]"
               >
-                Demo-Zugang verwenden
+                Weiter
               </button>
             </div>
 

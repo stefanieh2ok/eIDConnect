@@ -11,9 +11,10 @@ const nextConfig = {
   // Webpack-Cache in Development deaktivieren, um "Array buffer allocation failed"
   // und EPERM auf Windows zu vermeiden (weniger Speicher, keine Cache-Dateien).
   webpack: (config, { dev }) => {
-    if (dev) {
-      config.cache = false;
-    }
+    // IMPORTANT (Windows / low disk): disable persistent filesystem cache.
+    // This prevents ENOSPC errors when Next/Webpack try to write *.pack files.
+    // Trade-off: builds are a bit slower, but reliably complete.
+    config.cache = false;
     return config;
   },
 }

@@ -306,11 +306,15 @@ export const INTRO_CLOSING_SPOKEN_SEGMENTS_SIE: readonly string[] = [
   'Das war der kurze Überblick.',
   'Sie können die HookAI Civic Demo jetzt selbst erkunden oder Clara gezielt Fragen stellen.',
   'Ich antworte neutral, verständlich und nur auf das, was Sie wissen möchten.',
+  'Ihre Identität wird nur geprüft, damit klar ist, dass Sie teilnahmeberechtigt sind.',
+  'Ziel ist: prüfbare Teilnahme, aber geheime Entscheidung.',
 ];
 export const INTRO_CLOSING_SPOKEN_SEGMENTS_DU: readonly string[] = [
   'Das war der kurze Überblick.',
   'Du kannst die HookAI Civic Demo jetzt selbst erkunden oder Clara gezielt Fragen stellen.',
   'Ich antworte neutral, verständlich und nur auf das, was du wissen möchtest.',
+  'Deine Identität wird nur geprüft, damit klar ist, dass du teilnahmeberechtigt bist.',
+  'Ziel ist: prüfbare Teilnahme, aber geheime Entscheidung.',
 ];
 
 /** Letzter Walkthrough-Schritt (Politikbarometer): bewusst nur zwei Wörter — kein „Einführung beenden & …“. */

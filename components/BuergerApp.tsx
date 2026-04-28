@@ -398,6 +398,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                     du={state.anrede === 'du'}
                     residenceLocation={state.residenceLocation}
                     startStepId="abstimmen"
+                    fillDeviceFrame={isDevice}
                     onClose={finishProductIntro}
                     onFinish={finishProductIntro}
                     onBackFromFirstStep={backFromWalkthroughFirstStep}
@@ -410,7 +411,10 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
               <main
                 id="main-scroll"
                 tabIndex={-1}
-                className="scrollbar-hide flex-1 min-h-0 overflow-y-auto scroll-smooth outline-none"
+                className={
+                  'scrollbar-hide flex-1 min-h-0 overflow-y-auto scroll-smooth outline-none ' +
+                  (walkthroughChrome ? 'hidden' : '')
+                }
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
                 <div className="px-3 pt-3 pb-clara-dock-safe">

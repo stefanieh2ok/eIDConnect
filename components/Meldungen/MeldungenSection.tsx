@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { SectionLevelFilterIcon, selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
 import { activeLocationForLevel } from '@/lib/activeLocationForLevel';
@@ -37,9 +37,17 @@ function demoMeldungenForGemeinde(gemeinde: string) {
 type MeldungenSectionProps = {
   /** Eingebettet im Walkthrough: etwas kompaktere Abstände, gleiche Funktionalität. */
   embeddedInWalkthrough?: boolean;
+  /** Walkthrough: automatisierte Demo-Sequenz (Tippen + Upload-Vorschau), ohne Speicherung. */
+  walkthroughDemo?: {
+    enabled: boolean;
+    /** Beschreibungs-Text, der per Typewriter eingetippt wird. */
+    descriptionText: string;
+    /** Public-URL zu einem Demo-Bild, das nach dem Tippen „hochgeladen“ wird. */
+    imageUrl: string;
+  };
 };
 
-export default function MeldungenSection({ embeddedInWalkthrough = false }: MeldungenSectionProps) {
+export default function MeldungenSection({ embeddedInWalkthrough = false, walkthroughDemo }: MeldungenSectionProps) {
   const { state, dispatch } = useApp();
   const du = state.anrede === 'du';
   const gemeindeLoc = activeLocationForLevel(state.residenceLocation, 'kommune');
@@ -53,6 +61,13 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
   const [photos, setPhotos] = useState<File[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('alle');
   const [dringlichkeit, setDringlichkeit] = useState(2);
+  const [demoUploadPct, setDemoUploadPct] = useState(0);
+  const [demoUploaded, setDemoUploaded] = useState(false);
+  const [demoTyping, setDemoTyping] = useState(false);
+  const [demoPhotoLabel, setDemoPhotoLabel] = useState(false);
+  const [demoFinalReady, setDemoFinalReady] = useState(false);
+  const demoTimerRef = useRef<number | null>(null);
+  const demoUiTimersRef = useRef<number[]>([]);
 
   const photoPreviews = useMemo(() => {
     return photos.map((file) => ({
@@ -66,6 +81,63 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
       for (const p of photoPreviews) URL.revokeObjectURL(p.url);
     };
   }, [photoPreviews]);
+
+  useEffect(() => {
+    if (!walkthroughDemo?.enabled) return;
+
+    // Start directly in the real input UI (details view) and simulate a short sequence:
+    // typewriter text → upload progress → thumbnail appears. No persistence.
+    setStep('details');
+    setKategorie('spielplatz');
+    setAdresse('');
+    setPhotos([]);
+    setDemoUploadPct(0);
+    setDemoUploaded(false);
+    setDemoTyping(true);
+    setDemoPhotoLabel(false);
+    setDemoFinalReady(false);
+    for (const t of demoUiTimersRef.current) window.clearTimeout(t);
+    demoUiTimersRef.current = [];
+
+    const text = walkthroughDemo.descriptionText;
+    let i = 0;
+    setBeschreibung('');
+
+    const tickTyping = () => {
+      i += 1;
+      setBeschreibung(text.slice(0, i));
+      if (i < text.length) {
+        demoTimerRef.current = window.setTimeout(tickTyping, 26 + Math.floor(Math.random() * 32));
+        return;
+      }
+
+      // After typing, simulate upload (quick progress + reveal thumbnail).
+      setDemoTyping(false);
+      const start = Date.now();
+      const durationMs = 1200;
+      const tickUpload = () => {
+        const t = Math.min(1, (Date.now() - start) / durationMs);
+        setDemoUploadPct(Math.round(t * 100));
+        if (t < 1) {
+          demoTimerRef.current = window.setTimeout(tickUpload, 70);
+          return;
+        }
+        setDemoUploaded(true);
+        // Follow-up UI cues: label first, then final “prepared” state.
+        demoUiTimersRef.current.push(window.setTimeout(() => setDemoPhotoLabel(true), 220));
+        demoUiTimersRef.current.push(window.setTimeout(() => setDemoFinalReady(true), 640));
+      };
+      demoTimerRef.current = window.setTimeout(tickUpload, 180);
+    };
+
+    demoTimerRef.current = window.setTimeout(tickTyping, 450);
+
+    return () => {
+      if (demoTimerRef.current) window.clearTimeout(demoTimerRef.current);
+      for (const t of demoUiTimersRef.current) window.clearTimeout(t);
+      demoUiTimersRef.current = [];
+    };
+  }, [walkthroughDemo?.enabled, walkthroughDemo?.descriptionText, walkthroughDemo?.imageUrl]);
 
   const handleSenden = () => {
     if (!beschreibung.trim()) return;
@@ -89,6 +161,8 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
   );
   const dringlichkeitLabel = dringlichkeit === 1 ? 'Niedrig' : dringlichkeit === 2 ? 'Mittel' : 'Hoch';
   const shellClass = embeddedInWalkthrough ? 'card-section p-2.5' : 'card-section p-3';
+  const showDemoUpload = Boolean(walkthroughDemo?.enabled) && step === 'details';
+  const showDemoCaret = Boolean(walkthroughDemo?.enabled) && step === 'details' && demoTyping;
 
   return (
     <div className={`${embeddedInWalkthrough ? 'walkthrough-meldungen-embed' : ''} ${shellClass}`}>
@@ -255,17 +329,32 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">
                 {du ? 'Deine Beschreibung *' : 'Ihre Beschreibung *'}
               </label>
-              <textarea
-                value={beschreibung}
-                onChange={(e) => setBeschreibung(e.target.value)}
-                rows={3}
-                placeholder={
-                  du
-                    ? 'Beschreibe das Problem so genau wie möglich...'
-                    : 'Bitte beschreiben Sie das Problem so genau wie möglich...'
-                }
-                className="form-textarea w-full resize-none"
-              />
+              <div className="relative">
+                <textarea
+                  value={beschreibung}
+                  onChange={(e) => setBeschreibung(e.target.value)}
+                  rows={3}
+                  placeholder={
+                    du
+                      ? 'Beschreibe das Problem so genau wie möglich...'
+                      : 'Bitte beschreiben Sie das Problem so genau wie möglich...'
+                  }
+                  className={
+                    'form-textarea w-full resize-none ' +
+                    (showDemoCaret ? 'text-transparent caret-transparent' : '')
+                  }
+                />
+                {showDemoCaret ? (
+                  <div
+                    className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-[inherit] leading-[inherit] text-[#1A2B45]"
+                    aria-hidden
+                    style={{ padding: '0.75rem 0.875rem' }}
+                  >
+                    {beschreibung}
+                    <span className="intro-typewriter-caret ml-px inline-block h-[1em] w-[2px] translate-y-[2px] bg-[#0055A4]" />
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             <div>
@@ -318,6 +407,42 @@ export default function MeldungenSection({ embeddedInWalkthrough = false }: Meld
                   }}
                 />
               </label>
+
+              {showDemoUpload && demoUploadPct > 0 && !demoUploaded ? (
+                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                  <div className="flex items-center justify-between text-[10px] font-semibold text-slate-700">
+                    <span>Upload (Demo)</span>
+                    <span>{demoUploadPct}%</span>
+                  </div>
+                  <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-[#0055A4] transition-[width] duration-300 ease-out"
+                      style={{ width: `${demoUploadPct}%` }}
+                    />
+                  </div>
+                </div>
+              ) : null}
+
+              {showDemoUpload && demoUploaded ? (
+                <div className="space-y-1.5">
+                  {demoPhotoLabel ? (
+                    <div className="text-[10px] font-semibold text-emerald-800">Foto hinzugefügt</div>
+                  ) : null}
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="intro-upload-pop relative overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                      <img src={walkthroughDemo!.imageUrl} alt="Foto Vorschau" className="h-20 w-full object-cover" />
+                      <span className="absolute left-1 top-1 rounded-full bg-black/55 px-2 py-1 text-[10px] font-bold text-white">
+                        Demo
+                      </span>
+                    </div>
+                  </div>
+                  {demoFinalReady ? (
+                    <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700">
+                      Bereit zur Weiterleitung · Demo
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
 
               {photoPreviews.length > 0 && (
                 <div className="grid grid-cols-3 gap-2">

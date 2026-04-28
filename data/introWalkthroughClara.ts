@@ -43,25 +43,29 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
   },
   wahlen: {
     label: 'Wahlen',
-    line10sDu: 'Stimmzettel, Kandidierende und Programme sind gebündelt erreichbar.',
-    line10sSie: 'Stimmzettel, Kandidierende und Programme sind gebündelt erreichbar.',
-    shortDu: 'Stimmzettel, Kandidierende und Programme sind gebündelt erreichbar.',
-    shortSie: 'Stimmzettel, Kandidierende und Programme sind gebündelt erreichbar.',
+    line10sDu: 'Wahlen ist hier eine Vorschau: Informationen und Programme gebündelt.',
+    line10sSie: 'Wahlen ist hier eine Vorschau: Informationen und Programme gebündelt.',
+    shortDu: 'Wahlvorschau: Stimmzettel, Kandidierende und Programme gebündelt.',
+    shortSie: 'Wahlvorschau: Stimmzettel, Kandidierende und Programme gebündelt.',
     longDu:
-      'Alle Wahlinfos sind an einem Ort gebündelt: Stimmzettel, Kandidierende und Programme.\n\n' +
-      'Clara erklärt Inhalte neutral, ohne Wahlempfehlung.',
+      'Hier siehst du eine Wahlvorschau: Stimmzettel, Kandidierende und Programme an einem Ort.\n\n' +
+      'Clara erklärt Begriffe neutral — ohne Wahlempfehlung und ohne aktive Stimmabgabe in dieser Demo.',
     longSie:
-      'Alle Wahlinfos sind an einem Ort gebündelt: Stimmzettel, Kandidierende und Programme.\n\n' +
-      'Clara erklärt Inhalte neutral, ohne Wahlempfehlung.',
+      'Hier sehen Sie eine Wahlvorschau: Stimmzettel, Kandidierende und Programme an einem Ort.\n\n' +
+      'Clara erklärt Begriffe neutral — ohne Wahlempfehlung und ohne aktive Stimmabgabe in dieser Demo.',
     speakSegmentsDu: [
-      'Der Wahlbereich bündelt Informationen, die sonst oft an verschiedenen Stellen liegen: Stimmzettel, Programme, Kandidierende und Ergebnisse.',
+      'Hier siehst du eine Wahlvorschau, damit du dich informieren kannst: Stimmzettel, Programme, Kandidierende und Ergebnisse.',
       'Clara kann Begriffe erklären oder Inhalte verständlich zusammenfassen.',
-      'Eine Wahlempfehlung gibt die App aber nicht.',
+      'Wichtig: In dieser Demo wird hier nicht gewählt.',
+      'Eine Wahlempfehlung gibt die App nicht.',
+      'Perspektivisch kann dieser Bereich um sichere, autorisierte eVoting-Prozesse ergänzt werden.',
     ],
     speakSegmentsSie: [
-      'Der Wahlbereich bündelt Informationen, die sonst oft an verschiedenen Stellen liegen: Stimmzettel, Programme, Kandidierende und Ergebnisse.',
+      'Hier sehen Sie eine Wahlvorschau, damit Sie sich informieren können: Stimmzettel, Programme, Kandidierende und Ergebnisse.',
       'Clara kann Begriffe erklären oder Inhalte verständlich zusammenfassen.',
-      'Eine Wahlempfehlung gibt die App aber nicht.',
+      'Wichtig: In dieser Demo wird hier nicht gewählt.',
+      'Eine Wahlempfehlung gibt die App nicht.',
+      'Perspektivisch kann dieser Bereich um sichere, autorisierte eVoting-Prozesse ergänzt werden.',
     ],
   },
   kalender: {
