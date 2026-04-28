@@ -1052,72 +1052,85 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
 
               <p className="text-[11px] text-gray-600 mb-4">Wahlkreis {userWahlkreisByLevel && wahl.level ? (userWahlkreisByLevel[wahl.level as keyof typeof userWahlkreisByLevel] || wahl.wahlkreis) : wahl.wahlkreis}</p>
 
-              <button
-                onClick={() => handleStimmzettelClick(wahl)}
-                className="btn-gov-primary mt-1 w-full rounded-xl py-3 font-semibold transition-opacity"
-                // Amtlicher Stimmzettel-Look: kräftiges Amtsgelb (#FBBF24) / #0A2540
-                // bei Abstimmung (offen) und bei reiner Stimmzettel-Vorschau
-                // (abgeschlossen: "Stimmzettel ansehen"). "Termin ansehen" (demnaechst)
-                // bleibt sichtbar zurückgenommen.
-                style={
-                  canParticipate || status !== 'demnaechst'
-                    ? { background: '#FBBF24', color: '#0A2540' }
-                    : { background: '#FEF3C7', color: '#78350F' }
-                }
-              >
-                {canParticipate
-                  ? (hasVoted ? 'Stimmzettel erneut ansehen' : 'Jetzt teilnehmen (Demo)')
-                  : status === 'demnaechst'
-                    ? 'Termin ansehen'
-                    : (hasVoted ? 'Stimmzettel erneut ansehen' : 'Stimmzettel ansehen')}
-              </button>
-              {!canParticipate && (
-                <p className="mt-2 text-[10px] text-slate-500">
-                  {status === 'demnaechst'
-                    ? 'Diese Wahl ist noch nicht geoeffnet. Aktuell ist nur die Termin-/Informationsansicht verfuegbar.'
-                    : 'Diese Wahl ist nicht mehr abstimmbar und wird als Ergebnis-/Informationsansicht gezeigt.'}
-                </p>
-              )}
-
-              {showArchiv && (
-                <div className="app-card-subtle mt-4 p-3">
-                  <div className="text-[11px] font-semibold text-neutral-900">Wahlergebnis</div>
-                  {wahl.ergebnis?.parteien && wahl.ergebnis.parteien.length > 0 ? (
-                    <div className="mt-2 space-y-2">
-                      {typeof wahl.ergebnis.wahlbeteiligung === 'number' && (
-                        <div className="text-[10px] text-neutral-600">
-                          Wahlbeteiligung: <span className="font-semibold text-neutral-800">{wahl.ergebnis.wahlbeteiligung}%</span>
+              <div className="mt-3 space-y-3">
+                <div className="rounded-xl border border-neutral-200 bg-[#F8FAFD] p-3">
+                  <div className="text-[11px] font-semibold text-neutral-900">Ergebnis</div>
+                  {showArchiv ? (
+                    <div className="app-card-subtle mt-2 p-3">
+                      <div className="text-[11px] font-semibold text-neutral-900">Wahlergebnis</div>
+                      {wahl.ergebnis?.parteien && wahl.ergebnis.parteien.length > 0 ? (
+                        <div className="mt-2 space-y-2">
+                          {typeof wahl.ergebnis.wahlbeteiligung === 'number' && (
+                            <div className="text-[10px] text-neutral-600">
+                              Wahlbeteiligung: <span className="font-semibold text-neutral-800">{wahl.ergebnis.wahlbeteiligung}%</span>
+                            </div>
+                          )}
+                          <div className="space-y-1">
+                            {wahl.ergebnis.parteien.map((p) => (
+                              <div key={p.partei} className="flex items-center justify-between gap-3 text-[11px] text-neutral-800">
+                                <span className="min-w-0 truncate">{p.partei}</span>
+                                <span className="flex items-center gap-2 flex-shrink-0">
+                                  <span className="font-semibold">{p.prozent}%</span>
+                                  {typeof (p as any).sitze === 'number' ? (
+                                    <span className="text-[10px] text-neutral-500">{(p as any).sitze} Sitze</span>
+                                  ) : null}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          {wahl.ergebnis.koalition ? (
+                            <div className="pt-2 text-[10px] text-neutral-600">
+                              Koalition/Mehrheit: <span className="font-semibold text-neutral-800">{wahl.ergebnis.koalition}</span>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <div className="mt-2 text-[11px] leading-relaxed text-neutral-700">
+                          Ergebnisdaten sind in der Demo für diese Wahl noch nicht hinterlegt.
+                          <div className="mt-1 text-[10px] text-neutral-500">
+                            Hinweis: Die Karte bleibt als Orientierungsansicht sichtbar, ohne Zahlen/Prozentwerte zu behaupten.
+                          </div>
                         </div>
                       )}
-                      <div className="space-y-1">
-                        {wahl.ergebnis.parteien.map((p) => (
-                          <div key={p.partei} className="flex items-center justify-between gap-3 text-[11px] text-neutral-800">
-                            <span className="min-w-0 truncate">{p.partei}</span>
-                            <span className="flex items-center gap-2 flex-shrink-0">
-                              <span className="font-semibold">{p.prozent}%</span>
-                              {typeof (p as any).sitze === 'number' ? (
-                                <span className="text-[10px] text-neutral-500">{(p as any).sitze} Sitze</span>
-                              ) : null}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      {wahl.ergebnis.koalition ? (
-                        <div className="pt-2 text-[10px] text-neutral-600">
-                          Koalition/Mehrheit: <span className="font-semibold text-neutral-800">{wahl.ergebnis.koalition}</span>
-                        </div>
-                      ) : null}
                     </div>
                   ) : (
-                    <div className="mt-2 text-[11px] leading-relaxed text-neutral-700">
-                      Ergebnisdaten sind in der Demo für diese Wahl noch nicht hinterlegt.
-                      <div className="mt-1 text-[10px] text-neutral-500">
-                        Hinweis: Die Karte bleibt als Orientierungsansicht sichtbar, ohne Zahlen/Prozentwerte zu behaupten.
-                      </div>
-                    </div>
+                    <p className="mt-2 text-[10px] text-slate-500">
+                      Ergebnisse werden im Bereich „Ergebnisse“ dargestellt.
+                    </p>
                   )}
                 </div>
-              )}
+
+                <div className="rounded-xl border border-neutral-200 bg-white p-3">
+                  <div className="text-[11px] font-semibold text-neutral-900">Wahlvorschau</div>
+                  <button
+                    onClick={() => handleStimmzettelClick(wahl)}
+                    className="btn-gov-primary mt-2 w-full rounded-xl py-3 font-semibold transition-opacity"
+                    style={
+                      status !== 'demnaechst'
+                        ? { background: '#FBBF24', color: '#0A2540' }
+                        : { background: '#FEF3C7', color: '#78350F' }
+                    }
+                  >
+                    {status === 'demnaechst' ? 'Termin ansehen' : 'Stimmzettel (Vorschau) öffnen'}
+                  </button>
+                  <div className="mt-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2">
+                    <p className="text-[10px] font-semibold text-neutral-700">Informationsansicht</p>
+                    <p className="mt-0.5 text-[10px] leading-relaxed text-neutral-600">
+                      {du
+                        ? 'Du kannst Stimmzettel, Kandidierende und Programme einsehen. Eine Stimmabgabe ist hier nicht möglich.'
+                        : 'Sie können Stimmzettel, Kandidierende und Programme einsehen. Eine Stimmabgabe ist hier nicht möglich.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+                  <div className="text-[11px] font-semibold text-slate-800">Perspektive: eVoting</div>
+                  <p className="mt-1 text-[10px] leading-relaxed text-slate-600">
+                    Eine digitale Stimmabgabe ist perspektivisch möglich. Voraussetzung sind sichere
+                    Identitätsprüfung, Trennung von Identität und Stimme sowie gesetzliche Freigaben.
+                  </p>
+                </div>
+              </div>
 
               {wahl.kandidaten && wahl.kandidaten.length > 0 ? (
                 <div className="mt-4">
