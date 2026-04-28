@@ -298,32 +298,34 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
             <div className="mt-1 text-sm font-semibold text-[#1A2B45]">{selectedKat.label}</div>
           </div>
 
-          <div className={`space-y-4.5 ${embeddedInWalkthrough ? 'pb-20' : 'pb-28'}`}>
-            <div className="rounded-xl border border-[#CFE7E3] bg-[#F4FCFA] p-3">
-              <div className="mb-1.5 flex items-center justify-between gap-2">
-                <label htmlFor="dringlichkeit-range" className="text-xs font-semibold text-[#1A2B45]">
-                  Priorität
-                </label>
-                <span className="rounded-full border border-[#7ADFD4] bg-[#ECFEFC] px-2 py-0.5 text-[10px] font-semibold text-[#0F766E]">
-                  {dringlichkeitLabel}
-                </span>
+          <div className={`space-y-3 ${embeddedInWalkthrough ? 'pb-12' : 'pb-28'}`}>
+            {!walkthroughDemo?.enabled ? (
+              <div className="rounded-xl border border-[#CFE7E3] bg-[#F4FCFA] p-3">
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <label htmlFor="dringlichkeit-range" className="text-xs font-semibold text-[#1A2B45]">
+                    Priorität
+                  </label>
+                  <span className="rounded-full border border-[#7ADFD4] bg-[#ECFEFC] px-2 py-0.5 text-[10px] font-semibold text-[#0F766E]">
+                    {dringlichkeitLabel}
+                  </span>
+                </div>
+                <input
+                  id="dringlichkeit-range"
+                  type="range"
+                  min={1}
+                  max={3}
+                  step={1}
+                  value={dringlichkeit}
+                  onChange={(e) => setDringlichkeit(Number(e.target.value))}
+                  className="w-full accent-[#16B8AE]"
+                />
+                <div className="mt-1 flex justify-between text-[10px] text-gray-500">
+                  <span>Niedrig</span>
+                  <span>Mittel</span>
+                  <span>Hoch</span>
+                </div>
               </div>
-              <input
-                id="dringlichkeit-range"
-                type="range"
-                min={1}
-                max={3}
-                step={1}
-                value={dringlichkeit}
-                onChange={(e) => setDringlichkeit(Number(e.target.value))}
-                className="w-full accent-[#16B8AE]"
-              />
-              <div className="mt-1 flex justify-between text-[10px] text-gray-500">
-                <span>Niedrig</span>
-                <span>Mittel</span>
-                <span>Hoch</span>
-              </div>
-            </div>
+            ) : null}
 
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">
@@ -381,9 +383,9 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
             </div>
 
             {/* Foto */}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label
-                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-white py-3.5 text-sm font-medium transition-colors hover:border-[#7AA4D8] hover:text-[#1F4F8A]"
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-white py-2.5 text-sm font-medium transition-colors hover:border-[#7AA4D8] hover:text-[#1F4F8A]"
                 style={{ borderColor: 'var(--gov-border, #D6E0EE)', color: photos.length > 0 ? '#1F4F8A' : undefined }}
               >
                 {photos.length > 0

@@ -57,9 +57,8 @@ export default function PolitikBarometerPanel({
   const title = headingTitle ?? 'Politikbarometer';
   const lead = du ? (leadDu ?? DEFAULT_LEAD_DU) : (leadSie ?? DEFAULT_LEAD_SIE);
   const walkFooter = heroPreview ? undefined : du ? walkthroughFooterDu : walkthroughFooterSie;
-  const themeEntries = heroPreview
-    ? (['umwelt', 'finanzen'] as const).map((k) => [k, THEME_NAMES[k]] as const)
-    : Object.entries(THEME_NAMES);
+  // Walkthrough should show the real slider set, not a reduced subset.
+  const themeEntries = Object.entries(THEME_NAMES);
   const ensureConsentForPreferenceUse = () => {
     if (state.consentClaraPersonalization || editableWithoutConsent) return;
     dispatch({ type: 'SET_CONSENT_CLARA_PERSONALIZATION', payload: true });
