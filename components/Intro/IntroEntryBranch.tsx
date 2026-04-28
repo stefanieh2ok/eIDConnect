@@ -14,7 +14,6 @@ import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
-import HookAiCivicLogo from '@/components/ui/HookAiCivicLogo';
 
 type Props = {
   open: boolean;
@@ -86,10 +85,10 @@ export function IntroEntryBranch({
     >
       <div className="absolute inset-0 bg-[#0B2A3C]" aria-hidden />
       <div className="pointer-events-none absolute inset-x-0 top-6 z-[1] flex justify-center">
-        <HookAiCivicLogo
+        <ProductIdentityHeader
           variant="dark"
-          className="intro-logo-enter h-10 w-auto max-w-[220px]"
-          alt="HookAI Civic"
+          align="center"
+          className="intro-logo-enter"
         />
       </div>
       <div

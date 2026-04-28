@@ -10,13 +10,13 @@ describe('ElectionsSection', () => {
     globalThis.localStorage.clear();
   });
 
-  it('renders section heading', () => {
+  it('renders preview heading', () => {
     render(
       <AppProvider>
         <ElectionsSection currentLocation="deutschland" />
       </AppProvider>
     );
-    expect(screen.getByText('Wahlen')).toBeInTheDocument();
+    expect(screen.getByText('Wahlvorschau: Kandidierende, Programme und verifizierte Quellen.')).toBeInTheDocument();
   });
 
   it('shows "Bereits abgestimmt" for voted election after vote is recorded', async () => {
@@ -42,10 +42,10 @@ describe('ElectionsSection', () => {
     await waitFor(() => {
       expect(screen.getByText('Bereits abgestimmt')).toBeInTheDocument();
     });
-    expect(screen.getByText('Stimmzettel erneut ansehen')).toBeInTheDocument();
+    expect(screen.getByText('Stimmzettel (Vorschau) öffnen')).toBeInTheDocument();
   });
 
-  it('shows "Stimmzettel ansehen" when not voted', () => {
+  it('shows "Stimmzettel (Vorschau) öffnen" when not voted', () => {
     render(
       <AppProvider>
         <ElectionsSection currentLocation="deutschland" />
@@ -54,7 +54,7 @@ describe('ElectionsSection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Ergebnisse' }));
     const buttons = screen.getAllByRole('button', { name: /Stimmzettel/ });
     expect(buttons.length).toBeGreaterThan(0);
-    expect(buttons.some((b) => b.textContent === 'Stimmzettel ansehen')).toBe(true);
+    expect(buttons.some((b) => b.textContent === 'Stimmzettel (Vorschau) öffnen')).toBe(true);
   });
 
   it('kreis tab Saarland: nur Kreistag zum gewählten Menü (saarpfalz)', () => {

@@ -25,11 +25,10 @@ import ElectionsSection from '@/components/Elections/ElectionsSection';
 import CalendarSection from '@/components/Calendar/CalendarSection';
 import MeldungenSection from '@/components/Meldungen/MeldungenSection';
 import type { Location, Section, UserPreferences, VoteType } from '@/types';
-import { APP_DISPLAY_NAME, APP_TAGLINE } from '@/lib/branding';
 import { DEMO_POINTS_PER_ABSTIMMUNG, VOTING_DATA, WAHLEN_DATA } from '@/data/constants';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
-import HookAiCivicLogo from '@/components/ui/HookAiCivicLogo';
+import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = {
   abstimmen: 'Echte Abstimmungs-Ansicht wie in der App',
@@ -716,11 +715,7 @@ export default function DemoIntroWalkthrough({
                 Vorschau – Demo-Modus
               </span>
             </div>
-            <div className="flex items-center justify-start gap-2">
-              <HookAiCivicLogo variant="light" alt={APP_DISPLAY_NAME} className="h-5 w-auto max-w-[130px]" />
-              <span className="text-[11px] font-semibold tracking-tight text-[#003366]">HookAI Civic Demo</span>
-            </div>
-            <span className="text-[10px] font-medium leading-snug text-neutral-500">{APP_TAGLINE}</span>
+            <ProductIdentityHeader />
           </div>
 
           <div

@@ -4,6 +4,7 @@ import type { PastVotingResult, VotingCard, VotingData } from '@/types';
 
 function minimalCard(partial: Partial<VotingCard> & Pick<VotingCard, 'id' | 'title' | 'deadline'>): VotingCard {
   return {
+    ...partial,
     id: partial.id,
     title: partial.title,
     deadline: partial.deadline,
@@ -24,7 +25,6 @@ function minimalCard(partial: Partial<VotingCard> & Pick<VotingCard, 'id' | 'tit
       financialImpact: '',
       environmentalImpact: '',
     },
-    ...partial,
   };
 }
 

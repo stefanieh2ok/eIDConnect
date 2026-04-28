@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
-import { APP_DISPLAY_NAME, APP_TAGLINE } from '@/lib/branding';
+import { APP_DISPLAY_NAME } from '@/lib/branding';
 
 /**
  * Inhalt der Startseite (HookAI Zugang).
@@ -109,7 +109,6 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
         {/* Marke */}
         <div className="flex flex-col items-center gap-2 text-center">
           <h1 className="text-xl font-bold tracking-tight text-[#003366] sm:text-2xl">{APP_DISPLAY_NAME}</h1>
-          <p className="max-w-[18rem] text-sm leading-snug text-neutral-600">{APP_TAGLINE}</p>
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">Zugang</p>
         </div>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 
 type LogoVariant = 'light' | 'dark' | 'icon';
 
@@ -11,9 +12,15 @@ type HookAiCivicLogoProps = {
 };
 
 const SRC_BY_VARIANT: Record<LogoVariant, string> = {
-  light: '/brand/logo-light.svg',
-  dark: '/brand/logo-dark.svg',
-  icon: '/brand/icon-only.svg',
+  light: '/brand/logo-light.svg?v=20260428c',
+  dark: '/brand/logo-dark.svg?v=20260428c',
+  icon: '/brand/icon-only.svg?v=20260428c',
+};
+
+const DIMENSIONS_BY_VARIANT: Record<LogoVariant, { width: number; height: number }> = {
+  light: { width: 980, height: 220 },
+  dark: { width: 600, height: 140 },
+  icon: { width: 512, height: 512 },
 };
 
 export default function HookAiCivicLogo({
@@ -21,13 +28,16 @@ export default function HookAiCivicLogo({
   className = '',
   alt = 'HookAI Civic',
 }: HookAiCivicLogoProps) {
+  const dimensions = DIMENSIONS_BY_VARIANT[variant];
   return (
-    <img
+    <Image
       src={SRC_BY_VARIANT[variant]}
       alt={alt}
+      width={dimensions.width}
+      height={dimensions.height}
       className={`block h-auto w-auto object-contain ${className}`}
-      loading="eager"
-      decoding="async"
+      priority
+      unoptimized
     />
   );
 }
