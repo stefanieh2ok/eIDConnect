@@ -20,24 +20,24 @@ export type WalkthroughClaraBlock = {
 export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClaraBlock> = {
   abstimmen: {
     label: 'Abstimmen',
-    line10sDu: 'Pro und Contra helfen dir, Abstimmungen schnell einzuordnen.',
-    line10sSie: 'Pro und Contra helfen Ihnen, Abstimmungen schnell einzuordnen.',
-    shortDu: 'Pro und Contra helfen dir, Abstimmungen schnell einzuordnen.',
-    shortSie: 'Pro und Contra helfen Ihnen, Abstimmungen schnell einzuordnen.',
+    line10sDu: 'Hier triffst du deine Entscheidung – bewusst und nachvollziehbar.',
+    line10sSie: 'Hier treffen Sie Ihre Entscheidung – bewusst und nachvollziehbar.',
+    shortDu: 'Hier triffst du deine Entscheidung – bewusst und nachvollziehbar.',
+    shortSie: 'Hier treffen Sie Ihre Entscheidung – bewusst und nachvollziehbar.',
     longDu:
-      'Du stimmst über sichtbare Daumen-Buttons ab und kannst davor Pro und Contra vergleichen.\n\n' +
+      'Du siehst zuerst Argumente und Kontext, dann entscheidest du mit den Buttons.\n\n' +
       'Die App bleibt neutral und gibt keine Richtung vor.',
     longSie:
-      'Sie stimmen über sichtbare Daumen-Buttons ab und können davor Pro und Contra vergleichen.\n\n' +
+      'Sie sehen zuerst Argumente und Kontext, dann entscheiden Sie mit den Buttons.\n\n' +
       'Die App bleibt neutral und gibt keine Richtung vor.',
     speakSegmentsDu: [
-      'In diesem Bereich siehst du aktuelle Beteiligungen und Abstimmungen. Die Entscheidung erfolgt bewusst über die Daumen-Buttons, nicht durch Wischen am Bildschirm.',
-      'Vorher helfen dir Pro- und Contra-Argumente, die Positionen besser einzuordnen.',
+      'Hier triffst du deine Entscheidung – bewusst und nachvollziehbar.',
+      'Du siehst zuerst Argumente, dann entscheidest du mit den Buttons.',
       'Die App gibt dir keine Richtung vor.',
     ],
     speakSegmentsSie: [
-      'In diesem Bereich sehen Sie aktuelle Beteiligungen und Abstimmungen. Die Entscheidung erfolgt bewusst über die Daumen-Buttons, nicht durch Wischen am Bildschirm.',
-      'Vorher helfen Ihnen Pro- und Contra-Argumente, die Positionen besser einzuordnen.',
+      'Hier treffen Sie Ihre Entscheidung – bewusst und nachvollziehbar.',
+      'Sie sehen zuerst Argumente, dann entscheiden Sie mit den Buttons.',
       'Die App gibt Ihnen keine Richtung vor.',
     ],
   },

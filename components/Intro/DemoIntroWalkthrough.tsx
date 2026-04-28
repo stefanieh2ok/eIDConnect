@@ -24,8 +24,11 @@ import LeaderboardSection from '@/components/Leaderboard/LeaderboardSection';
 import ElectionsSection from '@/components/Elections/ElectionsSection';
 import CalendarSection from '@/components/Calendar/CalendarSection';
 import MeldungenSection from '@/components/Meldungen/MeldungenSection';
-import type { Location, Section, UserPreferences } from '@/types';
+import type { Location, Section, UserPreferences, VoteType } from '@/types';
 import { APP_DISPLAY_NAME, APP_TAGLINE } from '@/lib/branding';
+import { DEMO_POINTS_PER_ABSTIMMUNG, VOTING_DATA } from '@/data/constants';
+import VotingCard from '@/components/Voting/VotingCard';
+import VotingControls from '@/components/Voting/VotingControls';
 
 const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = {
   abstimmen: 'Echte Abstimmungs-Ansicht wie in der App',
@@ -181,19 +184,112 @@ function WalkthroughInfoDetails({
   );
 }
 
+function IntroAbstimmenWalkthroughDemo({
+  du,
+  onDone,
+}: {
+  du: boolean;
+  onDone: () => void;
+}) {
+  const { dispatch } = useApp();
+  const card = useMemo(() => {
+    const list = VOTING_DATA.kirkel?.cards ?? [];
+    const base = list.find((c) => c.id === 'kirkel-5') ?? list[0];
+    return base;
+  }, []);
+
+  const [phase, setPhase] = useState<'idle' | 'highlight' | 'pressed' | 'reward'>('idle');
+  const doneRef = useRef(false);
+
+  useEffect(() => {
+    doneRef.current = false;
+    setPhase('idle');
+    const t0 = window.setTimeout(() => setPhase('highlight'), 800);
+    const t1 = window.setTimeout(() => setPhase('pressed'), 1120);
+    const t2 = window.setTimeout(() => {
+      // Simulated vote action (no persistence beyond in-memory demo state)
+      dispatch({
+        type: 'HANDLE_VOTE',
+        payload: {
+          voteType: 'for' as VoteType,
+          card,
+          points: card?.points ?? 0,
+          earnedPoints: DEMO_POINTS_PER_ABSTIMMUNG,
+        },
+      });
+      setPhase('reward');
+      if (!doneRef.current) {
+        doneRef.current = true;
+        onDone();
+      }
+      // clear vote result after short delay (like app demo)
+      window.setTimeout(() => dispatch({ type: 'SET_VOTE_RESULT', payload: null }), 2200);
+    }, 1340);
+    return () => {
+      window.clearTimeout(t0);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
+  }, [dispatch, card, onDone]);
+
+  return (
+    <div className="relative w-full min-w-0">
+      <div className="mx-auto w-full max-w-[420px]">
+        <VotingCard
+          card={card}
+          introCompact
+          introDemoVoteDisclaimer
+          introHideProCon
+          introProConExpanded={false}
+        />
+
+        <div className="relative">
+          <VotingControls
+            canVote
+            du={du}
+            compact
+            introWalkthrough
+            onVote={() => {
+              // no-op: walkthrough runs scripted animation
+            }}
+          />
+
+          {/* Visual cue: halo over “Zustimmen”, then a quick press flash */}
+          {phase === 'highlight' ? (
+            <div className="pointer-events-none absolute right-[18px] top-[22px] h-16 w-16 rounded-full ring-4 ring-emerald-400/60" />
+          ) : null}
+          {phase === 'pressed' ? (
+            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-emerald-500/10" />
+          ) : null}
+        </div>
+      </div>
+
+      {phase === 'reward' ? (
+        <div className="pointer-events-none absolute left-1/2 top-[55%] -translate-x-1/2">
+          <div className="intro-reward-float inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-[12px] font-bold text-emerald-900 shadow-md">
+            +{DEMO_POINTS_PER_ABSTIMMUNG} Punkte
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /** Gleiche Sektionen wie unter der Tab-Leiste — kein separates Mini-Layout. */
 function WalkthroughRealSectionEmbed({
   stepId,
   du,
   calendarPriorities,
+  onAbstimmenDone,
 }: {
   stepId: IntroOverlayStepId;
   du: boolean;
   calendarPriorities: UserPreferences | undefined;
+  onAbstimmenDone: () => void;
 }) {
   switch (stepId) {
     case 'abstimmen':
-      return <LiveSection />;
+      return <IntroAbstimmenWalkthroughDemo du={du} onDone={onAbstimmenDone} />;
     case 'wahlen':
       return <ElectionsSection />;
     case 'kalender':
@@ -240,6 +336,7 @@ export default function DemoIntroWalkthrough({
   const { dispatch, state } = useApp();
   const du = _du;
   const [showDemoTooltip, setShowDemoTooltip] = useState(false);
+  const [nextPulse, setNextPulse] = useState(false);
   const demoTooltipTimerRef = useRef<number | null>(null);
   const steps = INTRO_OVERLAY_STEPS;
   const initialIdx = useMemo(() => {
@@ -302,6 +399,7 @@ export default function DemoIntroWalkthrough({
             stepId={step.id as IntroOverlayStepId}
             du={du}
             calendarPriorities={calendarPriorities}
+            onAbstimmenDone={() => setNextPulse(true)}
           />
         </div>
       </div>
@@ -336,6 +434,11 @@ export default function DemoIntroWalkthrough({
       el.scrollTop = 0;
     });
   }, [idx, step.id]);
+
+  useEffect(() => {
+    // Reset “Weiter”-pulse whenever the step changes.
+    setNextPulse(false);
+  }, [step.id]);
 
   useEffect(() => {
     onWalkthroughStepChange?.({ id: step.id, label: clara.label });
@@ -547,6 +650,7 @@ export default function DemoIntroWalkthrough({
               }}
               className={
                 'btn-primary t-button min-h-[44px] min-w-0 flex-1 text-[15px] font-bold ' +
+                (nextPulse && step.id === 'abstimmen' && !isLast ? ' footer-heartbeat' : '') +
                 (isLast ? 'whitespace-nowrap' : '')
               }
             >
