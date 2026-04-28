@@ -24,8 +24,8 @@ describe('buildIntroTtsManifest', () => {
   it('Walkthrough: erster TTS-Block (Du) = Clara-Sprachtext ohne Schritt-Präfix (Abstimmen)', () => {
     const du = buildIntroTtsManifest(true);
     expect(du[2].tts).not.toMatch(/^Schritt \d+ von/);
-    expect(du[2].tts).toMatch(/Vor der Entscheidung siehst du beide Seiten/);
-    expect(du[2].tts).toMatch(/Pro und Contra helfen dir/);
+    expect(du[2].tts).toMatch(/Du siehst zuerst die Argumente/);
+    expect(du[2].tts).toMatch(/entscheiden, was für dich passt/);
   });
 
   it('letzter TTS-Block (Du) enthält Abschlusstext', () => {

@@ -20,152 +20,132 @@ export type WalkthroughClaraBlock = {
 export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClaraBlock> = {
   abstimmen: {
     label: 'Abstimmen',
-    line10sDu: 'Vor der Entscheidung siehst du beide Seiten.',
-    line10sSie: 'Vor der Entscheidung sehen Sie beide Seiten.',
-    shortDu: 'Vor der Entscheidung siehst du beide Seiten.',
-    shortSie: 'Vor der Entscheidung sehen Sie beide Seiten.',
+    line10sDu: 'Du siehst zuerst die Argumente.',
+    line10sSie: 'Sie sehen zuerst die Argumente.',
+    shortDu: 'Du siehst zuerst die Argumente.',
+    shortSie: 'Sie sehen zuerst die Argumente.',
     longDu:
-      'Vor der Entscheidung siehst du beide Seiten.\n\n' +
-      'Pro und Contra helfen dir, eine Position einzuordnen.\n\n' +
-      'Die App gibt keine Richtung vor.',
+      'Du siehst zuerst die Argumente.\n\n' +
+      'Und kannst dann entscheiden, was für dich passt.',
     longSie:
-      'Vor der Entscheidung sehen Sie beide Seiten.\n\n' +
-      'Pro und Contra helfen Ihnen, eine Position einzuordnen.\n\n' +
-      'Die App gibt keine Richtung vor.',
+      'Sie sehen zuerst die Argumente.\n\n' +
+      'Und können dann entscheiden, was für Sie passt.',
     speakSegmentsDu: [
-      'Vor der Entscheidung siehst du beide Seiten.',
-      'Pro und Contra helfen dir, eine Position einzuordnen.',
-      'Die App gibt keine Richtung vor.',
+      'Du siehst zuerst die Argumente.',
+      'Und kannst dann entscheiden, was für dich passt.',
     ],
     speakSegmentsSie: [
-      'Vor der Entscheidung sehen Sie beide Seiten.',
-      'Pro und Contra helfen Ihnen, eine Position einzuordnen.',
-      'Die App gibt keine Richtung vor.',
+      'Sie sehen zuerst die Argumente.',
+      'Und können dann entscheiden, was für Sie passt.',
     ],
   },
   wahlen: {
     label: 'Wahlen',
-    line10sDu: 'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl.',
-    line10sSie: 'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl.',
-    shortDu: 'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl.',
-    shortSie: 'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl.',
+    line10sDu: 'Hier bekommst du eine Vorschau auf Wahlen.',
+    line10sSie: 'Hier bekommen Sie eine Vorschau auf Wahlen.',
+    shortDu: 'Hier bekommst du eine Vorschau auf Wahlen.',
+    shortSie: 'Hier bekommen Sie eine Vorschau auf Wahlen.',
     longDu:
-      'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl.\n\n' +
-      'Du kannst dich über Kandidierende, Parteien und Programme informieren.\n\n' +
-      'Programmquellen werden verlinkt und als offizielle Quelle gekennzeichnet.\n\n' +
-      'Perspektivisch kann dieser Bereich um sicheres eVoting ergänzt werden – aber nur mit klarer Trennung von Identität und Entscheidung.',
+      'Hier bekommst du eine Vorschau auf Wahlen.\n\n' +
+      'Mit Kandidierenden, Programmen und offiziellen Quellen.',
     longSie:
-      'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl.\n\n' +
-      'Sie können sich über Kandidierende, Parteien und Programme informieren.\n\n' +
-      'Programmquellen werden verlinkt und als offizielle Quelle gekennzeichnet.\n\n' +
-      'Perspektivisch kann dieser Bereich um sicheres eVoting ergänzt werden – aber nur mit klarer Trennung von Identität und Entscheidung.',
+      'Hier bekommen Sie eine Vorschau auf Wahlen.\n\n' +
+      'Mit Kandidierenden, Programmen und offiziellen Quellen.',
     speakSegmentsDu: [
-      'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl.',
-      'Du kannst dich über Kandidierende, Parteien und Programme informieren.',
-      'Programmquellen werden verlinkt und als offizielle Quelle gekennzeichnet.',
-      'Perspektivisch kann dieser Bereich um sicheres eVoting ergänzt werden – aber nur mit klarer Trennung von Identität und Entscheidung.',
+      'Hier bekommst du eine Vorschau auf Wahlen.',
+      'Mit Kandidierenden, Programmen und offiziellen Quellen.',
     ],
     speakSegmentsSie: [
-      'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl.',
-      'Sie können sich über Kandidierende, Parteien und Programme informieren.',
-      'Programmquellen werden verlinkt und als offizielle Quelle gekennzeichnet.',
-      'Perspektivisch kann dieser Bereich um sicheres eVoting ergänzt werden – aber nur mit klarer Trennung von Identität und Entscheidung.',
+      'Hier bekommen Sie eine Vorschau auf Wahlen.',
+      'Mit Kandidierenden, Programmen und offiziellen Quellen.',
     ],
   },
   kalender: {
     label: 'Kalender',
-    line10sDu: 'Termine und Fristen sind in einem Kalender gebündelt.',
-    line10sSie: 'Termine und Fristen sind in einem Kalender gebündelt.',
-    shortDu: 'Termine und Fristen sind in einem Kalender gebündelt.',
-    shortSie: 'Termine und Fristen sind in einem Kalender gebündelt.',
+    line10sDu: 'Hier siehst du, was ansteht.',
+    line10sSie: 'Hier sehen Sie, was ansteht.',
+    shortDu: 'Hier siehst du, was ansteht.',
+    shortSie: 'Hier sehen Sie, was ansteht.',
     longDu:
-      'Du siehst, was ansteht und bis wann Beteiligung möglich ist.\n\n' +
-      'Optional werden passende Termine aus dem Politikbarometer hervorgehoben.',
+      'Hier siehst du, was ansteht.\n\n' +
+      'Und bis wann du dich beteiligen kannst.',
     longSie:
-      'Sie sehen, was ansteht und bis wann Beteiligung möglich ist.\n\n' +
-      'Optional werden passende Termine aus dem Politikbarometer hervorgehoben.',
+      'Hier sehen Sie, was ansteht.\n\n' +
+      'Und bis wann Sie sich beteiligen können.',
     speakSegmentsDu: [
-      'Der Kalender zeigt dir, welche Termine, Fristen und Beteiligungen anstehen.',
-      'Wenn du im Politikbarometer Themen wie Digitalisierung oder Umwelt und Energie markierst, können passende Termine hier hervorgehoben werden.',
-      'Das ist keine Empfehlung, sondern nur ein Hinweis auf thematische Relevanz.',
+      'Hier siehst du, was ansteht.',
+      'Und bis wann du dich beteiligen kannst.',
     ],
     speakSegmentsSie: [
-      'Der Kalender zeigt Ihnen, welche Termine, Fristen und Beteiligungen anstehen.',
-      'Wenn Sie im Politikbarometer Themen wie Digitalisierung oder Umwelt und Energie markieren, können passende Termine hier hervorgehoben werden.',
-      'Das ist keine Empfehlung, sondern nur ein Hinweis auf thematische Relevanz.',
+      'Hier sehen Sie, was ansteht.',
+      'Und bis wann Sie sich beteiligen können.',
     ],
   },
   meldungen: {
     label: 'Meldungen',
-    line10sDu: 'Anliegen werden digital erfasst und zuständig weitergeleitet.',
-    line10sSie: 'Anliegen werden digital erfasst und zuständig weitergeleitet.',
-    shortDu: 'Anliegen werden digital erfasst und zuständig weitergeleitet.',
-    shortSie: 'Anliegen werden digital erfasst und zuständig weitergeleitet.',
+    line10sDu: 'Du kannst hier direkt etwas melden.',
+    line10sSie: 'Sie können hier direkt etwas melden.',
+    shortDu: 'Du kannst hier direkt etwas melden.',
+    shortSie: 'Sie können hier direkt etwas melden.',
     longDu:
-      'Hinweise und Meldungen werden strukturiert aufgenommen.\n\n' +
-      'So kommen sie schneller bei der zuständigen Stelle an und bleiben nachvollziehbar.',
+      'Du kannst hier direkt etwas melden.\n\n' +
+      'Und nachvollziehen, was daraus wird.',
     longSie:
-      'Hinweise und Meldungen werden strukturiert aufgenommen.\n\n' +
-      'So kommen sie schneller bei der zuständigen Stelle an und bleiben nachvollziehbar.',
+      'Sie können hier direkt etwas melden.\n\n' +
+      'Und nachvollziehen, was daraus wird.',
     speakSegmentsDu: [
-      'Im Bereich Meldungen kannst du Anliegen strukturiert erfassen — zum Beispiel Hinweise aus deiner Kommune.',
-      'Die App hilft dabei, Informationen so aufzubereiten, dass sie verständlich und zuständigkeitsnah weitergegeben werden können.',
-      'So wird Bürgerkommunikation klarer und nachvollziehbarer.',
+      'Du kannst hier direkt etwas melden.',
+      'Und nachvollziehen, was daraus wird.',
     ],
     speakSegmentsSie: [
-      'Im Bereich Meldungen können Sie Anliegen strukturiert erfassen — zum Beispiel Hinweise aus Ihrer Kommune.',
-      'Die App hilft dabei, Informationen so aufzubereiten, dass sie verständlich und zuständigkeitsnah weitergegeben werden können.',
-      'So wird Bürgerkommunikation klarer und nachvollziehbarer.',
+      'Sie können hier direkt etwas melden.',
+      'Und nachvollziehen, was daraus wird.',
     ],
   },
   praemien: {
     label: 'Prämien',
-    line10sDu: 'Prämien sind freiwillig und nur mit Einwilligung aktiv.',
-    line10sSie: 'Prämien sind freiwillig und nur mit Einwilligung aktiv.',
-    shortDu: 'Prämien sind freiwillig und nur mit Einwilligung aktiv.',
-    shortSie: 'Prämien sind freiwillig und nur mit Einwilligung aktiv.',
+    line10sDu: 'Prämien sind optional.',
+    line10sSie: 'Prämien sind optional.',
+    shortDu: 'Prämien sind optional.',
+    shortSie: 'Prämien sind optional.',
     longDu:
-      'Prämien werden nur nach ausdrücklicher Einwilligung angezeigt.\n\n' +
-      'Sie sind unabhängig von deiner Abstimmungsrichtung und jederzeit deaktivierbar.',
+      'Prämien sind optional.\n\n' +
+      'Und unabhängig davon, wie du dich entscheidest.',
     longSie:
-      'Prämien werden nur nach ausdrücklicher Einwilligung angezeigt.\n\n' +
-      'Sie sind unabhängig von Ihrer Abstimmungsrichtung und jederzeit deaktivierbar.',
+      'Prämien sind optional.\n\n' +
+      'Und unabhängig davon, wie Sie sich entscheiden.',
     speakSegmentsDu: [
-      'In diesem Bereich kannst du sehen, ob Prämien für Beteiligung verfügbar sind.',
-      'Wichtig ist: Das funktioniert nur, wenn du ausdrücklich einwilligst.',
-      'Die Prämien hängen nicht davon ab, wie du abstimmst, sondern nur davon, ob eine Beteiligung oder Rückmeldung abgeschlossen wurde.',
-      'Du kannst diese Funktion jederzeit in den Einstellungen deaktivieren.',
+      'Prämien sind optional.',
+      'Und unabhängig davon, wie du dich entscheidest.',
     ],
     speakSegmentsSie: [
-      'In diesem Bereich können Sie sehen, ob Prämien für Beteiligung verfügbar sind.',
-      'Wichtig ist: Das funktioniert nur, wenn Sie ausdrücklich einwilligen.',
-      'Die Prämien hängen nicht davon ab, wie Sie abstimmen, sondern nur davon, ob eine Beteiligung oder Rückmeldung abgeschlossen wurde.',
-      'Sie können diese Funktion jederzeit in den Einstellungen deaktivieren.',
+      'Prämien sind optional.',
+      'Und unabhängig davon, wie Sie sich entscheiden.',
     ],
   },
   politikbarometer: {
     label: 'Politikbarometer',
-    line10sDu: 'Themen markieren, passende Termine im Kalender schneller finden.',
-    line10sSie: 'Themen markieren, passende Termine im Kalender schneller finden.',
-    shortDu: 'Themen markieren, passende Termine im Kalender schneller finden.',
-    shortSie: 'Themen markieren, passende Termine im Kalender schneller finden.',
+    line10sDu: 'Hier markierst du Themen, die dir wichtig sind.',
+    line10sSie: 'Hier markieren Sie Themen, die Ihnen wichtig sind.',
+    shortDu: 'Hier markierst du Themen, die dir wichtig sind.',
+    shortSie: 'Hier markieren Sie Themen, die Ihnen wichtig sind.',
     longDu:
-      'Du markierst Themen wie Bildung oder Digitalisierung für bessere Orientierung.\n\n' +
-      'Die App erstellt kein Meinungsprofil und gibt keine Empfehlung.',
+      'Hier markierst du Themen, die dir wichtig sind.\n\n' +
+      'Damit du schneller findest, was relevant ist.',
     longSie:
-      'Sie markieren Themen wie Bildung oder Digitalisierung für bessere Orientierung.\n\n' +
-      'Die App erstellt kein Meinungsprofil und gibt keine Empfehlung.',
+      'Hier markieren Sie Themen, die Ihnen wichtig sind.\n\n' +
+      'Damit Sie schneller finden, was relevant ist.',
     speakSegmentsDu: [
-      'Das Politikbarometer hilft dir, Themen zu markieren, die dir besonders wichtig sind.',
-      'Wenn du zum Beispiel Digitalisierung, Umwelt und Energie oder Bildung auswählst, kann der Kalender passende Termine und Beteiligungen hervorheben.',
-      'Wichtig ist: Die App bewertet nicht deine Meinung und leitet nichts aus deinem Verhalten ab.',
-      'Du kannst diese Auswahl später jederzeit in den Einstellungen ändern.',
+      'Hier markierst du Themen, die dir wichtig sind.',
+      'Damit du schneller findest, was relevant ist.',
+      'Deine Teilnahme bleibt geschützt.',
+      'Und deine Entscheidung wird getrennt verarbeitet.',
     ],
     speakSegmentsSie: [
-      'Das Politikbarometer hilft Ihnen, Themen zu markieren, die Ihnen besonders wichtig sind.',
-      'Wenn Sie zum Beispiel Digitalisierung, Umwelt und Energie oder Bildung auswählen, kann der Kalender passende Termine und Beteiligungen hervorheben.',
-      'Wichtig ist: Die App bewertet nicht Ihre Meinung und leitet nichts aus Ihrem Verhalten ab.',
-      'Sie können diese Auswahl später jederzeit in den Einstellungen ändern.',
+      'Hier markieren Sie Themen, die Ihnen wichtig sind.',
+      'Damit Sie schneller finden, was relevant ist.',
+      'Ihre Teilnahme bleibt geschützt.',
+      'Und Ihre Entscheidung wird getrennt verarbeitet.',
     ],
   },
 };

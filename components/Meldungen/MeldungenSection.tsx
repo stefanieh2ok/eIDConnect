@@ -492,7 +492,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
               {showDemoUpload && demoUploadPct > 0 && !demoUploaded ? (
                 <div className={`rounded-xl border border-slate-200 bg-white ${isWalkthroughFilmMode ? 'px-2 py-1' : 'px-3 py-2'}`}>
                   <div className="flex items-center justify-between text-[10px] font-semibold text-slate-700">
-                    <span>Upload (Demo)</span>
+                    <span>Upload</span>
                     <span>{demoUploadPct}%</span>
                   </div>
                   <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
@@ -514,7 +514,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                       <button
                         type="button"
                         onClick={() => setDemoImageZoom((z) => !z)}
-                        className={`relative block w-full overflow-hidden ${isWalkthroughFilmMode ? 'h-14' : 'h-20'}`}
+                        className={`relative block w-full overflow-hidden ${isWalkthroughFilmMode ? 'h-20' : 'h-20'}`}
                         title="Bild vergrößern"
                       >
                         <img
@@ -526,14 +526,11 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                           }
                         />
                       </button>
-                      <span className="absolute left-1 top-1 rounded-full bg-black/55 px-2 py-1 text-[10px] font-bold text-white">
-                        Demo
-                      </span>
                     </div>
                   </div>
                   {demoFinalReady ? (
                     <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700">
-                      Bereit zur Weiterleitung · Demo
+                      Bereit zur Weiterleitung
                     </div>
                   ) : null}
                 </div>

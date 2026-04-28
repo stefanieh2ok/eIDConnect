@@ -99,13 +99,6 @@ export function IntroEntryBranch({
           className="flex min-h-0 flex-col overflow-hidden rounded-[1.65rem] border border-neutral-200/95 bg-white"
           style={{ maxHeight: 'min(calc(100dvh - 1.5rem), 100%)' }}
           onPointerDownCapture={(e) => {
-            if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-            try {
-              void window.speechSynthesis.getVoices();
-              if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-            } catch {
-              // ignore
-            }
             const t = e.target as HTMLElement;
             if (t.closest('.intro-meta-strip')) return;
             if (!speakApi?.readAloud) return;

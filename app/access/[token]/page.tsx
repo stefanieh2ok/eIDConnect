@@ -87,7 +87,6 @@ export default async function AccessPage({ params }: AccessPageProps) {
         <div className="mx-auto w-full max-w-[360px] space-y-4 pb-6 text-neutral-950">
           <div className="card-section">
             <ProductIdentityHeader />
-            <p className="t-kicker">Vertraulicher Zugriff</p>
             <h1 className="t-h1 mt-2">{ndaConfig.header || 'Vertraulicher Demo-Zugang'}</h1>
             <p className="t-body mt-3">
               Dieser personalisierte Zugang ist ausschließlich für die benannte Person bestimmt.

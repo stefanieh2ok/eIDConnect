@@ -21,7 +21,7 @@ import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 const SESSION_AUDIO = 'eidconnect_intro_audio_v1';
 
 export type IntroOverlayContextValue = {
-  /** Standard an; Nutzer:innen können stummschalten (`sessionStorage` = `0`). */
+  /** Standard aus; Audio startet erst nach aktivem Klick auf das Lautsprecher-Icon. */
   readAloud: boolean;
   setReadAloud: (v: boolean) => void;
   /** TTS (Intro / Claras Stimme) spielt gerade ab — für Audio-Status-UI. */
@@ -69,17 +69,17 @@ export function useOptionalIntroOverlay() {
 function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
   const { speak, speakParts, stopSpeaking, voiceState } = useClaraVoiceContext();
   const isIntroSpeaking = voiceState.isSpeaking;
-  const [readAloud, setReadAloudState] = useState(true);
+  const [readAloud, setReadAloudState] = useState(false);
   const lastNarrationKeyRef = useRef<string | null>(null);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
     try {
       const s = sessionStorage.getItem(SESSION_AUDIO);
-      if (s === '0') {
-        setReadAloudState(false);
-      } else {
+      if (s === '1') {
         setReadAloudState(true);
+      } else {
+        setReadAloudState(false);
       }
     } catch {
       // ignore

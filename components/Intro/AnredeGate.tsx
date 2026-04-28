@@ -16,8 +16,6 @@ import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 import type { Anrede } from '@/types';
 
-const INTRO_AUDIO_SESSION_KEY = 'eidconnect_intro_audio_v1';
-
 function isFinePointerDevice(): boolean {
   return (
     typeof window !== 'undefined' &&
@@ -54,21 +52,6 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
   }, [isOpen, state.anrede]);
 
   useEffect(() => {
-    if (!isOpen || !speakApi) return;
-    // Auf dem Anrede-Screen soll Clara zuverlässig hörbar starten.
-    if (!speakApi.readAloud) {
-      speakApi.setReadAloud(true);
-    }
-    try {
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem(INTRO_AUDIO_SESSION_KEY, '1');
-      }
-    } catch {
-      // ignore
-    }
-  }, [isOpen, speakApi, speakApi?.readAloud, speakApi?.setReadAloud]);
-
-  useEffect(() => {
     if (!isOpen) {
       hasSpokenIntroRef.current = false;
       hasSelectedSalutationRef.current = false;
@@ -94,26 +77,8 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
   }, [variant, position]);
 
   const unlockSpeechOnGesture = useCallback(() => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    const synth = window.speechSynthesis;
-    try {
-      void synth.getVoices();
-      if (synth.paused) synth.resume();
-    } catch {
-      // ignore
-    }
     if (hasUnlockedSpeechRef.current) return;
-    try {
-      const prime = new SpeechSynthesisUtterance('\u200B');
-      prime.volume = 0;
-      prime.rate = 1;
-      prime.pitch = 1;
-      synth.speak(prime);
-      synth.cancel();
-      hasUnlockedSpeechRef.current = true;
-    } catch {
-      // ignore
-    }
+    hasUnlockedSpeechRef.current = true;
   }, []);
 
   const speakGateFromUserGesture = useCallback(

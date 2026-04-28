@@ -115,18 +115,20 @@ export const INTRO_ANREDE_GATE_PRE_CHOICE_SPOKEN_SEGMENTS: readonly string[] = [
 
 /** Clara nach Auswahl „Du“ (TTS, ohne erneuten Elevator). */
 export const INTRO_ANREDE_GATE_AFTER_DU_SPOKEN_SEGMENTS: readonly string[] = [
-  'Sehr gut, dann sind wir per Du.',
-  'Ich führe dich jetzt kurz durch die HookAI Civic Demo.',
-  'Dabei zeige ich dir, wie sicherer Bürgerzugang, Orientierung und digitale Beteiligung zusammenspielen.',
-  'Wichtig ist: Diese Demo gibt keine politische Empfehlung. Sie soll verständlich zeigen, wie Beteiligung künftig einfacher, sicherer und nachvollziehbarer funktionieren kann.',
+  'Die HookAI Civic Demo zeigt dir, wie du dich über politische Themen in deiner Gemeinde informieren, sie einordnen und direkt darauf reagieren kannst.',
+  'Du kannst Abstimmungen verstehen und bewerten, dir Stimmzettel und Parteiprogramme im Voraus ansehen und nachvollziehen, wie gewählt wurde.',
+  'Und du kannst eigene Meldungen machen und transparent verfolgen, was daraus wird.',
+  'Ich zeige dir jetzt kurz, wie das konkret funktioniert.',
+  'Ich führe dich jetzt kurz durch die wichtigsten Bereiche.',
 ];
 
 /** Clara nach Auswahl „Sie“ (TTS). */
 export const INTRO_ANREDE_GATE_AFTER_SIE_SPOKEN_SEGMENTS: readonly string[] = [
-  'Sehr gut, dann bleiben wir beim Sie.',
-  'Ich führe Sie jetzt kurz durch die HookAI Civic Demo.',
-  'Dabei zeige ich Ihnen, wie sicherer Bürgerzugang, Orientierung und digitale Beteiligung zusammenspielen.',
-  'Wichtig ist: Diese Demo gibt keine politische Empfehlung. Sie soll verständlich zeigen, wie Beteiligung künftig einfacher, sicherer und nachvollziehbarer funktionieren kann.',
+  'Die HookAI Civic Demo zeigt Ihnen, wie Sie sich über politische Themen in Ihrer Gemeinde informieren, sie einordnen und direkt darauf reagieren können.',
+  'Sie können Abstimmungen verstehen und bewerten, sich Stimmzettel und Parteiprogramme im Voraus ansehen und nachvollziehen, wie gewählt wurde.',
+  'Und Sie können eigene Meldungen machen und transparent verfolgen, was daraus wird.',
+  'Ich zeige Ihnen jetzt kurz, wie das konkret funktioniert.',
+  'Ich führe Sie jetzt kurz durch die wichtigsten Bereiche.',
 ];
 
 /**
@@ -169,16 +171,10 @@ export const INTRO_ENTRY_DROPDOWN_SIE =
   'Ich zeige Ihnen die zentralen Funktionen für Orientierung, Beteiligung und digitale Kommunikation — klar, schnell und ohne Umwege.';
 
 export const INTRO_SPOKEN_ENTRY_DU: readonly string[] = [
-  'Sehr gut.',
-  'Ich gebe dir jetzt einen kompakten Überblick über die wichtigsten Bereiche.',
-  'So siehst du sofort, wie Information, Beteiligung und digitale Interaktion hier zusammenfinden.',
-  'Wenn du bereit bist, starten wir.',
+  'Ich führe dich jetzt kurz durch die wichtigsten Bereiche.',
 ];
 export const INTRO_SPOKEN_ENTRY_SIE: readonly string[] = [
-  'Sehr gut.',
-  'Ich gebe Ihnen jetzt einen kompakten Überblick über die wichtigsten Bereiche.',
-  'So sehen Sie sofort, wie Information, Beteiligung und digitale Interaktion hier zusammenfinden.',
-  'Wenn Sie bereit sind, starten wir.',
+  'Ich führe Sie jetzt kurz durch die wichtigsten Bereiche.',
 ];
 
 /** @deprecated */ export const INTRO_ENTRY_LEAD_DU = INTRO_ENTRY_SHORT_DU;

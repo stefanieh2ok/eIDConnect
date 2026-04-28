@@ -3,38 +3,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { ClaraVoiceState } from '@/types/clara';
 
-/**
- * de-DE bevorzugen (Hedda, etc.); optional explicit Google/Microsoft-Namen in Kleinbuchstaben.
- * Wichtig: Ohne Stimmauswahl spricht manche Browser-Engine (Safari) nicht zuverlässig.
- */
-function pickGermanVoice(
-  list: ReadonlyArray<SpeechSynthesisVoice>,
-): SpeechSynthesisVoice | null {
-  if (!list.length) return null;
-  const de = (lang: string) => lang.toLowerCase().replace('_', '-').startsWith('de');
-  return (
-    list.find((v) => de(v.lang) && /hedda|katja|yannick|amala|conrad|zira|google\s*de|microsoft.*de/gi.test(v.name)) ??
-    list.find((v) => de(v.lang)) ??
-    null
-  );
-}
-
-/**
- * Stimmen synchron holen (wichtig für iOS Safari: `speak` muss in derselben
- * User-Geste wie `getVoices`/Queue laufen — `voiceschanged` + Timeout kommt zu spät).
- */
-function voicesForUtteranceNow(synth: SpeechSynthesis): SpeechSynthesisVoice[] {
-  let v = synth.getVoices();
-  if (v.length) return [...v];
-  try {
-    void synth.getVoices();
-  } catch {
-    /* ignore */
-  }
-  v = synth.getVoices();
-  return [...v];
-}
-
 export const useClaraVoice = () => {
   const [voiceState, setVoiceState] = useState<ClaraVoiceState>({
     isListening: false,
@@ -44,7 +12,9 @@ export const useClaraVoice = () => {
   });
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
+  const playRequestIdRef = useRef(0);
 
   useEffect(() => {
     // Initialize speech recognition (iOS 14.5+ oft `SpeechRecognition`, Desktop meist `webkitSpeechRecognition`)
@@ -105,141 +75,101 @@ export const useClaraVoice = () => {
     }
   }, [voiceState.isListening]);
 
-  const speak = useCallback((text: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window) || !text.trim()) {
-      return;
-    }
-    const synth = window.speechSynthesis;
-    synth.cancel();
-
-    const go = (voices: SpeechSynthesisVoice[]) => {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'de-DE';
-      /** Eher ruhig und freundlich, nicht „Aktions-News“. */
-      /** Etwas ruhiger für bessere Satzgrenzen bei TTS. */
-      utterance.rate = 0.86;
-      utterance.pitch = 1.02;
-      utterance.volume = 0.92;
-      const de = pickGermanVoice(voices);
-      if (de) {
-        utterance.voice = de;
-        utterance.lang = de.lang || 'de-DE';
-      }
-
-      utterance.onstart = () => {
-        try {
-          if (synth.paused) synth.resume();
-        } catch {
-          /* iOS/Chrome: nötig, damit die Ausgabe startet */
-        }
-        setVoiceState((prev) => ({ ...prev, isSpeaking: true, error: null }));
-      };
-
-      utterance.onend = () => {
-        setVoiceState((prev) => ({ ...prev, isSpeaking: false }));
-      };
-
-      utterance.onerror = (event) => {
-        setVoiceState((prev) => ({
-          ...prev,
-          isSpeaking: false,
-          error: `Sprachsynthese: ${event.error}`,
-        }));
-      };
-
-      synthesisRef.current = utterance;
+  const stopSpeaking = useCallback(() => {
+    playRequestIdRef.current += 1;
+    const currentAudio = audioRef.current;
+    if (currentAudio) {
       try {
-        synth.speak(utterance);
-        try {
-          if (synth.paused) synth.resume();
-        } catch {
-          /* iOS/WKWebView */
+        currentAudio.pause();
+      } catch {
+        // ignore
+      }
+      currentAudio.src = '';
+      audioRef.current = null;
+    }
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+    setVoiceState((prev) => ({ ...prev, isSpeaking: false }));
+  }, []);
+
+  const playTts = useCallback(
+    async (rawText: string) => {
+      const text = rawText.trim();
+      if (!text) return;
+
+      stopSpeaking();
+      const requestId = ++playRequestIdRef.current;
+      setVoiceState((prev) => ({ ...prev, isSpeaking: true, error: null }));
+
+      try {
+        const res = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        });
+
+        if (!res.ok) {
+          let message = `TTS Fehler (${res.status})`;
+          try {
+            const json = await res.json();
+            if (json?.error) message = json.error;
+          } catch {
+            // ignore
+          }
+          throw new Error(message);
         }
+
+        const blob = await res.blob();
+        if (requestId !== playRequestIdRef.current) return;
+
+        const objectUrl = URL.createObjectURL(blob);
+        audioUrlRef.current = objectUrl;
+        const audio = new Audio(objectUrl);
+        audioRef.current = audio;
+
+        audio.onended = () => {
+          if (requestId !== playRequestIdRef.current) return;
+          setVoiceState((prev) => ({ ...prev, isSpeaking: false }));
+        };
+        audio.onerror = () => {
+          if (requestId !== playRequestIdRef.current) return;
+          setVoiceState((prev) => ({
+            ...prev,
+            isSpeaking: false,
+            error: 'Audio konnte nicht abgespielt werden.',
+          }));
+        };
+
+        await audio.play();
       } catch (e) {
+        if (requestId !== playRequestIdRef.current) return;
         setVoiceState((prev) => ({
           ...prev,
           isSpeaking: false,
-          error: e instanceof Error ? e.message : 'Sprachsynthese nicht verfügbar',
+          error: e instanceof Error ? e.message : 'TTS nicht verfügbar',
         }));
       }
-    };
+    },
+    [stopSpeaking],
+  );
 
-    go(voicesForUtteranceNow(synth));
-  }, []);
+  const speak = useCallback((text: string) => {
+    void playTts(text);
+  }, [playTts]);
 
   /**
    * Mehrere kurze Äußerungen nacheinander (Browser queue), damit Pausen zwischen
    * Sinnabschnitten entstehen — klingt natürlicher als ein langer Monolog.
    */
   const speakParts = useCallback((parts: string[]) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      return;
-    }
     const cleaned = parts
       .map((p) => p.replace(/\s+/g, ' ').replace(/[*#_`]/g, '').trim())
       .filter((p) => p.length >= 2);
-    if (!cleaned.length) {
-      return;
-    }
-    const synth = window.speechSynthesis;
-    synth.cancel();
-
-    const voices = voicesForUtteranceNow(synth);
-    const de = pickGermanVoice(voices);
-    cleaned.forEach((text, idx) => {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'de-DE';
-        utterance.rate = 0.86;
-        utterance.pitch = 1.02;
-        utterance.volume = 0.92;
-        if (de) {
-          utterance.voice = de;
-          utterance.lang = de.lang || 'de-DE';
-        }
-
-        utterance.onstart = () => {
-          try {
-            if (synth.paused) synth.resume();
-          } catch {
-            /* ignore */
-          }
-          if (idx === 0) {
-            setVoiceState((prev) => ({ ...prev, isSpeaking: true, error: null }));
-          }
-        };
-
-        utterance.onend = () => {
-          if (idx === cleaned.length - 1) {
-            setVoiceState((prev) => ({ ...prev, isSpeaking: false }));
-          }
-        };
-
-        utterance.onerror = (event) => {
-          setVoiceState((prev) => ({
-            ...prev,
-            isSpeaking: false,
-            error: `Sprachsynthese: ${event.error}`,
-          }));
-        };
-
-        try {
-          synth.speak(utterance);
-        } catch (e) {
-          setVoiceState((prev) => ({
-            ...prev,
-            isSpeaking: false,
-            error: e instanceof Error ? e.message : 'Sprachsynthese nicht verfügbar',
-          }));
-        }
-      });
-  }, []);
-
-  const stopSpeaking = useCallback(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setVoiceState(prev => ({ ...prev, isSpeaking: false }));
-    }
-  }, []);
+    if (!cleaned.length) return;
+    void playTts(cleaned.join('\n\n'));
+  }, [playTts]);
 
   /** Nach Verarbeitung leeren, damit `useEffect` bei gleichem Text erneut feuern kann und keine Doppel-Läufe entstehen. */
   const clearTranscript = useCallback(() => {

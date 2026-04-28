@@ -6,14 +6,14 @@ describe('introSpokenTts', () => {
     const duT = introAnredeGateSpoken(true);
     expect(duT).toContain('HookAI Civic Demo');
     expect(duT).toContain('Clara');
-    expect(duT).toMatch(/dann sind wir per Du/);
+    expect(duT).toMatch(/Ich führe dich jetzt kurz durch die wichtigsten Bereiche/);
     expect(duT).toMatch(/Ich führe dich/);
     expect(duT).not.toMatch(/Ich führe Sie/);
     expect(duT).not.toMatch(/\bIhnen\b/);
     const sieT = introAnredeGateSpoken(false);
     expect(sieT).toContain('HookAI Civic Demo');
     expect(sieT).toContain('Clara');
-    expect(sieT).toMatch(/beim Sie|bleibe ich beim Sie|bleiben wir beim Sie/);
+    expect(sieT).toMatch(/Ich führe Sie jetzt kurz durch die wichtigsten Bereiche/);
     expect(sieT).toMatch(/Ich führe Sie/);
     expect(sieT).not.toMatch(/Ich führe dich/);
   });
