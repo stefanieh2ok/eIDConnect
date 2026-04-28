@@ -414,52 +414,27 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                   <p className={accessPathBodyClass}>{INTRO_DEMO_MODE_BODY}</p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  // Step 3 is completed by the “Weiter” action; keep it logically inside this card.
-                  handleDemoModeClick();
-                  handleProceedToApp();
-                }}
-                className="mt-2 inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-[#003D80] px-3 text-[12px] font-bold tracking-[0.01em] text-white shadow-[0_4px_14px_rgba(0,61,128,0.28)] transition hover:bg-[#00366f] active:scale-[0.99]"
-              >
-                Weiter
-              </button>
-            </div>
-
-            <div className="rounded-xl border border-dashed border-neutral-300/90 bg-white/80 px-2.5 py-2 text-[10px] leading-snug text-neutral-700 sm:px-3 sm:py-2.5 sm:text-[10.5px] sm:leading-relaxed">
-              {du ? INTRO_TRUST_HINT_DU : INTRO_TRUST_HINT_SIE}
-            </div>
-
-            {confirmedAccessMethod ? (
-              <div className="rounded-xl border border-emerald-200/90 bg-emerald-50/90 px-2.5 py-2 shadow-sm ring-1 ring-emerald-600/10 sm:px-3 sm:py-2.5">
-                <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-emerald-800/90">Status</p>
-                <h3 className="mt-0.5 text-[13px] font-bold leading-snug text-emerald-950 sm:text-sm">
-                  {INTRO_ACCESS_CONFIRMED_TITLE}
-                </h3>
-                <p className="mt-1 text-[10px] font-semibold leading-snug text-emerald-900 sm:text-[10.5px]">
-                  {INTRO_ACCESS_CONFIRMED_LEVELS}
-                </p>
-                <p className="mt-1 text-[10px] leading-relaxed text-emerald-900/95 sm:text-[10.5px]">
-                  {INTRO_ACCESS_CONFIRMED_BODY}
-                </p>
-                <p className="mt-1.5 border-t border-emerald-200/80 pt-1.5 text-[9.5px] text-emerald-800/95 sm:text-[10px]">
-                  <span className="font-semibold text-emerald-950">Sitzung:</span> Hauptstraße 1, 66459 Kirkel
-                  {demoWahlkreis ? <span> · {demoWahlkreis}</span> : null}
-                </p>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => (onBackToEntry ? onBackToEntry() : reopenProductIntro())}
+                  className={loginNavBackClass}
+                >
+                  Zurück
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleDemoModeClick();
+                    handleProceedToApp();
+                  }}
+                  className="inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-xl bg-[#003D80] px-3 text-[12px] font-bold tracking-[0.01em] text-white shadow-[0_4px_14px_rgba(0,61,128,0.28)] transition hover:bg-[#00366f] active:scale-[0.99]"
+                >
+                  Weiter
+                </button>
               </div>
-            ) : null}
+            </div>
           </div>
-        </div>
-
-        <div className="flex-shrink-0 space-y-2 border-t border-neutral-200 bg-[#F7F9FC] px-4 pt-2.5 intro-action-bar-pad sm:px-5 sm:pt-3">
-          <button
-            type="button"
-            onClick={() => (onBackToEntry ? onBackToEntry() : reopenProductIntro())}
-            className={loginNavBackClass}
-          >
-            Zurück
-          </button>
         </div>
       </div>
     </div>

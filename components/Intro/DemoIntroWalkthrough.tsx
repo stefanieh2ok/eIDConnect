@@ -33,7 +33,6 @@ import VotingControls from '@/components/Voting/VotingControls';
 const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = {
   abstimmen: 'Echte Abstimmungs-Ansicht wie in der App',
   wahlen: 'Wahlen · gleiche Daten wie unter „Wahlen“',
-  kalender: 'Kalender · gleiche Ansicht wie in der App',
   meldungen: 'Meldungen · gleicher Ablauf wie in der App',
   praemien: 'Prämien / Überblick · wie in der App',
   politikbarometer: 'Politikbarometer · Regler wie in der App (50 % Demo)',
@@ -285,6 +284,8 @@ function IntroWahlenWalkthroughDemo() {
     () => btw?.parteien?.find((p) => /CDU/i.test(p.name)) ?? btw?.parteien?.[0],
     [btw],
   );
+  const erst = useMemo(() => btw?.kandidaten?.slice(0, 5) ?? [], [btw]);
+  const zweit = useMemo(() => btw?.parteien?.slice(0, 6) ?? [], [btw]);
 
   const [phase, setPhase] = useState<'idle' | 'focus' | 'tick' | 'program'>('idle');
 
@@ -320,34 +321,59 @@ function IntroWahlenWalkthroughDemo() {
         </div>
 
         <div className="px-4 pb-3 pt-3">
-          <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">Stimmzettel · Erststimme (Auszug)</div>
-          <div className="space-y-1.5">
-            <div
-              className={
-                'relative flex items-center gap-2 rounded-xl border px-2.5 py-2 transition ' +
-                (phase === 'focus' || phase === 'tick'
-                  ? 'border-emerald-200 bg-emerald-50/60'
-                  : 'border-neutral-200 bg-white')
-              }
-            >
-              <span
-                className={
-                  'flex h-6 w-6 items-center justify-center rounded-md border-2 bg-white text-[13px] font-black leading-none ' +
-                  (phase === 'tick' ? 'border-emerald-700 text-emerald-800' : 'border-neutral-300 text-transparent')
-                }
-                aria-hidden
-              >
-                ✗
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[11px] font-bold text-neutral-900">
-                  {merz?.partei ?? 'CDU'} <span className="font-semibold text-neutral-700">— {merz?.name ?? 'Friedrich Merz'}</span>
-                </div>
-                <div className="text-[10px] text-neutral-500">Demo‑Vorschau · keine Stimmabgabe</div>
+          <div className="overflow-hidden rounded-lg border border-neutral-800/40 bg-[#FFF4A8] px-2 pb-1.5 pt-1.5 shadow-sm">
+            <p className="text-[7px] font-bold tracking-[0.12em] text-neutral-900">STIMMZETTEL</p>
+            <p className="mt-0.5 text-[7.5px] font-bold leading-tight text-neutral-900">{btw.name}</p>
+            <p className="text-[6px] font-semibold leading-snug text-neutral-800">
+              {btw.datum} · {btw.wahlkreis}
+            </p>
+            <div className="mt-1.5 border-t border-black/25 pt-1">
+              <p className="text-[6px] font-bold uppercase tracking-wide text-neutral-800">Erststimme · Bewerber</p>
+              <div className="mt-1 space-y-0.5">
+                {erst.map((k) => {
+                  const isMerz = /Friedrich\s+Merz/i.test(k.name);
+                  return (
+                    <div
+                      key={`${k.partei}-${k.name}`}
+                      className="relative flex min-h-[22px] items-center gap-1.5 rounded border border-black/30 bg-[#FFEB8A] px-1 py-0.5"
+                    >
+                      <span
+                        className={
+                          'flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border-2 bg-white ' +
+                          (isMerz && phase === 'tick' ? 'border-neutral-900 text-neutral-900' : 'border-neutral-900/65 text-transparent')
+                        }
+                        aria-hidden
+                      >
+                        ✗
+                      </span>
+                      <div className="min-w-0 flex-1 leading-tight">
+                        <span className="text-[7px] font-bold text-neutral-900">{k.partei}</span>
+                        <span className="text-[6.5px] font-semibold text-neutral-800"> — {k.name}</span>
+                      </div>
+                      {isMerz && phase === 'focus' ? (
+                        <span className="pointer-events-none absolute -inset-[1px] rounded-md ring-2 ring-emerald-500/35" />
+                      ) : null}
+                    </div>
+                  );
+                })}
               </div>
-              {phase === 'focus' ? (
-                <span className="pointer-events-none absolute -inset-[2px] rounded-[0.9rem] ring-4 ring-emerald-400/30" />
-              ) : null}
+            </div>
+            <div className="mt-1.5 border-t border-black/20 pt-1">
+              <p className="text-[6px] font-bold uppercase tracking-wide text-neutral-800">Zweitstimme · Partei (Auszug)</p>
+              <div className="mt-1 space-y-0.5">
+                {zweit.map((p) => (
+                  <div
+                    key={p.name}
+                    className="flex min-h-[20px] items-center gap-1.5 rounded border border-black/25 bg-[#FFEB8A] px-1 py-0.5"
+                  >
+                    <span
+                      className="flex h-3.5 w-3.5 shrink-0 rounded-sm border-2 border-neutral-900/70 bg-white"
+                      aria-hidden
+                    />
+                    <span className="text-[6.5px] font-semibold leading-tight text-neutral-900">{p.name}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
