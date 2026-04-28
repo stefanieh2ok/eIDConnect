@@ -715,10 +715,15 @@ export default function DemoIntroWalkthrough({
                 Vorschau – Demo-Modus
               </span>
             </div>
-            <span className="text-[11px] font-bold tracking-tight text-[#003366]">{APP_DISPLAY_NAME}</span>
-            <span className="mx-1.5 text-neutral-300" aria-hidden>
-              ·
-            </span>
+            <div className="flex items-center justify-center gap-1.5">
+              <img
+                src="/logo.svg"
+                alt={APP_DISPLAY_NAME}
+                className="h-6 w-auto max-w-[180px] object-contain"
+                loading="eager"
+                decoding="async"
+              />
+            </div>
             <span className="text-[10px] font-medium leading-snug text-neutral-500">{APP_TAGLINE}</span>
           </div>
 
