@@ -108,6 +108,7 @@ function getElectionStatus(wahl: Wahl, nowTs: number): ElectionStatus {
 
 const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: propLocation, currentLevel: propLevel, userWahlkreisByLevel, dynamicWahlen }) => {
   const { state, dispatch } = useApp();
+  const du = state.anrede === 'du';
   const votedIds = state.votedElectionIds || [];
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const [filterYear, setFilterYear] = useState<string>('all');

@@ -752,7 +752,7 @@ export default function DemoIntroWalkthrough({
                 <div
                   className={
                     fillDeviceFrame
-                      : 'shrink-0 border-b border-neutral-100/90 px-2.5 pb-1.5 pt-2 sm:px-3'
+                      ? 'shrink-0 border-b border-neutral-100/90 px-2.5 pb-1.5 pt-2 sm:px-3'
                       : 'shrink-0 border-b border-neutral-100/90 px-4 pb-2.5 pt-3 sm:px-4'
                   }
                 >
