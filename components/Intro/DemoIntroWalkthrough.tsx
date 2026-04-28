@@ -267,18 +267,11 @@ function IntroAbstimmenWalkthroughDemo({
             du={du}
             compact
             introWalkthrough
+            scriptedIntroPhase={phase}
             onVote={() => {
               // no-op: walkthrough runs scripted animation
             }}
           />
-
-          {/* Visual cue: halo over “Zustimmen”, then a quick press flash */}
-          {phase === 'highlight' ? (
-            <div className="pointer-events-none absolute right-[22px] top-[16px] h-16 w-16 rounded-full ring-4 ring-emerald-400/60" />
-          ) : null}
-          {phase === 'pressed' ? (
-            <div className="pointer-events-none absolute inset-0 rounded-2xl bg-emerald-500/10" />
-          ) : null}
         </div>
       </div>
 
@@ -475,7 +468,7 @@ function WalkthroughRealSectionEmbed({
           walkthroughDemo={{
             enabled: true,
             descriptionText: 'Auf dem Spielplatz gibt es Ratten.',
-            addressText: 'Am Marktplatz 3, 66459 Kirkel',
+            addressText: 'Am Marktplatz 3. 66459 Kirkel',
             imageUrl: '/demo-rat-playground.jpg',
             onSequenceDone: onAbstimmenDone,
           }}

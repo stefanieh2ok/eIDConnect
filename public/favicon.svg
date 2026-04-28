@@ -1,0 +1,33 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="favCoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A45BFF"/>
+      <stop offset="100%" stop-color="#FF8A63"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="14" y="14" width="36" height="36" rx="8" fill="#082A57"/>
+
+  <g stroke="#082A57" stroke-width="3" stroke-linecap="round">
+    <line x1="8" y1="22" x2="14" y2="22"/>
+    <line x1="8" y1="32" x2="14" y2="32"/>
+    <line x1="8" y1="42" x2="14" y2="42"/>
+
+    <line x1="50" y1="22" x2="56" y2="22"/>
+    <line x1="50" y1="32" x2="56" y2="32"/>
+    <line x1="50" y1="42" x2="56" y2="42"/>
+
+    <line x1="22" y1="8" x2="22" y2="14"/>
+    <line x1="32" y1="8" x2="32" y2="14"/>
+    <line x1="42" y1="8" x2="42" y2="14"/>
+
+    <line x1="22" y1="50" x2="22" y2="56"/>
+    <line x1="32" y1="50" x2="32" y2="56"/>
+    <line x1="42" y1="50" x2="42" y2="56"/>
+  </g>
+
+  <circle cx="32" cy="32" r="11" fill="url(#favCoreGradient)"/>
+
+  <path d="M9 14 Q32 3 55 14" stroke="#25D5CB" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M9 50 Q32 61 55 50" stroke="#25D5CB" stroke-width="4" fill="none" stroke-linecap="round"/>
+</svg>

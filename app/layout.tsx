@@ -50,6 +50,13 @@ export const metadata: Metadata = {
     title: APP_DISPLAY_NAME,
     description: 'Digitale Identität · Beteiligung · Bürgerzugang — GovTech-Demo.',
   },
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: ['/favicon.svg'],
+  },
 };
 
 /**

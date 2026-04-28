@@ -1,4 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#003366" />
-  <path d="M18 22h28v6H18zm0 10h20v6H18zm0 10h28v6H18z" fill="#ffffff" />
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="coreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A45BFF"/>
+      <stop offset="100%" stop-color="#FF8A63"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="156" y="156" width="200" height="200" rx="32" fill="#082A57"/>
+
+  <g stroke="#082A57" stroke-width="16" stroke-linecap="round">
+    <line x1="120" y1="200" x2="156" y2="200"/>
+    <line x1="120" y1="256" x2="156" y2="256"/>
+    <line x1="120" y1="312" x2="156" y2="312"/>
+
+    <line x1="356" y1="200" x2="392" y2="200"/>
+    <line x1="356" y1="256" x2="392" y2="256"/>
+    <line x1="356" y1="312" x2="392" y2="312"/>
+
+    <line x1="200" y1="120" x2="200" y2="156"/>
+    <line x1="256" y1="120" x2="256" y2="156"/>
+    <line x1="312" y1="120" x2="312" y2="156"/>
+
+    <line x1="200" y1="356" x2="200" y2="392"/>
+    <line x1="256" y1="356" x2="256" y2="392"/>
+    <line x1="312" y1="356" x2="312" y2="392"/>
+  </g>
+
+  <circle cx="256" cy="256" r="70" fill="url(#coreGradient)"/>
+
+  <path
+    d="M120 120 Q256 40 392 120"
+    stroke="#25D5CB"
+    stroke-width="20"
+    fill="none"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M120 392 Q256 472 392 392"
+    stroke="#25D5CB"
+    stroke-width="20"
+    fill="none"
+    stroke-linecap="round"
+  />
 </svg>

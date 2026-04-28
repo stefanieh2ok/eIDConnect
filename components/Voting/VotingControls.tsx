@@ -13,6 +13,8 @@ interface VotingControlsProps {
   introWalkthrough?: boolean;
   /** Nur Daumen-Leiste (keine Hinweistexte) — z. B. visuelle Kachel im Walkthrough. */
   walkthroughVisualPreview?: boolean;
+  /** Scripted Intro-Phase für klar sichtbare Zustimmen-Animation im Walkthrough. */
+  scriptedIntroPhase?: 'idle' | 'highlight' | 'pressed' | 'reward';
   du?: boolean;
 }
 
@@ -22,6 +24,7 @@ const VotingControls: React.FC<VotingControlsProps> = ({
   compact = false,
   introWalkthrough = false,
   walkthroughVisualPreview = false,
+  scriptedIntroPhase = 'idle',
   du = false,
 }) => {
   if (!canVote) return null;
@@ -50,6 +53,9 @@ const VotingControls: React.FC<VotingControlsProps> = ({
   const useIntroSizing = introWalkthrough || walkthroughVisualPreview;
   const useIntro = introWalkthrough;
   const useCompactLayout = compact || useIntroSizing;
+  const isScriptedHighlight = introWalkthrough && scriptedIntroPhase === 'highlight';
+  const isScriptedPressed = introWalkthrough && scriptedIntroPhase === 'pressed';
+  const isScriptedActive = isScriptedHighlight || isScriptedPressed;
 
   return (
     <div
@@ -133,6 +139,9 @@ const VotingControls: React.FC<VotingControlsProps> = ({
           <div
             className={
               'flex items-center justify-center rounded-full border-[3px] border-emerald-500 bg-white shadow-md transition-all group-hover:bg-emerald-500 group-active:scale-95 ' +
+              (isScriptedActive
+                ? ' ring-4 ring-emerald-300/70 bg-emerald-500 scale-[0.97] shadow-[0_0_0_6px_rgba(16,185,129,0.18)] '
+                : '') +
               (useIntroSizing ? 'h-14 w-14' : compact ? 'h-12 w-12' : 'h-[4.25rem] w-[4.25rem]')
             }
             style={{ boxShadow: '0 4px 14px rgba(34,197,94,0.35)' }}
@@ -140,7 +149,10 @@ const VotingControls: React.FC<VotingControlsProps> = ({
             <ThumbsUp
               size={useIntroSizing ? 24 : compact ? 22 : 28}
               strokeWidth={2.25}
-              className="text-emerald-600 transition-colors group-hover:text-white"
+              className={
+                'transition-colors group-hover:text-white ' +
+                (isScriptedActive ? 'text-white' : 'text-emerald-600')
+              }
               aria-hidden
             />
           </div>

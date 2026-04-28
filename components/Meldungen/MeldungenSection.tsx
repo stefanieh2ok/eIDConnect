@@ -356,8 +356,8 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
 
           <div
             className={
-              `walkthrough-meldungen-film-stack space-y-2 ${embeddedInWalkthrough ? (isWalkthroughFilmMode ? 'pb-1' : 'pb-12') : 'pb-28'} ` +
-              (isWalkthroughFilmMode ? 'origin-top scale-[0.9]' : '')
+              `walkthrough-meldungen-film-stack space-y-1.5 ${embeddedInWalkthrough ? (isWalkthroughFilmMode ? 'pb-0.5' : 'pb-12') : 'pb-28'} ` +
+              (isWalkthroughFilmMode ? 'origin-top scale-[0.84]' : '')
             }
           >
             {!walkthroughDemo?.enabled ? (
@@ -389,7 +389,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
             ) : null}
 
             <div>
-              <label className={`block text-xs font-semibold text-gray-700 ${isWalkthroughFilmMode ? 'mb-1' : 'mb-1.5'}`}>
+              <label className={`block text-xs font-semibold text-gray-700 ${isWalkthroughFilmMode ? 'mb-0.5' : 'mb-1.5'}`}>
                 {du ? 'Deine Beschreibung *' : 'Ihre Beschreibung *'}
               </label>
               <div className="relative">
@@ -421,7 +421,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
             </div>
 
             <div>
-              <label className={`block text-xs font-semibold text-gray-700 ${isWalkthroughFilmMode ? 'mb-1' : 'mb-1.5'}`}>
+              <label className={`block text-xs font-semibold text-gray-700 ${isWalkthroughFilmMode ? 'mb-0.5' : 'mb-1.5'}`}>
                 {isWalkthroughFilmMode ? 'Standort / Adresse' : 'Standort / Adresse (optional)'}
               </label>
               <div className="flex gap-2">
@@ -460,7 +460,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
             </div>
 
             {/* Foto */}
-            <div className={isWalkthroughFilmMode ? 'space-y-1' : 'space-y-1.5'}>
+            <div className={isWalkthroughFilmMode ? 'space-y-0.5' : 'space-y-1.5'}>
               <label
                 className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-white text-sm font-medium transition-colors hover:border-[#7AA4D8] hover:text-[#1F4F8A] ${
                   isWalkthroughFilmMode ? 'py-1.5' : 'py-2'
@@ -490,7 +490,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
               </label>
 
               {showDemoUpload && demoUploadPct > 0 && !demoUploaded ? (
-                <div className={`rounded-xl border border-slate-200 bg-white ${isWalkthroughFilmMode ? 'px-2.5 py-1.5' : 'px-3 py-2'}`}>
+                <div className={`rounded-xl border border-slate-200 bg-white ${isWalkthroughFilmMode ? 'px-2 py-1' : 'px-3 py-2'}`}>
                   <div className="flex items-center justify-between text-[10px] font-semibold text-slate-700">
                     <span>Upload (Demo)</span>
                     <span>{demoUploadPct}%</span>
@@ -505,7 +505,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
               ) : null}
 
               {showDemoUpload && demoUploaded ? (
-                <div className="space-y-1.5">
+                <div className={isWalkthroughFilmMode ? 'space-y-1' : 'space-y-1.5'}>
                   {demoPhotoLabel ? (
                     <div className="text-[10px] font-semibold text-emerald-800">Foto hinzugefügt</div>
                   ) : null}
@@ -514,7 +514,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                       <button
                         type="button"
                         onClick={() => setDemoImageZoom((z) => !z)}
-                        className={`relative block w-full overflow-hidden ${isWalkthroughFilmMode ? 'h-16' : 'h-20'}`}
+                        className={`relative block w-full overflow-hidden ${isWalkthroughFilmMode ? 'h-14' : 'h-20'}`}
                         title="Bild vergrößern"
                       >
                         <img
