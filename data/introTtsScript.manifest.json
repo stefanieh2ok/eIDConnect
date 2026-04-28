@@ -22,7 +22,7 @@
       "step": 4,
       "id": "wahlen",
       "title": "Wahlen",
-      "tts": "Schritt 4 von 8. Wahlen. In diesem Bereich findest du verschiedene Wahlen. Du kannst dir Stimmzettel ansehen sowie Informationen zu Kandidaten und Programmen abrufen. Die angezeigten Ergebnisse dienen in dieser Demo zur Veranschaulichung. Sie ersetzen keine offiziellen Wahlergebnisse. Kurz: Stimmzettel und Kandidateninfos in der Demo — Ergebnisanzeigen nur beispielhaft, nicht rechtsverbindlich."
+      "tts": "Schritt 4 von 8. Wahlen. Hier siehst du vergangene Wahlen und deren Ergebnisse. Du kannst dich über Stimmzettel, Kandidierende und Programme informieren. Das ist eine Vorschau – eine Stimmabgabe ist hier nicht möglich. Perspektivisch kann dieser Bereich um sicheres eVoting ergänzt werden."
     },
     {
       "step": 5,
@@ -72,7 +72,7 @@
       "step": 4,
       "id": "wahlen",
       "title": "Wahlen",
-      "tts": "Schritt 4 von 8. Wahlen. In diesem Bereich finden Sie verschiedene Wahlen. Sie können sich Stimmzettel ansehen sowie Informationen zu Kandidaten und Programmen abrufen. Die angezeigten Ergebnisse dienen in dieser Demo zur Veranschaulichung. Sie ersetzen keine offiziellen Wahlergebnisse. Kurz: Stimmzettel und Kandidateninfos in der Demo — Ergebnisanzeigen nur beispielhaft, nicht rechtsverbindlich."
+      "tts": "Schritt 4 von 8. Wahlen. Hier sehen Sie vergangene Wahlen und deren Ergebnisse. Sie können sich über Stimmzettel, Kandidierende und Programme informieren. Dies ist eine Vorschau – eine Stimmabgabe ist hier nicht möglich. Perspektivisch kann dieser Bereich um sicheres eVoting ergänzt werden."
     },
     {
       "step": 5,
