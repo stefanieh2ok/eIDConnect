@@ -26,7 +26,7 @@ import CalendarSection from '@/components/Calendar/CalendarSection';
 import MeldungenSection from '@/components/Meldungen/MeldungenSection';
 import type { Location, Section, UserPreferences, VoteType } from '@/types';
 import { APP_DISPLAY_NAME, APP_TAGLINE } from '@/lib/branding';
-import { DEMO_POINTS_PER_ABSTIMMUNG, VOTING_DATA } from '@/data/constants';
+import { DEMO_POINTS_PER_ABSTIMMUNG, VOTING_DATA, WAHLEN_DATA } from '@/data/constants';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
 
@@ -275,6 +275,103 @@ function IntroAbstimmenWalkthroughDemo({
   );
 }
 
+function IntroWahlenWalkthroughDemo() {
+  const btw = useMemo(() => WAHLEN_DATA.find((w) => w.id === 'btw25'), []);
+  const merz = useMemo(
+    () => btw?.kandidaten?.find((k) => /Friedrich\s+Merz/i.test(k.name)) ?? btw?.kandidaten?.[0],
+    [btw],
+  );
+  const cdu = useMemo(
+    () => btw?.parteien?.find((p) => /CDU/i.test(p.name)) ?? btw?.parteien?.[0],
+    [btw],
+  );
+
+  const [phase, setPhase] = useState<'idle' | 'focus' | 'tick' | 'program'>('idle');
+
+  useEffect(() => {
+    setPhase('idle');
+    const t0 = window.setTimeout(() => setPhase('focus'), 650);
+    const t1 = window.setTimeout(() => setPhase('tick'), 980);
+    const t2 = window.setTimeout(() => setPhase('program'), 1380);
+    return () => {
+      window.clearTimeout(t0);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
+  }, []);
+
+  if (!btw) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-900">
+        Bundestagswahl 2025 (btw25) nicht gefunden.
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-[420px]">
+      <div className="rounded-2xl border border-[#D6E0EE] bg-white shadow-sm">
+        <div className="border-b border-[#E6EDF7] px-4 pb-2 pt-3">
+          <div className="text-[11px] font-bold tracking-tight text-[#003366]">Wahlen</div>
+          <div className="mt-0.5 text-[12px] font-bold text-[#1A2B45]">{btw.name}</div>
+          <div className="mt-0.5 text-[10px] font-medium text-neutral-500">
+            Vorschau · {btw.datum} · {btw.wahlkreis}
+          </div>
+        </div>
+
+        <div className="px-4 pb-3 pt-3">
+          <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">Stimmzettel · Erststimme (Auszug)</div>
+          <div className="space-y-1.5">
+            <div
+              className={
+                'relative flex items-center gap-2 rounded-xl border px-2.5 py-2 transition ' +
+                (phase === 'focus' || phase === 'tick'
+                  ? 'border-emerald-200 bg-emerald-50/60'
+                  : 'border-neutral-200 bg-white')
+              }
+            >
+              <span
+                className={
+                  'flex h-6 w-6 items-center justify-center rounded-md border-2 bg-white text-[13px] font-black leading-none ' +
+                  (phase === 'tick' ? 'border-emerald-700 text-emerald-800' : 'border-neutral-300 text-transparent')
+                }
+                aria-hidden
+              >
+                ✗
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[11px] font-bold text-neutral-900">
+                  {merz?.partei ?? 'CDU'} <span className="font-semibold text-neutral-700">— {merz?.name ?? 'Friedrich Merz'}</span>
+                </div>
+                <div className="text-[10px] text-neutral-500">Demo‑Vorschau · keine Stimmabgabe</div>
+              </div>
+              {phase === 'focus' ? (
+                <span className="pointer-events-none absolute -inset-[2px] rounded-[0.9rem] ring-4 ring-emerald-400/30" />
+              ) : null}
+            </div>
+          </div>
+
+          <div
+            className={
+              'mt-3 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition-[max-height,opacity,transform] duration-500 ease-out ' +
+              (phase === 'program' ? 'max-h-[240px] opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-1')
+            }
+          >
+            <div className="px-3 py-2">
+              <div className="text-[10px] font-bold uppercase tracking-wide text-slate-600">
+                Programmauszug · {cdu?.name ?? 'CDU/CSU'}
+              </div>
+              <div className="mt-1 text-[11px] leading-snug text-slate-800 [text-wrap:pretty]">
+                {(cdu as any)?.programm ?? 'Programmauszug ist in der Demo hinterlegt.'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Gleiche Sektionen wie unter der Tab-Leiste — kein separates Mini-Layout. */
 function WalkthroughRealSectionEmbed({
   stepId,
@@ -291,7 +388,7 @@ function WalkthroughRealSectionEmbed({
     case 'abstimmen':
       return <IntroAbstimmenWalkthroughDemo du={du} onDone={onAbstimmenDone} />;
     case 'wahlen':
-      return <ElectionsSection />;
+      return <IntroWahlenWalkthroughDemo />;
     case 'kalender':
       return <CalendarSection priorities={calendarPriorities} />;
     case 'meldungen':
