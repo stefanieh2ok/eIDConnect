@@ -42,8 +42,12 @@ type MeldungenSectionProps = {
     enabled: boolean;
     /** Beschreibungs-Text, der per Typewriter eingetippt wird. */
     descriptionText: string;
+    /** Optional: Adresse, die im Walkthrough ebenfalls eingetippt wird. */
+    addressText?: string;
     /** Public-URL zu einem Demo-Bild, das nach dem Tippen „hochgeladen“ wird. */
     imageUrl: string;
+    /** Optional: Signalisiert, dass die Walkthrough-Sequenz fertig ist. */
+    onSequenceDone?: () => void;
   };
 };
 
@@ -64,8 +68,10 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
   const [demoUploadPct, setDemoUploadPct] = useState(0);
   const [demoUploaded, setDemoUploaded] = useState(false);
   const [demoTyping, setDemoTyping] = useState(false);
+  const [demoTypingAddress, setDemoTypingAddress] = useState(false);
   const [demoPhotoLabel, setDemoPhotoLabel] = useState(false);
   const [demoFinalReady, setDemoFinalReady] = useState(false);
+  const [demoImageZoom, setDemoImageZoom] = useState(false);
   const demoTimerRef = useRef<number | null>(null);
   const demoUiTimersRef = useRef<number[]>([]);
 
@@ -94,8 +100,10 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
     setDemoUploadPct(0);
     setDemoUploaded(false);
     setDemoTyping(true);
+    setDemoTypingAddress(false);
     setDemoPhotoLabel(false);
     setDemoFinalReady(false);
+    setDemoImageZoom(false);
     for (const t of demoUiTimersRef.current) window.clearTimeout(t);
     demoUiTimersRef.current = [];
 
@@ -111,8 +119,31 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
         return;
       }
 
-      // After typing, simulate upload (quick progress + reveal thumbnail).
       setDemoTyping(false);
+      const addrTarget = walkthroughDemo.addressText?.trim();
+      if (addrTarget) {
+        setDemoTypingAddress(true);
+        let ai = 0;
+        setAdresse('');
+        const tickAddress = () => {
+          ai += 1;
+          setAdresse(addrTarget.slice(0, ai));
+          if (ai < addrTarget.length) {
+            demoTimerRef.current = window.setTimeout(tickAddress, 24 + Math.floor(Math.random() * 28));
+            return;
+          }
+          setDemoTypingAddress(false);
+          demoTimerRef.current = window.setTimeout(startUpload, 300);
+        };
+        demoTimerRef.current = window.setTimeout(tickAddress, 240);
+        return;
+      }
+
+      // No address typing configured: go straight to upload.
+      startUpload();
+    };
+
+    const startUpload = () => {
       const start = Date.now();
       const durationMs = 1200;
       const tickUpload = () => {
@@ -125,19 +156,30 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
         setDemoUploaded(true);
         // Follow-up UI cues: label first, then final “prepared” state.
         demoUiTimersRef.current.push(window.setTimeout(() => setDemoPhotoLabel(true), 220));
-        demoUiTimersRef.current.push(window.setTimeout(() => setDemoFinalReady(true), 640));
+        demoUiTimersRef.current.push(
+          window.setTimeout(() => {
+            setDemoFinalReady(true);
+            walkthroughDemo?.onSequenceDone?.();
+          }, 640)
+        );
       };
       demoTimerRef.current = window.setTimeout(tickUpload, 180);
     };
 
-    demoTimerRef.current = window.setTimeout(tickTyping, 450);
+    demoTimerRef.current = window.setTimeout(tickTyping, 500);
 
     return () => {
       if (demoTimerRef.current) window.clearTimeout(demoTimerRef.current);
       for (const t of demoUiTimersRef.current) window.clearTimeout(t);
       demoUiTimersRef.current = [];
     };
-  }, [walkthroughDemo?.enabled, walkthroughDemo?.descriptionText, walkthroughDemo?.imageUrl]);
+  }, [
+    walkthroughDemo?.enabled,
+    walkthroughDemo?.descriptionText,
+    walkthroughDemo?.addressText,
+    walkthroughDemo?.imageUrl,
+    walkthroughDemo?.onSequenceDone,
+  ]);
 
   const handleSenden = () => {
     if (!beschreibung.trim()) return;
@@ -163,26 +205,36 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
   const shellClass = embeddedInWalkthrough ? 'card-section p-2.5' : 'card-section p-3';
   const showDemoUpload = Boolean(walkthroughDemo?.enabled) && step === 'details';
   const showDemoCaret = Boolean(walkthroughDemo?.enabled) && step === 'details' && demoTyping;
+  const showDemoAddressCaret = Boolean(walkthroughDemo?.enabled) && step === 'details' && demoTypingAddress;
+  const isWalkthroughFilmMode = Boolean(walkthroughDemo?.enabled);
 
   return (
-    <div className={`${embeddedInWalkthrough ? 'walkthrough-meldungen-embed' : ''} ${shellClass}`}>
+    <div
+      className={`${embeddedInWalkthrough ? 'walkthrough-meldungen-embed' : ''} ${
+        isWalkthroughFilmMode ? 'walkthrough-meldungen-film' : ''
+      } ${shellClass}`}
+    >
+      {!isWalkthroughFilmMode ? (
         <div className={`flex items-start justify-between ${embeddedInWalkthrough ? 'mb-2' : 'mb-3'}`}>
           <div className="t-meta mt-0.5">
             {selectionLabelForSection('meldungen', state.activeLocation, state.residenceLocation)}
           </div>
           <SectionLevelFilterIcon section="meldungen" />
-      </div>
-      {/* Intro-Info, bewusst ruhig statt herohaft */}
-      <div className={embeddedInWalkthrough ? 'card-content mb-3 p-4' : 'card-content mb-4 p-4'}>
-        <div className="mb-2 inline-flex items-center rounded-full border border-[#CFE0F7] bg-[#F4F8FE] px-2.5 py-1 text-[10px] font-semibold text-[#1F4F8A]">
-          Kommunaler Service
         </div>
-        <p className="t-body-sm">
-          {du
-            ? `Melde Probleme oder Anliegen direkt an die Gemeindeverwaltung ${gemeinde}.`
-            : `Hinweise und Anliegen können direkt an die Gemeindeverwaltung ${gemeinde} gesendet werden.`}
-        </p>
-      </div>
+      ) : null}
+      {/* Intro-Info, bewusst ruhig statt herohaft */}
+      {!isWalkthroughFilmMode ? (
+        <div className={embeddedInWalkthrough ? 'card-content mb-3 p-4' : 'card-content mb-4 p-4'}>
+          <div className="mb-2 inline-flex items-center rounded-full border border-[#CFE0F7] bg-[#F4F8FE] px-2.5 py-1 text-[10px] font-semibold text-[#1F4F8A]">
+            Kommunaler Service
+          </div>
+          <p className="t-body-sm">
+            {du
+              ? `Melde Probleme oder Anliegen direkt an die Gemeindeverwaltung ${gemeinde}.`
+              : `Hinweise und Anliegen können direkt an die Gemeindeverwaltung ${gemeinde} gesendet werden.`}
+          </p>
+        </div>
+      ) : null}
 
       {/* Step: Kategorie wählen */}
       {step === 'kategorie' && (
@@ -285,20 +337,29 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
 
       {/* Step: Details eingeben */}
       {step === 'details' && selectedKat && (
-        <div className="card-content p-3">
-          <button
-            onClick={() => setStep('kategorie')}
-            className="mb-3 inline-flex items-center gap-1 rounded-lg border border-transparent px-1.5 py-1 text-xs font-medium text-[#1F4F8A] hover:border-[#D6E0EE] hover:bg-white"
-          >
-            ← Kategorie ändern
-          </button>
+        <div className={`card-content ${isWalkthroughFilmMode ? 'p-1.5' : 'p-3'}`}>
+          {!isWalkthroughFilmMode ? (
+            <button
+              onClick={() => setStep('kategorie')}
+              className="mb-3 inline-flex items-center gap-1 rounded-lg border border-transparent px-1.5 py-1 text-xs font-medium text-[#1F4F8A] hover:border-[#D6E0EE] hover:bg-white"
+            >
+              ← Kategorie ändern
+            </button>
+          ) : null}
 
-          <div className="mb-4 rounded-xl border border-[#CFE0F7] bg-[#F6FAFF] p-3.5">
+          <div className={`${isWalkthroughFilmMode ? 'mb-1.5 p-2' : 'mb-4 p-3.5'} rounded-xl border border-[#CFE0F7] bg-[#F6FAFF]`}>
             <div className="text-[10px] font-semibold uppercase tracking-wide text-[#4F6F96]">Ausgewählte Kategorie</div>
-            <div className="mt-1 text-sm font-semibold text-[#1A2B45]">{selectedKat.label}</div>
+            <div className={`${isWalkthroughFilmMode ? 'mt-0.5 text-[13px]' : 'mt-1 text-sm'} font-semibold text-[#1A2B45]`}>
+              {selectedKat.label}
+            </div>
           </div>
 
-          <div className={`space-y-3 ${embeddedInWalkthrough ? 'pb-12' : 'pb-28'}`}>
+          <div
+            className={
+              `walkthrough-meldungen-film-stack space-y-2 ${embeddedInWalkthrough ? (isWalkthroughFilmMode ? 'pb-1' : 'pb-12') : 'pb-28'} ` +
+              (isWalkthroughFilmMode ? 'origin-top scale-[0.9]' : '')
+            }
+          >
             {!walkthroughDemo?.enabled ? (
               <div className="rounded-xl border border-[#CFE7E3] bg-[#F4FCFA] p-3">
                 <div className="mb-1.5 flex items-center justify-between gap-2">
@@ -328,14 +389,14 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
             ) : null}
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+              <label className={`block text-xs font-semibold text-gray-700 ${isWalkthroughFilmMode ? 'mb-1' : 'mb-1.5'}`}>
                 {du ? 'Deine Beschreibung *' : 'Ihre Beschreibung *'}
               </label>
               <div className="relative">
                 <textarea
                   value={beschreibung}
                   onChange={(e) => setBeschreibung(e.target.value)}
-                  rows={3}
+                  rows={isWalkthroughFilmMode ? 1 : 3}
                   placeholder={
                     du
                       ? 'Beschreibe das Problem so genau wie möglich...'
@@ -360,32 +421,50 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                Standort / Adresse (optional)
+              <label className={`block text-xs font-semibold text-gray-700 ${isWalkthroughFilmMode ? 'mb-1' : 'mb-1.5'}`}>
+                {isWalkthroughFilmMode ? 'Standort / Adresse' : 'Standort / Adresse (optional)'}
               </label>
               <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={adresse}
-                  onChange={(e) => setAdresse(e.target.value)}
-                  placeholder={`z. B. Hauptstraße 12, ${gemeinde}`}
-                  className="form-input flex-1"
-                />
-                <button
-                  type="button"
-                  className="btn-secondary min-w-[64px] text-sm"
-                  style={{ borderColor: 'var(--gov-border, #D6E0EE)' }}
-                  title="Aktuellen Standort verwenden"
-                >
-                  Ort
-                </button>
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={adresse}
+                    onChange={(e) => setAdresse(e.target.value)}
+                    placeholder={`z. B. Hauptstraße 12, ${gemeinde}`}
+                    className={
+                      'form-input w-full ' + (showDemoAddressCaret ? 'text-transparent caret-transparent' : '')
+                    }
+                  />
+                  {showDemoAddressCaret ? (
+                    <div
+                      className="pointer-events-none absolute inset-0 truncate text-[inherit] leading-[inherit] text-[#1A2B45]"
+                      aria-hidden
+                      style={{ padding: '0.625rem 0.75rem' }}
+                    >
+                      {adresse}
+                      <span className="intro-typewriter-caret ml-px inline-block h-[1em] w-[2px] translate-y-[2px] bg-[#0055A4]" />
+                    </div>
+                  ) : null}
+                </div>
+                {!isWalkthroughFilmMode ? (
+                  <button
+                    type="button"
+                    className="btn-secondary min-w-[64px] text-sm"
+                    style={{ borderColor: 'var(--gov-border, #D6E0EE)' }}
+                    title="Aktuellen Standort verwenden"
+                  >
+                    Ort
+                  </button>
+                ) : null}
               </div>
             </div>
 
             {/* Foto */}
-            <div className="space-y-1.5">
+            <div className={isWalkthroughFilmMode ? 'space-y-1' : 'space-y-1.5'}>
               <label
-                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-white py-2.5 text-sm font-medium transition-colors hover:border-[#7AA4D8] hover:text-[#1F4F8A]"
+                className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-white text-sm font-medium transition-colors hover:border-[#7AA4D8] hover:text-[#1F4F8A] ${
+                  isWalkthroughFilmMode ? 'py-1.5' : 'py-2'
+                }`}
                 style={{ borderColor: 'var(--gov-border, #D6E0EE)', color: photos.length > 0 ? '#1F4F8A' : undefined }}
               >
                 {photos.length > 0
@@ -393,8 +472,8 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                     ? `${photos.length} Foto(s) ausgewählt`
                     : `${photos.length} Foto(s) ausgewählt`
                   : du
-                    ? 'Fotos hinzufügen (optional)'
-                    : 'Fotos hinzufügen (optional)'}
+                    ? 'Foto hinzufügen'
+                    : 'Foto hinzufügen'}
                 <input
                   type="file"
                   accept="image/*"
@@ -411,7 +490,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
               </label>
 
               {showDemoUpload && demoUploadPct > 0 && !demoUploaded ? (
-                <div className="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                <div className={`rounded-xl border border-slate-200 bg-white ${isWalkthroughFilmMode ? 'px-2.5 py-1.5' : 'px-3 py-2'}`}>
                   <div className="flex items-center justify-between text-[10px] font-semibold text-slate-700">
                     <span>Upload (Demo)</span>
                     <span>{demoUploadPct}%</span>
@@ -430,9 +509,23 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                   {demoPhotoLabel ? (
                     <div className="text-[10px] font-semibold text-emerald-800">Foto hinzugefügt</div>
                   ) : null}
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     <div className="intro-upload-pop relative overflow-hidden rounded-xl border border-neutral-200 bg-white">
-                      <img src={walkthroughDemo!.imageUrl} alt="Foto Vorschau" className="h-20 w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setDemoImageZoom((z) => !z)}
+                        className={`relative block w-full overflow-hidden ${isWalkthroughFilmMode ? 'h-16' : 'h-20'}`}
+                        title="Bild vergrößern"
+                      >
+                        <img
+                          src={walkthroughDemo!.imageUrl}
+                          alt="Foto Vorschau"
+                          className={
+                            'h-full w-full object-cover transition-transform duration-300 ease-out hover:scale-125 ' +
+                            (demoImageZoom ? 'scale-[1.7]' : 'scale-100')
+                          }
+                        />
+                      </button>
                       <span className="absolute left-1 top-1 rounded-full bg-black/55 px-2 py-1 text-[10px] font-bold text-white">
                         Demo
                       </span>
@@ -463,25 +556,31 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                   ))}
                 </div>
               )}
-              <p className="text-[10px] text-gray-400">
-                {du ? 'Max. 5 Fotos. In der Demo werden sie nur lokal angezeigt.' : 'Max. 5 Fotos. In der Demo werden sie nur lokal angezeigt.'}
-              </p>
+              {!isWalkthroughFilmMode ? (
+                <p className="text-[10px] text-gray-400">
+                  {du ? 'Max. 5 Fotos. In der Demo werden sie nur lokal angezeigt.' : 'Max. 5 Fotos. In der Demo werden sie nur lokal angezeigt.'}
+                </p>
+              ) : null}
             </div>
 
-            <button
-              type="button"
-              onClick={handleSenden}
-              disabled={!beschreibung.trim()}
-              className="btn-primary t-button w-full transition-opacity hover:opacity-95 disabled:bg-neutral-300 disabled:text-neutral-100 disabled:opacity-100"
-            >
-              Meldung senden
-            </button>
+            {!isWalkthroughFilmMode ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleSenden}
+                  disabled={!beschreibung.trim()}
+                  className="btn-primary t-button w-full transition-opacity hover:opacity-95 disabled:bg-neutral-300 disabled:text-neutral-100 disabled:opacity-100"
+                >
+                  Meldung senden
+                </button>
 
-            <p className="text-[10px] text-gray-400 text-center">
-              {du
-                ? `Deine Meldung wird an die Gemeindeverwaltung ${gemeinde} weitergeleitet.`
-                : `Ihre Meldung wird an die Gemeindeverwaltung ${gemeinde} weitergeleitet.`}
-            </p>
+                <p className="text-[10px] text-gray-400 text-center">
+                  {du
+                    ? `Deine Meldung wird an die Gemeindeverwaltung ${gemeinde} weitergeleitet.`
+                    : `Ihre Meldung wird an die Gemeindeverwaltung ${gemeinde} weitergeleitet.`}
+                </p>
+              </>
+            ) : null}
           </div>
         </div>
       )}

@@ -20,25 +20,27 @@ export type WalkthroughClaraBlock = {
 export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClaraBlock> = {
   abstimmen: {
     label: 'Abstimmen',
-    line10sDu: 'Hier triffst du deine Entscheidung – bewusst und nachvollziehbar.',
-    line10sSie: 'Hier treffen Sie Ihre Entscheidung – bewusst und nachvollziehbar.',
-    shortDu: 'Hier triffst du deine Entscheidung – bewusst und nachvollziehbar.',
-    shortSie: 'Hier treffen Sie Ihre Entscheidung – bewusst und nachvollziehbar.',
+    line10sDu: 'Vor der Entscheidung siehst du beide Seiten.',
+    line10sSie: 'Vor der Entscheidung sehen Sie beide Seiten.',
+    shortDu: 'Vor der Entscheidung siehst du beide Seiten.',
+    shortSie: 'Vor der Entscheidung sehen Sie beide Seiten.',
     longDu:
-      'Du siehst zuerst Argumente und Kontext, dann entscheidest du mit den Buttons.\n\n' +
-      'Die App bleibt neutral und gibt keine Richtung vor.',
+      'Vor der Entscheidung siehst du beide Seiten.\n\n' +
+      'Pro und Contra helfen dir, eine Position einzuordnen.\n\n' +
+      'Die App gibt keine Richtung vor.',
     longSie:
-      'Sie sehen zuerst Argumente und Kontext, dann entscheiden Sie mit den Buttons.\n\n' +
-      'Die App bleibt neutral und gibt keine Richtung vor.',
+      'Vor der Entscheidung sehen Sie beide Seiten.\n\n' +
+      'Pro und Contra helfen Ihnen, eine Position einzuordnen.\n\n' +
+      'Die App gibt keine Richtung vor.',
     speakSegmentsDu: [
-      'Hier triffst du deine Entscheidung – bewusst und nachvollziehbar.',
-      'Du siehst zuerst Argumente, dann entscheidest du mit den Buttons.',
-      'Die App gibt dir keine Richtung vor.',
+      'Vor der Entscheidung siehst du beide Seiten.',
+      'Pro und Contra helfen dir, eine Position einzuordnen.',
+      'Die App gibt keine Richtung vor.',
     ],
     speakSegmentsSie: [
-      'Hier treffen Sie Ihre Entscheidung – bewusst und nachvollziehbar.',
-      'Sie sehen zuerst Argumente, dann entscheiden Sie mit den Buttons.',
-      'Die App gibt Ihnen keine Richtung vor.',
+      'Vor der Entscheidung sehen Sie beide Seiten.',
+      'Pro und Contra helfen Ihnen, eine Position einzuordnen.',
+      'Die App gibt keine Richtung vor.',
     ],
   },
   wahlen: {

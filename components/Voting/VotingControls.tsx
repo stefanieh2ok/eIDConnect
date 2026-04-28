@@ -63,7 +63,7 @@ const VotingControls: React.FC<VotingControlsProps> = ({
       }}
     >
       {walkthroughVisualPreview ? null : useIntroSizing && useIntro ? introKicker : compact ? null : kicker}
-      {walkthroughVisualPreview ? null : (
+      {walkthroughVisualPreview || introWalkthrough ? null : (
         <p className={`text-center text-[9px] text-neutral-500 ${useCompactLayout ? 'mb-2' : 'mb-2.5'}`}>
           {du
             ? 'Prämien, falls aktiviert, sind unabhängig davon, wie du abstimmst.'

@@ -233,14 +233,33 @@ function IntroAbstimmenWalkthroughDemo({
 
   return (
     <div className="relative w-full min-w-0">
-      <div className="mx-auto w-full max-w-[420px]">
-        <VotingCard
-          card={card}
-          introCompact
-          introDemoVoteDisclaimer
-          introHideProCon
-          introProConExpanded={false}
-        />
+      <div className="mx-auto w-full max-w-[420px] space-y-2">
+        <div className="rounded-2xl border border-[#D6E0EE] bg-white px-3 py-2 shadow-sm">
+          <div className="text-[10px] font-bold uppercase tracking-wide text-[#4F6F96]">Abstimmen</div>
+          <div className="mt-0.5 text-[13px] font-bold leading-snug text-[#1A2B45]">
+            {card?.title ?? 'Digitales Bürgerportal in Kirkel ausbauen'}
+          </div>
+          <div className="mt-1 line-clamp-2 text-[11px] leading-snug text-neutral-600">
+            {(card as any)?.description ?? 'Entscheidungsvorlage mit kurzer Einordnung.'}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 px-2.5 py-2">
+            <div className="text-[10px] font-bold uppercase tracking-wide text-emerald-800">Pro</div>
+            <ul className="mt-1.5 space-y-1 text-[10.5px] leading-snug text-emerald-900">
+              <li>Schnellere Verwaltungsprozesse</li>
+              <li>Einfacherer Zugang für Bürger</li>
+            </ul>
+          </div>
+          <div className="rounded-xl border border-rose-200 bg-rose-50/70 px-2.5 py-2">
+            <div className="text-[10px] font-bold uppercase tracking-wide text-rose-800">Contra</div>
+            <ul className="mt-1.5 space-y-1 text-[10.5px] leading-snug text-rose-900">
+              <li>Datenschutz muss klar geregelt sein</li>
+              <li>Digitale Teilhabe braucht Alternativen</li>
+            </ul>
+          </div>
+        </div>
 
         <div className="relative">
           <VotingControls
@@ -255,7 +274,7 @@ function IntroAbstimmenWalkthroughDemo({
 
           {/* Visual cue: halo over “Zustimmen”, then a quick press flash */}
           {phase === 'highlight' ? (
-            <div className="pointer-events-none absolute right-[18px] top-[22px] h-16 w-16 rounded-full ring-4 ring-emerald-400/60" />
+            <div className="pointer-events-none absolute right-[22px] top-[16px] h-16 w-16 rounded-full ring-4 ring-emerald-400/60" />
           ) : null}
           {phase === 'pressed' ? (
             <div className="pointer-events-none absolute inset-0 rounded-2xl bg-emerald-500/10" />
@@ -423,8 +442,10 @@ function WalkthroughRealSectionEmbed({
           embeddedInWalkthrough
           walkthroughDemo={{
             enabled: true,
-            descriptionText: 'Auf dem Spielplatz gibt es Ratten',
+            descriptionText: 'Auf dem Spielplatz gibt es Ratten.',
+            addressText: 'Am Marktplatz 3, 66459 Kirkel',
             imageUrl: '/demo-rat-playground.jpg',
+            onSequenceDone: onAbstimmenDone,
           }}
         />
       );
@@ -501,7 +522,8 @@ export default function DemoIntroWalkthrough({
         <div
           key={step.id}
           className={
-            'walkthrough-real-embed min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] ' +
+            'walkthrough-real-embed min-h-0 flex-1 overflow-x-hidden ' +
+            (step.id === 'meldungen' ? 'overflow-y-hidden ' : 'overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] ') +
             (fillDeviceFrame ? 'px-0 pt-0' : 'px-3 pt-2')
           }
           onPointerDown={() => {
@@ -634,11 +656,19 @@ export default function DemoIntroWalkthrough({
         }`}
       >
         <div
-          className={`intro-walkthrough-device intro-device-chrome-shell intro-dark-body flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] ${
-            fillDeviceFrame ? 'p-0 sm:p-0' : 'p-[3px] sm:p-1'
-          }`}
+          className={
+            fillDeviceFrame
+              ? 'intro-walkthrough-device flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white'
+              : 'intro-walkthrough-device intro-device-chrome-shell intro-dark-body flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] p-[3px] sm:p-1'
+          }
         >
-          <div className="intro-walkthrough-inner flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.65rem] border border-neutral-200/95 bg-white">
+          <div
+            className={
+              fillDeviceFrame
+                ? 'intro-walkthrough-inner flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white'
+                : 'intro-walkthrough-inner flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.65rem] border border-neutral-200/95 bg-white'
+            }
+          >
           <IntroMetaStrip
             surface="light"
             stepNumber={null}
@@ -667,7 +697,12 @@ export default function DemoIntroWalkthrough({
             <span className="text-[10px] font-medium leading-snug text-neutral-500">{APP_TAGLINE}</span>
           </div>
 
-          <div className="intro-walkthrough-scroll flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
+          <div
+            className={
+              'intro-walkthrough-scroll flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden ' +
+              (step.id === 'meldungen' ? 'overflow-y-hidden' : 'overflow-y-auto')
+            }
+          >
             <div className="intro-walkthrough-focus-stage min-h-0 min-w-0 flex-1">
               <div className="intro-walkthrough-focus-card">
                 <div
@@ -691,14 +726,24 @@ export default function DemoIntroWalkthrough({
                 <div
                   className={
                     fillDeviceFrame
-                      ? 'shrink-0 border-b border-neutral-100/90 px-2.5 pb-1.5 pt-2 sm:px-3'
+                      : 'shrink-0 border-b border-neutral-100/90 px-2.5 pb-1.5 pt-2 sm:px-3'
                       : 'shrink-0 border-b border-neutral-100/90 px-4 pb-2.5 pt-3 sm:px-4'
                   }
                 >
-                  <h2 className="text-[1.0625rem] font-bold leading-snug tracking-tight text-[#0f172a] sm:text-lg">
+                  <h2
+                    className={
+                      'font-bold leading-snug tracking-tight text-[#0f172a] ' +
+                      (step.id === 'meldungen' ? 'text-[0.98rem] sm:text-[1rem]' : 'text-[1.0625rem] sm:text-lg')
+                    }
+                  >
                     {step.title}
                   </h2>
-                  <p className="mt-1.5 line-clamp-2 text-[12px] font-medium leading-snug text-neutral-600 sm:text-[13px]">
+                  <p
+                    className={
+                      'font-medium leading-snug text-neutral-600 sm:text-[13px] ' +
+                      (step.id === 'meldungen' ? 'mt-1 line-clamp-1 text-[11px]' : 'mt-1.5 line-clamp-2 text-[12px]')
+                    }
+                  >
                     {clara.short}
                   </p>
                 </div>
@@ -706,7 +751,8 @@ export default function DemoIntroWalkthrough({
                   key={step.id}
                   className={
                     fillDeviceFrame
-                      ? 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-1 pb-1 pt-1 sm:px-1.5'
+                      ? 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden ' +
+                        (step.id === 'meldungen' ? 'px-0.5 pb-0.5 pt-0.5 sm:px-1' : 'px-1 pb-1 pt-1 sm:px-1.5')
                       : 'flex min-h-0 min-w-0 flex-none flex-col overflow-hidden px-3 pb-2 pt-2 sm:px-4'
                   }
                 >
@@ -773,7 +819,7 @@ export default function DemoIntroWalkthrough({
               }}
               className={
                 'btn-primary t-button min-h-[44px] min-w-0 flex-1 text-[15px] font-bold ' +
-                (nextPulse && step.id === 'abstimmen' && !isLast ? ' footer-heartbeat' : '') +
+                (nextPulse && (step.id === 'abstimmen' || step.id === 'meldungen') && !isLast ? ' footer-heartbeat' : '') +
                 (isLast ? 'whitespace-nowrap' : '')
               }
             >

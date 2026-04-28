@@ -40,6 +40,7 @@ import { playDemoLaunchAudio } from '@/lib/playDemoLaunchAudio';
 
 // Produkteinführung (4 Screens) vor Login/Onboarding — eigenes Flag, nicht mit eID/Anrede vermischen.
 const PRODUCT_INTRO_DONE_KEY = 'eidconnect_product_intro_done_v4';
+const REWARDS_OPTIN_PROMPT_SHOWN_KEY = 'eidconnect_rewards_optin_prompt_shown_v1';
 type BuergerAppProps = { variant?: 'fullscreen' | 'device' };
 
 export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) {
@@ -68,6 +69,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
   );
   /** Walkthrough-Schritt für Clara-Kontext (Pille + Chat). */
   const [walkthroughStep, setWalkthroughStep] = useState<{ id: string; label: string } | null>(null);
+  const [showRewardsOptInPrompt, setShowRewardsOptInPrompt] = useState(false);
   /** Optionaler Demo-/Pitch-Launch (nur bei User-Klick + NEXT_PUBLIC_ENABLE_DEMO_LAUNCH_EFFECT). */
   const [demoLaunchOpen, setDemoLaunchOpen] = useState(false);
   const [demoLaunchDurationMs, setDemoLaunchDurationMs] = useState(3300);
@@ -288,6 +290,38 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     state.anrede != null &&
     readWantsWalkthrough();
 
+  const participationActivityCount =
+    state.participationVoteCount + state.participationElectionCount + state.participationByLevel.kommune;
+  const participationActivityRef = React.useRef(participationActivityCount);
+
+  useEffect(() => {
+    if (!state.isLoggedIn || walkthroughChrome) {
+      participationActivityRef.current = participationActivityCount;
+      return;
+    }
+    if (state.consentLocalBenefits) {
+      participationActivityRef.current = participationActivityCount;
+      return;
+    }
+
+    const prev = participationActivityRef.current;
+    participationActivityRef.current = participationActivityCount;
+    if (participationActivityCount <= prev) return;
+
+    try {
+      if (localStorage.getItem(REWARDS_OPTIN_PROMPT_SHOWN_KEY) === '1') return;
+    } catch {
+      // ignore
+    }
+
+    setShowRewardsOptInPrompt(true);
+  }, [
+    state.isLoggedIn,
+    state.consentLocalBenefits,
+    walkthroughChrome,
+    participationActivityCount,
+  ]);
+
   useEffect(() => {
     if (!walkthroughChrome) setWalkthroughStep(null);
   }, [walkthroughChrome]);
@@ -432,6 +466,51 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                   locationLine={locationLineForLaunch}
                   durationMs={demoLaunchDurationMs}
                 />
+              ) : null}
+              {showRewardsOptInPrompt ? (
+                <div className="absolute inset-0 z-[760] flex items-end justify-center bg-black/40 p-3 sm:items-center">
+                  <div className="w-full max-w-[420px] rounded-2xl border border-neutral-200 bg-white p-4 shadow-2xl">
+                    <h3 className="text-[15px] font-bold text-[#1A2B45]">Prämien aktivieren?</h3>
+                    <p className="mt-1 text-[12px] leading-relaxed text-neutral-700">
+                      Nach abgeschlossenen Beteiligungen oder Rückmeldungen können passende Prämien angezeigt werden.
+                    </p>
+                    <p className="mt-1 text-[11px] text-neutral-600">
+                      Die konkrete Abstimmungsentscheidung wird dafür nicht ausgewertet.
+                    </p>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          try {
+                            localStorage.setItem(REWARDS_OPTIN_PROMPT_SHOWN_KEY, '1');
+                          } catch {
+                            // ignore
+                          }
+                          setShowRewardsOptInPrompt(false);
+                        }}
+                        className="inline-flex min-h-[42px] min-w-0 flex-1 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-700"
+                      >
+                        Nicht jetzt
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          dispatch({ type: 'SET_CONSENT_LOCAL_BENEFITS', payload: true });
+                          dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'leaderboard' });
+                          try {
+                            localStorage.setItem(REWARDS_OPTIN_PROMPT_SHOWN_KEY, '1');
+                          } catch {
+                            // ignore
+                          }
+                          setShowRewardsOptInPrompt(false);
+                        }}
+                        className="inline-flex min-h-[42px] min-w-0 flex-1 items-center justify-center rounded-xl bg-[#003D80] px-3 text-sm font-bold text-white"
+                      >
+                        Ja, aktivieren
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ) : null}
             </div>
           </>
