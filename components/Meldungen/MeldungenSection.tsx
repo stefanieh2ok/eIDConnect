@@ -214,7 +214,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
         isWalkthroughFilmMode ? 'walkthrough-meldungen-film' : ''
       } ${shellClass}`}
     >
-      {!isWalkthroughFilmMode ? (
+      {!isWalkthroughFilmMode && !embeddedInWalkthrough ? (
         <div className={`flex items-start justify-between ${embeddedInWalkthrough ? 'mb-2' : 'mb-3'}`}>
           <div className="t-meta mt-0.5">
             {selectionLabelForSection('meldungen', state.activeLocation, state.residenceLocation)}
@@ -223,7 +223,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
         </div>
       ) : null}
       {/* Intro-Info, bewusst ruhig statt herohaft */}
-      {!isWalkthroughFilmMode ? (
+      {!isWalkthroughFilmMode && !embeddedInWalkthrough ? (
         <div className={embeddedInWalkthrough ? 'card-content mb-3 p-4' : 'card-content mb-4 p-4'}>
           <div className="mb-2 inline-flex items-center rounded-full border border-[#CFE0F7] bg-[#F4F8FE] px-2.5 py-1 text-[10px] font-semibold text-[#1F4F8A]">
             Kommunaler Service

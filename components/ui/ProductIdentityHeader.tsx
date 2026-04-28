@@ -10,7 +10,13 @@ type ProductIdentityHeaderProps = {
 export default function ProductIdentityHeader({ className = '' }: ProductIdentityHeaderProps) {
   return (
     <div className={`min-w-0 text-left ${className}`}>
-      <div className="t-app-title truncate leading-none text-[#003366]">{APP_DISPLAY_NAME}</div>
+      <img
+        src="/logo.svg"
+        alt={APP_DISPLAY_NAME}
+        className="h-8 w-auto max-w-[190px] object-contain"
+        loading="eager"
+        decoding="async"
+      />
       <p className="t-app-subtitle mt-0.5 whitespace-nowrap text-[10px] leading-tight sm:text-[10.5px] text-left">
         {APP_TAGLINE}
       </p>
