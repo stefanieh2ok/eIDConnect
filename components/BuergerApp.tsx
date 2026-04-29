@@ -520,6 +520,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
             !state.isLoggedIn || walkthroughChrome ? 'z-[620]' : 'z-[140]'
           }
           compactMicOnlyMode={state.isLoggedIn ? walkthroughChrome : undefined}
+          compactMicZClassName={walkthroughChrome ? 'z-[760]' : undefined}
           suppressCompactMic={!state.isLoggedIn || walkthroughChrome}
           walkthroughActive={walkthroughChrome}
           walkthroughStep={walkthroughChrome ? walkthroughStep : null}
