@@ -8,7 +8,7 @@ import { IphoneFrame } from '@/components/ui/IphoneFrame';
 import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 export const metadata = {
-  title: `Vertraulicher Demo-Zugang – ${APP_DISPLAY_NAME}`,
+  title: `Vertraulicher Vorschau-Zugang – ${APP_DISPLAY_NAME}`,
 };
 
 type AccessPageProps = {
@@ -26,7 +26,7 @@ export default async function AccessPage({ params }: AccessPageProps) {
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-600">
               Was fehlt auf Supabase?
             </p>
-            <h1 className="mt-2 text-xl font-semibold">Demo-Zugang derzeit nicht verfügbar</h1>
+            <h1 className="mt-2 text-xl font-semibold">Vorschau-Zugang derzeit nicht verfügbar</h1>
             <p className="mt-3 text-sm leading-relaxed text-neutral-700">
               Die Konfiguration fehlt. Bitte in der Projektdatei{' '}
               <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-900">.env.local</code> setzen:
@@ -87,14 +87,17 @@ export default async function AccessPage({ params }: AccessPageProps) {
         <div className="mx-auto w-full max-w-[360px] space-y-4 pb-6 text-neutral-950">
           <div className="card-section">
             <ProductIdentityHeader />
-            <h1 className="t-h1 mt-2">{ndaConfig.header || 'Vertraulicher Demo-Zugang'}</h1>
+            <p className="mt-1 text-left text-[11px] font-medium leading-snug text-neutral-600">
+              Informieren. Verstehen. Mitwirken.
+            </p>
+            <h1 className="t-h1 mt-2">{ndaConfig.header || 'Vertraulicher Vorschau-Zugang'}</h1>
             <p className="t-body mt-3">
               Dieser personalisierte Zugang ist ausschließlich für die benannte Person bestimmt.
               Für Tester erfolgt die Freigabe über die bestätigte NDA-Zustimmung im nächsten Schritt.
             </p>
 
             <div className="card-content mt-4">
-              <p className="t-card-title">Personalisierter Demo-Zugang</p>
+              <p className="t-card-title">Personalisierter Vorschau-Zugang</p>
               <div className="mt-2 space-y-1">
                 <p>
                   <span className="t-meta font-semibold text-neutral-900">Empfänger:</span>{' '}

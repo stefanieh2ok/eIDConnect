@@ -65,7 +65,7 @@ const ClaraInfoBox: React.FC<ClaraInfoBoxProps> = ({ card, onOpenChat }) => {
       '2) Belegbare Pro-Argumente',
       '3) Belegbare Contra-Argumente',
       '4) Überprüfbare Quellen (amtliche Dokumente, Gesetzestexte, seriöse Medien).',
-      'Keine Abstimmungsempfehlung. Markiere ausdrücklich, wenn Zahlen Demo- oder Beispielwerte sind.' +
+      'Keine Abstimmungsempfehlung. Markiere ausdrücklich, wenn Zahlen Vorschau- oder Beispielwerte sind.' +
         ctx,
     ].join('\n');
   }, [card]);

@@ -98,7 +98,7 @@ const ClaraChat: React.FC<ClaraProps> = ({
       timestamp: new Date(),
       sources: introWalkthrough
         ? ['Einführung · Clara (neutral)']
-        : ['HookAI Civic Demo / Clara (KI-gestützt, EU AI Act)'],
+        : ['HookAI Civic / Clara (KI-gestützt, EU AI Act)'],
     },
   ]);
   const [inputMessage, setInputMessage] = useState('');

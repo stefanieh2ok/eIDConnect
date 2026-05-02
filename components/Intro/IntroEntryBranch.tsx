@@ -13,7 +13,6 @@ import {
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
-import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 type Props = {
   open: boolean;
@@ -63,7 +62,7 @@ export function IntroEntryBranch({
     const t = window.setTimeout(() => {
       if (entryIntroPlayedRef.current) return;
       speakEntry();
-    }, 90);
+    }, 450);
     return () => {
       clearTimeout(t);
     };
@@ -84,13 +83,6 @@ export function IntroEntryBranch({
       aria-label="Einstieg Einführung"
     >
       <div className="absolute inset-0 bg-[#0B2A3C]" aria-hidden />
-      <div className="pointer-events-none absolute inset-x-0 top-6 z-[1] flex justify-center">
-        <ProductIdentityHeader
-          variant="dark"
-          align="center"
-          className="intro-logo-enter"
-        />
-      </div>
       <div
         className="clara-prelogin-shell-pad intro-device-chrome-shell intro-dark-body relative z-[2] w-full max-w-[400px] overflow-hidden rounded-[1.85rem] p-[3px] sm:max-w-[440px] sm:p-1"
         style={{ maxHeight: 'min(calc(100dvh - 1.5rem), 100%)' }}
@@ -113,8 +105,7 @@ export function IntroEntryBranch({
             onClose={onDirectToApp}
             onSkip={onDirectToApp}
           />
-          <div className="border-b border-neutral-200 px-4 pb-3 pt-3 sm:px-6 sm:pt-4 sm:pb-4">
-            <ProductIdentityHeader className="mb-2" />
+          <div className="border-b border-neutral-200 px-4 pb-3 pt-3 sm:px-6 sm:pb-4 sm:pt-4">
             <ClaraStepPanel
               surface="light"
               label={INTRO_ENTRY_UI_TITLE}

@@ -234,7 +234,7 @@ export default function ClaraDock({
     if (walkthroughActive && walkthroughStep) {
       return `Einführung · ${walkthroughStep.label}`;
     }
-    const sectionLbl = SECTION_LABEL[state.activeSection] ?? 'Demo';
+    const sectionLbl = SECTION_LABEL[state.activeSection] ?? 'Vorschau';
     if (currentCard?.title) return `${sectionLbl} · ${currentCard.title}`;
     return sectionLbl;
   }, [walkthroughActive, walkthroughStep, state.activeSection, currentCard]);
@@ -247,7 +247,7 @@ export default function ClaraDock({
     if (currentCard?.title) {
       return `Ich bin gerade bei der Abstimmung "${currentCard.title}". Erkläre mir sachlich und neutral, worum es geht, welche Pro- und Contra-Argumente es gibt, und verweise auf überprüfbare Quellen.`;
     }
-    const sectionLbl = SECTION_LABEL[state.activeSection] ?? 'der Demo';
+    const sectionLbl = SECTION_LABEL[state.activeSection] ?? 'der Vorschau';
     return `Ich bin gerade im Bereich "${sectionLbl}". Gib mir einen kurzen, neutralen Überblick und nenne nur überprüfbare Fakten.`;
   }, [walkthroughActive, walkthroughStep, useContext, currentCard, state.activeSection]);
 
@@ -264,7 +264,7 @@ export default function ClaraDock({
       '2) Belegbare Pro-Argumente',
       '3) Belegbare Contra-Argumente',
       '4) Überprüfbare Quellen (amtliche Dokumente, Gesetzestexte, seriöse Medien).',
-      'Keine Abstimmungsempfehlung. Markiere ausdrücklich, wenn Zahlen Demo- oder Beispielwerte sind.' +
+      'Keine Abstimmungsempfehlung. Markiere ausdrücklich, wenn Zahlen Vorschau- oder Beispielwerte sind.' +
         ctx,
     ].join('\n');
   }, [currentCard]);
@@ -374,7 +374,7 @@ export default function ClaraDock({
               <div className="min-w-0 flex-1">
                 <div className="text-[13px] font-bold text-[#1A2B45]">Clara – Digitale Assistentin</div>
                 <p className="mt-0.5 text-[10px] leading-snug text-neutral-500">
-                  KI-gestützt, neutral. Keine Wahlempfehlung. Antworten sind Demonstration –
+                  KI-gestützt, neutral. Keine Wahlempfehlung. Antworten dienen der Veranschaulichung –
                   bitte über amtliche Quellen verifizieren.
                 </p>
               </div>

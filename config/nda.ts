@@ -5,7 +5,7 @@ export const NDA_HEADER = 'Vertraulichkeitserklärung';
 
 /** Kurzfassung (5–6 Stichpunkte) für den Screen */
 export const NDA_GATE_SUMMARY = [
-  'Diese Demo enthält vertrauliche und nicht öffentliche Informationen.',
+  'Diese Konzeptvorschau enthält vertrauliche und nicht öffentliche Informationen.',
   'Der Zugriff ist ausschließlich für den personalisierten Empfänger bestimmt.',
   'Der Link darf nicht weitergeleitet, geteilt oder gemeinsam genutzt werden.',
   'Screenshots, Aufzeichnungen, Reverse Engineering, Benchmarking und die Eingabe in nicht freigegebene KI-Systeme sind untersagt.',
@@ -15,11 +15,11 @@ export const NDA_GATE_SUMMARY = [
 
 /** Footer-Hinweis zur Protokollierung */
 export const NDA_FOOTER =
-  'Diese personalisierte Demo-Session wird zu Dokumentations-, Sicherheits- und Nachweiszwecken protokolliert.';
+  'Diese personalisierte Vorschau-Session wird zu Dokumentations-, Sicherheits- und Nachweiszwecken protokolliert.';
 
 /** Button-Text für elektronische Zustimmung */
 export const NDA_BUTTON_TEXT =
-  'Vertraulichkeitsvereinbarung akzeptieren und Demo öffnen';
+  'Vertraulichkeitsvereinbarung akzeptieren und Vorschau öffnen';
 
 /** Fehlermeldung bei Speicherfehler */
 export const NDA_ERROR_SAVE =
@@ -63,9 +63,9 @@ export const NDA_SIGNATURE_HINT_RECEIVING =
 export const NDA_RETURN_EMAIL_PRIMARY = 'stefanie.hook@hookai.eu';
 export const NDA_RETURN_EMAIL_SECONDARY = 'stefanie.h2ok@gmail.com';
 
-/** Vollständiger NDA-Volltext (Governikus / frühere Arbeitstitel / HookAI Civic Demo) */
+/** Vollständiger NDA-Volltext (Governikus / frühere Arbeitstitel / HookAI Civic) */
 export const NDA_FULL_TEXT = `GEHEIMHALTUNGSVEREINBARUNG / NDA
-für den Zugang zu einer vertraulichen Demo-Umgebung
+für den Zugang zu einer vertraulichen Konzeptvorschau-Umgebung
 
 zwischen
 
@@ -89,11 +89,11 @@ gemeinsam auch „die Parteien“.
 
 1. Parteien
 
-Die vorliegende Vereinbarung wird zwischen der Offenlegenden Partei und der Empfangenden Partei geschlossen. Sie regelt die Vertraulichkeit sämtlicher im Rahmen einer Demo, Präsentation, Prüfung oder Anbahnung einer möglichen Zusammenarbeit offengelegten Informationen.
+Die vorliegende Vereinbarung wird zwischen der Offenlegenden Partei und der Empfangenden Partei geschlossen. Sie regelt die Vertraulichkeit sämtlicher im Rahmen einer Konzeptvorschau, Präsentation, Prüfung oder Anbahnung einer möglichen Zusammenarbeit offengelegten Informationen.
 
 2. Zweck der Offenlegung
 
-Die Offenlegende Partei gewährt der Empfangenden Partei Zugang zu einer vertraulichen Demo-, Test- oder Präsentationsumgebung einer digitalen Civic-Tech-/GovTech-Lösung unter der öffentlich geführten Demo „HookAI Civic Demo“ (frühere interne Arbeitstitel u. a. „DeinDeutschland“, „Bürger App“) sowie zu damit verbundenen Informationen, Unterlagen, Konzepten und technischen bzw. geschäftlichen Inhalten.
+Die Offenlegende Partei gewährt der Empfangenden Partei Zugang zu einer vertraulichen Vorschau-, Test- oder Präsentationsumgebung einer digitalen Civic-Tech-/GovTech-Lösung unter der öffentlich geführten Konzeptvorschau „HookAI Civic“ (frühere interne Arbeitstitel u. a. „DeinDeutschland“, „Bürger App“) sowie zu damit verbundenen Informationen, Unterlagen, Konzepten und technischen bzw. geschäftlichen Inhalten.
 
 Die Offenlegung erfolgt ausschließlich zum Zweck der Prüfung einer möglichen geschäftlichen, technischen, strategischen oder partnerschaftlichen Zusammenarbeit.
 
@@ -101,7 +101,7 @@ Eine Nutzung der offengelegten Informationen zu anderen Zwecken ist unzulässig.
 
 3. Vertrauliche Informationen
 
-Als „Vertrauliche Informationen“ im Sinne dieser Vereinbarung gelten sämtliche nicht öffentlich bekannten Informationen, die der Empfangenden Partei direkt oder indirekt zugänglich gemacht werden, unabhängig davon, ob dies mündlich, schriftlich, elektronisch, visuell oder durch Zugang zu einer Demo-Umgebung geschieht.
+Als „Vertrauliche Informationen“ im Sinne dieser Vereinbarung gelten sämtliche nicht öffentlich bekannten Informationen, die der Empfangenden Partei direkt oder indirekt zugänglich gemacht werden, unabhängig davon, ob dies mündlich, schriftlich, elektronisch, visuell oder durch Zugang zu einer Konzeptvorschau-Umgebung geschieht.
 
 Hierzu zählen insbesondere, aber nicht abschließend:
 
@@ -109,8 +109,8 @@ a) Produktideen, Produktkonzepte, Use Cases, Roadmaps, Strategien und Geschäfts
 b) Quellcode, Software-Strukturen, Datenmodelle, Datenbankschemata, APIs, Integrationskonzepte, Systemarchitekturen und technische Dokumentationen;
 c) Benutzeroberflächen, UX/UI-Konzepte, Designs, Wireframes, Klickpfade, Texte, Inhalte, Module, Workflows, Features und Geschäftslogiken;
 d) KI-bezogene Konzepte, Prompt-Logiken, Agenten-Architekturen, Modell-Orchestrierungen, Automatisierungen, Auswertungslogiken und Schutzmechanismen;
-e) Demo-Umgebungen, Prototypen, Testzugänge, Testdaten, Bildschirminhalte, Screens, Beobachtungen, Notizen, Bewertungen, Zusammenfassungen und daraus abgeleitete Erkenntnisse;
-f) personalisierte Demo-Links, Tokens, Zugangsdaten, Session-Informationen und Testzugänge;
+e) Konzeptvorschau-Umgebungen, Prototypen, Testzugänge, Testdaten, Bildschirminhalte, Screens, Beobachtungen, Notizen, Bewertungen, Zusammenfassungen und daraus abgeleitete Erkenntnisse;
+f) personalisierte Zugangs-Links, Tokens, Zugangsdaten, Session-Informationen und Testzugänge;
 g) alle Informationen, bei denen nach den Umständen erkennbar ist, dass sie vertraulich oder geschäftlich sensibel sind.
 
 Vertrauliche Informationen gelten auch dann als vertraulich, wenn sie nicht ausdrücklich als „vertraulich“ gekennzeichnet sind.
@@ -132,16 +132,16 @@ Die Empfangende Partei verpflichtet sich, sämtliche Vertraulichen Informationen
 
 Die Empfangende Partei stellt sicher, dass alle von ihr einbezogenen Personen diese Vereinbarung einhalten, und haftet für deren Verhalten wie für eigenes Verhalten.
 
-6. Personalisierte Demo-Zugänge / Nichtweitergabe
+6. Personalisierte Vorschau-Zugänge / Nichtweitergabe
 
-Personalisierte Demo-Links, Tokens, Testzugänge und sonstige Zugangsinformationen sind selbst Vertrauliche Informationen.
+Personalisierte Zugangs-Links, Tokens, Testzugänge und sonstige Zugangsinformationen sind selbst Vertrauliche Informationen.
 
 Die Empfangende Partei verpflichtet sich insbesondere,
 
-a) den personalisierten Demo-Link oder Token nicht an Dritte weiterzuleiten, nicht zu teilen und nicht gemeinsam mit nicht autorisierten Personen zu nutzen;
+a) den personalisierten Zugangs-Link oder Token nicht an Dritte weiterzuleiten, nicht zu teilen und nicht gemeinsam mit nicht autorisierten Personen zu nutzen;
 b) keine interne Verteilung außerhalb des zwingend erforderlichen Personenkreises vorzunehmen;
 c) keine Veröffentlichung oder Ablage in offenen Verzeichnissen, Gruppen-Chats, Ticketsystemen, Wikis oder vergleichbaren Systemen vorzunehmen;
-d) Dritten keinen unmittelbaren oder mittelbaren Zugang zur Demo zu verschaffen.
+d) Dritten keinen unmittelbaren oder mittelbaren Zugang zur Konzeptvorschau zu verschaffen.
 
 Jede unautorisierte Weitergabe oder sonstige Zugänglichmachung stellt einen Verstoß gegen diese Vereinbarung dar.
 
@@ -149,7 +149,7 @@ Jede unautorisierte Weitergabe oder sonstige Zugänglichmachung stellt einen Ver
 
 Ohne vorherige ausdrückliche schriftliche Zustimmung der Offenlegenden Partei ist der Empfangenden Partei insbesondere untersagt:
 
-a) Screenshots, Bildschirmfotos, Fotografien, Screen-Recordings, Videoaufzeichnungen oder sonstige Reproduktionen der Demo oder ihrer Inhalte anzufertigen;
+a) Screenshots, Bildschirmfotos, Fotografien, Screen-Recordings, Videoaufzeichnungen oder sonstige Reproduktionen der Konzeptvorschau oder ihrer Inhalte anzufertigen;
 b) Vertrauliche Informationen ganz oder teilweise zu kopieren, zu extrahieren, systematisch auszuwerten oder außerhalb des zulässigen Zwecks zu dokumentieren;
 c) Reverse Engineering, Dekompilierung, Scraping, API-Enumeration, Prompt-Extraktion, systematische Analyse technischer Logiken, Nachbauplanung, Benchmarking oder Konkurrenzanalyse auf Grundlage der offengelegten Informationen vorzunehmen;
 d) Schutzmechanismen, Zugriffsbeschränkungen oder technische Limitierungen zu umgehen, zu testen oder zu manipulieren;
@@ -160,7 +160,7 @@ Zwingende gesetzliche Rechte, auf die nicht wirksam verzichtet werden kann, blei
 
 8. Protokollierung / elektronische Dokumentation
 
-Die Empfangende Partei nimmt zur Kenntnis und erklärt sich damit einverstanden, dass der Zugriff auf Demo-Umgebungen, Testzugänge und vertrauliche digitale Inhalte zu Dokumentations-, Sicherheits-, Nachweis-, Missbrauchspräventions- und Geheimnisschutzzwecken technisch protokolliert werden darf.
+Die Empfangende Partei nimmt zur Kenntnis und erklärt sich damit einverstanden, dass der Zugriff auf Konzeptvorschau-Umgebungen, Testzugänge und vertrauliche digitale Inhalte zu Dokumentations-, Sicherheits-, Nachweis-, Missbrauchspräventions- und Geheimnisschutzzwecken technisch protokolliert werden darf.
 
 Hierbei können insbesondere folgende Daten verarbeitet und gespeichert werden:
 
@@ -176,7 +176,7 @@ Die Protokollierung dient ausschließlich legitimen Sicherheits-, Dokumentations
 
 Sämtliche Rechte an den Vertraulichen Informationen verbleiben ausschließlich bei der Offenlegenden Partei.
 
-Durch diese Vereinbarung, durch die Offenlegung oder durch die Nutzung einer Demo werden keinerlei Rechte eingeräumt, insbesondere keine:
+Durch diese Vereinbarung, durch die Offenlegung oder durch die Nutzung einer Konzeptvorschau werden keinerlei Rechte eingeräumt, insbesondere keine:
 
 a) Urheber- oder Nutzungsrechte;
 b) Lizenzrechte;
@@ -213,7 +213,7 @@ Soweit einzelne Informationen Geschäftsgeheimnisse im rechtlichen Sinne darstel
 Auf schriftliches Verlangen der Offenlegenden Partei hat die Empfangende Partei unverzüglich:
 
 a) alle erhaltenen Unterlagen, Notizen, Kopien, Auszüge und gespeicherten Informationen zurückzugeben oder zu löschen;
-b) die Nutzung von Demo-Links, Tokens und Testzugängen einzustellen;
+b) die Nutzung von Zugangs-Links, Tokens und Testzugängen einzustellen;
 c) schriftlich zu bestätigen, dass die Rückgabe oder Löschung erfolgt ist.
 
 Ausgenommen hiervon sind nur gesetzlich zwingend aufzubewahrende Unterlagen sowie automatisiert erzeugte Sicherungskopien im üblichen IT-Betrieb, soweit diese nicht aktiv genutzt werden.
@@ -236,7 +236,7 @@ Diese Vereinbarung begründet weder eine Verpflichtung zum Abschluss weiterer Ve
 
 16. Elektronische Zustimmung
 
-Die Parteien können vereinbaren, dass diese Geheimhaltungsvereinbarung für Demo-Zugänge auch durch dokumentierte elektronische Zustimmung wirksam angenommen wird.
+Die Parteien können vereinbaren, dass diese Geheimhaltungsvereinbarung für Vorschau-Zugänge auch durch dokumentierte elektronische Zustimmung wirksam angenommen wird.
 
 Eine solche elektronische Zustimmung ist ausreichend, wenn Zeitpunkt, Version des Zustimmungstextes und die zustimmende Person bzw. der zugeordnete Empfänger technisch nachvollziehbar dokumentiert werden.
 

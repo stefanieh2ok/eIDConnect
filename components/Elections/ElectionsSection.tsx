@@ -588,7 +588,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
           {currentLocation === 'viernheim' ? (
             <>
               {' '}
-              · Kommunalwahl Stadt Viernheim in der Demo als <span className="font-semibold text-neutral-700">aktuell</span> geführt
+              · Kommunalwahl Stadt Viernheim in der Vorschau als <span className="font-semibold text-neutral-700">aktuell</span> geführt
             </>
           ) : (
             <>
@@ -1087,7 +1087,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                         </div>
                       ) : (
                         <div className="mt-2 text-[11px] leading-relaxed text-neutral-700">
-                          Ergebnisdaten sind in der Demo für diese Wahl noch nicht hinterlegt.
+                          Ergebnisdaten sind in der Vorschau für diese Wahl noch nicht hinterlegt.
                           <div className="mt-1 text-[10px] text-neutral-500">
                             Hinweis: Die Karte bleibt als Orientierungsansicht sichtbar, ohne Zahlen/Prozentwerte zu behaupten.
                           </div>
@@ -1112,7 +1112,11 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                         : { background: '#FEF3C7', color: '#78350F' }
                     }
                   >
-                    {status === 'demnaechst' ? 'Termin ansehen' : 'Stimmzettel (Vorschau) öffnen'}
+                    {status === 'demnaechst'
+                      ? 'Termin ansehen'
+                      : status === 'abgeschlossen'
+                        ? 'Stimmzettel anzeigen'
+                        : 'Stimmzettel (Vorschau) öffnen'}
                   </button>
                   <div className="mt-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2">
                     <p className="text-[10px] font-semibold text-neutral-700">Informationsansicht</p>

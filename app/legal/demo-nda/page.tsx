@@ -6,7 +6,7 @@ import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 export const metadata: Metadata = {
   title: `Vertraulichkeitserklärung – ${APP_DISPLAY_NAME}`,
-  description: `Vertraulichkeitserklärung für den Zugang zur vertraulichen Demo-Umgebung von ${APP_DISPLAY_NAME}.`,
+  description: `Vertraulichkeitserklärung für den Zugang zur vertraulichen Konzeptvorschau von ${APP_DISPLAY_NAME}.`,
 };
 
 type Props = { searchParams: Promise<{ print?: string; returnTo?: string }> };
@@ -27,6 +27,9 @@ export default async function DemoNdaPage({ searchParams }: Props) {
         <div className="mx-auto flex max-w-[900px] items-center justify-between">
           <div>
             <ProductIdentityHeader />
+            <p className="mt-1 text-left text-[11px] font-medium leading-snug text-neutral-600">
+              Informieren. Verstehen. Mitwirken.
+            </p>
             <h1 className="t-card-title mt-1">Geheimhaltungsvereinbarung (NDA)</h1>
             <p className="t-meta mt-0.5">Dokumentansicht · {APP_DISPLAY_NAME}</p>
           </div>

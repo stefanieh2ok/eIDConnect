@@ -23,7 +23,7 @@ export default async function DemoEntryPage({ searchParams }: PageProps) {
         <div className="w-full max-w-[360px] rounded-2xl border border-neutral-200 bg-white/75 p-6 text-neutral-900 shadow-lg backdrop-blur-xl">
           <h1 className="text-xl font-semibold text-neutral-900">{APP_DISPLAY_NAME}</h1>
           <p className="mt-2 text-sm text-neutral-800">
-            Für den Zugang zur Demo benötigen Sie einen personalisierten Link aus der Zugangsanfrage.
+            Für den Zugang zur Vorschau benötigen Sie einen personalisierten Link aus der Zugangsanfrage.
           </p>
           <Link
             href="/"

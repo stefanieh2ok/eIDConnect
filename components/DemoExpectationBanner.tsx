@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 
 /**
- * Kurzes Erwartungsmanagement für die Konzeptdemo (P1).
+ * Kurzes Erwartungsmanagement für die Konzeptvorschau (P1).
  */
 export default function DemoExpectationBanner() {
   const { state } = useApp();
@@ -13,18 +13,18 @@ export default function DemoExpectationBanner() {
 
   const bullets = du
     ? [
-        'HookAI Civic Demo – kein produktives Verwaltungs- oder Wahlsystem.',
-        'Keine rechtlich wirksame Stimmabgabe; Abstimmungen und Rückmeldungen sind Demonstration.',
+        'HookAI Civic – kein produktives Verwaltungs- oder Wahlsystem.',
+        'Keine rechtlich wirksame Stimmabgabe; Abstimmungen und Rückmeldungen dienen nur der Veranschaulichung.',
         'Clara: KI-gestützte Orientierung, neutral, ohne Wahlempfehlung; Antworten strukturiert nach Vorgabe.',
         'Politische Angaben nur mit verifizierbarer Primärquelle oder als „nicht verifiziert“ gekennzeichnet.',
-        'Datenverarbeitung nur im Rahmen der gezeigten Demo-Funktionen; Details unter Info / Transparenz.',
+        'Datenverarbeitung nur im Rahmen der gezeigten Vorschau-Funktionen; Details unter Info / Transparenz.',
       ]
     : [
-        'HookAI Civic Demo – kein produktives Verwaltungs- oder Wahlsystem.',
-        'Keine rechtlich wirksame Stimmabgabe; Abstimmungen und Rückmeldungen sind Demonstration.',
+        'HookAI Civic – kein produktives Verwaltungs- oder Wahlsystem.',
+        'Keine rechtlich wirksame Stimmabgabe; Abstimmungen und Rückmeldungen dienen nur der Veranschaulichung.',
         'Clara: KI-gestützte Orientierung, neutral, ohne Wahlempfehlung; Antworten strukturiert nach Vorgabe.',
         'Politische Angaben nur mit verifizierbarer Primärquelle oder als „nicht verifiziert“ gekennzeichnet.',
-        'Datenverarbeitung nur im Rahmen der gezeigten Demo-Funktionen; Details unter Info / Transparenz.',
+        'Datenverarbeitung nur im Rahmen der gezeigten Vorschau-Funktionen; Details unter Info / Transparenz.',
       ];
 
   return (
@@ -42,7 +42,7 @@ export default function DemoExpectationBanner() {
         aria-expanded={open}
       >
         <span className="text-[11px] font-bold leading-snug" style={{ color: 'var(--gov-heading)' }}>
-          {du ? 'Was diese Demo zeigt – und was nicht' : 'Was diese Demo zeigt – und was nicht'}
+          {du ? 'Was diese Vorschau zeigt – und was nicht' : 'Was diese Vorschau zeigt – und was nicht'}
         </span>
         <span className="text-[10px] font-semibold tabular-nums text-[#003366]">{open ? '▲' : '▼'}</span>
       </button>

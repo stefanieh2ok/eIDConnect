@@ -235,7 +235,7 @@ const AppHeader: React.FC = () => {
                 <div className="min-w-0">
                   <h3 className="text-base font-bold text-neutral-900">Einstellungen</h3>
                   <p className="mt-0.5 text-[10px] font-semibold text-neutral-500">
-                    {t('Demo-Einstellungen (kein Produktivkonto)', 'Demo-Einstellungen (kein Produktivkonto)')}
+                    {t('Vorschau-Einstellungen (kein Produktivkonto)', 'Vorschau-Einstellungen (kein Produktivkonto)')}
                   </p>
                 </div>
                 <button
@@ -406,9 +406,9 @@ const AppHeader: React.FC = () => {
                 </section>
 
                 <section className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-                  <p className="text-xs font-semibold text-neutral-900">Testzugang (Demo)</p>
+                  <p className="text-xs font-semibold text-neutral-900">Testzugang (Vorschau)</p>
                   <p className="mt-1 text-[11px] text-neutral-700">
-                    Straße, PLZ und Wohnort – Zuständigkeit und Demo-Inhalte werden daraus abgeleitet (kein eID-Nachweis).
+                    Straße, PLZ und Wohnort – Zuständigkeit und Vorschau-Inhalte werden daraus abgeleitet (kein eID-Nachweis).
                   </p>
                   <div className="mt-2 space-y-2">
                     <input
@@ -417,7 +417,7 @@ const AppHeader: React.FC = () => {
                       onChange={(e) => updateDemoAddressFields({ street: e.target.value })}
                       placeholder="Straße und Hausnummer"
                       className="w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-[11px] font-semibold text-neutral-800 placeholder:text-neutral-400"
-                      aria-label="Straße (Demo)"
+                      aria-label="Straße (Vorschau)"
                     />
                     <div className="grid grid-cols-3 gap-2">
                       <input
@@ -428,7 +428,7 @@ const AppHeader: React.FC = () => {
                         onChange={(e) => updateDemoAddressFields({ plz: e.target.value })}
                         placeholder="PLZ"
                         className="rounded-lg border border-neutral-200 bg-white px-3 py-2 text-[11px] font-semibold text-neutral-800 placeholder:text-neutral-400"
-                        aria-label="Postleitzahl (Demo)"
+                        aria-label="Postleitzahl (Vorschau)"
                       />
                       <input
                         type="text"
@@ -436,7 +436,7 @@ const AppHeader: React.FC = () => {
                         onChange={(e) => updateDemoAddressFields({ city: e.target.value })}
                         placeholder="Wohnort"
                         className="col-span-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-[11px] font-semibold text-neutral-800 placeholder:text-neutral-400"
-                        aria-label="Wohnort (Demo)"
+                        aria-label="Wohnort (Vorschau)"
                       />
                     </div>
                     <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2">
@@ -513,9 +513,11 @@ const AppHeader: React.FC = () => {
         paddingTop: 'max(0.6rem, env(safe-area-inset-top, 0.6rem))',
       }}
     >
-      {/* ── Row 1: Brand + Status ── */}
-      <div className="flex items-start justify-between gap-2 px-4 pt-1 pb-2">
-        <ProductIdentityHeader className="flex-1" />
+      {/* ── Row 1: Brand + Aktionen ── */}
+      <div className="flex items-start justify-between gap-2 px-4 pb-2 pt-1">
+        <div className="min-w-0 flex-1 pr-2">
+          <ProductIdentityHeader className="shrink-0" />
+        </div>
         <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
@@ -542,13 +544,14 @@ const AppHeader: React.FC = () => {
           Senior-UI: eigener Kontrast-Streifen statt „Pillen auf Glas“ — aktiver Tab invertiert (hell auf dunkel),
           inaktiv dezent hell; so wirkt die Menüzeile nicht mehr unter dem Seiteninhalt „weg“. */}
       <div
-        className="border-t border-white/10 px-2 pb-1.5 pt-1.5"
+        className="border-t border-white/10 px-0.5 pb-1.5 pt-1.5 sm:px-2"
         style={{
           background: 'linear-gradient(180deg, #002855 0%, #003366 55%, #002f5c 100%)',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
         }}
       >
-        <div className="scrollbar-hide flex min-h-[44px] items-stretch gap-1 overflow-x-auto overflow-y-hidden whitespace-nowrap">
+        <div className="min-h-[44px] overflow-hidden">
+          <div className="grid min-h-[44px] w-full min-w-0 grid-cols-4 items-stretch gap-px sm:gap-1">
           {NAV_ITEMS.map((item) => {
             const isActive = state.activeSection === item.section;
             const showItem = !item.kommuneOnly || residencePath.includes('kommune');
@@ -564,16 +567,17 @@ const AppHeader: React.FC = () => {
                       : undefined
                 }
                 onClick={() => dispatch({ type: 'SET_ACTIVE_SECTION', payload: item.section })}
-                className={`flex h-[36px] shrink-0 items-center justify-center gap-1 rounded-full px-3 py-1.5 text-[12px] whitespace-nowrap transition-all ${
+                className={`flex h-[36px] min-w-0 items-center justify-center rounded-full px-0.5 py-1.5 text-[9.5px] font-semibold leading-none tracking-tight whitespace-nowrap transition-all min-[360px]:text-[10.5px] sm:px-3 sm:text-[12px] ${
                   isActive
-                    ? 'bg-white font-bold text-[#003366] shadow-md ring-1 ring-white/80'
-                    : 'font-semibold text-white/85 hover:bg-white/12 hover:text-white active:bg-white/18'
+                    ? 'bg-white !font-bold text-[#003366] shadow-md ring-1 ring-white/80'
+                    : 'text-white/85 hover:bg-white/12 hover:text-white active:bg-white/18'
                 }`}
               >
                 {item.label}
               </button>
             );
           })}
+          </div>
         </div>
       </div>
 

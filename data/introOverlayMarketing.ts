@@ -1,7 +1,7 @@
 import { INTRO_WALKTHROUGH_CLARA } from '@/data/introWalkthroughClara';
 
 /**
- * Texte für die Einführung (HookAI Civic Demo).
+ * Texte für die Einführung (HookAI Civic).
  *
  * Framing-Prinzipien (State Clarity):
  * - Die gesamte Einführung hat 8 Schritte: Ansprache, eID, Abstimmen, Wahlen,
@@ -14,7 +14,7 @@ import { INTRO_WALKTHROUGH_CLARA } from '@/data/introWalkthroughClara';
  */
 
 /** Einheitliche Hauptzeile auf allen Walkthrough-Folien. */
-export const INTRO_OVERLAY_HEADLINE = 'HookAI Civic Demo im Überblick';
+export const INTRO_OVERLAY_HEADLINE = 'HookAI Civic im Überblick';
 
 /** Gesamtzahl der Einführungs-Schritte (Anrede + eID + 6 Walkthrough-Schritte). */
 export const INTRO_TOTAL_STEPS = 8;
@@ -22,7 +22,7 @@ export const INTRO_TOTAL_STEPS = 8;
 /** Globale Kicker-Zeile (Legacy; aktuell ungenutzt — Zugangsscreen nutzt `INTRO_ACCESS_SCREEN_TAGLINE`). */
 export const INTRO_GLOBAL_FRAMING = 'Digitale Identität · Beteiligung · Bürgerzugang';
 
-/** Untertitel auf dem Zugangsscreen (Schritt 2, eID / Wallet / Demo) — eine Quelle für Desktop und Mobile. */
+/** Untertitel auf dem Zugangsscreen (Schritt 2, eID / Wallet / Vorschau) — eine Quelle für Desktop und Mobile. */
 export const INTRO_ACCESS_SCREEN_TAGLINE = 'Digitale Identität · Zuständigkeit · Beteiligung';
 
 /** Label des globalen Pills. */
@@ -33,13 +33,13 @@ export const INTRO_GLOBAL_PILL_LABEL = 'Einführung';
  * (Stimme = dieselbe freundliche Engine wie im Clara-Dock, nicht „blindes Vorlesen“).
  */
 export const INTRO_CLARA_WELCOME_LINES_DU = [
-  'Hallo, ich bin Clara, die KI-Agentin der HookAI Civic Demo.',
+  'Hallo, ich bin Clara, die KI-Agentin von HookAI Civic.',
   'Diese Einführung führt dich souverän durch die wichtigsten Bereiche. Am Ende wechselst du in die volle Anwendung.',
   'Mich erreichst du jederzeit über das Clara-Symbol am unteren Rand.',
 ] as const;
 
 export const INTRO_CLARA_WELCOME_LINES_SIE = [
-  'Hallo, ich bin Clara, die KI-Agentin der HookAI Civic Demo.',
+  'Hallo, ich bin Clara, die KI-Agentin von HookAI Civic.',
   'Diese Einführung führt Sie souverän durch die wichtigsten Bereiche. Am Ende wechseln Sie in die volle Anwendung.',
   'Mich erreichen Sie jederzeit über das Clara-Symbol am unteren Rand.',
 ] as const;
@@ -53,14 +53,14 @@ export function introClaraWelcomePlain(du: boolean): string {
  * Kurze Sätze, ein Gedanke pro Zeile, für segmentierte Wiedergabe.
  */
 export const INTRO_SPOKEN_WELCOME_SEGMENTS_DU = [
-  'Willkommen. Ich bin Clara, die KI-Agentin der HookAI Civic Demo.',
+  'Willkommen. Ich bin Clara, die KI-Agentin von HookAI Civic.',
   'Ich begleite dich durch die wichtigsten Bereiche.',
   'Orientierung, Beteiligung und leichte Navigation stehen im Mittelpunkt.',
   'Unten erreichst du mich jederzeit am lila Symbol.',
 ] as const;
 
 export const INTRO_SPOKEN_WELCOME_SEGMENTS_SIE = [
-  'Willkommen. Ich bin Clara, die KI-Agentin der HookAI Civic Demo.',
+  'Willkommen. Ich bin Clara, die KI-Agentin von HookAI Civic.',
   'Ich begleite Sie durch die wichtigsten Bereiche.',
   'Orientierung, Beteiligung und leichte Navigation stehen im Mittelpunkt.',
   'Unten erreichen Sie mich jederzeit am lila Symbol.',
@@ -94,9 +94,9 @@ export const INTRO_ANREDE_UI_TITLE_DU = 'Wie möchtest du angesprochen werden?';
 export const INTRO_ANREDE_UI_TITLE_SIE = 'Wie möchten Sie angesprochen werden?';
 
 export const INTRO_ANREDE_SHORT_DU =
-  'Ich führe dich kurz durch die HookAI Civic Demo: sicherer Bürgerzugang, Orientierung und digitale Beteiligung.';
+  'Ich führe dich kurz durch HookAI Civic: sicherer Bürgerzugang, Orientierung und digitale Beteiligung.';
 export const INTRO_ANREDE_SHORT_SIE =
-  'Ich führe Sie kurz durch die HookAI Civic Demo: sicherer Bürgerzugang, Orientierung und digitale Beteiligung.';
+  'Ich führe Sie kurz durch HookAI Civic: sicherer Bürgerzugang, Orientierung und digitale Beteiligung.';
 
 export const INTRO_ANREDE_DROPDOWN_DU =
   'Wähle einmalig zwischen Du und Sie.\n\nClara, Texte und Hinweise richten sich in dieser Sitzung daran aus.';
@@ -107,28 +107,19 @@ export const INTRO_ANREDE_DROPDOWN_NEUTRAL = INTRO_ANREDE_DROPDOWN_SIE;
 
 /** Clara vor Anredewahl (TTS). */
 export const INTRO_ANREDE_GATE_PRE_CHOICE_SPOKEN_SEGMENTS: readonly string[] = [
-  'Willkommen in der HookAI Civic Demo.',
-  'Ich bin Clara, die neutrale KI-Assistentin dieser Anwendung.',
-  'Ich begleite Sie gleich durch die wichtigsten Bereiche und erkläre Schritt für Schritt, was zu sehen ist.',
-  'Bevor wir starten, wählen Sie bitte, ob wir per Du oder per Sie weitermachen.',
+  'Hallo, ich bin Clara. Ich führe dich kurz durch HookAI Civic.',
+  'HookAI Civic zeigt dir, wie digitale Beteiligung verständlich werden kann: Du siehst politische Abstimmungen in deiner Gemeinde, verstehst Pro und Contra, erhältst Wahlvorschauen mit Kandidierenden, Programmen und offiziellen Quellen – und kannst Anliegen direkt an deine Gemeinde melden. Sicher, nachvollziehbar und ohne politische Empfehlung.',
+  'Bevor wir starten: Möchtest du per Du oder per Sie weitermachen?',
 ];
 
 /** Clara nach Auswahl „Du“ (TTS, ohne erneuten Elevator). */
 export const INTRO_ANREDE_GATE_AFTER_DU_SPOKEN_SEGMENTS: readonly string[] = [
-  'Die HookAI Civic Demo zeigt dir, wie du dich über politische Themen in deiner Gemeinde informieren, sie einordnen und direkt darauf reagieren kannst.',
-  'Du kannst Abstimmungen verstehen und bewerten, dir Stimmzettel und Parteiprogramme im Voraus ansehen und nachvollziehen, wie gewählt wurde.',
-  'Und du kannst eigene Meldungen machen und transparent verfolgen, was daraus wird.',
-  'Ich zeige dir jetzt kurz, wie das konkret funktioniert.',
-  'Ich führe dich jetzt kurz durch die wichtigsten Bereiche.',
+  'Alles klar, wir machen in der Du-Form weiter.',
 ];
 
 /** Clara nach Auswahl „Sie“ (TTS). */
 export const INTRO_ANREDE_GATE_AFTER_SIE_SPOKEN_SEGMENTS: readonly string[] = [
-  'Die HookAI Civic Demo zeigt Ihnen, wie Sie sich über politische Themen in Ihrer Gemeinde informieren, sie einordnen und direkt darauf reagieren können.',
-  'Sie können Abstimmungen verstehen und bewerten, sich Stimmzettel und Parteiprogramme im Voraus ansehen und nachvollziehen, wie gewählt wurde.',
-  'Und Sie können eigene Meldungen machen und transparent verfolgen, was daraus wird.',
-  'Ich zeige Ihnen jetzt kurz, wie das konkret funktioniert.',
-  'Ich führe Sie jetzt kurz durch die wichtigsten Bereiche.',
+  'Alles klar, wir machen in der Sie-Form weiter.',
 ];
 
 /**
@@ -185,18 +176,18 @@ export const INTRO_ENTRY_DIRECT = 'Direkt zur App';
 
 export const INTRO_EID_CARD_TITLE = 'Mit eID anmelden';
 
-/** Statuszeile auf der eID-Zugangskarte (Demo). */
-export const INTRO_EID_CARD_STATUS = 'Heute verfügbar / Demo-Zugang';
+/** Statuszeile auf der eID-Zugangskarte (Vorschau). */
+export const INTRO_EID_CARD_STATUS = 'Heute verfügbar / Vorschau-Zugang';
 
 /** Kompakte Metazeile, wo noch eine Ultra-Kurzform gebraucht wird. */
 export const INTRO_EID_ULTRA_SHORT =
   'Sichere Anmeldung, eindeutige Identität, Zuordnung zu Kommune oder Wahlbezirk.';
 
 export const INTRO_EID_CARD_BODY_DU =
-  'Für diese Demo wird der sichere Zugang beispielhaft über die Online-Ausweisfunktion dargestellt.';
+  'Für diese Vorschau wird der sichere Zugang beispielhaft über die Online-Ausweisfunktion dargestellt.';
 
 export const INTRO_EID_CARD_BODY_SIE =
-  'Für diese Demo wird der sichere Zugang beispielhaft über die Online-Ausweisfunktion dargestellt.';
+  'Für diese Vorschau wird der sichere Zugang beispielhaft über die Online-Ausweisfunktion dargestellt.';
 
 /** @deprecated Nutze `INTRO_EID_CARD_STATUS`; früherer Kurzhinweis unter dem eID-Fließtext. */
 export const INTRO_EID_CARD_PRESENTATION_HINT =
@@ -217,10 +208,10 @@ export const INTRO_WALLET_CARD_BODY =
 export const INTRO_WALLET_CTA = 'EU Wallet ansehen';
 export const INTRO_WALLET_BADGE = 'Konzeptionell · noch keine produktive Integration';
 export const INTRO_WALLET_INFO_TEXT =
-  'Die EU Digital Identity Wallet soll digitale Ausweise und Nachweise auf das Smartphone bringen. Bürgerinnen und Bürger sollen selbst kontrollieren können, welche Daten sie für welchen Zweck freigeben.\n\nFür diese Demo bedeutet das: Der Bürgerzugang wird heute beispielhaft über eID dargestellt, kann perspektivisch aber wallet-fähig gedacht werden.';
+  'Die EU Digital Identity Wallet soll digitale Ausweise und Nachweise auf das Smartphone bringen. Bürgerinnen und Bürger sollen selbst kontrollieren können, welche Daten sie für welchen Zweck freigeben.\n\nFür diese Vorschau bedeutet das: Der Bürgerzugang wird heute beispielhaft über eID dargestellt, kann perspektivisch aber wallet-fähig gedacht werden.';
 export const INTRO_WALLET_INFO_HINT = 'Konzeptionelle Darstellung · keine produktive Wallet-Integration';
 
-/** Dezente Prozesszeile unter der EU-Wallet-Karte (nur Demo / Konzeption). */
+/** Dezente Prozesszeile unter der EU-Wallet-Karte (nur Konzept / Konzeption). */
 export const INTRO_WALLET_PROCESS_STEPS: readonly string[] = [
   'Wallet öffnen',
   'Datenfreigabe prüfen',
@@ -228,10 +219,10 @@ export const INTRO_WALLET_PROCESS_STEPS: readonly string[] = [
   'Beteiligungen anzeigen',
 ];
 
-export const INTRO_DEMO_MODE_TITLE = 'Demo ohne echte Identifikation starten';
+export const INTRO_DEMO_MODE_TITLE = 'Vorschau ohne echte Identifikation starten';
 export const INTRO_DEMO_MODE_BODY =
-  'Zur Präsentation werden Beispielidentität und Demo-Daten verwendet.';
-export const INTRO_DEMO_MODE_CTA = 'Demo-Modus starten';
+  'Zur Präsentation werden Beispielidentität und Beispieldaten verwendet.';
+export const INTRO_DEMO_MODE_CTA = 'Vorschau starten';
 
 export const INTRO_TRUST_HINT_DU =
   'Deine digitale Identität dient nur zur Prüfung von Zuständigkeit und Berechtigung. Politische Meinung, Clara-Fragen oder Abstimmungsverhalten werden daraus nicht abgeleitet.';
@@ -243,9 +234,9 @@ export const INTRO_ZUGANG_TRUST_KURZ = 'Heute eID · perspektivisch EU Wallet ·
 
 /** Clara-Panel auf dem Zugangsscreen (sichtbar). */
 export const INTRO_ACCESS_CLARA_PANEL_SHORT_DU =
-  'Willkommen in der HookAI Civic Demo. Hier wählst du, wie du die Anwendung betreten möchtest: beispielhaft über eID, über den Demo-Modus oder mit einem Blick auf die künftige EU Digital Identity Wallet.';
+  'Willkommen bei HookAI Civic. Hier wählst du, wie du die Anwendung betreten möchtest: beispielhaft über eID, über die Vorschau ohne echte Identifikation oder mit einem Blick auf die künftige EU Digital Identity Wallet.';
 export const INTRO_ACCESS_CLARA_PANEL_SHORT_SIE =
-  'Willkommen in der HookAI Civic Demo. Hier wählen Sie, wie Sie die Anwendung betreten möchten: beispielhaft über eID, über den Demo-Modus oder mit einem Blick auf die künftige EU Digital Identity Wallet.';
+  'Willkommen bei HookAI Civic. Hier wählen Sie, wie Sie die Anwendung betreten möchten: beispielhaft über eID, über die Vorschau ohne echte Identifikation oder mit einem Blick auf die künftige EU Digital Identity Wallet.';
 export const INTRO_ACCESS_CLARA_PANEL_HINT_DU =
   'Über den Lautsprecher erklärt Clara den Zugang Schritt für Schritt.';
 export const INTRO_ACCESS_CLARA_PANEL_HINT_SIE =
@@ -259,17 +250,17 @@ export const INTRO_ACCESS_CONFIRMED_BODY = 'Relevante Beteiligungen und Termine 
 
 export const INTRO_SPOKEN_EID_SEGMENTS_DU: readonly string[] = [
   'Hier beginnt dein sicherer Bürgerzugang.',
-  'In dieser Demo wird der Einstieg beispielhaft über die eID gezeigt. Perspektivisch kann ein solcher Zugang auch über die EU Digital Identity Wallet erfolgen.',
+  'In dieser Vorschau wird der Einstieg beispielhaft über die eID gezeigt. Perspektivisch kann ein solcher Zugang auch über die EU Digital Identity Wallet erfolgen.',
   'Das bedeutet: Du könntest dich künftig digital ausweisen und bestimmte Nachweise kontrolliert teilen — zum Beispiel Wohnort, Kommune oder Teilnahmeberechtigung.',
   'Wichtig ist: Es geht nicht darum, ein politisches Profil zu erstellen. Deine digitale Identität dient nur dazu, Zuständigkeiten und Berechtigungen sicher zu prüfen.',
-  'Du entscheidest, welche Daten freigegeben werden. Die HookAI Civic Demo soll nur die Informationen nutzen, die für den jeweiligen Bürgerdienst wirklich erforderlich sind.',
+  'Du entscheidest, welche Daten freigegeben werden. HookAI Civic soll nur die Informationen nutzen, die für den jeweiligen Bürgerdienst wirklich erforderlich sind.',
 ];
 export const INTRO_SPOKEN_EID_SEGMENTS_SIE: readonly string[] = [
   'Hier beginnt Ihr sicherer Bürgerzugang.',
-  'In dieser Demo wird der Einstieg beispielhaft über die eID gezeigt. Perspektivisch kann ein solcher Zugang auch über die EU Digital Identity Wallet erfolgen.',
+  'In dieser Vorschau wird der Einstieg beispielhaft über die eID gezeigt. Perspektivisch kann ein solcher Zugang auch über die EU Digital Identity Wallet erfolgen.',
   'Das bedeutet: Sie könnten sich künftig digital ausweisen und bestimmte Nachweise kontrolliert teilen — zum Beispiel Wohnort, Kommune oder Teilnahmeberechtigung.',
   'Wichtig ist: Es geht nicht darum, ein politisches Profil zu erstellen. Ihre digitale Identität dient nur dazu, Zuständigkeiten und Berechtigungen sicher zu prüfen.',
-  'Sie entscheiden, welche Daten freigegeben werden. Die HookAI Civic Demo soll nur die Informationen nutzen, die für den jeweiligen Bürgerdienst wirklich erforderlich sind.',
+  'Sie entscheiden, welche Daten freigegeben werden. HookAI Civic soll nur die Informationen nutzen, die für den jeweiligen Bürgerdienst wirklich erforderlich sind.',
 ];
 
 export const INTRO_EID_FRAMING =
@@ -300,14 +291,14 @@ export const INTRO_CLOSING_TEXT_DU = `${INTRO_OUTRO_SHORT_DU}\n\n${INTRO_OUTRO_D
 
 export const INTRO_CLOSING_SPOKEN_SEGMENTS_SIE: readonly string[] = [
   'Das war der kurze Überblick.',
-  'Sie können die HookAI Civic Demo jetzt selbst erkunden oder Clara gezielt Fragen stellen.',
+  'Sie können HookAI Civic jetzt selbst erkunden oder Clara gezielt Fragen stellen.',
   'Ich antworte neutral, verständlich und nur auf das, was Sie wissen möchten.',
   'Ihre Identität wird nur geprüft, damit klar ist, dass Sie teilnahmeberechtigt sind.',
   'Ziel ist: prüfbare Teilnahme, aber geheime Entscheidung.',
 ];
 export const INTRO_CLOSING_SPOKEN_SEGMENTS_DU: readonly string[] = [
   'Das war der kurze Überblick.',
-  'Du kannst die HookAI Civic Demo jetzt selbst erkunden oder Clara gezielt Fragen stellen.',
+  'Du kannst HookAI Civic jetzt selbst erkunden oder Clara gezielt Fragen stellen.',
   'Ich antworte neutral, verständlich und nur auf das, was du wissen möchtest.',
   'Deine Identität wird nur geprüft, damit klar ist, dass du teilnahmeberechtigt bist.',
   'Ziel ist: prüfbare Teilnahme, aber geheime Entscheidung.',
@@ -346,6 +337,16 @@ export type IntroOverlayStepCopy = {
 };
 
 export const INTRO_OVERLAY_STEPS: IntroOverlayStepCopy[] = [
+  {
+    id: 'politikbarometer',
+    title: 'Politikbarometer',
+    body: INTRO_WALKTHROUGH_CLARA.politikbarometer.longSie,
+    bullets: [
+      { n: 1, title: 'Themenkompass', text: 'Selbst gewählte Interessenschwerpunkte.' },
+      { n: 2, title: 'Kalender', text: 'Thematische Hervorhebung möglich.' },
+      { n: 3, title: 'Privatheit', text: 'Keine Ableitung aus Verhalten.' },
+    ],
+  },
   {
     id: 'abstimmen',
     title: 'Abstimmen',
@@ -394,16 +395,6 @@ export const INTRO_OVERLAY_STEPS: IntroOverlayStepCopy[] = [
       { n: 1, title: 'Freiwillig', text: 'Prämien nur mit ausdrücklicher Einwilligung.' },
       { n: 2, title: 'Unabhängig', text: 'Nicht von Zustimmung, Ablehnung oder Enthaltung abhängig.' },
       { n: 3, title: 'Nachvollziehbar', text: 'Begründung über abgeschlossene Beteiligung oder Rückmeldung.' },
-    ],
-  },
-  {
-    id: 'politikbarometer',
-    title: 'Politikbarometer',
-    body: INTRO_WALKTHROUGH_CLARA.politikbarometer.longSie,
-    bullets: [
-      { n: 1, title: 'Themenkompass', text: 'Selbst gewählte Interessenschwerpunkte.' },
-      { n: 2, title: 'Kalender', text: 'Thematische Hervorhebung möglich.' },
-      { n: 3, title: 'Privatheit', text: 'Keine Ableitung aus Verhalten.' },
     ],
   },
 ];

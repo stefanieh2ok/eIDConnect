@@ -265,6 +265,9 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
 
   const finishProductIntro = () => {
     tryStartDemoLaunchFromUserGesture('full');
+    if (state.activeSection === 'leaderboard') {
+      dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'live' });
+    }
     try {
       localStorage.setItem(PRODUCT_INTRO_DONE_KEY, 'true');
     } catch {}
@@ -431,7 +434,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                   <DemoIntroWalkthrough
                     du={state.anrede === 'du'}
                     residenceLocation={state.residenceLocation}
-                    startStepId="abstimmen"
+                    startStepId="politikbarometer"
                     fillDeviceFrame={isDevice}
                     onClose={finishProductIntro}
                     onFinish={finishProductIntro}
@@ -591,7 +594,7 @@ function SecurityFaqFooter() {
     },
     {
       q: 'Was wird gespeichert und was nicht?',
-      a: 'Es werden nur notwendige Demo-/Sicherheitsdaten verarbeitet (z. B. Status, Zeitpunkte, technische Metadaten). Inhalte für KI-Training sind ausgeschlossen.',
+      a: 'Es werden nur notwendige Vorschau- und Sicherheitsdaten verarbeitet (z. B. Status, Zeitpunkte, technische Metadaten). Inhalte für KI-Training sind ausgeschlossen.',
     },
     {
       q: 'Kann ich meinen Wohnort in der App einfach ändern?',

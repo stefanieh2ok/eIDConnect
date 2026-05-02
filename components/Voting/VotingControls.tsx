@@ -140,8 +140,9 @@ const VotingControls: React.FC<VotingControlsProps> = ({
             className={
               'flex items-center justify-center rounded-full border-[3px] border-emerald-500 bg-white shadow-md transition-all group-hover:bg-emerald-500 group-active:scale-95 ' +
               (isScriptedActive
-                ? ' ring-4 ring-emerald-300/70 bg-emerald-500 scale-[0.97] shadow-[0_0_0_6px_rgba(16,185,129,0.18)] '
+                ? ' ring-4 ring-emerald-300/70 bg-emerald-500 shadow-[0_0_0_6px_rgba(16,185,129,0.18)] '
                 : '') +
+              (isScriptedPressed ? ' scale-[0.9] translate-y-[1px] ' : isScriptedHighlight ? ' scale-[0.97] ' : '') +
               (useIntroSizing ? 'h-14 w-14' : compact ? 'h-12 w-12' : 'h-[4.25rem] w-[4.25rem]')
             }
             style={{ boxShadow: '0 4px 14px rgba(34,197,94,0.35)' }}

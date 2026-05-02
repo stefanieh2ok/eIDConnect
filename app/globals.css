@@ -1352,6 +1352,34 @@ body {
   animation: introLogoEnter 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+/* Dark entrée: sehr weicher, technischer Halo hinter dem Markenzeichen — kein „Feuerwerk“. */
+.intro-entry-brand-halo {
+  position: relative;
+  padding: 0.35rem 1rem 0.5rem;
+}
+.intro-entry-brand-halo::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(240px, 78vw);
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 85% 70% at 50% 48%,
+    rgba(122, 164, 216, 0.14) 0%,
+    rgba(255, 255, 255, 0.05) 38%,
+    transparent 72%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.intro-entry-tagline {
+  animation: introEntryTagline 560ms cubic-bezier(0.2, 0.8, 0.2, 1) 140ms both;
+}
+
 @keyframes introLogoEnter {
   0% {
     opacity: 0;
@@ -1360,6 +1388,26 @@ body {
   100% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes introEntryTagline {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-logo-enter,
+  .intro-entry-tagline {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -1620,6 +1668,95 @@ body {
   0% { opacity: 0; transform: translateY(8px) scale(0.8); }
   25% { opacity: 0.85; }
   100% { opacity: 0; transform: translateY(-14px) scale(1); }
+}
+
+/* App-Übergang (DemoLaunchEffect): einmaliger, ruhiger „Reveal“-Burst — kein Dauerloop, kein Spiel-Look. */
+.demo-launch-confetti-layer {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  overflow: hidden;
+}
+
+.demo-launch-confetti-burst {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  width: 0;
+  height: 0;
+  transform: translate(-50%, -50%);
+}
+
+.demo-launch-confetti-spoke {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+}
+
+.demo-launch-confetti-ray {
+  display: block;
+  width: 2.5px;
+  height: 12px;
+  margin-left: -1.25px;
+  border-radius: 2px;
+  background: linear-gradient(to top, rgba(56, 189, 248, 0.08), rgba(224, 242, 254, 0.92));
+  box-shadow: 0 0 12px rgba(103, 232, 249, 0.18);
+  opacity: 0;
+  animation: demoLaunchConfettiRay 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.demo-launch-confetti-spoke--violet .demo-launch-confetti-ray {
+  background: linear-gradient(to top, rgba(167, 139, 250, 0.1), rgba(237, 233, 254, 0.88));
+  box-shadow: 0 0 12px rgba(196, 181, 253, 0.16);
+}
+
+.demo-launch-confetti-dot {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  opacity: 0;
+  animation: demoLaunchConfettiDot 1.05s ease-out forwards;
+}
+
+@keyframes demoLaunchConfettiRay {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scaleY(0.35);
+  }
+  22% {
+    opacity: 0.88;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-96px) scaleY(1);
+  }
+}
+
+@keyframes demoLaunchConfettiDot {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.65);
+  }
+  18% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx, 0px), var(--dy, -28px)) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo-launch-confetti-ray,
+  .demo-launch-confetti-dot {
+    animation: none !important;
+    opacity: 0 !important;
+  }
 }
 
 .walkthrough-preview-card {

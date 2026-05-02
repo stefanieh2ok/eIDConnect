@@ -5,6 +5,7 @@ import { Mic } from 'lucide-react';
 import { INTRO_GLOBAL_PILL_LABEL } from '@/data/introOverlayMarketing';
 import {
   IntroAudioStatusButton,
+  IntroSpeechSpeedToggle,
   INTRO_META_ICON_BUTTON_DARK_CLASS,
   INTRO_META_ICON_BUTTON_LIGHT_CLASS,
 } from '@/components/Intro/IntroOverlay';
@@ -61,6 +62,7 @@ export default function IntroMetaStrip({
         </span>
         <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5">
           <IntroAudioStatusButton theme={onLight ? 'light' : 'dark'} />
+          <IntroSpeechSpeedToggle theme={onLight ? 'light' : 'dark'} />
           {showClaraVoice ? (
             <button
               type="button"

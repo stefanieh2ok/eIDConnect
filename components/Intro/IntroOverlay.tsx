@@ -21,7 +21,7 @@ import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 const SESSION_AUDIO = 'eidconnect_intro_audio_v1';
 
 export type IntroOverlayContextValue = {
-  /** Standard aus; Audio startet erst nach aktivem Klick auf das Lautsprecher-Icon. */
+  /** Standard an (pro Browser-Sitzung), bis Nutzer explizit stumm schaltet (`sessionStorage`). */
   readAloud: boolean;
   setReadAloud: (v: boolean) => void;
   /** TTS (Intro / Claras Stimme) spielt gerade ab — für Audio-Status-UI. */
@@ -69,22 +69,15 @@ export function useOptionalIntroOverlay() {
 function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
   const { speak, speakParts, stopSpeaking, voiceState } = useClaraVoiceContext();
   const isIntroSpeaking = voiceState.isSpeaking;
-  const [readAloud, setReadAloudState] = useState(false);
-  const lastNarrationKeyRef = useRef<string | null>(null);
-
-  useLayoutEffect(() => {
-    if (typeof window === 'undefined') return;
+  const [readAloud, setReadAloudState] = useState(() => {
+    if (typeof window === 'undefined') return true;
     try {
-      const s = sessionStorage.getItem(SESSION_AUDIO);
-      if (s === '1') {
-        setReadAloudState(true);
-      } else {
-        setReadAloudState(false);
-      }
+      return sessionStorage.getItem(SESSION_AUDIO) !== '0';
     } catch {
-      // ignore
+      return true;
     }
-  }, []);
+  });
+  const lastNarrationKeyRef = useRef<string | null>(null);
 
   const stopIntroSpeech = useCallback(() => {
     try {
@@ -316,5 +309,49 @@ export function IntroAudioStatusButton({ theme = 'dark' }: { theme?: IntroAudioS
         />
       )}
     </button>
+  );
+}
+
+export function IntroSpeechSpeedToggle({ theme = 'dark' }: { theme?: IntroAudioStatusTheme } = {}) {
+  const { speechRate, setSpeechRate } = useClaraVoiceContext();
+  const onDark = theme === 'dark';
+
+  const baseCls = onDark
+    ? 'inline-flex h-8 items-center rounded-full border border-white/20 bg-white/8 p-0.5 text-[10px] font-semibold text-white/85'
+    : 'inline-flex h-8 items-center rounded-full border border-slate-300/90 bg-white p-0.5 text-[10px] font-semibold text-slate-600';
+
+  const btnCls = (active: boolean) =>
+    'inline-flex min-w-[38px] items-center justify-center rounded-full px-2 py-1 leading-none transition ' +
+    (active
+      ? onDark
+        ? 'bg-white text-[#0F172A]'
+        : 'bg-[#003366] text-white'
+      : onDark
+        ? 'text-white/80 hover:bg-white/12'
+        : 'text-slate-600 hover:bg-slate-100');
+
+  const active = speechRate >= 1.12 ? 1.15 : 1;
+
+  return (
+    <div className={baseCls} role="group" aria-label="Clara Sprechgeschwindigkeit">
+      <button
+        type="button"
+        className={btnCls(active === 1)}
+        onClick={() => setSpeechRate(1)}
+        aria-pressed={active === 1}
+        title="Clara auf 1x"
+      >
+        1x
+      </button>
+      <button
+        type="button"
+        className={btnCls(active === 1.15)}
+        onClick={() => setSpeechRate(1.15)}
+        aria-pressed={active === 1.15}
+        title="Clara auf 1.15x"
+      >
+        1.15x
+      </button>
+    </div>
   );
 }

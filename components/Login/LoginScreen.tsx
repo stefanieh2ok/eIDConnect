@@ -38,7 +38,6 @@ import { ListChecks, Settings } from 'lucide-react';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
-import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 const KIRKEL_STREET = 'Hauptstraße 1';
 const KIRKEL_PLZ = '66459';
@@ -90,8 +89,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   type OnboardingSpotlight = 'off' | 'eid' | 'weiter';
   const [onboardingSpotlight] = useState<OnboardingSpotlight>('off');
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const eidCardRef = useRef<HTMLDivElement | null>(null);
+  const walletCardRef = useRef<HTMLDivElement | null>(null);
   const [scrollPct, setScrollPct] = useState(0);
   const [scrollMaxPx, setScrollMaxPx] = useState(0);
+  const [accessHighlight, setAccessHighlight] = useState<'eid' | 'wallet' | null>(null);
+  const accessHighlightTimerRef = useRef<number | null>(null);
 
   const reopenProductIntro = useCallback(() => {
     try {
@@ -133,7 +136,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     const parts = introEidLoginSpokenParts(du);
     const t = window.setTimeout(() => {
       introSpeak.speakIntroParts(parts, 'eid-demo-login');
-    }, 120);
+    }, 450);
     return () => {
       window.clearTimeout(t);
       introSpeak.stopIntroSpeech();
@@ -211,6 +214,33 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     setConfirmedAccessMethod('demo');
   };
 
+  const focusAccessSection = useCallback((target: 'eid' | 'wallet') => {
+    const el = target === 'eid' ? eidCardRef.current : walletCardRef.current;
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    try {
+      el.focus({ preventScroll: true });
+    } catch {
+      /* noop */
+    }
+    setAccessHighlight(target);
+    if (accessHighlightTimerRef.current != null) {
+      window.clearTimeout(accessHighlightTimerRef.current);
+    }
+    accessHighlightTimerRef.current = window.setTimeout(() => {
+      setAccessHighlight((prev) => (prev === target ? null : prev));
+      accessHighlightTimerRef.current = null;
+    }, 1400);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (accessHighlightTimerRef.current != null) {
+        window.clearTimeout(accessHighlightTimerRef.current);
+      }
+    };
+  }, []);
+
   const content = (
     <div className="clara-prelogin-shell-pad--tight intro-device-chrome-shell intro-dark-body relative mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] p-[3px] sm:mx-2 sm:p-1">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.65rem] border border-neutral-200/95 bg-white">
@@ -224,20 +254,29 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
         />
 
         <div className="flex-shrink-0 border-b border-neutral-100 px-4 pb-2 pt-2 sm:px-5 sm:pb-2.5 sm:pt-2.5">
-          <ProductIdentityHeader className="text-left" />
           <div
             className="mt-2.5 flex items-stretch justify-center gap-0 rounded-lg border border-[#D6E0EE] bg-[#F8FAFD] px-1 py-1.5 sm:mt-3"
             aria-label="Zugangsperspektiven: eID und EU Digital Identity Wallet"
           >
-            <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-center">
+            <button
+              type="button"
+              onClick={() => focusAccessSection('eid')}
+              className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-center transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8]"
+              aria-label="eID-Bereich anzeigen"
+            >
               <span className="text-[11px] font-bold tracking-tight text-[#003366]">eID</span>
               <span className="text-[8px] font-medium leading-tight text-neutral-600">Online-Ausweis</span>
-            </div>
+            </button>
             <div className="w-px shrink-0 self-stretch bg-[#D6E0EE]" aria-hidden />
-            <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-center">
+            <button
+              type="button"
+              onClick={() => focusAccessSection('wallet')}
+              className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-center transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8]"
+              aria-label="EU Wallet-Bereich anzeigen"
+            >
               <span className="text-[11px] font-bold tracking-tight text-[#003366]">EU Wallet</span>
               <span className="text-[8px] font-medium leading-tight text-neutral-600">Digitale Identität</span>
-            </div>
+            </button>
           </div>
         </div>
 
@@ -284,7 +323,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               showTopicTitle
               hideShortWhenCollapsed
             />
-            <div className={`${accessPathCardClass} intro-login-heartbeat`}>
+            <div
+              ref={eidCardRef}
+              tabIndex={-1}
+              className={`${accessPathCardClass} intro-login-heartbeat transition-shadow duration-300 ${
+                accessHighlight === 'eid' ? 'ring-2 ring-[#7AA4D8] shadow-[0_0_0_3px_rgba(122,164,216,0.22)]' : ''
+              }`}
+            >
               <div className="flex items-start justify-between gap-2">
                 <span
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#003366] text-[10px] font-bold text-white"
@@ -313,7 +358,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               </button>
             </div>
 
-            <div className={`${accessPathCardClass} intro-login-heartbeat`}>
+            <div
+              ref={walletCardRef}
+              tabIndex={-1}
+              className={`${accessPathCardClass} intro-login-heartbeat transition-shadow duration-300 ${
+                accessHighlight === 'wallet' ? 'ring-2 ring-[#7AA4D8] shadow-[0_0_0_3px_rgba(122,164,216,0.22)]' : ''
+              }`}
+            >
               <div className="flex items-start justify-between gap-2">
                 <span
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[#003366]/40 bg-white text-[10px] font-bold text-[#003366]"

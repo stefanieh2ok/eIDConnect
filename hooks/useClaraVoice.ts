@@ -15,6 +15,16 @@ export const useClaraVoice = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
   const playRequestIdRef = useRef(0);
+  const [speechRate, setSpeechRateState] = useState<number>(() => {
+    if (typeof window === 'undefined') return 1.05;
+    try {
+      const raw = window.sessionStorage.getItem('clara_speech_rate_v1');
+      if (raw === '1' || raw === '1.15') return Number(raw);
+    } catch {
+      // ignore
+    }
+    return 1.05;
+  });
 
   useEffect(() => {
     // Initialize speech recognition (iOS 14.5+ oft `SpeechRecognition`, Desktop meist `webkitSpeechRecognition`)
@@ -107,7 +117,7 @@ export const useClaraVoice = () => {
         const res = await fetch('/api/tts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text, speed: speechRate }),
         });
 
         if (!res.ok) {
@@ -127,6 +137,7 @@ export const useClaraVoice = () => {
         const objectUrl = URL.createObjectURL(blob);
         audioUrlRef.current = objectUrl;
         const audio = new Audio(objectUrl);
+        audio.playbackRate = speechRate;
         audioRef.current = audio;
 
         audio.onended = () => {
@@ -152,7 +163,7 @@ export const useClaraVoice = () => {
         }));
       }
     },
-    [stopSpeaking],
+    [stopSpeaking, speechRate],
   );
 
   const speak = useCallback((text: string) => {
@@ -176,6 +187,15 @@ export const useClaraVoice = () => {
     setVoiceState((prev) => ({ ...prev, transcript: '' }));
   }, []);
 
+  const setSpeechRate = useCallback((rate: 1 | 1.15) => {
+    setSpeechRateState(rate);
+    try {
+      window.sessionStorage.setItem('clara_speech_rate_v1', String(rate));
+    } catch {
+      // ignore
+    }
+  }, []);
+
   return {
     voiceState,
     startListening,
@@ -184,5 +204,7 @@ export const useClaraVoice = () => {
     speakParts,
     stopSpeaking,
     clearTranscript,
+    speechRate,
+    setSpeechRate,
   };
 };

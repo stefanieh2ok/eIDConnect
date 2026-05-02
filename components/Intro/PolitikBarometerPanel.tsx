@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { THEME_NAMES } from '@/data/constants';
 import type { UserPreferences } from '@/types';
@@ -10,6 +10,35 @@ const DEFAULT_LEAD_DU =
 
 const DEFAULT_LEAD_SIE =
   'Das Politikbarometer ist neutral und erstellt kein Meinungsprofil. Sie markieren Themen, die Ihnen wichtig sind; passende Termine werden im Kalender thematisch hervorgehoben.';
+
+const HERO_PREVIEW_INITIAL: UserPreferences = {
+  umwelt: 0,
+  finanzen: 0,
+  bildung: 0,
+  digital: 0,
+  soziales: 0,
+  sicherheit: 0,
+};
+
+const HERO_PREVIEW_TARGET: UserPreferences = {
+  umwelt: 50,
+  finanzen: 80,
+  bildung: 50,
+  digital: 90,
+  soziales: 50,
+  sicherheit: 50,
+};
+
+function scaleHeroPreviewValues(progress: number): UserPreferences {
+  return {
+    umwelt: Math.round(HERO_PREVIEW_TARGET.umwelt * progress),
+    finanzen: Math.round(HERO_PREVIEW_TARGET.finanzen * progress),
+    bildung: Math.round(HERO_PREVIEW_TARGET.bildung * progress),
+    digital: Math.round(HERO_PREVIEW_TARGET.digital * progress),
+    soziales: Math.round(HERO_PREVIEW_TARGET.soziales * progress),
+    sicherheit: Math.round(HERO_PREVIEW_TARGET.sicherheit * progress),
+  };
+}
 
 /**
  * Politikbarometer (Themenkompass): selbst gewählte Interessenschwerpunkte für
@@ -50,7 +79,7 @@ export default function PolitikBarometerPanel({
   heroPreview = false,
 }: Props) {
   const { state, dispatch } = useApp();
-  const heroNeutralApplied = useRef(false);
+  const [heroPreviewValues, setHeroPreviewValues] = useState<UserPreferences | null>(null);
   const compact = variant === 'compact';
   const tight = density === 'tight';
   const canEditPreferences = true;
@@ -65,30 +94,47 @@ export default function PolitikBarometerPanel({
   };
 
   const handlePreferenceChange = (key: keyof UserPreferences, value: number) => {
+    if (heroPreview) {
+      setHeroPreviewValues((prev) => ({ ...(prev ?? HERO_PREVIEW_INITIAL), [key]: value }));
+      return;
+    }
     ensureConsentForPreferenceUse();
     dispatch({ type: 'SET_PREFERENCES', payload: { [key]: value } });
   };
 
-  /** Walkthrough: alle Themen in der Mitte (50 %) — Regler wirken sofort „lebendig“. */
+  /** Walkthrough: lokale Wertfolge, damit der erste Schritt auch beim Erst-Mount sichtbar animiert. */
   useEffect(() => {
     if (!heroPreview) {
-      heroNeutralApplied.current = false;
+      setHeroPreviewValues(null);
       return;
     }
-    if (heroNeutralApplied.current) return;
-    heroNeutralApplied.current = true;
-    dispatch({
-      type: 'SET_PREFERENCES',
-      payload: {
-        umwelt: 50,
-        finanzen: 50,
-        bildung: 50,
-        digital: 50,
-        soziales: 50,
-        sicherheit: 50,
-      },
-    });
-  }, [heroPreview, dispatch]);
+    setHeroPreviewValues(HERO_PREVIEW_INITIAL);
+    let tick: number | null = null;
+    const start = window.setTimeout(() => {
+      const startedAt = performance.now();
+      const durationMs = 900;
+      tick = window.setInterval(() => {
+        const progress = Math.min(1, (performance.now() - startedAt) / durationMs);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setHeroPreviewValues(scaleHeroPreviewValues(eased));
+        if (progress >= 1) {
+          if (tick != null) {
+            window.clearInterval(tick);
+            tick = null;
+          }
+          setHeroPreviewValues(HERO_PREVIEW_TARGET);
+        }
+      }, 50);
+    }, 180);
+    return () => {
+      window.clearTimeout(start);
+      if (tick != null) {
+        window.clearInterval(tick);
+      }
+    };
+  }, [heroPreview]);
+
+  const displayedPreferences = heroPreview && heroPreviewValues ? heroPreviewValues : state.preferences;
 
   const applyPreset = (preset: Partial<UserPreferences>) => {
     ensureConsentForPreferenceUse();
@@ -198,7 +244,7 @@ export default function PolitikBarometerPanel({
                 }
                 style={heroPreview ? undefined : { color: 'var(--gov-heading)' }}
               >
-                {state.preferences[key as keyof UserPreferences]}%
+                {displayedPreferences[key as keyof UserPreferences]}%
               </span>
             </div>
             <input
@@ -206,7 +252,7 @@ export default function PolitikBarometerPanel({
               min={0}
               max={100}
               step={5}
-              value={state.preferences[key as keyof UserPreferences]}
+              value={displayedPreferences[key as keyof UserPreferences]}
               onChange={(e) => handlePreferenceChange(key as keyof UserPreferences, Number(e.target.value))}
               disabled={!canEditPreferences}
               aria-label={`${name} · Interessenschwerpunkt`}
@@ -214,7 +260,8 @@ export default function PolitikBarometerPanel({
                 heroPreview ? 'h-3' : compact ? (tight ? 'h-2' : 'h-2.5') : 'h-3'
               }`}
               style={{
-                ...sliderTrackStyle(state.preferences[key as keyof UserPreferences]),
+                ...sliderTrackStyle(displayedPreferences[key as keyof UserPreferences]),
+                transition: heroPreview ? 'background 260ms ease' : undefined,
                 opacity: canEditPreferences ? 1 : 0.55,
                 cursor: canEditPreferences ? 'pointer' : 'not-allowed',
               }}

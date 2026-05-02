@@ -13,16 +13,7 @@ import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
-import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 import type { Anrede } from '@/types';
-
-function isFinePointerDevice(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(hover: hover) and (pointer: fine)').matches
-  );
-}
 
 type Props = {
   /** Steuert Sichtbarkeit; kommt von der zentralen Pre-Login-Phase. */
@@ -145,19 +136,18 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
   }, [isOpen, speakApi?.readAloud]);
 
   /**
-   * Desktop: kurzer verzögerter Start ohne Tap.
-   * Touch (iOS): kein Timer — blockiertes Autoplay würde `hasSpokenIntroRef` setzen und Folge-Taps blockieren.
+   * Kurzer verzögerter Start ohne zusätzlichen Tap; `speakGateFromUserGesture`
+   * setzt den Guard erst beim tatsächlichen Start.
    */
   useEffect(() => {
     if (!isOpen || !speakApi?.readAloud) return;
-    if (!isFinePointerDevice()) return;
     if (hasSpokenIntroRef.current || hasSelectedSalutationRef.current) return;
 
     const id = window.setTimeout(() => {
       if (!speakApi?.readAloud) return;
       if (hasSpokenIntroRef.current || hasSelectedSalutationRef.current) return;
       speakGateFromUserGesture(null);
-    }, 100);
+    }, 450);
 
     return () => window.clearTimeout(id);
   }, [isOpen, speakApi?.readAloud, speakGateFromUserGesture]);
@@ -301,8 +291,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
             onClose={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
           />
 
-          <div className="border-b border-neutral-200 px-4 pb-3 pt-3 sm:px-5 sm:pt-4 sm:pb-4">
-            <ProductIdentityHeader className="mb-2" />
+          <div className="border-b border-neutral-200 px-4 pb-3 pt-3 sm:px-5 sm:pb-4 sm:pt-4">
             <div
               onPointerDown={(e) => {
                 if (e.button !== 0) return;

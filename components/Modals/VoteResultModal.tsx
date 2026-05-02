@@ -31,8 +31,8 @@ const VoteResultModal: React.FC<VoteResultModalProps> = ({ voteResult, onClose }
           Ihre Auswahl: <strong>{voteResult.vote}</strong>
         </p>
         <div className="bg-slate-50 border-2 border-slate-300 rounded-xl p-4">
-          <div className="text-sm font-semibold text-slate-800">Demo-Hinweis · keine echte Abstimmung</div>
-          <div className="text-sm text-slate-600 mt-1">Die Erfassung dient nur der Demo-Darstellung.</div>
+          <div className="text-sm font-semibold text-slate-800">Hinweis · keine echte Abstimmung</div>
+          <div className="text-sm text-slate-600 mt-1">Die Erfassung dient nur der Veranschaulichung.</div>
         </div>
       </div>
     </div>

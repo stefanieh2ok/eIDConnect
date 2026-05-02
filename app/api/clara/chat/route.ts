@@ -3,9 +3,9 @@ import { getAPIConfig, createAPIHeaders } from '@/lib/api-config';
 import { buildClaraSystemPrompt, type AddressMode } from '@/lib/clara-system-prompt';
 
 const DU_SCOPE_FALLBACK =
-  'Ich kann dir in dieser Demo bei Meldungen, Beteiligungsverfahren, Abstimmungen, Wahlen und Terminen helfen. Wenn du magst, nenne ich dir als Nächstes die zuständige Stelle und den möglichen Ablauf.';
+  'Ich kann dir in dieser Vorschau bei Meldungen, Beteiligungsverfahren, Abstimmungen, Wahlen und Terminen helfen. Wenn du magst, nenne ich dir als Nächstes die zuständige Stelle und den möglichen Ablauf.';
 const SIE_SCOPE_FALLBACK =
-  'Ich kann Ihnen in dieser Demo bei Meldungen, Beteiligungsverfahren, Abstimmungen, Wahlen und Terminen helfen. Wenn Sie möchten, nenne ich Ihnen als Nächstes die zuständige Stelle und den möglichen Ablauf.';
+  'Ich kann Ihnen in dieser Vorschau bei Meldungen, Beteiligungsverfahren, Abstimmungen, Wahlen und Terminen helfen. Wenn Sie möchten, nenne ich Ihnen als Nächstes die zuständige Stelle und den möglichen Ablauf.';
 
 export async function POST(request: NextRequest) {
   try {

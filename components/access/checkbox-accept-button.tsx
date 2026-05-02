@@ -71,7 +71,7 @@ export function CheckboxAcceptButton({ token }: { token: string }) {
         disabled={!accepted || loading}
         className="btn-primary t-button w-full"
       >
-        {loading ? 'Wird vorbereitet …' : 'Zustimmen und Demo öffnen'}
+        {loading ? 'Wird vorbereitet …' : 'Zustimmen und Vorschau öffnen'}
       </button>
 
       {error && (

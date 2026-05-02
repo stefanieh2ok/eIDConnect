@@ -28,14 +28,13 @@ import type { Location, Section, UserPreferences, VoteType } from '@/types';
 import { DEMO_POINTS_PER_ABSTIMMUNG, VOTING_DATA, WAHLEN_DATA } from '@/data/constants';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
-import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = {
   abstimmen: 'Echte Abstimmungs-Ansicht wie in der App',
   wahlen: 'Wahlen · gleiche Daten wie unter „Wahlen“',
   meldungen: 'Meldungen · gleicher Ablauf wie in der App',
   praemien: 'Prämien / Überblick · wie in der App',
-  politikbarometer: 'Politikbarometer · Regler wie in der App (50 % Demo)',
+  politikbarometer: 'Politikbarometer · Regler wie in der App (Beispielwert 50 %)',
 };
 
 const WALKTHROUGH_STEP_SUBTITLE: Partial<Record<IntroOverlayStepId, string>> = {
@@ -190,7 +189,7 @@ function IntroAbstimmenWalkthroughDemo({
   du: boolean;
   onDone: () => void;
 }) {
-  const { dispatch } = useApp();
+  const { dispatch, state } = useApp();
   const card = useMemo(() => {
     const list = VOTING_DATA.kirkel?.cards ?? [];
     const base = list.find((c) => c.id === 'kirkel-5') ?? list[0];
@@ -199,14 +198,23 @@ function IntroAbstimmenWalkthroughDemo({
 
   const [phase, setPhase] = useState<'idle' | 'highlight' | 'pressed' | 'reward'>('idle');
   const doneRef = useRef(false);
+  /** Vermeidet Effect-Neustart wenn nach dem Demo-Vote `canVote` umspringt (sonst bricht die Animation ab). */
+  const canVoteRef = useRef(state.canVote);
+  canVoteRef.current = state.canVote;
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
   useEffect(() => {
     doneRef.current = false;
     setPhase('idle');
-    const t0 = window.setTimeout(() => setPhase('highlight'), 800);
-    const t1 = window.setTimeout(() => setPhase('pressed'), 1120);
+    const t0 = window.setTimeout(() => setPhase('highlight'), 600);
+    const t1 = window.setTimeout(() => setPhase('pressed'), 1100);
     const t2 = window.setTimeout(() => {
       // Simulated vote action (no persistence beyond in-memory demo state)
+      const restoreCanVote = !canVoteRef.current;
+      if (restoreCanVote) {
+        dispatch({ type: 'SET_CAN_VOTE', payload: true });
+      }
       dispatch({
         type: 'HANDLE_VOTE',
         payload: {
@@ -216,50 +224,27 @@ function IntroAbstimmenWalkthroughDemo({
           earnedPoints: DEMO_POINTS_PER_ABSTIMMUNG,
         },
       });
+      dispatch({ type: 'SET_VOTE_RESULT', payload: null });
+      if (restoreCanVote) {
+        dispatch({ type: 'SET_CAN_VOTE', payload: false });
+      }
       setPhase('reward');
       if (!doneRef.current) {
         doneRef.current = true;
-        onDone();
+        onDoneRef.current();
       }
-      // clear vote result after short delay (like app demo)
-      window.setTimeout(() => dispatch({ type: 'SET_VOTE_RESULT', payload: null }), 2200);
-    }, 1340);
+    }, 1400);
     return () => {
       window.clearTimeout(t0);
       window.clearTimeout(t1);
       window.clearTimeout(t2);
     };
-  }, [dispatch, card, onDone]);
+  }, [dispatch, card]);
 
   return (
     <div className="relative w-full min-w-0">
       <div className="mx-auto w-full max-w-[420px] space-y-2">
-        <div className="rounded-2xl border border-[#D6E0EE] bg-white px-3 py-2 shadow-sm">
-          <div className="text-[10px] font-bold uppercase tracking-wide text-[#4F6F96]">Abstimmen</div>
-          <div className="mt-0.5 text-[13px] font-bold leading-snug text-[#1A2B45]">
-            {card?.title ?? 'Digitales Bürgerportal in Kirkel ausbauen'}
-          </div>
-          <div className="mt-1 line-clamp-2 text-[11px] leading-snug text-neutral-600">
-            {(card as any)?.description ?? 'Entscheidungsvorlage mit kurzer Einordnung.'}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 px-2.5 py-2">
-            <div className="text-[10px] font-bold uppercase tracking-wide text-emerald-800">Pro</div>
-            <ul className="mt-1.5 space-y-1 text-[10.5px] leading-snug text-emerald-900">
-              <li>Schnellere Verwaltungsprozesse</li>
-              <li>Einfacherer Zugang für Bürger</li>
-            </ul>
-          </div>
-          <div className="rounded-xl border border-rose-200 bg-rose-50/70 px-2.5 py-2">
-            <div className="text-[10px] font-bold uppercase tracking-wide text-rose-800">Contra</div>
-            <ul className="mt-1.5 space-y-1 text-[10.5px] leading-snug text-rose-900">
-              <li>Datenschutz muss klar geregelt sein</li>
-              <li>Digitale Teilhabe braucht Alternativen</li>
-            </ul>
-          </div>
-        </div>
+        {card ? <VotingCard card={card as any} /> : null}
 
         <div className="relative">
           <VotingControls
@@ -276,8 +261,8 @@ function IntroAbstimmenWalkthroughDemo({
       </div>
 
       {phase === 'reward' ? (
-        <div className="pointer-events-none absolute left-1/2 top-[55%] -translate-x-1/2">
-          <div className="intro-reward-float inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-[12px] font-bold text-emerald-900 shadow-md">
+        <div className="pointer-events-none absolute left-1/2 top-[42%] z-20 -translate-x-1/2">
+          <div className="intro-reward-float inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-[12px] font-bold text-emerald-900 shadow-[0_10px_28px_rgba(16,185,129,0.32)]">
             +{DEMO_POINTS_PER_ABSTIMMUNG} Punkte
           </div>
         </div>
@@ -286,7 +271,7 @@ function IntroAbstimmenWalkthroughDemo({
   );
 }
 
-function IntroWahlenWalkthroughDemo() {
+function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
   const btw = useMemo(() => WAHLEN_DATA.find((w) => w.id === 'btw25'), []);
   const merz = useMemo(
     () => btw?.kandidaten?.find((k) => /Friedrich\s+Merz/i.test(k.name)) ?? btw?.kandidaten?.[0],
@@ -300,21 +285,31 @@ function IntroWahlenWalkthroughDemo() {
   const zweit = useMemo(() => btw?.parteien?.slice(0, 6) ?? [], [btw]);
 
   const [phase, setPhase] = useState<'idle' | 'focus' | 'tick' | 'program' | 'source'>('idle');
+  const doneRef = useRef(false);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
   const sourcePrimaryUrl = 'https://www.cdu.de/wahlprogramm-von-cdu-und-csu/';
   const sourcePdfUrl =
     'https://www.cdu.de/app/uploads/2025/01/km_btw_2025_wahlprogramm_langfassung_ansicht.pdf';
 
   useEffect(() => {
+    doneRef.current = false;
     setPhase('idle');
     const t0 = window.setTimeout(() => setPhase('focus'), 650);
     const t1 = window.setTimeout(() => setPhase('tick'), 980);
     const t2 = window.setTimeout(() => setPhase('program'), 1380);
     const t3 = window.setTimeout(() => setPhase('source'), 1700);
+    const t4 = window.setTimeout(() => {
+      if (doneRef.current) return;
+      doneRef.current = true;
+      onDoneRef.current();
+    }, 1900);
     return () => {
       window.clearTimeout(t0);
       window.clearTimeout(t1);
       window.clearTimeout(t2);
       window.clearTimeout(t3);
+      window.clearTimeout(t4);
     };
   }, []);
 
@@ -411,7 +406,7 @@ function IntroWahlenWalkthroughDemo() {
                 Verifizierte Quelle · CDU/CSU
               </div>
               <div className="mt-1 text-[11px] leading-snug text-slate-800 [text-wrap:pretty]">
-                {(cdu as any)?.programm ?? 'Programmauszug ist in der Demo hinterlegt.'}
+                {(cdu as any)?.programm ?? 'Programmauszug ist in der Vorschau hinterlegt.'}
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 <span
@@ -448,17 +443,19 @@ function WalkthroughRealSectionEmbed({
   du,
   calendarPriorities,
   onAbstimmenDone,
+  onPraemienConsentDone,
 }: {
   stepId: IntroOverlayStepId;
   du: boolean;
   calendarPriorities: UserPreferences | undefined;
   onAbstimmenDone: () => void;
+  onPraemienConsentDone: () => void;
 }) {
   switch (stepId) {
     case 'abstimmen':
       return <IntroAbstimmenWalkthroughDemo du={du} onDone={onAbstimmenDone} />;
     case 'wahlen':
-      return <IntroWahlenWalkthroughDemo />;
+      return <IntroWahlenWalkthroughDemo onDone={onAbstimmenDone} />;
     case 'kalender':
       return <CalendarSection priorities={calendarPriorities} />;
     case 'meldungen':
@@ -475,7 +472,7 @@ function WalkthroughRealSectionEmbed({
         />
       );
     case 'praemien':
-      return <LeaderboardSection />;
+      return <LeaderboardSection embeddedInWalkthrough onWalkthroughConsentActivate={onPraemienConsentDone} />;
     case 'politikbarometer':
       return (
         <PolitikBarometerPanel
@@ -506,7 +503,10 @@ export default function DemoIntroWalkthrough({
   const du = _du;
   const [showDemoTooltip, setShowDemoTooltip] = useState(false);
   const [nextPulse, setNextPulse] = useState(false);
+  const [continuePulse, setContinuePulse] = useState(false);
   const demoTooltipTimerRef = useRef<number | null>(null);
+  const pulseTimerRef = useRef<number | null>(null);
+  const autoAdvanceTimerRef = useRef<number | null>(null);
   const steps = INTRO_OVERLAY_STEPS;
   const initialIdx = useMemo(() => {
     const i = steps.findIndex((s) => s.id === startStepId);
@@ -523,7 +523,10 @@ export default function DemoIntroWalkthrough({
   const clara = useMemo(() => claraBlockForStep(step.id, du), [step.id, du]);
 
   const speakParts = useMemo(() => {
-    const base: string[] = [clara.line10s, ...clara.speakSegments];
+    const base: string[] =
+      clara.speakSegments.length > 0
+        ? [...clara.speakSegments]
+        : [clara.line10s].filter(Boolean);
     if (isLast) {
       return [
         ...base,
@@ -570,6 +573,19 @@ export default function DemoIntroWalkthrough({
             du={du}
             calendarPriorities={calendarPriorities}
             onAbstimmenDone={() => setNextPulse(true)}
+            onPraemienConsentDone={() => {
+              speechCancelledRef.current = true;
+              if (pulseTimerRef.current != null) {
+                window.clearTimeout(pulseTimerRef.current);
+                pulseTimerRef.current = null;
+              }
+              if (autoAdvanceTimerRef.current != null) {
+                window.clearTimeout(autoAdvanceTimerRef.current);
+                autoAdvanceTimerRef.current = null;
+              }
+              speakApi?.stopIntroSpeech();
+              if (!isLast) setIdx((p) => Math.min(steps.length - 1, p + 1));
+            }}
           />
         </div>
       </div>
@@ -578,9 +594,10 @@ export default function DemoIntroWalkthrough({
 
   const speakApi = useIntroSpeakApi();
   const isIntroSpeaking = useIntroIsSpeaking();
-  const speechStartedRef = useRef(false);
-  const speechAutoAdvancedRef = useRef(false);
   const speechStepKeyRef = useRef<string>('');
+  const speechStartedRef = useRef(false);
+  const speechCancelledRef = useRef(false);
+  const speechAutoAdvancedRef = useRef(false);
 
   useEffect(() => {
     const section = walkthroughSectionForStep(step.id);
@@ -605,9 +622,18 @@ export default function DemoIntroWalkthrough({
     });
   }, [idx, step.id]);
 
-  useEffect(() => {
-    // Reset “Weiter”-pulse whenever the step changes.
+  useLayoutEffect(() => {
+    // Reset “Weiter”-pulse whenever the step changes (layout: vor Speech-Effect, damit Gating nicht stale ist).
     setNextPulse(false);
+    setContinuePulse(false);
+    if (pulseTimerRef.current != null) {
+      window.clearTimeout(pulseTimerRef.current);
+      pulseTimerRef.current = null;
+    }
+    if (autoAdvanceTimerRef.current != null) {
+      window.clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
+    }
   }, [step.id]);
 
   useEffect(() => {
@@ -617,26 +643,76 @@ export default function DemoIntroWalkthrough({
   useEffect(() => {
     if (!speakApi) return;
     if (!speakApi.readAloud) {
-      speechStartedRef.current = false;
-      speechAutoAdvancedRef.current = false;
       speechStepKeyRef.current = '';
+      speechStartedRef.current = false;
+      speechCancelledRef.current = true;
+      speechAutoAdvancedRef.current = false;
+      setContinuePulse(false);
+      if (pulseTimerRef.current != null) {
+        window.clearTimeout(pulseTimerRef.current);
+        pulseTimerRef.current = null;
+      }
+      if (autoAdvanceTimerRef.current != null) {
+        window.clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = null;
+      }
       return;
     }
     const speechKey = `walkthrough-${idx}-${step.id}`;
     speechStepKeyRef.current = speechKey;
     speechStartedRef.current = false;
+    speechCancelledRef.current = false;
     speechAutoAdvancedRef.current = false;
+    if (autoAdvanceTimerRef.current != null) {
+      window.clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
+    }
+    // Hard stop on step entry to prevent any overlap with previous narration.
+    speakApi.stopIntroSpeech();
+    const needsVisualReady = step.id === 'abstimmen' || step.id === 'meldungen' || step.id === 'wahlen';
+    if (needsVisualReady && !nextPulse) {
+      return () => {
+        if (pulseTimerRef.current != null) {
+          window.clearTimeout(pulseTimerRef.current);
+          pulseTimerRef.current = null;
+        }
+        if (autoAdvanceTimerRef.current != null) {
+          window.clearTimeout(autoAdvanceTimerRef.current);
+          autoAdvanceTimerRef.current = null;
+        }
+        speakApi.stopIntroSpeech();
+      };
+    }
     const t = window.setTimeout(() => {
       speakApi.speakIntroParts(speakParts, speechKey);
     }, 60);
     return () => {
       window.clearTimeout(t);
+      if (pulseTimerRef.current != null) {
+        window.clearTimeout(pulseTimerRef.current);
+        pulseTimerRef.current = null;
+      }
+      if (autoAdvanceTimerRef.current != null) {
+        window.clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = null;
+      }
       speakApi.stopIntroSpeech();
     };
-  }, [speakApi, speakApi?.readAloud, idx, step.id, speakParts]);
+  }, [speakApi, speakApi?.readAloud, idx, step.id, speakParts, nextPulse]);
 
   useEffect(() => {
-    if (!speakApi?.readAloud) return;
+    if (!speakApi?.readAloud) {
+      setContinuePulse(false);
+      if (pulseTimerRef.current != null) {
+        window.clearTimeout(pulseTimerRef.current);
+        pulseTimerRef.current = null;
+      }
+      if (autoAdvanceTimerRef.current != null) {
+        window.clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = null;
+      }
+      return;
+    }
     const activeSpeechKey = `walkthrough-${idx}-${step.id}`;
     if (speechStepKeyRef.current !== activeSpeechKey) return;
 
@@ -644,12 +720,53 @@ export default function DemoIntroWalkthrough({
       speechStartedRef.current = true;
       return;
     }
-    if (!speechStartedRef.current || speechAutoAdvancedRef.current) return;
-    if (isLast) return;
+    if (!speechStartedRef.current) return;
+    if (speechCancelledRef.current) return;
+    if (speechAutoAdvancedRef.current) return;
+    if ((step.id === 'abstimmen' || step.id === 'meldungen' || step.id === 'wahlen') && !nextPulse) return;
 
     speechAutoAdvancedRef.current = true;
-    setIdx((p) => Math.min(steps.length - 1, p + 1));
-  }, [isIntroSpeaking, idx, step.id, isLast, onFinish, speakApi?.readAloud, steps.length]);
+
+    pulseTimerRef.current = window.setTimeout(() => {
+      pulseTimerRef.current = null;
+      if (speechCancelledRef.current) return;
+      if (!speakApi?.readAloud) return;
+      setContinuePulse(true);
+    }, 250);
+
+    autoAdvanceTimerRef.current = window.setTimeout(() => {
+      autoAdvanceTimerRef.current = null;
+      if (speechCancelledRef.current) return;
+      if (!speakApi?.readAloud) return;
+      setContinuePulse(false);
+      if (isLast) {
+        onFinish();
+      } else {
+        setIdx((p) => Math.min(steps.length - 1, p + 1));
+      }
+    }, 400);
+
+    return () => {
+      if (pulseTimerRef.current != null) {
+        window.clearTimeout(pulseTimerRef.current);
+        pulseTimerRef.current = null;
+      }
+      if (autoAdvanceTimerRef.current != null) {
+        window.clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = null;
+      }
+      speechAutoAdvancedRef.current = false;
+    };
+  }, [isIntroSpeaking, idx, step.id, isLast, nextPulse, speakApi?.readAloud, steps.length, onFinish]);
+
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceTimerRef.current != null) {
+        window.clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const liveAnnouncement = `Bereich ${clara.label}. ${clara.short} ${framingLine}`.trim();
 
@@ -700,23 +817,8 @@ export default function DemoIntroWalkthrough({
             showClaraVoice
             onSkip={skipIntroOrBackToEid}
             onClose={exitIntroOrBackToEid}
-            closeAriaLabel={idx === 0 ? 'Zurück zur eID-Demo' : undefined}
+            closeAriaLabel={idx === 0 ? 'Zurück zur eID-Vorschau' : undefined}
           />
-
-          <div
-            className={
-              fillDeviceFrame
-                ? 'shrink-0 px-2 pb-0.5 pt-0.5 text-left sm:px-2.5'
-                : 'shrink-0 px-4 pb-1.5 pt-1 text-left sm:px-4'
-            }
-          >
-            <div className="mb-0.5 flex justify-start">
-              <span className="inline-flex items-center rounded-full border border-violet-200 bg-violet-50 px-2.5 py-0.5 text-[10px] font-bold tracking-tight text-violet-950">
-                Vorschau – Demo-Modus
-              </span>
-            </div>
-            <ProductIdentityHeader />
-          </div>
 
           <div
             className={
@@ -726,17 +828,6 @@ export default function DemoIntroWalkthrough({
           >
             <div className="intro-walkthrough-focus-stage min-h-0 min-w-0 flex-1">
               <div className="intro-walkthrough-focus-card">
-                <div
-                  className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[inherit]"
-                  aria-hidden
-                >
-                  <span
-                    className="absolute left-1/2 top-1/2 block w-[120%] select-none text-center text-[clamp(2rem,11vw,3.25rem)] font-bold uppercase leading-none tracking-[0.22em] text-[#0f172a]/[0.09]"
-                    style={{ transform: 'translate(-50%, -50%) rotate(-14deg)' }}
-                  >
-                    HookAI Demo
-                  </span>
-                </div>
                 <div
                   className={
                     fillDeviceFrame
@@ -803,21 +894,29 @@ export default function DemoIntroWalkthrough({
             {showDemoTooltip ? (
               <div className="pointer-events-none absolute left-1/2 top-0 z-[2] -translate-x-1/2 -translate-y-[58%]">
                 <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-800 shadow-md">
-                  Demo-Modus – keine Speicherung
+                  Vorschau – keine Speicherung
                 </div>
               </div>
             ) : null}
             {isLast ? (
               <p className="t-body-sm text-center text-neutral-600">
-                Demo startet jetzt mit einem kurzen Übergang.
+                Die Anwendung startet jetzt mit einem kurzen Übergang.
               </p>
             ) : null}
             <div className="flex gap-2">
             <button
               type="button"
               onClick={() => {
-                speechAutoAdvancedRef.current = true;
-                speechStartedRef.current = false;
+                speechCancelledRef.current = true;
+                setContinuePulse(false);
+                if (pulseTimerRef.current != null) {
+                  window.clearTimeout(pulseTimerRef.current);
+                  pulseTimerRef.current = null;
+                }
+                if (autoAdvanceTimerRef.current != null) {
+                  window.clearTimeout(autoAdvanceTimerRef.current);
+                  autoAdvanceTimerRef.current = null;
+                }
                 speakApi?.stopIntroSpeech();
                 if (idx === 0) {
                   if (onBackFromFirstStep) onBackFromFirstStep();
@@ -832,15 +931,23 @@ export default function DemoIntroWalkthrough({
             <button
               type="button"
               onClick={() => {
-                speechAutoAdvancedRef.current = true;
-                speechStartedRef.current = false;
+                speechCancelledRef.current = true;
+                setContinuePulse(false);
+                if (pulseTimerRef.current != null) {
+                  window.clearTimeout(pulseTimerRef.current);
+                  pulseTimerRef.current = null;
+                }
+                if (autoAdvanceTimerRef.current != null) {
+                  window.clearTimeout(autoAdvanceTimerRef.current);
+                  autoAdvanceTimerRef.current = null;
+                }
                 speakApi?.stopIntroSpeech();
                 if (isLast) onFinish();
                 else setIdx((p) => Math.min(steps.length - 1, p + 1));
               }}
               className={
                 'btn-primary t-button min-h-[44px] min-w-0 flex-1 text-[15px] font-bold ' +
-                (nextPulse && (step.id === 'abstimmen' || step.id === 'meldungen') && !isLast ? ' footer-heartbeat' : '') +
+                (continuePulse ? ' footer-heartbeat' : '') +
                 (isLast ? 'whitespace-nowrap' : '')
               }
             >

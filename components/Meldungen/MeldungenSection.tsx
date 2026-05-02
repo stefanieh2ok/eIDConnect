@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
@@ -301,7 +301,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
             </div>
             {filteredDemoListe.length === 0 ? (
               <p className="rounded-xl border border-[#D6E0EE] bg-white p-3 text-xs text-gray-500">
-                Für diesen Status liegen aktuell keine Demo-Meldungen vor.
+                Für diesen Status liegen aktuell keine Beispiel-Meldungen vor.
               </p>
             ) : null}
             {filteredDemoListe.map((m) => (
@@ -403,18 +403,19 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                       : 'Bitte beschreiben Sie das Problem so genau wie möglich...'
                   }
                   className={
-                    'form-textarea w-full resize-none ' +
+                    'form-textarea w-full resize-none text-[14px] leading-[1.45] [font-family:inherit] tracking-normal ' +
                     (showDemoCaret ? 'text-transparent caret-transparent' : '')
                   }
+                  style={{ padding: '0.75rem 0.875rem' }}
                 />
                 {showDemoCaret ? (
                   <div
-                    className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-[inherit] leading-[inherit] text-[#1A2B45]"
+                    className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-[14px] leading-[1.45] [font-family:inherit] tracking-normal text-[#1A2B45]"
                     aria-hidden
                     style={{ padding: '0.75rem 0.875rem' }}
                   >
                     {beschreibung}
-                    <span className="intro-typewriter-caret ml-px inline-block h-[1em] w-[2px] translate-y-[2px] bg-[#0055A4]" />
+                    <span className="intro-typewriter-caret ml-px inline-block h-[1em] w-[2px] bg-[#0055A4]" />
                   </div>
                 ) : null}
               </div>
@@ -432,17 +433,18 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                     onChange={(e) => setAdresse(e.target.value)}
                     placeholder={`z. B. Hauptstraße 12, ${gemeinde}`}
                     className={
-                      'form-input w-full ' + (showDemoAddressCaret ? 'text-transparent caret-transparent' : '')
+                      'form-input w-full text-[14px] leading-[1.45] [font-family:inherit] tracking-normal ' +
+                      (showDemoAddressCaret ? 'text-transparent caret-transparent' : '')
                     }
                   />
                   {showDemoAddressCaret ? (
                     <div
-                      className="pointer-events-none absolute inset-0 truncate text-[inherit] leading-[inherit] text-[#1A2B45]"
+                      className="pointer-events-none absolute inset-0 truncate text-[14px] leading-[1.45] [font-family:inherit] tracking-normal text-[#1A2B45]"
                       aria-hidden
                       style={{ padding: '0.625rem 0.75rem' }}
                     >
                       {adresse}
-                      <span className="intro-typewriter-caret ml-px inline-block h-[1em] w-[2px] translate-y-[2px] bg-[#0055A4]" />
+                      <span className="intro-typewriter-caret ml-px inline-block h-[1em] w-[2px] bg-[#0055A4]" />
                     </div>
                   ) : null}
                 </div>
@@ -555,7 +557,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
               )}
               {!isWalkthroughFilmMode ? (
                 <p className="text-[10px] text-gray-400">
-                  {du ? 'Max. 5 Fotos. In der Demo werden sie nur lokal angezeigt.' : 'Max. 5 Fotos. In der Demo werden sie nur lokal angezeigt.'}
+                  {du ? 'Max. 5 Fotos. In der Vorschau werden sie nur lokal angezeigt.' : 'Max. 5 Fotos. In der Vorschau werden sie nur lokal angezeigt.'}
                 </p>
               ) : null}
             </div>

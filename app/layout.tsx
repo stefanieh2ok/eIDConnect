@@ -38,17 +38,17 @@ export const metadata: Metadata = {
     title: APP_DISPLAY_NAME,
     statusBarStyle: 'default',
   },
-  description: 'Digitale Identität · Beteiligung · Bürgerzugang — GovTech-Demo zu Orientierung und Mitwirkung.',
+  description: 'Digitale Identität · Beteiligung · Bürgerzugang — GovTech-Konzeptvorschau zu Orientierung und Mitwirkung.',
   openGraph: {
     title: APP_DISPLAY_NAME,
-    description: 'Digitale Identität · Beteiligung · Bürgerzugang — GovTech-Demo zu Orientierung und Mitwirkung.',
+    description: 'Digitale Identität · Beteiligung · Bürgerzugang — GovTech-Konzeptvorschau zu Orientierung und Mitwirkung.',
     type: 'website',
     locale: 'de_DE',
   },
   twitter: {
     card: 'summary',
     title: APP_DISPLAY_NAME,
-    description: 'Digitale Identität · Beteiligung · Bürgerzugang — GovTech-Demo.',
+    description: 'Digitale Identität · Beteiligung · Bürgerzugang — GovTech-Konzeptvorschau.',
   },
   icons: {
     icon: [

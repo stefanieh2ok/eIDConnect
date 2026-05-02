@@ -20,132 +20,116 @@ export type WalkthroughClaraBlock = {
 export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClaraBlock> = {
   abstimmen: {
     label: 'Abstimmen',
-    line10sDu: 'Du siehst zuerst die Argumente.',
-    line10sSie: 'Sie sehen zuerst die Argumente.',
-    shortDu: 'Du siehst zuerst die Argumente.',
-    shortSie: 'Sie sehen zuerst die Argumente.',
+    line10sDu: 'Kommunales Beispiel: Kirkel im Saarland – beispielhaft, ohne Richtungsvorgabe.',
+    line10sSie: 'Kommunales Beispiel: Kirkel im Saarland – beispielhaft, ohne Richtungsvorgabe.',
+    shortDu:
+      'Hier siehst du ein Beispiel aus Kirkel im Saarland: eine kommunale Abstimmung, etwa zu Schule, Verkehr, Digitalisierung oder öffentlicher Infrastruktur. Die KI bereitet dir Pro und Contra verständlich auf – ohne eine Richtung vorzugeben. Danach entscheidest du selbst.',
+    shortSie:
+      'Hier sehen Sie ein Beispiel aus Kirkel im Saarland: eine kommunale Abstimmung, etwa zu Schule, Verkehr, Digitalisierung oder öffentlicher Infrastruktur. Die KI bereitet Ihnen Pro und Contra verständlich auf – ohne eine Richtung vorzugeben. Danach entscheiden Sie selbst.',
     longDu:
-      'Du siehst zuerst die Argumente.\n\n' +
-      'Und kannst dann entscheiden, was für dich passt.',
+      'Hier siehst du ein Beispiel aus Kirkel im Saarland: eine kommunale Abstimmung, etwa zu Schule, Verkehr, Digitalisierung oder öffentlicher Infrastruktur. Die KI bereitet dir Pro und Contra verständlich auf – ohne eine Richtung vorzugeben. Danach entscheidest du selbst.',
     longSie:
-      'Sie sehen zuerst die Argumente.\n\n' +
-      'Und können dann entscheiden, was für Sie passt.',
+      'Hier sehen Sie ein Beispiel aus Kirkel im Saarland: eine kommunale Abstimmung, etwa zu Schule, Verkehr, Digitalisierung oder öffentlicher Infrastruktur. Die KI bereitet Ihnen Pro und Contra verständlich auf – ohne eine Richtung vorzugeben. Danach entscheiden Sie selbst.',
     speakSegmentsDu: [
-      'Du siehst zuerst die Argumente.',
-      'Und kannst dann entscheiden, was für dich passt.',
+      'Hier siehst du ein Beispiel aus Kirkel im Saarland: eine kommunale Abstimmung, etwa zu Schule, Verkehr, Digitalisierung oder öffentlicher Infrastruktur. Die KI bereitet dir Pro und Contra verständlich auf – ohne eine Richtung vorzugeben. Danach entscheidest du selbst.',
     ],
     speakSegmentsSie: [
-      'Sie sehen zuerst die Argumente.',
-      'Und können dann entscheiden, was für Sie passt.',
+      'Hier sehen Sie ein Beispiel aus Kirkel im Saarland: eine kommunale Abstimmung, etwa zu Schule, Verkehr, Digitalisierung oder öffentlicher Infrastruktur. Die KI bereitet Ihnen Pro und Contra verständlich auf – ohne eine Richtung vorzugeben. Danach entscheiden Sie selbst.',
     ],
   },
   wahlen: {
     label: 'Wahlen',
-    line10sDu: 'Hier bekommst du eine Vorschau auf Wahlen.',
-    line10sSie: 'Hier bekommen Sie eine Vorschau auf Wahlen.',
-    shortDu: 'Hier bekommst du eine Vorschau auf Wahlen.',
-    shortSie: 'Hier bekommen Sie eine Vorschau auf Wahlen.',
+    line10sDu: 'Wahlvorschau am Beispiel Bundestagswahl – nicht die eigentliche Wahl.',
+    line10sSie: 'Wahlvorschau am Beispiel Bundestagswahl – nicht die eigentliche Wahl.',
+    shortDu:
+      'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl. Am Beispiel einer Bundestagswahl kannst du nachvollziehen, welche Parteien, Kandidierenden, Programme und offiziellen Quellen relevant sind. So bist du besser vorbereitet, bevor du eine Wahlentscheidung triffst.',
+    shortSie:
+      'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl. Am Beispiel einer Bundestagswahl können Sie nachvollziehen, welche Parteien, Kandidierenden, Programme und offiziellen Quellen relevant sind. So sind Sie besser vorbereitet, bevor Sie eine Wahlentscheidung treffen.',
     longDu:
-      'Hier bekommst du eine Vorschau auf Wahlen.\n\n' +
-      'Mit Kandidierenden, Programmen und offiziellen Quellen.',
+      'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl. Am Beispiel einer Bundestagswahl kannst du nachvollziehen, welche Parteien, Kandidierenden, Programme und offiziellen Quellen relevant sind. So bist du besser vorbereitet, bevor du eine Wahlentscheidung triffst.',
     longSie:
-      'Hier bekommen Sie eine Vorschau auf Wahlen.\n\n' +
-      'Mit Kandidierenden, Programmen und offiziellen Quellen.',
+      'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl. Am Beispiel einer Bundestagswahl können Sie nachvollziehen, welche Parteien, Kandidierenden, Programme und offiziellen Quellen relevant sind. So sind Sie besser vorbereitet, bevor Sie eine Wahlentscheidung treffen.',
     speakSegmentsDu: [
-      'Hier bekommst du eine Vorschau auf Wahlen.',
-      'Mit Kandidierenden, Programmen und offiziellen Quellen.',
+      'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl. Am Beispiel einer Bundestagswahl kannst du nachvollziehen, welche Parteien, Kandidierenden, Programme und offiziellen Quellen relevant sind. So bist du besser vorbereitet, bevor du eine Wahlentscheidung triffst.',
     ],
     speakSegmentsSie: [
-      'Hier bekommen Sie eine Vorschau auf Wahlen.',
-      'Mit Kandidierenden, Programmen und offiziellen Quellen.',
+      'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl. Am Beispiel einer Bundestagswahl können Sie nachvollziehen, welche Parteien, Kandidierenden, Programme und offiziellen Quellen relevant sind. So sind Sie besser vorbereitet, bevor Sie eine Wahlentscheidung treffen.',
     ],
   },
   kalender: {
     label: 'Kalender',
-    line10sDu: 'Hier siehst du, was ansteht.',
-    line10sSie: 'Hier sehen Sie, was ansteht.',
-    shortDu: 'Hier siehst du, was ansteht.',
-    shortSie: 'Hier sehen Sie, was ansteht.',
+    line10sDu: 'Kalender: Fristen, Abstimmungen und Beteiligung auf mehreren Ebenen.',
+    line10sSie: 'Kalender: Fristen, Abstimmungen und Beteiligung auf mehreren Ebenen.',
+    shortDu:
+      'Im Kalender siehst du relevante Termine an einem Ort – zum Beispiel Fristen, Abstimmungen, Wahltermine und Beteiligungsmöglichkeiten auf kommunaler Ebene, im Saarland oder auf Bundesebene. So geht nichts unter, was für dich wichtig sein könnte.',
+    shortSie:
+      'Im Kalender sehen Sie relevante Termine an einem Ort – zum Beispiel Fristen, Abstimmungen, Wahltermine und Beteiligungsmöglichkeiten auf kommunaler Ebene, im Saarland oder auf Bundesebene. So geht nichts unter, was für Sie wichtig sein könnte.',
     longDu:
-      'Hier siehst du, was ansteht.\n\n' +
-      'Und bis wann du dich beteiligen kannst.',
+      'Im Kalender siehst du relevante Termine an einem Ort – zum Beispiel Fristen, Abstimmungen, Wahltermine und Beteiligungsmöglichkeiten auf kommunaler Ebene, im Saarland oder auf Bundesebene. So geht nichts unter, was für dich wichtig sein könnte.',
     longSie:
-      'Hier sehen Sie, was ansteht.\n\n' +
-      'Und bis wann Sie sich beteiligen können.',
+      'Im Kalender sehen Sie relevante Termine an einem Ort – zum Beispiel Fristen, Abstimmungen, Wahltermine und Beteiligungsmöglichkeiten auf kommunaler Ebene, im Saarland oder auf Bundesebene. So geht nichts unter, was für Sie wichtig sein könnte.',
     speakSegmentsDu: [
-      'Hier siehst du, was ansteht.',
-      'Und bis wann du dich beteiligen kannst.',
+      'Im Kalender siehst du relevante Termine an einem Ort – zum Beispiel Fristen, Abstimmungen, Wahltermine und Beteiligungsmöglichkeiten auf kommunaler Ebene, im Saarland oder auf Bundesebene. So geht nichts unter, was für dich wichtig sein könnte.',
     ],
     speakSegmentsSie: [
-      'Hier sehen Sie, was ansteht.',
-      'Und bis wann Sie sich beteiligen können.',
+      'Im Kalender sehen Sie relevante Termine an einem Ort – zum Beispiel Fristen, Abstimmungen, Wahltermine und Beteiligungsmöglichkeiten auf kommunaler Ebene, im Saarland oder auf Bundesebene. So geht nichts unter, was für Sie wichtig sein könnte.',
     ],
   },
   meldungen: {
     label: 'Meldungen',
-    line10sDu: 'Du kannst hier direkt etwas melden.',
-    line10sSie: 'Sie können hier direkt etwas melden.',
-    shortDu: 'Du kannst hier direkt etwas melden.',
-    shortSie: 'Sie können hier direkt etwas melden.',
+    line10sDu: 'Meldung an die Gemeinde Kirkel – nachvollziehbarer Bearbeitungsstand.',
+    line10sSie: 'Meldung an die Gemeinde Kirkel – nachvollziehbarer Bearbeitungsstand.',
+    shortDu:
+      'Hier meldest du ein Anliegen direkt an die Gemeinde – zum Beispiel ein Problem auf einem Spielplatz, eine defekte Laterne oder eine Gefahrenstelle. Du siehst danach nachvollziehbar, wie der Bearbeitungsstand ist.',
+    shortSie:
+      'Hier melden Sie ein Anliegen direkt an die Gemeinde – zum Beispiel ein Problem auf einem Spielplatz, eine defekte Laterne oder eine Gefahrenstelle. Sie sehen danach nachvollziehbar, wie der Bearbeitungsstand ist.',
     longDu:
-      'Du kannst hier direkt etwas melden.\n\n' +
-      'Und nachvollziehen, was daraus wird.',
+      'Hier meldest du ein Anliegen direkt an die Gemeinde – zum Beispiel ein Problem auf einem Spielplatz, eine defekte Laterne oder eine Gefahrenstelle. Du siehst danach nachvollziehbar, wie der Bearbeitungsstand ist.',
     longSie:
-      'Sie können hier direkt etwas melden.\n\n' +
-      'Und nachvollziehen, was daraus wird.',
+      'Hier melden Sie ein Anliegen direkt an die Gemeinde – zum Beispiel ein Problem auf einem Spielplatz, eine defekte Laterne oder eine Gefahrenstelle. Sie sehen danach nachvollziehbar, wie der Bearbeitungsstand ist.',
     speakSegmentsDu: [
-      'Du kannst hier direkt etwas melden.',
-      'Und nachvollziehen, was daraus wird.',
+      'Hier meldest du ein Anliegen direkt an die Gemeinde – zum Beispiel ein Problem auf einem Spielplatz, eine defekte Laterne oder eine Gefahrenstelle. Du siehst danach nachvollziehbar, wie der Bearbeitungsstand ist.',
     ],
     speakSegmentsSie: [
-      'Sie können hier direkt etwas melden.',
-      'Und nachvollziehen, was daraus wird.',
+      'Hier melden Sie ein Anliegen direkt an die Gemeinde – zum Beispiel ein Problem auf einem Spielplatz, eine defekte Laterne oder eine Gefahrenstelle. Sie sehen danach nachvollziehbar, wie der Bearbeitungsstand ist.',
     ],
   },
   praemien: {
     label: 'Prämien',
-    line10sDu: 'Prämien sind optional.',
-    line10sSie: 'Prämien sind optional.',
-    shortDu: 'Prämien sind optional.',
-    shortSie: 'Prämien sind optional.',
+    line10sDu: 'Prämien: freiwillig, lokal gedacht – unabhängig vom Abstimmungsverhalten.',
+    line10sSie: 'Prämien: freiwillig, lokal gedacht – unabhängig vom Abstimmungsverhalten.',
+    shortDu:
+      'Prämien sind freiwillig und lokal gedacht. Wenn du sie aktivierst, können dir nach abgeschlossenen Beteiligungen regionale Vorteile angezeigt werden – unabhängig davon, wie du abgestimmt hast.',
+    shortSie:
+      'Prämien sind freiwillig und lokal gedacht. Wenn Sie sie aktivieren, können Ihnen nach abgeschlossenen Beteiligungen regionale Vorteile angezeigt werden – unabhängig davon, wie Sie abgestimmt haben.',
     longDu:
-      'Prämien sind optional.\n\n' +
-      'Und unabhängig davon, wie du dich entscheidest.',
+      'Prämien sind freiwillig und lokal gedacht. Wenn du sie aktivierst, können dir nach abgeschlossenen Beteiligungen regionale Vorteile angezeigt werden – unabhängig davon, wie du abgestimmt hast.',
     longSie:
-      'Prämien sind optional.\n\n' +
-      'Und unabhängig davon, wie Sie sich entscheiden.',
+      'Prämien sind freiwillig und lokal gedacht. Wenn Sie sie aktivieren, können Ihnen nach abgeschlossenen Beteiligungen regionale Vorteile angezeigt werden – unabhängig davon, wie Sie abgestimmt haben.',
     speakSegmentsDu: [
-      'Prämien sind optional.',
-      'Und unabhängig davon, wie du dich entscheidest.',
+      'Prämien sind freiwillig und lokal gedacht. Wenn du sie aktivierst, können dir nach abgeschlossenen Beteiligungen regionale Vorteile angezeigt werden – unabhängig davon, wie du abgestimmt hast.',
     ],
     speakSegmentsSie: [
-      'Prämien sind optional.',
-      'Und unabhängig davon, wie Sie sich entscheiden.',
+      'Prämien sind freiwillig und lokal gedacht. Wenn Sie sie aktivieren, können Ihnen nach abgeschlossenen Beteiligungen regionale Vorteile angezeigt werden – unabhängig davon, wie Sie abgestimmt haben.',
     ],
   },
   politikbarometer: {
     label: 'Politikbarometer',
-    line10sDu: 'Hier markierst du Themen, die dir wichtig sind.',
-    line10sSie: 'Hier markieren Sie Themen, die Ihnen wichtig sind.',
-    shortDu: 'Hier markierst du Themen, die dir wichtig sind.',
-    shortSie: 'Hier markieren Sie Themen, die Ihnen wichtig sind.',
+    line10sDu: 'Themen markieren – neutral, ohne Empfehlung und ohne Meinungsprofil.',
+    line10sSie: 'Themen markieren – neutral, ohne Empfehlung und ohne Meinungsprofil.',
+    shortDu:
+      'Zuerst markierst du, welche Themen dich besonders interessieren – zum Beispiel Digitalisierung, Wirtschaft, Bildung, Verkehr oder Sicherheit. So können später passende Abstimmungen, Termine und Informationen schneller sichtbar werden. Es entsteht keine politische Empfehlung und kein Meinungsprofil.',
+    shortSie:
+      'Zuerst markieren Sie, welche Themen Sie besonders interessieren – zum Beispiel Digitalisierung, Wirtschaft, Bildung, Verkehr oder Sicherheit. So können später passende Abstimmungen, Termine und Informationen schneller sichtbar werden. Es entsteht keine politische Empfehlung und kein Meinungsprofil.',
     longDu:
-      'Hier markierst du Themen, die dir wichtig sind.\n\n' +
-      'Damit du schneller findest, was relevant ist.',
+      'Zuerst markierst du, welche Themen dich besonders interessieren – zum Beispiel Digitalisierung, Wirtschaft, Bildung, Verkehr oder Sicherheit. So können später passende Abstimmungen, Termine und Informationen schneller sichtbar werden. Es entsteht keine politische Empfehlung und kein Meinungsprofil.',
     longSie:
-      'Hier markieren Sie Themen, die Ihnen wichtig sind.\n\n' +
-      'Damit Sie schneller finden, was relevant ist.',
+      'Zuerst markieren Sie, welche Themen Sie besonders interessieren – zum Beispiel Digitalisierung, Wirtschaft, Bildung, Verkehr oder Sicherheit. So können später passende Abstimmungen, Termine und Informationen schneller sichtbar werden. Es entsteht keine politische Empfehlung und kein Meinungsprofil.',
     speakSegmentsDu: [
-      'Hier markierst du Themen, die dir wichtig sind.',
-      'Damit du schneller findest, was relevant ist.',
-      'Deine Teilnahme bleibt geschützt.',
-      'Und deine Entscheidung wird getrennt verarbeitet.',
+      'Zuerst markierst du, welche Themen dich besonders interessieren – zum Beispiel Digitalisierung, Wirtschaft, Bildung, Verkehr oder Sicherheit. So können später passende Abstimmungen, Termine und Informationen schneller sichtbar werden. Es entsteht keine politische Empfehlung und kein Meinungsprofil.',
     ],
     speakSegmentsSie: [
-      'Hier markieren Sie Themen, die Ihnen wichtig sind.',
-      'Damit Sie schneller finden, was relevant ist.',
-      'Ihre Teilnahme bleibt geschützt.',
-      'Und Ihre Entscheidung wird getrennt verarbeitet.',
+      'Zuerst markieren Sie, welche Themen Sie besonders interessieren – zum Beispiel Digitalisierung, Wirtschaft, Bildung, Verkehr oder Sicherheit. So können später passende Abstimmungen, Termine und Informationen schneller sichtbar werden. Es entsteht keine politische Empfehlung und kein Meinungsprofil.',
     ],
   },
 };

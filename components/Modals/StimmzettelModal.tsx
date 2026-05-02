@@ -98,7 +98,7 @@ const StimmzettelModal: React.FC = () => {
             ) : (
               <>
                 <div className="mb-3 rounded-xl border border-neutral-200 bg-white p-3 text-[12px] text-neutral-700">
-                  {isVotingOpen ? 'Status: Laufend (Demo-Teilnahme möglich)' : 'Status: Abgeschlossen / Ergebnisansicht'}
+                  {isVotingOpen ? 'Status: Laufend (Vorschau-Teilnahme möglich)' : 'Status: Abgeschlossen / Ergebnisansicht'}
                 </div>
 
                 <OriginalStimmzettel

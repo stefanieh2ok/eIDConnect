@@ -10,6 +10,7 @@ import {
   introEntryVoiceUnrecognizedLine,
   matchAnredeFromSpeech,
   matchIntroEntryBranchFromSpeech,
+  normalizeVoiceTranscript,
 } from '@/lib/introVoiceIntents';
 import {
   ANREDE_VOICE_PROMPT,
@@ -120,12 +121,14 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
 
   const handleVoiceInput = useCallback(
     async (transcript: string) => {
-      setConversation((prev) => [...prev, `${userLinePrefix} ${transcript}`]);
       setIsProcessing(true);
 
       if (preLoginVoicePhase === 'anrede') {
-        const pick = matchAnredeFromSpeech(transcript);
+        const normalizedText = normalizeVoiceTranscript(transcript);
+        console.log('Clara transcript:', normalizedText);
+        const pick = matchAnredeFromSpeech(normalizedText);
         if (pick && onAnredeVoiceChoice) {
+          setConversation((prev) => [...prev, `${userLinePrefix} ${transcript}`]);
           try {
             stopSpeaking();
           } catch {
@@ -142,11 +145,14 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
           return;
         }
         const hint = anredeVoiceUnrecognizedLine();
+        // Kein User-Bubble bei unklarer Anrede: nur Claras Rückfrage anzeigen.
         setConversation((prev) => [...prev, `Clara: ${hint}`]);
         speak(hint);
         setIsProcessing(false);
         return;
       }
+
+      setConversation((prev) => [...prev, `${userLinePrefix} ${transcript}`]);
 
       if (preLoginVoicePhase === 'entry') {
         const pick = matchIntroEntryBranchFromSpeech(transcript);

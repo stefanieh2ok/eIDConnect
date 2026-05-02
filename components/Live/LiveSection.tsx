@@ -205,7 +205,7 @@ const LiveSection: React.FC = () => {
               {votingStats2026.open2026 > 0 ? ` · ${votingStats2026.open2026} aktuell offen` : null}
             </>
           ) : (
-            <>Für {VOTING_STATS_YEAR} sind in dieser Demo-Ansicht keine Abstimmungsdaten hinterlegt.</>
+            <>Für {VOTING_STATS_YEAR} sind in dieser Vorschau-Ansicht keine Abstimmungsdaten hinterlegt.</>
           )}
         </p>
       </button>
@@ -412,9 +412,19 @@ const LiveSection: React.FC = () => {
               </div>
             )}
             <h3 id="vote-feedback-title" className="text-base font-bold text-white mb-1">
-              {du ? 'Deine Auswahl wurde in der Demo erfasst.' : 'Ihre Auswahl wurde in der Demo erfasst.'}
+              {du ? 'Deine Auswahl wurde erfasst.' : 'Ihre Auswahl wurde erfasst.'}
             </h3>
             <p className="text-xs text-white/75 mb-4">{voteResultHumanLabel(state.voteResult.vote)}</p>
+            <button
+              type="button"
+              className="w-full rounded-xl border border-white/30 bg-white/12 py-2.5 text-xs font-semibold text-white hover:bg-white/18"
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch({ type: 'SET_VOTE_RESULT', payload: null });
+              }}
+            >
+              Schließen
+            </button>
             <button
               type="button"
               className="mt-2 w-full rounded-xl border border-white/25 py-2.5 text-xs font-semibold text-white/90 hover:bg-white/10"
@@ -423,7 +433,7 @@ const LiveSection: React.FC = () => {
                 performUndo();
               }}
             >
-              Rückgängig (löscht diese Demo-Abstimmung)
+              Rückgängig
             </button>
           </div>
         </div>

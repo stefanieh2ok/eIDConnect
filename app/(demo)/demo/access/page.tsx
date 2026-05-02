@@ -16,7 +16,7 @@ export default function DemoAccessPage() {
       <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-100">
         <p className="text-gray-800 text-center">Kein Zugangslink angegeben.</p>
         <Link href="/demo" className="mt-4 text-sm text-blue-600 hover:underline">
-          Zum Demo-Einstieg
+          Zum Vorschau-Einstieg
         </Link>
       </div>
     );
@@ -28,6 +28,9 @@ export default function DemoAccessPage() {
         <div className="mx-auto w-full max-w-[360px] flex-1 space-y-4 pb-6 text-neutral-950">
           <div className="card-section">
             <ProductIdentityHeader />
+            <p className="mt-1 text-left text-[11px] font-medium leading-snug text-neutral-600">
+              Informieren. Verstehen. Mitwirken.
+            </p>
             <p className="t-kicker mt-2">Vertraulicher Zugang</p>
 
             <p className="t-body mt-3">{GATE_SUMMARY.strictSentence}</p>

@@ -266,7 +266,7 @@ const VIERNHEIM_KANDIDATEN = [
     beruf: 'Bürgermeister',
     alter: 69,
     wohnort: 'Viernheim',
-    kiInfo: 'Oberste kommunale Exekutive; Schwerpunkte Stadtentwicklung und Metropolregion Rhein-Neckar (Demo).',
+    kiInfo: 'Oberste kommunale Exekutive; Schwerpunkte Stadtentwicklung und Metropolregion Rhein-Neckar (Beispiel).',
     positionen: ['Stadtentwicklung', 'Infrastruktur', 'Bildung', 'Sport'],
     matchScore: 84,
   },
@@ -343,11 +343,11 @@ function SourceTrustBadge({ data, du }: { data: unknown; du: boolean }) {
             ? 'Mindestens eine verifizierbare Primärquelle (Link) hinterlegt'
             : 'Mindestens eine verifizierbare Primärquelle (Link) hinterlegt'
           : du
-            ? 'Keine verifizierbare Primärquelle in der Demo – bitte offizielle Stellen prüfen'
-            : 'Keine verifizierbare Primärquelle in der Demo – bitte offizielle Stellen prüfen'
+            ? 'Keine verifizierbare Primärquelle in der Vorschau – bitte offizielle Stellen prüfen'
+            : 'Keine verifizierbare Primärquelle in der Vorschau – bitte offizielle Stellen prüfen'
       }
     >
-      {ok ? 'Primärquelle verfügbar' : 'Demo-Platzhalter'}
+      {ok ? 'Primärquelle verfügbar' : 'Beispiel-Platzhalter'}
     </span>
   );
 }
@@ -371,8 +371,8 @@ function PrimarySourceMeta({ data, du }: { data: unknown; du: boolean }) {
   return (
     <p className="mt-1 text-[10px] text-amber-700">
       {du
-        ? 'Demo-Platzhalter – externe Programme noch nicht angebunden.'
-        : 'Demo-Platzhalter – externe Programme noch nicht angebunden.'}
+        ? 'Beispiel-Platzhalter – externe Programme noch nicht angebunden.'
+        : 'Beispiel-Platzhalter – externe Programme noch nicht angebunden.'}
     </p>
   );
 }
@@ -829,7 +829,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                     : 'cursor-not-allowed bg-gray-300 text-gray-500'
                 }`}
               >
-                {!canVote ? 'Ergebnis ansehen (nicht mehr abstimmbar)' : selectedErststimme && selectedZweitstimme ? 'Teilnahme in Demo bestaetigen' : 'Bitte beide Stimmen auswaehlen'}
+                {!canVote ? 'Ergebnis ansehen (nicht mehr abstimmbar)' : selectedErststimme && selectedZweitstimme ? 'Teilnahme in der Vorschau bestaetigen' : 'Bitte beide Stimmen auswaehlen'}
               </button>
             )}
           </div>
@@ -943,7 +943,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                     : 'cursor-not-allowed bg-gray-300 text-gray-500'
                 }`}
               >
-                {!canVote ? 'Ergebnis ansehen (nicht mehr abstimmbar)' : selectedLandtag ? 'Teilnahme in Demo bestaetigen' : 'Bitte Kandidaten auswaehlen'}
+                {!canVote ? 'Ergebnis ansehen (nicht mehr abstimmbar)' : selectedLandtag ? 'Teilnahme in der Vorschau bestaetigen' : 'Bitte Kandidaten auswaehlen'}
               </button>
             )}
           </div>
@@ -1016,11 +1016,11 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
               </div>
             ) : (
               <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
-                <p className="font-semibold">Demo-Hinweis</p>
+                <p className="font-semibold">Hinweis</p>
                 <p>
                   {t(
-                    'Für diese Kreiswahl sind in der Demo noch keine Listen mit Primärquellen hinterlegt. In der App würdest du hier die Kreislisten mit offiziellen Verweisen sehen.',
-                    'Für diese Kreiswahl sind in der Demo noch keine Listen mit Primärquellen hinterlegt. In der App würden Sie hier die Kreislisten mit offiziellen Verweisen sehen.',
+                    'Für diese Kreiswahl sind in der Vorschau noch keine Listen mit Primärquellen hinterlegt. In der App würdest du hier die Kreislisten mit offiziellen Verweisen sehen.',
+                    'Für diese Kreiswahl sind in der Vorschau noch keine Listen mit Primärquellen hinterlegt. In der App würden Sie hier die Kreislisten mit offiziellen Verweisen sehen.',
                   )}
                 </p>
               </div>
@@ -1086,8 +1086,8 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
             {introMode ? (
               <p className="text-sm text-gray-600 px-2">
                 {t(
-                  'In der App wählst du bei Kreiswahlen typischerweise eine Liste/Partei – hier als kompakte Demo-Ansicht.',
-                  'In der App wählen Sie bei Kreiswahlen typischerweise eine Liste/Partei – hier als kompakte Demo-Ansicht.',
+                  'In der App wählst du bei Kreiswahlen typischerweise eine Liste/Partei – hier als kompakte Vorschau-Ansicht.',
+                  'In der App wählen Sie bei Kreiswahlen typischerweise eine Liste/Partei – hier als kompakte Vorschau-Ansicht.',
                 )}
               </p>
             ) : (
@@ -1103,7 +1103,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                 {!canVote
                   ? 'Ergebnis ansehen (nicht mehr abstimmbar)'
                   : selectedKreis
-                    ? 'Teilnahme in Demo bestaetigen'
+                    ? 'Teilnahme in der Vorschau bestaetigen'
                     : 'Bitte Liste auswaehlen'}
               </button>
             )}
@@ -1206,7 +1206,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                 Frag Clara zu dieser Wahl
               </button>
               <p className="mt-2 text-[11px] text-gray-600">
-                Parteiprogramme werden hier als Demo-Platzhalter angezeigt und sind derzeit nicht produktiv angebunden.
+                Parteiprogramme werden hier als Beispiel-Platzhalter angezeigt und sind derzeit nicht produktiv angebunden.
               </p>
             </div>
           ) : null}
@@ -1240,7 +1240,7 @@ const OriginalStimmzettel: React.FC<StimmzettelProps> = ({
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 >
-                  {!canVote ? 'Ergebnis ansehen (nicht mehr abstimmbar)' : selectedKommune ? 'Teilnahme in Demo bestaetigen' : 'Bitte Kandidaten auswaehlen'}
+                  {!canVote ? 'Ergebnis ansehen (nicht mehr abstimmbar)' : selectedKommune ? 'Teilnahme in der Vorschau bestaetigen' : 'Bitte Kandidaten auswaehlen'}
                 </button>
               )}
             </div>

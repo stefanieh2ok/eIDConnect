@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: APP_DISPLAY_NAME,
     short_name: APP_DISPLAY_NAME,
-    description: 'Digitale Identität · Beteiligung · Bürgerzugang — GovTech-Demo zu Orientierung und Mitwirkung.',
+    description: 'Digitale Identität · Beteiligung · Bürgerzugang — GovTech-Konzeptvorschau zu Orientierung und Mitwirkung.',
     start_url: `/?${PWA_MANIFEST_CACHE_TAG}=1`,
     display: 'standalone',
     background_color: '#F7F9FC',

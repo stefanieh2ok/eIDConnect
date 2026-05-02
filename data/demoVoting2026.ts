@@ -162,7 +162,7 @@ export function communalVotes2026ForCity(stadtName: string): DemoVoteItem[] {
       id: 'demo-k10',
       theme: 'finanzen',
       title: `Haushalt 2027 – Bürgerhaushalt ${s}`,
-      desc: 'Online-Abstimmung über Projektvorschläge aus dem Bürgerhaushalt (Demo)',
+      desc: 'Online-Abstimmung über Projektvorschläge aus dem Bürgerhaushalt (Beispiel)',
       deadline: '18.12.2026',
       yes: 72,
       no: 20,
@@ -216,7 +216,7 @@ export function regionalPraemienForCity(cityName: string) {
         name: 'Deutsche Bahn – Ticketzuschuss Regional (z. B. Saarbrücken)',
         points: 7500,
         emoji: '🚆',
-        description: 'Zuschuss zum Zugticket (Demo-Modell)',
+        description: 'Zuschuss zum Zugticket (Beispielmodell)',
       },
       {
         id: 'rk3',

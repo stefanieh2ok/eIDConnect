@@ -590,10 +590,15 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
               setCurrentMonthIndex(prev => prev - 1);
             }
           }}
-          className="app-filter-btn px-3 py-1.5 transition-colors hover:bg-neutral-50"
+          className="app-filter-btn border px-3 py-1.5 transition-[filter,background-color] hover:brightness-[0.97] active:brightness-95"
+          style={{
+            backgroundColor: '#E6F7F5',
+            borderColor: '#A9E5DF',
+            color: '#0F766E',
+          }}
           aria-label="Vorheriger Monat"
         >
-          <ChevronLeft className="h-4 w-4 text-neutral-700" aria-hidden />
+          <ChevronLeft className="h-4 w-4" style={{ color: '#0F766E' }} aria-hidden />
         </button>
         <div className="flex items-center gap-3">
           <h2 className="t-card-title">{currentMonth.name}</h2>
@@ -619,10 +624,15 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
               setCurrentMonthIndex(prev => prev + 1);
             }
           }}
-          className="app-filter-btn px-3 py-1.5 transition-colors hover:bg-neutral-50"
+          className="app-filter-btn border px-3 py-1.5 transition-[filter,background-color] hover:brightness-[0.97] active:brightness-95"
+          style={{
+            backgroundColor: '#E6F7F5',
+            borderColor: '#A9E5DF',
+            color: '#0F766E',
+          }}
           aria-label="Nächster Monat"
         >
-          <ChevronRight className="h-4 w-4 text-neutral-700" aria-hidden />
+          <ChevronRight className="h-4 w-4" style={{ color: '#0F766E' }} aria-hidden />
         </button>
       </div>
       </div>
@@ -665,11 +675,20 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
               <button
                 key={i}
                 onClick={() => visible.length > 0 && handleCalendarClick(day)}
-                className={`relative aspect-square flex flex-col items-center justify-center rounded-xl text-sm transition-all border ${
+                className={`relative aspect-square flex flex-col items-center justify-center rounded-xl text-sm transition-[filter,background-color,border-color] border ${
                   visible.length > 0
-                    ? 'bg-white text-gray-900 hover:bg-gray-50 cursor-pointer border-neutral-200'
+                    ? 'cursor-pointer hover:brightness-[0.97] active:brightness-95'
                     : 'bg-gray-50 text-gray-700 border-transparent'
                 }`}
+                style={
+                  visible.length > 0
+                    ? {
+                        backgroundColor: '#EAF9F7',
+                        borderColor: '#A9E5DF',
+                        color: '#0F766E',
+                      }
+                    : undefined
+                }
                 aria-label={
                   visible.length > 0
                     ? `${visible[0]?.title} am ${day}. ${currentMonth.name} (${visible.some((e) => e.kind === 'wahl') ? 'Wahl' : 'Abstimmung'})`

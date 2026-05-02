@@ -17,21 +17,21 @@ describe('buildIntroTtsManifest', () => {
     expect(du[0].step).toBe(1);
     expect(du[1].step).toBe(2);
     expect(du[2].step).toBe(3);
-    expect(du[2].id).toBe('abstimmen');
+    expect(du[2].id).toBe('politikbarometer');
     expect(du[du.length - 1].step).toBe(INTRO_TOTAL_STEPS);
   });
 
-  it('Walkthrough: erster TTS-Block (Du) = Clara-Sprachtext ohne Schritt-Präfix (Abstimmen)', () => {
+  it('Walkthrough: erster TTS-Block (Du) = Clara-Sprachtext ohne Schritt-Präfix (Politikbarometer)', () => {
     const du = buildIntroTtsManifest(true);
     expect(du[2].tts).not.toMatch(/^Schritt \d+ von/);
-    expect(du[2].tts).toMatch(/Du siehst zuerst die Argumente/);
-    expect(du[2].tts).toMatch(/entscheiden, was für dich passt/);
+    expect(du[2].tts).toMatch(/Zuerst markierst du, welche Themen dich in Kirkel/);
+    expect(du[2].tts).toMatch(/keine politische Empfehlung und kein Meinungsprofil/);
   });
 
   it('letzter TTS-Block (Du) enthält Abschlusstext', () => {
-    const last = buildIntroTtsManifest(true).find((e) => e.id === 'politikbarometer')!;
+    const last = buildIntroTtsManifest(true).find((e) => e.id === 'praemien')!;
     expect(last.tts).toContain('kurze Überblick');
-    expect(last.tts).toMatch(/HookAI Civic Demo.*erkunden|erkunden.*HookAI Civic Demo/);
+    expect(last.tts).toMatch(/HookAI Civic.*erkunden|erkunden.*HookAI Civic/);
     expect(last.tts).toMatch(/neutral.*verständlich|verständlich.*neutral/);
   });
 });

@@ -8,52 +8,40 @@ const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u03
 /**
  * Nur Kleinbuchstaben + Whitespace (kein diakritik-Stripping — „förmlich“ muss matchen).
  */
-const normalizeDeSoft = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+export const normalizeVoiceTranscript = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[.,!?]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 /**
  * Wählt anhand freier Deutscher Sprachweise „Du“ oder „Sie“ (eID Anrede-Screen).
  * Heuristik absichtlich konservativ: bei widersprüchlichen Signalen `null` → Nutzer:innen wählt per Tippen.
  */
 export function matchAnredeFromSpeech(input: string): 'du' | 'sie' | null {
-  const t = normalizeDeSoft(input);
+  const t = normalizeVoiceTranscript(input);
   if (!t) return null;
 
-  let d = 0;
-  let s = 0;
+  const padded = ` ${t} `;
+  // Includes-basierte Trigger mit Wortgrenzen via Padding.
+  const isDu =
+    ['du', 'per du', 'du bitte', 'bitte du', 'duzen'].some((v) => padded.includes(` ${v} `));
+  const isSie =
+    ['sie', 'per sie', 'sie bitte', 'bitte sie', 'siezen', 'formell', 'förmlich', 'foermlich'].some((v) =>
+      padded.includes(` ${v} `),
+    );
 
-  if (/\b(duz|dutzen)\b/.test(t)) d += 4;
-  if (/\bper du\b/.test(t)) d += 4;
-  if (/\b(nicht förmlich|nicht formell|nicht foermlich|informell|persoenlich|persönlich)\b/.test(t)) d += 2;
-  if (/\b(du bitte|bitte du)\b/.test(t)) d += 3;
-  if (/\bich (will|moechte|möchte) (gern |lieber )?du\b/.test(t)) d += 3;
-  if (/\b(ich will|moechte|möchte) (gern |lieber )?nur (die )?du(-| )?form\b/.test(t)) d += 3;
-  if (/\bmit du (ansprech|reden|sprech|anreden)\b/.test(t)) d += 2;
-
-  if (/\b(siezen|förmlich|foermlich|formell)\b/.test(t)) s += 4;
-  if (/\bper sie\b/.test(t)) s += 3;
-  if (/\bich (will|moechte|möchte) (gern |lieber )?sie\b/.test(t)) s += 3;
-  if (/\bsie (bitte|bitteschön|bitteschoen|bitte schön|bitte schoen)\b/.test(t)) s += 2;
-  if (/\b(ich moechte|möchte) (gern |lieber )?die sie(-| )?form\b/.test(t)) s += 3;
-  if (/\b(foermlich|förmlich) (anreden|ansprechen|halten)\b/.test(t)) s += 2;
-
-  if (t === 'du' || t === 'duu') d += 3;
-  if (t === 'sie' || t === 'see' || t === 'zi') s += 2;
-
-  if (d > 0 && s > 0 && d === s) {
-    return null;
-  }
-  if (d > s) return 'du';
-  if (s > d) return 'sie';
-  if (d > 0) return 'du';
-  if (s > 0) return 'sie';
+  if (isDu && !isSie) return 'du';
+  if (isSie && !isDu) return 'sie';
   return null;
 }
 
 /** Spoken, kurz, segmentiert (TTS). */
 export function anredeVoiceUnrecognizedParts(): string[] {
   return [
-    'Das habe ich nicht eindeutig verstanden.',
-    'Sag ruhig „Du“ oder „Sie“. Oder wähl im Auswahlfeld und tippe „Weiter“.',
+    'Ich habe das nicht sicher verstanden.',
+    'Möchtest du per Du oder per Sie angesprochen werden?',
   ];
 }
 
@@ -67,7 +55,7 @@ export type IntroEntryVoiceChoice = 'start' | 'direct';
  * Einstiegs-Screen „Einführung starten“ vs „Direkt zur App“ (ohne LLM).
  */
 export function matchIntroEntryBranchFromSpeech(input: string): IntroEntryVoiceChoice | null {
-  const t = normalizeDeSoft(input);
+  const t = normalizeVoiceTranscript(input);
   if (!t) return null;
 
   const directHints =
