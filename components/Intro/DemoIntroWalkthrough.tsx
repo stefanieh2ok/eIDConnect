@@ -34,13 +34,14 @@ const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = 
   abstimmen: 'Echte Abstimmungs-Ansicht wie in der App',
   wahlen: 'Wahlen · gleiche Daten wie unter „Wahlen“',
   meldungen: 'Meldungen · gleicher Ablauf wie in der App',
-  praemien: 'Prämien / Überblick · wie in der App',
+  praemien: 'Prämien · Kurz-Demo: Karte → Gutschein → QR → Wallet',
   politikbarometer: 'Politikbarometer · Regler wie in der App (Beispielwert 50 %)',
 };
 
 const WALKTHROUGH_STEP_SUBTITLE: Partial<Record<IntroOverlayStepId, string>> = {
   // UX/Legal positioning: makes it unmistakable this is a preview, not “I’m voting here”.
   wahlen: 'Wahlvorschau: Kandidierende, Programme und verifizierte Quellen.',
+  praemien: 'Automatischer Ablauf — wie ein kurzer Film, nur zur Veranschaulichung.',
 };
 
 function walkthroughSectionForStep(stepId: string): Section {

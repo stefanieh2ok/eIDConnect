@@ -107,12 +107,12 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
     longSie:
       'Zum Schluss zeige ich Ihnen, wie freiwillige Prämien funktionieren. Nach einer abgeschlossenen Beteiligung kann zum Beispiel ein Gutschein fürs Naturfreibad erscheinen. Ein Tap öffnet den QR-Code — und perspektivisch lässt sich dieser direkt ins Apple Wallet übernehmen.',
     speakSegmentsDu: [
-      'Zum Schluss zeige ich dir, wie freiwillige Prämien funktionieren. Nach einer abgeschlossenen Beteiligung kann zum Beispiel ein Gutschein fürs Naturfreibad erscheinen.',
-      'Ein Tap öffnet den QR-Code — und perspektivisch lässt sich dieser direkt ins Apple Wallet übernehmen. Das ist eine Perspektiv-Vorschau, kein echter Wallet-Eintrag.',
+      'Zum Schluss eine kurze, geführte Szene — wie ein Mini-Film ohne Ton: So kann freiwillige Prämie aussehen, wenn nach einer Beteiligung ein Gutschein fürs Naturfreibad freigeschaltet wird.',
+      'Auf der Karte tippt ihr gleich symbolisch — dann öffnet sich der Gutschein mit QR-Code, und zum Schluss die Wallet-Vorschau. Alles nur Demonstration, kein echter Wallet-Eintrag.',
     ],
     speakSegmentsSie: [
-      'Zum Schluss zeige ich Ihnen, wie freiwillige Prämien funktionieren. Nach einer abgeschlossenen Beteiligung kann zum Beispiel ein Gutschein fürs Naturfreibad erscheinen.',
-      'Ein Tap öffnet den QR-Code — und perspektivisch lässt sich dieser direkt ins Apple Wallet übernehmen. Das ist eine Perspektiv-Vorschau, kein echter Wallet-Eintrag.',
+      'Zum Schluss eine kurze, geführte Szene — wie ein Mini-Film ohne Ton: So kann eine freiwillige Prämie aussehen, wenn nach einer Beteiligung ein Gutschein fürs Naturfreibad freigeschaltet wird.',
+      'Auf der Karte tippen Sie gleich symbolisch — dann öffnet sich der Gutschein mit QR-Code, und zum Schluss die Wallet-Vorschau. Alles nur Demonstration, kein echter Wallet-Eintrag.',
     ],
   },
   politikbarometer: {

@@ -247,25 +247,25 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
       window.setTimeout(() => {
         if (wtCancelledRef.current) return;
         dispatch({ type: 'SET_CONSENT_LOCAL_BENEFITS', payload: true });
-      }, 350),
+      }, 280),
     );
     push(
       window.setTimeout(() => {
         if (wtCancelledRef.current) return;
         setWtPhase('highlight');
-      }, 900),
+      }, 720),
     );
     push(
       window.setTimeout(() => {
         if (wtCancelledRef.current) return;
         setWtPhase('tap_card');
-      }, 1500),
+      }, 1280),
     );
     push(
       window.setTimeout(() => {
         if (wtCancelledRef.current) return;
         setWtPhase('cta_pulse');
-      }, 2400),
+      }, 2080),
     );
     push(
       window.setTimeout(() => {
@@ -275,27 +275,27 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
         setWalletPerspektiveAck(false);
         setVoucherSheet({ benefit: b, benefitIndex: showcaseIdx });
         setWtPhase('sheet');
-      }, 3100),
+      }, 2880),
     );
     push(
       window.setTimeout(() => {
         if (wtCancelledRef.current) return;
         setWtPhase('wallet_emphasis');
-      }, 4600),
+      }, 4800),
     );
     push(
       window.setTimeout(() => {
         if (wtCancelledRef.current) return;
         setWalletPerspektiveAck(true);
         setWtPhase('wallet_preview');
-      }, 5800),
+      }, 6200),
     );
     push(
       window.setTimeout(() => {
         if (wtCancelledRef.current) return;
         setWtPhase('done');
         onWalkthroughCinematicComplete?.();
-      }, 8400),
+      }, 9800),
     );
 
     return () => {
@@ -327,8 +327,16 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
   const sheetIsWalkNaturfreibadDemo =
     Boolean(embeddedInWalkthrough && sheetBenefit && /naturfreibad|freibad/i.test(sheetBenefit.name));
 
+  const cinemaActive =
+    embeddedInWalkthrough && wtPhase !== 'idle' && wtPhase !== 'done';
+
   return (
-    <div className={compact ? 'relative isolate z-0 space-y-2 pb-3' : 'space-y-3 pb-28'}>
+    <div
+      className={
+        (compact ? 'relative isolate z-0 space-y-2 pb-3 intro-wt-praemien-root' : 'space-y-3 pb-28') +
+        (cinemaActive ? ' intro-wt-praemien-root--active' : '')
+      }
+    >
       <div className={compact ? '' : 'card-content py-1.5'}>
         <div
           className={`rounded-xl border border-neutral-100 bg-white ${compact ? 'px-2 py-1.5' : 'px-2.5 py-2'}`}
@@ -354,7 +362,15 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
         </div>
       </div>
 
-      <div className={compact ? 'space-y-2' : 'card-content space-y-2.5'}>
+      <div className={compact ? 'relative space-y-2' : 'card-content space-y-2.5'}>
+          {cinemaActive ? (
+            <div
+              className="pointer-events-none absolute inset-0 z-[2] rounded-xl opacity-100"
+              aria-hidden
+            >
+              <div className="intro-wt-praemien-vignette absolute inset-0 rounded-xl" />
+            </div>
+          ) : null}
           {benefits.map((b, idx) => {
             const rawBenefit = getLocalBenefitState({
               consentLocalBenefits: state.consentLocalBenefits,
@@ -375,6 +391,14 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
               embeddedInWalkthrough &&
               idx === showcaseIdx &&
               (wtPhase === 'highlight' || wtPhase === 'tap_card' || wtPhase === 'cta_pulse');
+            const dimSibling =
+              embeddedInWalkthrough &&
+              cinemaActive &&
+              idx !== showcaseIdx &&
+              (wtPhase === 'highlight' ||
+                wtPhase === 'tap_card' ||
+                wtPhase === 'cta_pulse' ||
+                wtPhase === 'sheet');
             const ctaPulse = embeddedInWalkthrough && idx === showcaseIdx && wtPhase === 'cta_pulse';
             const tapFinger = embeddedInWalkthrough && idx === showcaseIdx && wtPhase === 'tap_card';
             return (
@@ -382,13 +406,15 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
                 key={b.id}
                 type="button"
                 onClick={openSheet}
-                className={`relative w-full rounded-2xl border border-neutral-200 bg-white text-left shadow-sm transition select-none ${
+                className={`relative w-full rounded-2xl border border-neutral-200 bg-white text-left shadow-sm transition-[transform,box-shadow,opacity,border-color] duration-500 ease-out select-none ${
                   embeddedInWalkthrough
                     ? 'pointer-events-none cursor-default'
                     : 'cursor-pointer hover:border-[#0055A4]/30 hover:shadow-md active:scale-[0.997] active:border-[#0055A4]/40'
                 } ${compact ? 'px-2 py-2' : 'px-3 py-3'} ${
-                  showcaseHighlight ? 'intro-wt-card-focus z-[1] ring-1 ring-sky-400/45' : ''
-                }`}
+                  showcaseHighlight
+                    ? 'intro-wt-card-focus intro-wt-showcase-hero z-[4] ring-1 ring-sky-400/50'
+                    : ''
+                } ${dimSibling ? 'intro-wt-dim-sibling z-0' : ''}`}
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -507,14 +533,17 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
         >
           <button
             type="button"
-            className="absolute inset-0 bg-black/40"
+            className={
+              'absolute inset-0 ' +
+              (embeddedInWalkthrough ? 'intro-wt-sheet-backdrop bg-black/55 backdrop-blur-[2px]' : 'bg-black/40')
+            }
             aria-label="Schließen"
             onClick={closeVoucherSheet}
           />
           <div
             className={
               'relative z-[1] flex max-h-[min(92dvh,calc(100dvh-4.5rem))] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl ' +
-              (embeddedInWalkthrough ? 'intro-wt-sheet-panel' : '')
+              (embeddedInWalkthrough ? 'intro-wt-sheet-panel--cinema' : 'intro-wt-sheet-panel')
             }
           >
             <div className="shrink-0 px-3 pb-2 pt-3">
@@ -561,7 +590,12 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
                   </p>
                 </div>
               ) : null}
-              <div className="mt-2.5 rounded-xl border border-neutral-200 bg-neutral-50 px-2 py-2">
+              <div
+                className={
+                  'mt-2.5 rounded-xl border border-neutral-200 bg-neutral-50 px-2 py-2 ' +
+                  (embeddedInWalkthrough ? 'intro-wt-qr-reveal' : '')
+                }
+              >
                 <p className="text-center text-[8.5px] font-semibold uppercase tracking-wide text-neutral-600">
                   QR-Code Vorschau
                 </p>
@@ -599,7 +633,7 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
             <div className="shrink-0 border-t border-neutral-200 bg-[#FAFBFC] px-3 py-2.5">
               {walletPerspektiveAck && embeddedInWalkthrough ? (
                 <div
-                  className="mb-2 overflow-hidden rounded-xl border border-neutral-200 bg-gradient-to-b from-neutral-900 to-neutral-800 px-3 py-2.5 text-white shadow-inner"
+                  className="intro-wt-wallet-reveal mb-2 overflow-hidden rounded-xl border border-neutral-200 bg-gradient-to-b from-neutral-900 to-neutral-800 px-3 py-2.5 text-white shadow-inner"
                   aria-hidden
                 >
                   <p className="text-[7px] font-semibold uppercase tracking-[0.12em] text-white/65">Apple Wallet · Vorschau</p>
