@@ -120,6 +120,10 @@ Detaillierte Anweisungen finden Sie in [docs/ENVIRONMENT_SETUP.md](docs/ENVIRONM
 - **Prettier**: Code Formatting
 - **Hot Reload**: Schnelle Entwicklung
 
+## Tests
+
+Unit- und Integrationstests laufen mit **Jest** (`npm test` oder z. B. `npx jest __tests__/data/introTtsScript.test.ts`). **`npx vitest`** ist hier **nicht** eingerichtet (kein Vitest-Setup, `@/…`-Aliases) und schlägt daher fehl — für CI und lokale Checks immer **Jest** verwenden.
+
 ## Konfiguration
 
 ### Tailwind CSS
