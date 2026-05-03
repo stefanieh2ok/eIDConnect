@@ -85,6 +85,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   const [walletInfoOpen, setWalletInfoOpen] = useState(false);
   /** EU-Wallet: Fließtext + Prozesszeile standard eingeklappt — weniger Scroll auf kleinen Screens. */
   const [walletKonzeptOpen, setWalletKonzeptOpen] = useState(false);
+  /** Touch-Geräte: kein vertikaler Custom-Slider — natives Scrollen nutzt den Platz besser. */
+  const [pointerCoarse, setPointerCoarse] = useState(false);
   const [confirmedAccessMethod, setConfirmedAccessMethod] = useState<'eid' | 'demo' | null>('eid');
   type OnboardingSpotlight = 'off' | 'eid' | 'weiter';
   const [onboardingSpotlight] = useState<OnboardingSpotlight>('off');
@@ -172,6 +174,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(pointer: coarse)');
+    const syncPointer = () => setPointerCoarse(mq.matches);
+    syncPointer();
+    mq.addEventListener('change', syncPointer);
+    return () => mq.removeEventListener('change', syncPointer);
+  }, []);
+
+  useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     const recompute = () => {
@@ -180,10 +191,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
       const pct = max > 0 ? Math.round((el.scrollTop / max) * 100) : 0;
       setScrollPct(Math.min(100, Math.max(0, pct)));
     };
-    recompute();
+    const id = window.requestAnimationFrame(recompute);
     window.addEventListener('resize', recompute, { passive: true });
-    return () => window.removeEventListener('resize', recompute as any);
-  }, []);
+    return () => {
+      window.cancelAnimationFrame(id);
+      window.removeEventListener('resize', recompute as any);
+    };
+  }, [walletInfoOpen, walletKonzeptOpen, accessPreviewLocked, preLoginPhase]);
 
   const claraAccessLongPlain = useMemo(() => introEidLoginSpokenParts(du).join(' '), [du]);
   const claraAccessShortPlain = useMemo(() => {
@@ -368,7 +382,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   }, [accessGuidedSpot]);
 
   const focusAccessSection = useCallback((target: 'eid' | 'wallet') => {
-    if (accessPreviewLocked) return;
     const el = target === 'eid' ? eidCardRef.current : walletCardRef.current;
     if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -385,7 +398,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
       setAccessHighlight((prev) => (prev === target ? null : prev));
       accessHighlightTimerRef.current = null;
     }, 1400);
-  }, [accessPreviewLocked]);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -413,38 +426,41 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
           </p>
         ) : null}
 
-        <div className="flex-shrink-0 border-b border-neutral-100 px-4 pb-2 pt-2 sm:px-5 sm:pb-2.5 sm:pt-2.5">
+        <div className="flex-shrink-0 border-b border-neutral-100 px-3 pb-2 pt-2 sm:px-5 sm:pb-2.5 sm:pt-2.5">
           <div
-            className={
-              'mt-2.5 flex items-stretch justify-center gap-0 rounded-lg border border-[#D6E0EE] bg-[#F8FAFD] px-1 py-1.5 sm:mt-3 ' +
-              (accessPreviewLocked ? 'pointer-events-none' : '')
-            }
+            className="mt-2 flex items-stretch justify-center gap-0 rounded-lg border border-[#D6E0EE] bg-[#F8FAFD] px-1 py-1.5 sm:mt-2.5"
             aria-label="Zugangsperspektiven: eID und EU Digital Identity Wallet"
           >
             <button
               type="button"
               onClick={() => focusAccessSection('eid')}
               className={
-                'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-center transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8] ' +
+                'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 pb-1 pt-0.5 text-center transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8] ' +
                 (accessGuidedSpot === 'tabs-eid' ? 'intro-login-heartbeat bg-white/90 ring-2 ring-[#7AA4D8]/45' : '')
               }
               aria-label="eID-Bereich anzeigen"
             >
               <span className="text-[11px] font-bold tracking-tight text-[#003366]">eID</span>
               <span className="text-[8px] font-medium leading-tight text-neutral-600">Online-Ausweis</span>
+              <span className="mt-1 line-clamp-2 min-h-[2.25rem] max-w-[11.5rem] text-[7.5px] leading-snug text-neutral-500 [text-wrap:balance]">
+                {INTRO_EID_FRAMING_SHORT}
+              </span>
             </button>
             <div className="w-px shrink-0 self-stretch bg-[#D6E0EE]" aria-hidden />
             <button
               type="button"
               onClick={() => focusAccessSection('wallet')}
               className={
-                'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-center transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8] ' +
+                'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 pb-1 pt-0.5 text-center transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8] ' +
                 (accessGuidedSpot === 'card-wallet' ? 'intro-login-heartbeat bg-white/90 ring-2 ring-[#7AA4D8]/45' : '')
               }
               aria-label="EU Wallet-Bereich anzeigen"
             >
               <span className="text-[11px] font-bold tracking-tight text-[#003366]">EU Wallet</span>
               <span className="text-[8px] font-medium leading-tight text-neutral-600">Digitale Identität</span>
+              <span className="mt-1 line-clamp-2 min-h-[2.25rem] max-w-[11.5rem] text-[7.5px] leading-snug text-neutral-500 [text-wrap:balance]">
+                {INTRO_WALLET_BADGE}
+              </span>
             </button>
           </div>
         </div>
@@ -452,7 +468,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
         <div
           id="login-main-scroll"
           ref={scrollRef}
-          className="scrollbar-hide relative min-h-0 flex-1 overflow-y-auto px-4 pb-3 sm:px-5 sm:pb-4"
+          className="scrollbar-hide relative min-h-0 flex-1 overflow-y-auto px-3 pb-2 sm:px-5 sm:pb-4"
           style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
           onScroll={() => {
             const el = scrollRef.current;
@@ -463,7 +479,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
             setScrollPct(Math.min(100, Math.max(0, pct)));
           }}
         >
-          {scrollMaxPx > 60 ? (
+          {scrollMaxPx > 140 && !pointerCoarse ? (
             <div className="intro-login-scroll-rail pointer-events-none absolute right-1 top-3 z-[5] flex h-[calc(100%-0.75rem)] w-5 items-start justify-center">
               <input
                 type="range"
@@ -483,7 +499,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               />
             </div>
           ) : null}
-          <div className="space-y-2.5 sm:space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <ClaraStepPanel
               surface="light"
               label="Sicherer Bürgerzugang"

@@ -1646,9 +1646,26 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .intro-wt-card-focus,
   .intro-wt-cta-autotap,
-  .intro-wt-wallet-emphasis {
+  .intro-wt-wallet-emphasis,
+  .intro-wt-finger-dot {
     animation: none;
   }
+}
+
+/* Prämien-Walkthrough: simulierter Tap auf der Prämienkarte (Demo) */
+@keyframes intro-wt-finger-press {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.88);
+    opacity: 0.92;
+  }
+}
+.intro-wt-finger-dot {
+  animation: intro-wt-finger-press 0.55s ease-in-out 2;
 }
 
 @keyframes intro-wt-sheet-in {

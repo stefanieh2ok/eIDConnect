@@ -141,6 +141,7 @@ function rewardVisual(name: string): {
 type WalkthroughPraemienPhase =
   | 'idle'
   | 'highlight'
+  | 'tap_card'
   | 'cta_pulse'
   | 'sheet'
   | 'wallet_emphasis'
@@ -257,8 +258,14 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
     push(
       window.setTimeout(() => {
         if (wtCancelledRef.current) return;
+        setWtPhase('tap_card');
+      }, 1500),
+    );
+    push(
+      window.setTimeout(() => {
+        if (wtCancelledRef.current) return;
         setWtPhase('cta_pulse');
-      }, 2300),
+      }, 2400),
     );
     push(
       window.setTimeout(() => {
@@ -268,27 +275,27 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
         setWalletPerspektiveAck(false);
         setVoucherSheet({ benefit: b, benefitIndex: showcaseIdx });
         setWtPhase('sheet');
-      }, 2900),
+      }, 3100),
     );
     push(
       window.setTimeout(() => {
         if (wtCancelledRef.current) return;
         setWtPhase('wallet_emphasis');
-      }, 4300),
+      }, 4600),
     );
     push(
       window.setTimeout(() => {
         if (wtCancelledRef.current) return;
         setWalletPerspektiveAck(true);
         setWtPhase('wallet_preview');
-      }, 5400),
+      }, 5800),
     );
     push(
       window.setTimeout(() => {
         if (wtCancelledRef.current) return;
         setWtPhase('done');
         onWalkthroughCinematicComplete?.();
-      }, 7800),
+      }, 8400),
     );
 
     return () => {
@@ -317,6 +324,8 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
       : sheetLocalStateRaw;
   const sheetProvider = sheetBenefit ? providerAndLocation(sheetBenefit.name, sheetBenefit.description, cityName) : null;
   const sheetMockCode = sheetBenefit ? formatMockVoucherCode(cityName, sheetBenefit.id) : '';
+  const sheetIsWalkNaturfreibadDemo =
+    Boolean(embeddedInWalkthrough && sheetBenefit && /naturfreibad|freibad/i.test(sheetBenefit.name));
 
   return (
     <div className={compact ? 'space-y-2 pb-20' : 'space-y-3 pb-28'}>
@@ -363,14 +372,17 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
               setVoucherSheet({ benefit: b, benefitIndex: idx });
             };
             const showcaseHighlight =
-              embeddedInWalkthrough && idx === showcaseIdx && (wtPhase === 'highlight' || wtPhase === 'cta_pulse');
+              embeddedInWalkthrough &&
+              idx === showcaseIdx &&
+              (wtPhase === 'highlight' || wtPhase === 'tap_card' || wtPhase === 'cta_pulse');
             const ctaPulse = embeddedInWalkthrough && idx === showcaseIdx && wtPhase === 'cta_pulse';
+            const tapFinger = embeddedInWalkthrough && idx === showcaseIdx && wtPhase === 'tap_card';
             return (
               <button
                 key={b.id}
                 type="button"
                 onClick={openSheet}
-                className={`w-full rounded-2xl border border-neutral-200 bg-white text-left shadow-sm transition select-none ${
+                className={`relative w-full rounded-2xl border border-neutral-200 bg-white text-left shadow-sm transition select-none ${
                   embeddedInWalkthrough
                     ? 'pointer-events-none cursor-default'
                     : 'cursor-pointer hover:border-[#0055A4]/30 hover:shadow-md active:scale-[0.997] active:border-[#0055A4]/40'
@@ -451,6 +463,16 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
                 >
                   {localBenefit.consentRequired ? 'Details anzeigen' : 'Gutschein anzeigen'}
                 </div>
+                {tapFinger ? (
+                  <div
+                    className="pointer-events-none absolute inset-0 z-[2] flex items-end justify-center pb-8"
+                    aria-hidden
+                  >
+                    <div className="intro-wt-finger-dot flex h-11 w-11 items-center justify-center rounded-full border-2 border-sky-500/95 bg-white/95 shadow-[0_6px_20px_rgba(15,23,42,0.18)]">
+                      <span className="block h-3 w-3 rounded-full bg-sky-500 shadow-inner" />
+                    </div>
+                  </div>
+                ) : null}
               </button>
             );
           })}
@@ -516,6 +538,25 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
                 <p className="mt-1.5 rounded-md border border-amber-100 bg-amber-50/90 px-2 py-1 text-[8.5px] leading-snug text-amber-950">
                   Nach Einwilligung hier sichtbar. Keine Abstimmungsdetails an Partner.
                 </p>
+              ) : null}
+              {sheetIsWalkNaturfreibadDemo ? (
+                <div className="mt-2.5 overflow-hidden rounded-xl border border-cyan-100/90 bg-gradient-to-b from-cyan-50/80 to-white">
+                  <p className="border-b border-cyan-100/80 bg-white/90 px-2 py-1 text-center text-[8px] font-semibold uppercase tracking-wide text-cyan-950">
+                    So in der App (Beispiel · Naturfreibad)
+                  </p>
+                  <div className="flex max-h-[min(28vh,200px)] min-h-[120px]">
+                    <img
+                      src="/praemien/naturfreibad-kirkel.jpg"
+                      alt="Naturfreibad Kirkel – Beispielmotiv wie in der Prämienkarte"
+                      className="h-full w-full object-cover object-center"
+                    />
+                  </div>
+                  <p className="px-2 py-1.5 text-center text-[9px] font-medium leading-snug text-neutral-800">
+                    {du
+                      ? 'Nach Beteiligung erscheint der Gutschein — hier mit QR-Code zum Vorzeigen am Einlass.'
+                      : 'Nach Beteiligung erscheint der Gutschein — hier mit QR-Code zum Vorzeigen am Einlass.'}
+                  </p>
+                </div>
               ) : null}
               <div className="mt-2.5 rounded-xl border border-neutral-200 bg-neutral-50 px-2 py-2">
                 <p className="text-center text-[8.5px] font-semibold uppercase tracking-wide text-neutral-600">
