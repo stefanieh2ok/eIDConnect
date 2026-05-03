@@ -328,7 +328,7 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
     Boolean(embeddedInWalkthrough && sheetBenefit && /naturfreibad|freibad/i.test(sheetBenefit.name));
 
   return (
-    <div className={compact ? 'space-y-2 pb-20' : 'space-y-3 pb-28'}>
+    <div className={compact ? 'relative isolate z-0 space-y-2 pb-3' : 'space-y-3 pb-28'}>
       <div className={compact ? '' : 'card-content py-1.5'}>
         <div
           className={`rounded-xl border border-neutral-100 bg-white ${compact ? 'px-2 py-1.5' : 'px-2.5 py-2'}`}
@@ -497,7 +497,10 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
 
       {voucherSheet && sheetBenefit && sheetLocalState && sheetProvider ? (
         <div
-          className="fixed inset-0 z-[820] flex items-end justify-center p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-3 sm:items-center sm:p-4"
+          className={
+            (embeddedInWalkthrough ? 'absolute' : 'fixed') +
+            ' inset-0 z-[820] flex items-end justify-center p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-3 sm:items-center sm:p-4'
+          }
           role="dialog"
           aria-modal="true"
           aria-labelledby="voucher-sheet-title"

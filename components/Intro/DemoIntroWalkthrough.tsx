@@ -706,22 +706,8 @@ export default function DemoIntroWalkthrough({
     }
     // Hard stop on step entry to prevent any overlap with previous narration.
     speakApi.stopIntroSpeech();
-    const needsVisualReadyForSpeech =
-      step.id === 'abstimmen' || step.id === 'meldungen' || step.id === 'wahlen';
-    if (needsVisualReadyForSpeech && !nextPulse) {
-      return () => {
-        if (pulseTimerRef.current != null) {
-          window.clearTimeout(pulseTimerRef.current);
-          pulseTimerRef.current = null;
-        }
-        if (autoAdvanceTimerRef.current != null) {
-          window.clearTimeout(autoAdvanceTimerRef.current);
-          autoAdvanceTimerRef.current = null;
-        }
-        speakApi.stopIntroSpeech();
-      };
-    }
     const t = window.setTimeout(() => {
+      speechStartedRef.current = true;
       speakApi.speakIntroParts(speakParts, speechKey);
     }, 950);
     return () => {
@@ -736,7 +722,14 @@ export default function DemoIntroWalkthrough({
       }
       speakApi.stopIntroSpeech();
     };
-  }, [speakApi, speakApi?.readAloud, idx, step.id, speakParts, nextPulse]);
+  }, [speakApi, speakApi?.readAloud, idx, step.id, speakParts]);
+
+  useEffect(() => {
+    const gated: IntroOverlayStepId[] = ['abstimmen', 'meldungen', 'wahlen', 'politikbarometer'];
+    if (!gated.includes(step.id as IntroOverlayStepId)) return;
+    const t = window.setTimeout(() => setNextPulse(true), 4500);
+    return () => window.clearTimeout(t);
+  }, [step.id, idx]);
 
   useEffect(() => {
     if (!speakApi?.readAloud) {

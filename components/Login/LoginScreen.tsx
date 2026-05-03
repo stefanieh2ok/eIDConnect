@@ -86,16 +86,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   const [walletInfoOpen, setWalletInfoOpen] = useState(false);
   /** EU-Wallet: Fließtext + Prozesszeile standard eingeklappt — weniger Scroll auf kleinen Screens. */
   const [walletKonzeptOpen, setWalletKonzeptOpen] = useState(false);
-  /** Touch-Geräte: kein vertikaler Custom-Slider — natives Scrollen nutzt den Platz besser. */
-  const [pointerCoarse, setPointerCoarse] = useState(false);
   const [confirmedAccessMethod, setConfirmedAccessMethod] = useState<'eid' | 'demo' | null>('eid');
   type OnboardingSpotlight = 'off' | 'eid' | 'weiter';
   const [onboardingSpotlight] = useState<OnboardingSpotlight>('off');
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const eidCardRef = useRef<HTMLDivElement | null>(null);
   const walletCardRef = useRef<HTMLDivElement | null>(null);
-  const [scrollPct, setScrollPct] = useState(0);
-  const [scrollMaxPx, setScrollMaxPx] = useState(0);
   const [accessHighlight, setAccessHighlight] = useState<'eid' | 'wallet' | null>(null);
   type AccessGuidedSpot = 'tabs-eid' | 'tabs-wallet' | 'card-eid' | 'card-wallet' | 'card-trust';
   const [accessGuidedSpot, setAccessGuidedSpot] = useState<AccessGuidedSpot | null>(null);
@@ -174,32 +170,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     });
     dispatch({ type: 'SET_LOGGED_IN', payload: true });
   };
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mq = window.matchMedia('(pointer: coarse)');
-    const syncPointer = () => setPointerCoarse(mq.matches);
-    syncPointer();
-    mq.addEventListener('change', syncPointer);
-    return () => mq.removeEventListener('change', syncPointer);
-  }, []);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const recompute = () => {
-      const max = Math.max(0, el.scrollHeight - el.clientHeight);
-      setScrollMaxPx(max);
-      const pct = max > 0 ? Math.round((el.scrollTop / max) * 100) : 0;
-      setScrollPct(Math.min(100, Math.max(0, pct)));
-    };
-    const id = window.requestAnimationFrame(recompute);
-    window.addEventListener('resize', recompute, { passive: true });
-    return () => {
-      window.cancelAnimationFrame(id);
-      window.removeEventListener('resize', recompute as any);
-    };
-  }, [walletInfoOpen, walletKonzeptOpen, accessPreviewLocked, preLoginPhase]);
 
   const claraAccessLongPlain = useMemo(() => introEidLoginSpokenParts(du).join(' '), [du]);
   const claraAccessShortPlain = useMemo(() => {
@@ -287,16 +257,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     }, 800);
     push(() => {
       if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      setAccessGuidedSpot('tabs-wallet');
+    }, 1200);
+    push(() => {
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
       setAccessGuidedSpot('card-eid');
-    }, 1400);
+    }, 1600);
     push(() => {
       if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
       setAccessGuidedSpot('card-wallet');
-    }, 2000);
+    }, 2200);
     push(() => {
       if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
       setAccessGuidedSpot('card-trust');
-    }, 2600);
+    }, 2800);
 
     push(() => {
       if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
@@ -433,9 +407,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
           </p>
         ) : null}
 
-        <div className="flex-shrink-0 border-b border-neutral-100 px-3 pb-2 pt-2 sm:px-5 sm:pb-2.5 sm:pt-2.5">
+        <div className="relative z-20 flex-shrink-0 border-b border-neutral-100 px-3 pb-2 pt-2 sm:px-5 sm:pb-2.5 sm:pt-2.5">
           <div
-            className="mt-2 flex items-stretch justify-center gap-0 rounded-lg border border-[#D6E0EE] bg-[#F8FAFD] px-1 py-1.5 sm:mt-2.5"
+            className="relative z-20 mt-2 flex items-stretch justify-center gap-0 rounded-lg border border-[#D6E0EE] bg-[#F8FAFD] px-1 py-1.5 sm:mt-2.5"
             aria-label="Zugangsperspektiven: eID und EU Digital Identity Wallet"
           >
             <button
@@ -459,7 +433,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               onClick={() => focusAccessSection('wallet')}
               className={
                 'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 pb-1 pt-0.5 text-center transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8] ' +
-                (accessGuidedSpot === 'card-wallet' ? 'intro-login-heartbeat bg-white/90 ring-2 ring-[#7AA4D8]/45' : '')
+                (accessGuidedSpot === 'tabs-wallet' ? 'intro-login-heartbeat bg-white/90 ring-2 ring-[#7AA4D8]/45' : '')
               }
               aria-label="EU Wallet-Bereich anzeigen"
             >
@@ -475,37 +449,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
         <div
           id="login-main-scroll"
           ref={scrollRef}
-          className="scrollbar-hide relative min-h-0 flex-1 overflow-y-auto px-3 pb-2 sm:px-5 sm:pb-4"
+          className="scrollbar-hide relative z-0 min-h-0 flex-1 overflow-y-auto px-3 pb-2 sm:px-5 sm:pb-4"
           style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
-          onScroll={() => {
-            const el = scrollRef.current;
-            if (!el) return;
-            const max = Math.max(0, el.scrollHeight - el.clientHeight);
-            setScrollMaxPx(max);
-            const pct = max > 0 ? Math.round((el.scrollTop / max) * 100) : 0;
-            setScrollPct(Math.min(100, Math.max(0, pct)));
-          }}
         >
-          {scrollMaxPx > 140 && !pointerCoarse ? (
-            <div className="intro-login-scroll-rail pointer-events-none absolute right-1 top-3 z-[5] flex h-[calc(100%-0.75rem)] w-5 items-start justify-center">
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={scrollPct}
-                aria-label="Scroll"
-                className="intro-vertical-slider pointer-events-auto w-4"
-                onChange={(e) => {
-                  const pct = Number(e.target.value);
-                  setScrollPct(pct);
-                  const el = scrollRef.current;
-                  if (!el) return;
-                  const max = Math.max(0, el.scrollHeight - el.clientHeight);
-                  el.scrollTop = (pct / 100) * max;
-                }}
-              />
-            </div>
-          ) : null}
           <div className="space-y-2 sm:space-y-3">
             <ClaraStepPanel
               surface="light"

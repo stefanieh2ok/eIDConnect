@@ -117,10 +117,10 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
 
   const speakSalutationPickFromGesture = useCallback(
     (a: Anrede) => {
-      hasSelectedSalutationRef.current = true;
-      if (lastSpokenSalutationRef.current === a && hasSelectedSalutationRef.current) {
+      if (lastSpokenSalutationRef.current === a) {
         return;
       }
+      hasSelectedSalutationRef.current = true;
       speakGateFromUserGesture(a);
       lastSpokenSalutationRef.current = a;
     },
@@ -368,6 +368,16 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
                       salutationSpeechHeardRef.current = false;
                       clearAutoWeiterTimers();
                       setWeiterPulse(false);
+                      /** iOS: TTS oft ohne Audiostream — Weiter trotzdem nach kurzer Frist (parallel zum Puls). */
+                      autoWeiterTimersRef.current.push(
+                        window.setTimeout(() => {
+                          if (!pendingAutoWeiterRef.current || pendingRef.current == null) return;
+                          pendingAutoWeiterRef.current = false;
+                          salutationSpeechHeardRef.current = false;
+                          setWeiterPulse(false);
+                          onCompleteRef.current();
+                        }, 3400),
+                      );
                     }
                   }}
                   className={anredePickBtnClass(pending === 'sie')}
@@ -389,6 +399,15 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
                       salutationSpeechHeardRef.current = false;
                       clearAutoWeiterTimers();
                       setWeiterPulse(false);
+                      autoWeiterTimersRef.current.push(
+                        window.setTimeout(() => {
+                          if (!pendingAutoWeiterRef.current || pendingRef.current == null) return;
+                          pendingAutoWeiterRef.current = false;
+                          salutationSpeechHeardRef.current = false;
+                          setWeiterPulse(false);
+                          onCompleteRef.current();
+                        }, 3400),
+                      );
                     }
                   }}
                   className={anredePickBtnClass(pending === 'du')}

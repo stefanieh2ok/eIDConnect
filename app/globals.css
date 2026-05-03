@@ -1497,9 +1497,9 @@ body {
   padding-bottom: min(11rem, 30vh);
 }
 
-/* Login "Sicherer Bürgerzugang": kompakter als Anrede/Entry, damit weniger Scroll nötig ist. */
+/* Login "Sicherer Bürgerzugang": kein großes dunkles „Dock"-Reservat — kompaktes Mic ist dort ausgeblendet. */
 .clara-prelogin-shell-pad--tight {
-  padding-bottom: min(5rem, 16vh);
+  padding-bottom: max(0.35rem, env(safe-area-inset-bottom, 0px));
 }
 
 /* Kurze Viewports (viele Smartphones): weniger „Leerfläche“, EU-Wallet schneller im Scrollbereich */
@@ -1509,7 +1509,7 @@ body {
   }
 
   .clara-prelogin-shell-pad--tight {
-    padding-bottom: min(3.5rem, 10vh);
+    padding-bottom: max(0.35rem, env(safe-area-inset-bottom, 0px));
   }
 }
 
