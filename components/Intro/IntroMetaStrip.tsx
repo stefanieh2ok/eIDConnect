@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Mic } from 'lucide-react';
+import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { INTRO_GLOBAL_PILL_LABEL } from '@/data/introOverlayMarketing';
 import {
   IntroAudioStatusButton,
@@ -50,6 +51,7 @@ export default function IntroMetaStrip({
   inlinePad = 'none',
   toolbarDensity = 'default',
 }: Props) {
+  const { tryResumePendingAudioFromUserGesture } = useClaraVoiceContext();
   const onExit = onClose ?? onSkip;
   const exitAria = closeAriaLabel ?? 'Einführung beenden';
   const onLight = surface === 'light';
@@ -71,6 +73,9 @@ export default function IntroMetaStrip({
         (inlinePad === 'card' ? ' intro-meta-strip--pad-card' : '') +
         (compact ? ' intro-meta-strip--compact-toolbar' : '')
       }
+      onPointerDownCapture={() => {
+        tryResumePendingAudioFromUserGesture();
+      }}
     >
       <div className="intro-meta-strip__row grid w-full min-w-0 max-w-full grid-cols-[minmax(0,max-content)_minmax(0,1fr)] items-center gap-x-1.5 sm:gap-2">
         <span

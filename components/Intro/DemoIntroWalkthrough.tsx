@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
+import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { useIntroIsSpeaking, useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { activeLocationForLevel } from '@/lib/activeLocationForLevel';
 import {
@@ -557,6 +558,7 @@ export default function DemoIntroWalkthrough({
   }, [clara.line10s, clara.speakSegments, isLast, du]);
 
   const speakApi = useIntroSpeakApi();
+  const { tryResumePendingAudioFromUserGesture } = useClaraVoiceContext();
   const isIntroSpeaking = useIntroIsSpeaking();
   const onPolitikbarometerVisualDone = useCallback(() => {
     setNextPulse(true);
@@ -831,6 +833,9 @@ export default function DemoIntroWalkthrough({
       role="dialog"
       aria-modal="true"
       aria-label="Einführung"
+      onPointerDownCapture={() => {
+        tryResumePendingAudioFromUserGesture();
+      }}
     >
       {/* Versteckte Live-Region für Screenreader: Statuswechsel werden bei jedem
           Schritt-Wechsel angekündigt, ohne dass etwas UI-seitig sichtbar wird. */}

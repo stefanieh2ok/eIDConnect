@@ -3,6 +3,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { ClaraVoiceState } from '@/types/clara';
 
+type PendingTtsPlayback = {
+  objectUrl: string;
+  requestId: number;
+  playbackRate: number;
+};
+
 export const useClaraVoice = () => {
   const [voiceState, setVoiceState] = useState<ClaraVoiceState>({
     isListening: false,
@@ -14,6 +20,8 @@ export const useClaraVoice = () => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
+  /** TTS fertig geladen, aber `play()` wegen Autoplay-Policy blockiert (v. a. iOS Safari) — Start nach Nutzer-Geste. */
+  const pendingTtsRef = useRef<PendingTtsPlayback | null>(null);
   const playRequestIdRef = useRef(0);
   const [speechRate, setSpeechRateState] = useState<number>(() => {
     if (typeof window === 'undefined') return 1.05;
@@ -85,8 +93,17 @@ export const useClaraVoice = () => {
     }
   }, [voiceState.isListening]);
 
+  const clearPendingTts = useCallback(() => {
+    const p = pendingTtsRef.current;
+    if (p) {
+      URL.revokeObjectURL(p.objectUrl);
+      pendingTtsRef.current = null;
+    }
+  }, []);
+
   const stopSpeaking = useCallback(() => {
     playRequestIdRef.current += 1;
+    clearPendingTts();
     const currentAudio = audioRef.current;
     if (currentAudio) {
       try {
@@ -102,6 +119,44 @@ export const useClaraVoice = () => {
       audioUrlRef.current = null;
     }
     setVoiceState((prev) => ({ ...prev, isSpeaking: false }));
+  }, [clearPendingTts]);
+
+  const tryResumePendingAudioFromUserGesture = useCallback(() => {
+    const p = pendingTtsRef.current;
+    if (!p) return false;
+    if (p.requestId !== playRequestIdRef.current) {
+      URL.revokeObjectURL(p.objectUrl);
+      pendingTtsRef.current = null;
+      return false;
+    }
+    const { objectUrl, requestId, playbackRate } = p;
+    pendingTtsRef.current = null;
+    const audio = new Audio(objectUrl);
+    audio.playbackRate = playbackRate;
+    audioUrlRef.current = objectUrl;
+    audioRef.current = audio;
+
+    audio.onended = () => {
+      if (requestId !== playRequestIdRef.current) return;
+      setVoiceState((prev) => ({ ...prev, isSpeaking: false }));
+    };
+    audio.onerror = () => {
+      if (requestId !== playRequestIdRef.current) return;
+      setVoiceState((prev) => ({
+        ...prev,
+        isSpeaking: false,
+        error: 'Audio konnte nicht abgespielt werden.',
+      }));
+    };
+
+    setVoiceState((prev) => ({ ...prev, isSpeaking: true, error: null }));
+    void audio.play().catch(() => {
+      if (requestId !== playRequestIdRef.current) return;
+      pendingTtsRef.current = { objectUrl, requestId, playbackRate };
+      audioRef.current = null;
+      setVoiceState((prev) => ({ ...prev, isSpeaking: false, error: null }));
+    });
+    return true;
   }, []);
 
   const playTts = useCallback(
@@ -153,7 +208,34 @@ export const useClaraVoice = () => {
           }));
         };
 
-        await audio.play();
+        try {
+          await audio.play();
+        } catch (playErr: unknown) {
+          if (requestId !== playRequestIdRef.current) return;
+          const name =
+            playErr instanceof DOMException
+              ? playErr.name
+              : typeof playErr === 'object' &&
+                  playErr !== null &&
+                  'name' in playErr &&
+                  typeof (playErr as { name: unknown }).name === 'string'
+                ? (playErr as { name: string }).name
+                : '';
+          if (name === 'NotAllowedError') {
+            try {
+              audio.pause();
+            } catch {
+              // ignore
+            }
+            audio.src = '';
+            audioRef.current = null;
+            audioUrlRef.current = null;
+            pendingTtsRef.current = { objectUrl, requestId, playbackRate: speechRate };
+            setVoiceState((prev) => ({ ...prev, isSpeaking: false, error: null }));
+            return;
+          }
+          throw playErr;
+        }
       } catch (e) {
         if (requestId !== playRequestIdRef.current) return;
         setVoiceState((prev) => ({
@@ -203,6 +285,7 @@ export const useClaraVoice = () => {
     speak,
     speakParts,
     stopSpeaking,
+    tryResumePendingAudioFromUserGesture,
     clearTranscript,
     speechRate,
     setSpeechRate,

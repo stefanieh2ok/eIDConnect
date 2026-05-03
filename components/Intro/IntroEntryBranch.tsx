@@ -10,6 +10,7 @@ import {
   INTRO_SPOKEN_ENTRY_DU,
   INTRO_SPOKEN_ENTRY_SIE,
 } from '@/data/introOverlayMarketing';
+import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useIntroIsSpeaking, useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
@@ -33,6 +34,7 @@ export function IntroEntryBranch({
   onDirectToApp,
   position = 'fixed',
 }: Props) {
+  const { tryResumePendingAudioFromUserGesture } = useClaraVoiceContext();
   /** Stabile API — nicht `useOptionalIntroOverlay()` (merged Objekt wechselt bei jedem TTS-Tick → Effect-Sturm). */
   const speakApi = useIntroSpeakApi();
   const speakApiRef = useRef(speakApi);
@@ -138,6 +140,7 @@ export function IntroEntryBranch({
           className="flex min-h-0 flex-col overflow-hidden rounded-[1.65rem] border border-neutral-200/95 bg-white"
           style={{ maxHeight: 'min(calc(100dvh - 1.5rem), 100%)' }}
           onPointerDownCapture={(e) => {
+            tryResumePendingAudioFromUserGesture();
             const t = e.target as HTMLElement;
             if (t.closest('.intro-meta-strip')) return;
             if (t.closest('.intro-entry-bottom-room button')) {

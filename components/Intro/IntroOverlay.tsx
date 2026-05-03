@@ -67,7 +67,8 @@ export function useOptionalIntroOverlay() {
 }
 
 function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
-  const { speak, speakParts, stopSpeaking, voiceState } = useClaraVoiceContext();
+  const { speak, speakParts, stopSpeaking, tryResumePendingAudioFromUserGesture, voiceState } =
+    useClaraVoiceContext();
   const isIntroSpeaking = voiceState.isSpeaking;
   const [readAloud, setReadAloudState] = useState(() => {
     if (typeof window === 'undefined') return true;
@@ -135,6 +136,9 @@ function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
 
   const setReadAloud = useCallback(
     (v: boolean) => {
+      if (v) {
+        tryResumePendingAudioFromUserGesture();
+      }
       setReadAloudState(v);
       try {
         sessionStorage.setItem(SESSION_AUDIO, v ? '1' : '0');
@@ -146,7 +150,7 @@ function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
         stopIntroSpeech();
       }
     },
-    [stopIntroSpeech],
+    [stopIntroSpeech, tryResumePendingAudioFromUserGesture],
   );
 
   const speakApi = useMemo(

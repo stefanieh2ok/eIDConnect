@@ -31,7 +31,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
   const speakApi = useIntroSpeakApi();
   const speakApiRef = useRef(speakApi);
   speakApiRef.current = speakApi;
-  const { speakParts, stopSpeaking } = useClaraVoiceContext();
+  const { speakParts, stopSpeaking, tryResumePendingAudioFromUserGesture } = useClaraVoiceContext();
   const hasUnlockedSpeechRef = useRef(false);
   const hasSpokenIntroRef = useRef(false);
   const hasSelectedSalutationRef = useRef(false);
@@ -301,10 +301,12 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
           className="hide-scrollbar flex max-h-full min-h-0 flex-col overflow-y-auto overscroll-contain rounded-[1.65rem] border border-neutral-200/95 bg-white"
           style={{ WebkitOverflowScrolling: 'touch' }}
           onPointerDownCapture={(e) => {
+            tryResumePendingAudioFromUserGesture();
             unlockSpeechOnGesture();
             handleGestureTarget(e.target as HTMLElement);
           }}
           onTouchStartCapture={(e) => {
+            tryResumePendingAudioFromUserGesture();
             unlockSpeechOnGesture();
             handleGestureTarget(e.target as HTMLElement);
           }}
