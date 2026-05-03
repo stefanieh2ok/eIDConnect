@@ -217,9 +217,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     setConfirmedAccessMethod('demo');
   };
 
-  const handleDemoModeClickRef = useRef(handleDemoModeClick);
   const handleProceedToAppRef = useRef(handleProceedToApp);
-  handleDemoModeClickRef.current = handleDemoModeClick;
   handleProceedToAppRef.current = handleProceedToApp;
 
   const finishAccessGuidedAndEnterApp = useCallback(() => {
@@ -228,7 +226,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     setAccessPreviewLocked(false);
     setAccessGuidedSpot(null);
     introSpeakRef.current?.stopIntroSpeech();
-    handleDemoModeClickRef.current();
     handleProceedToAppRef.current();
   }, []);
 
@@ -421,8 +418,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
           onClose={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
         />
         {accessPreviewLocked ? (
-          <p className="px-4 pb-1 pt-0 text-center text-[9px] font-medium leading-snug text-neutral-500 sm:px-5">
-            Vorschau · Bedienelemente folgen der Erklärung
+          <p className="px-3 pb-1 pt-0 text-center text-[9px] font-medium leading-snug text-neutral-600 sm:px-5">
+            Demo · eID und EU-Wallet vollständig erkunden — Claras Erklärung läuft parallel, Sie steuern selbst mit.
           </p>
         ) : null}
 
@@ -539,11 +536,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                 type="button"
                 onClick={handleEidDemoClick}
                 onAnimationEnd={onOnboardingSpotlightAnimationEnd}
-                tabIndex={accessPreviewLocked ? -1 : undefined}
-                className={
-                  'mt-2 inline-flex min-h-[34px] w-full items-center justify-center rounded-lg border border-[#CFE0F7] bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] transition hover:bg-[#F4F8FE] sm:mt-2.5 ' +
-                  (accessPreviewLocked ? 'pointer-events-none opacity-90' : '')
-                }
+                className="mt-2 inline-flex min-h-[40px] w-full items-center justify-center rounded-lg border border-[#CFE0F7] bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] shadow-sm transition hover:bg-[#F4F8FE] hover:shadow active:scale-[0.99] sm:mt-2.5"
               >
                 Künftig per eID anmelden (Perspektive)
               </button>
@@ -592,11 +585,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                   <button
                     type="button"
                     onClick={() => setWalletKonzeptOpen((o) => !o)}
-                    tabIndex={accessPreviewLocked ? -1 : undefined}
-                    className={
-                      'mt-1.5 w-full rounded-lg border border-slate-200/90 bg-white py-1.5 text-center text-[10px] font-semibold text-[#003366] transition hover:bg-slate-50 ' +
-                      (accessPreviewLocked ? 'pointer-events-none opacity-90' : '')
-                    }
+                    className="mt-1.5 w-full rounded-lg border border-slate-200/90 bg-white py-2 text-center text-[10px] font-semibold text-[#003366] shadow-sm transition hover:bg-slate-50 hover:shadow active:scale-[0.99]"
                     aria-expanded={walletKonzeptOpen}
                     aria-controls="login-eu-wallet-konzept-ablauf"
                   >
@@ -607,11 +596,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setWalletInfoOpen((p) => !p)}
-                tabIndex={accessPreviewLocked ? -1 : undefined}
-                className={
-                  'mt-2 inline-flex min-h-[34px] w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] transition hover:bg-slate-50 sm:mt-2.5 ' +
-                  (accessPreviewLocked ? 'pointer-events-none opacity-90' : '')
-                }
+                className="mt-2 inline-flex min-h-[40px] w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] shadow-sm transition hover:bg-slate-50 hover:shadow active:scale-[0.99] sm:mt-2.5"
                 aria-expanded={walletInfoOpen}
                 aria-controls="login-eu-wallet-info"
               >
@@ -673,17 +658,34 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                   <p className={accessPathBodyClass}>{INTRO_DEMO_MODE_BODY}</p>
                 </div>
               </div>
-              <div className="mt-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => (onBackToEntry ? onBackToEntry() : reopenProductIntro())}
-                  className={loginNavBackClass}
-                >
-                  Zurück
-                </button>
+              <div className="mt-2 flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => (onBackToEntry ? onBackToEntry() : reopenProductIntro())}
+                    className={loginNavBackClass}
+                  >
+                    Zurück
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (accessAutoAfterSpeechTimerRef.current != null) {
+                        window.clearTimeout(accessAutoAfterSpeechTimerRef.current);
+                        accessAutoAfterSpeechTimerRef.current = null;
+                      }
+                      introSpeakRef.current?.stopIntroSpeech();
+                      finishAccessGuidedAndEnterApp();
+                    }}
+                    className="inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-xl bg-[#003D80] px-3 text-[12px] font-bold tracking-[0.01em] text-white shadow-[0_4px_14px_rgba(0,61,128,0.28)] transition hover:bg-[#00366f] active:scale-[0.99]"
+                  >
+                    Weiter in die Einführung
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={() => {
+                    handleDemoModeClick();
                     if (accessAutoAfterSpeechTimerRef.current != null) {
                       window.clearTimeout(accessAutoAfterSpeechTimerRef.current);
                       accessAutoAfterSpeechTimerRef.current = null;
@@ -691,9 +693,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                     introSpeakRef.current?.stopIntroSpeech();
                     finishAccessGuidedAndEnterApp();
                   }}
-                  className="inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-xl bg-[#003D80] px-3 text-[12px] font-bold tracking-[0.01em] text-white shadow-[0_4px_14px_rgba(0,61,128,0.28)] transition hover:bg-[#00366f] active:scale-[0.99]"
+                  className="w-full rounded-lg border border-dashed border-slate-300 bg-slate-50/90 py-2 text-center text-[10px] font-semibold leading-snug text-[#1A2B45] transition hover:bg-slate-100"
                 >
-                  Weiter
+                  {INTRO_DEMO_MODE_CTA} — {INTRO_DEMO_MODE_TITLE}
                 </button>
               </div>
             </div>
