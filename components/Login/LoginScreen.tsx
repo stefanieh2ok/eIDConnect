@@ -38,6 +38,7 @@ import { ListChecks, Settings } from 'lucide-react';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { useIntroIsSpeaking, useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
+import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 
 const KIRKEL_STREET = 'Hauptstraße 1';
 const KIRKEL_PLZ = '66459';
@@ -109,6 +110,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   const accessAutoAfterSpeechTimerRef = useRef<number | null>(null);
   const isIntroSpeaking = useIntroIsSpeaking();
   const trustCardRef = useRef<HTMLDivElement | null>(null);
+  const { tryResumePendingAudioFromUserGesture } = useClaraVoiceContext();
 
   const reopenProductIntro = useCallback(() => {
     try {
@@ -406,7 +408,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   }, []);
 
   const content = (
-    <div className="clara-prelogin-shell-pad--tight intro-device-chrome-shell intro-dark-body relative mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] p-[3px] sm:mx-2 sm:p-1">
+    <div
+      className="clara-prelogin-shell-pad--tight intro-device-chrome-shell intro-dark-body relative mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] p-[3px] sm:mx-2 sm:p-1"
+      onPointerDownCapture={() => {
+        tryResumePendingAudioFromUserGesture();
+      }}
+      onTouchStartCapture={() => {
+        tryResumePendingAudioFromUserGesture();
+      }}
+    >
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.65rem] border border-neutral-200/95 bg-white">
         <IntroMetaStrip
           surface="light"

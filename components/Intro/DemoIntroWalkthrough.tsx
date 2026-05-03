@@ -836,6 +836,9 @@ export default function DemoIntroWalkthrough({
       onPointerDownCapture={() => {
         tryResumePendingAudioFromUserGesture();
       }}
+      onTouchStartCapture={() => {
+        tryResumePendingAudioFromUserGesture();
+      }}
     >
       {/* Versteckte Live-Region für Screenreader: Statuswechsel werden bei jedem
           Schritt-Wechsel angekündigt, ohne dass etwas UI-seitig sichtbar wird. */}

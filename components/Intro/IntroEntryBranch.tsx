@@ -153,6 +153,9 @@ export function IntroEntryBranch({
             if (entryIntroPlayedRef.current) return;
             speakEntry();
           }}
+          onTouchStartCapture={() => {
+            tryResumePendingAudioFromUserGesture();
+          }}
         >
           <IntroMetaStrip
             surface="light"
