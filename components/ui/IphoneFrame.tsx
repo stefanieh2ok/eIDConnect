@@ -54,12 +54,13 @@ export function IphoneFrame({
         {/* Dynamic Island */}
         <div className="app-device-notch pointer-events-none absolute left-1/2 top-3 z-20 h-7 w-[126px] -translate-x-1/2 rounded-full bg-black" />
         <div className="app-device-content relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden pt-10">
+          {/* Inhalt zuerst: zuverlässige Klicks/Tastatur. Watermark danach, nur optisch (pointer-events: none). */}
+          <div className="relative z-0 flex min-h-0 min-w-0 flex-1 flex-col">{children}</div>
           <div className="app-confidential-watermark" aria-hidden>
             <span className="app-confidential-watermark__line top-[16%] text-[18px]">HookAI · Confidential</span>
             <span className="app-confidential-watermark__line top-[44%] text-[18px]">HookAI · Confidential</span>
             <span className="app-confidential-watermark__line top-[72%] text-[18px]">HookAI · Confidential</span>
           </div>
-          {children}
         </div>
         {/* Home-Indikator */}
         <div className="app-device-home relative z-10 flex flex-shrink-0 justify-center pb-2 pt-1">

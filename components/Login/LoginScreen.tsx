@@ -37,7 +37,7 @@ import { introEidLoginSpokenParts } from '@/lib/introSpokenTts';
 import { ListChecks, Settings } from 'lucide-react';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
-import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
+import { useIntroIsSpeaking, useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 
 const KIRKEL_STREET = 'Hauptstraße 1';
 const KIRKEL_PLZ = '66459';
@@ -94,7 +94,19 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   const [scrollPct, setScrollPct] = useState(0);
   const [scrollMaxPx, setScrollMaxPx] = useState(0);
   const [accessHighlight, setAccessHighlight] = useState<'eid' | 'wallet' | null>(null);
+  type AccessGuidedSpot = 'tabs-eid' | 'tabs-wallet' | 'card-eid' | 'card-wallet' | 'card-trust';
+  const [accessGuidedSpot, setAccessGuidedSpot] = useState<AccessGuidedSpot | null>(null);
+  const [accessPreviewLocked, setAccessPreviewLocked] = useState(false);
   const accessHighlightTimerRef = useRef<number | null>(null);
+  const accessGuidedTimersRef = useRef<number[]>([]);
+  const accessSkipGuidedRef = useRef(false);
+  const accessSpeechStartedRef = useRef(false);
+  const accessHeardSpeechRef = useRef(false);
+  const accessWasIntroSpeakingRef = useRef(false);
+  const accessProceedOnceRef = useRef(false);
+  const accessAutoAfterSpeechTimerRef = useRef<number | null>(null);
+  const isIntroSpeaking = useIntroIsSpeaking();
+  const trustCardRef = useRef<HTMLDivElement | null>(null);
 
   const reopenProductIntro = useCallback(() => {
     try {
@@ -117,31 +129,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   }, [state.residenceLocation, persistDemoFields]);
 
   const introSpeak = useIntroSpeakApi();
-  useEffect(() => {
-    if (state.anrede == null || !introSpeak) return;
-    if (preLoginPhase !== 'ok') return;
-    if (!introSpeak.readAloud) {
-      introSpeak.stopIntroSpeech();
-      return;
-    }
-    if (typeof document !== 'undefined' && document.querySelector('[role="dialog"][aria-label="Anrede wählen"]')) {
-      return;
-    }
-    if (
-      typeof document !== 'undefined' &&
-      document.querySelector('[role="dialog"][aria-label="Einstieg Einführung"]')
-    ) {
-      return;
-    }
-    const parts = introEidLoginSpokenParts(du);
-    const t = window.setTimeout(() => {
-      introSpeak.speakIntroParts(parts, 'eid-demo-login');
-    }, 450);
-    return () => {
-      window.clearTimeout(t);
-      introSpeak.stopIntroSpeech();
-    };
-  }, [state.anrede, introSpeak, introSpeak?.readAloud, du, preLoginPhase]);
+  const introSpeakRef = useRef(introSpeak);
+  introSpeakRef.current = introSpeak;
 
   const cancelOnboardingSpotlight = useCallback(() => {}, []);
   const onOnboardingSpotlightAnimationEnd = useCallback(() => {}, []);
@@ -214,7 +203,172 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     setConfirmedAccessMethod('demo');
   };
 
+  const handleDemoModeClickRef = useRef(handleDemoModeClick);
+  const handleProceedToAppRef = useRef(handleProceedToApp);
+  handleDemoModeClickRef.current = handleDemoModeClick;
+  handleProceedToAppRef.current = handleProceedToApp;
+
+  const finishAccessGuidedAndEnterApp = useCallback(() => {
+    if (accessProceedOnceRef.current) return;
+    accessProceedOnceRef.current = true;
+    setAccessPreviewLocked(false);
+    setAccessGuidedSpot(null);
+    introSpeakRef.current?.stopIntroSpeech();
+    handleDemoModeClickRef.current();
+    handleProceedToAppRef.current();
+  }, []);
+
+  useEffect(() => {
+    if (preLoginPhase !== 'ok') {
+      accessProceedOnceRef.current = false;
+      setAccessPreviewLocked(false);
+      setAccessGuidedSpot(null);
+    }
+  }, [preLoginPhase]);
+
+  /** Fokus-Reihe, dann Clara (~1 s); stabile Refs verhindern Timer-Reset durch Context-Identität. */
+  useEffect(() => {
+    const clearGuidedTimers = () => {
+      for (const id of accessGuidedTimersRef.current) window.clearTimeout(id);
+      accessGuidedTimersRef.current = [];
+    };
+    clearGuidedTimers();
+    const api = introSpeakRef.current;
+    if (state.anrede == null || preLoginPhase !== 'ok') {
+      api?.stopIntroSpeech();
+      return;
+    }
+    if (!api?.readAloud) {
+      api?.stopIntroSpeech();
+      setAccessPreviewLocked(false);
+      setAccessGuidedSpot(null);
+      return;
+    }
+    if (typeof document !== 'undefined' && document.querySelector('[role="dialog"][aria-label="Anrede wählen"]')) {
+      setAccessPreviewLocked(false);
+      return;
+    }
+    if (
+      typeof document !== 'undefined' &&
+      document.querySelector('[role="dialog"][aria-label="Einstieg Einführung"]')
+    ) {
+      setAccessPreviewLocked(false);
+      return;
+    }
+
+    api.stopIntroSpeech();
+    accessSkipGuidedRef.current = false;
+    accessSpeechStartedRef.current = false;
+    accessHeardSpeechRef.current = false;
+    accessWasIntroSpeakingRef.current = false;
+    setAccessPreviewLocked(true);
+    setAccessGuidedSpot(null);
+
+    const push = (fn: () => void, ms: number) => {
+      accessGuidedTimersRef.current.push(window.setTimeout(fn, ms));
+    };
+
+    push(() => {
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      setAccessGuidedSpot('tabs-eid');
+    }, 800);
+    push(() => {
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      setAccessGuidedSpot('card-eid');
+    }, 1400);
+    push(() => {
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      setAccessGuidedSpot('card-wallet');
+    }, 2000);
+    push(() => {
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      setAccessGuidedSpot('card-trust');
+    }, 2600);
+
+    push(() => {
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      const cur = introSpeakRef.current;
+      if (!cur?.readAloud) return;
+      const parts = introEidLoginSpokenParts(du);
+      cur.stopIntroSpeech();
+      cur.speakIntroParts(parts, 'eid-demo-login');
+      accessSpeechStartedRef.current = true;
+    }, 1000);
+
+    const onSkipAll = () => {
+      accessSkipGuidedRef.current = true;
+      clearGuidedTimers();
+      introSpeakRef.current?.stopIntroSpeech();
+      setAccessGuidedSpot(null);
+      setAccessPreviewLocked(false);
+    };
+    window.addEventListener('eidconnect:skip-intro-all', onSkipAll);
+
+    return () => {
+      window.removeEventListener('eidconnect:skip-intro-all', onSkipAll);
+      clearGuidedTimers();
+      introSpeakRef.current?.stopIntroSpeech();
+      setAccessGuidedSpot(null);
+    };
+  }, [state.anrede, du, preLoginPhase, introSpeak?.readAloud]);
+
+  useEffect(() => {
+    if (preLoginPhase !== 'ok' || !introSpeak?.readAloud) {
+      if (accessAutoAfterSpeechTimerRef.current != null) {
+        window.clearTimeout(accessAutoAfterSpeechTimerRef.current);
+        accessAutoAfterSpeechTimerRef.current = null;
+      }
+      return;
+    }
+    const prev = accessWasIntroSpeakingRef.current;
+    accessWasIntroSpeakingRef.current = isIntroSpeaking;
+    if (accessSpeechStartedRef.current && isIntroSpeaking) {
+      accessHeardSpeechRef.current = true;
+    }
+    if (
+      !accessSpeechStartedRef.current ||
+      accessSkipGuidedRef.current ||
+      accessProceedOnceRef.current ||
+      !accessHeardSpeechRef.current ||
+      !prev ||
+      isIntroSpeaking
+    ) {
+      return;
+    }
+    accessHeardSpeechRef.current = false;
+    if (accessAutoAfterSpeechTimerRef.current != null) {
+      window.clearTimeout(accessAutoAfterSpeechTimerRef.current);
+    }
+    accessAutoAfterSpeechTimerRef.current = window.setTimeout(() => {
+      accessAutoAfterSpeechTimerRef.current = null;
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      finishAccessGuidedAndEnterApp();
+    }, 400);
+    return () => {
+      if (accessAutoAfterSpeechTimerRef.current != null) {
+        window.clearTimeout(accessAutoAfterSpeechTimerRef.current);
+        accessAutoAfterSpeechTimerRef.current = null;
+      }
+    };
+  }, [isIntroSpeaking, preLoginPhase, introSpeak?.readAloud, finishAccessGuidedAndEnterApp]);
+
+  useEffect(() => {
+    if (accessProceedOnceRef.current) return;
+    const scrollNearest = (el: HTMLElement | null) => {
+      if (!el) return;
+      try {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch {
+        /* noop */
+      }
+    };
+    if (accessGuidedSpot === 'card-eid') scrollNearest(eidCardRef.current);
+    if (accessGuidedSpot === 'card-wallet') scrollNearest(walletCardRef.current);
+    if (accessGuidedSpot === 'card-trust') scrollNearest(trustCardRef.current);
+  }, [accessGuidedSpot]);
+
   const focusAccessSection = useCallback((target: 'eid' | 'wallet') => {
+    if (accessPreviewLocked) return;
     const el = target === 'eid' ? eidCardRef.current : walletCardRef.current;
     if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -231,7 +385,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
       setAccessHighlight((prev) => (prev === target ? null : prev));
       accessHighlightTimerRef.current = null;
     }, 1400);
-  }, []);
+  }, [accessPreviewLocked]);
 
   useEffect(() => {
     return () => {
@@ -248,20 +402,32 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
           surface="light"
           stepNumber={2}
           showClaraVoice
+          inlinePad="card"
           metaFramingLine={INTRO_EID_FRAMING_SHORT}
           onSkip={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
           onClose={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
         />
+        {accessPreviewLocked ? (
+          <p className="px-4 pb-1 pt-0 text-center text-[9px] font-medium leading-snug text-neutral-500 sm:px-5">
+            Vorschau · Bedienelemente folgen der Erklärung
+          </p>
+        ) : null}
 
         <div className="flex-shrink-0 border-b border-neutral-100 px-4 pb-2 pt-2 sm:px-5 sm:pb-2.5 sm:pt-2.5">
           <div
-            className="mt-2.5 flex items-stretch justify-center gap-0 rounded-lg border border-[#D6E0EE] bg-[#F8FAFD] px-1 py-1.5 sm:mt-3"
+            className={
+              'mt-2.5 flex items-stretch justify-center gap-0 rounded-lg border border-[#D6E0EE] bg-[#F8FAFD] px-1 py-1.5 sm:mt-3 ' +
+              (accessPreviewLocked ? 'pointer-events-none' : '')
+            }
             aria-label="Zugangsperspektiven: eID und EU Digital Identity Wallet"
           >
             <button
               type="button"
               onClick={() => focusAccessSection('eid')}
-              className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-center transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8]"
+              className={
+                'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-center transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8] ' +
+                (accessGuidedSpot === 'tabs-eid' ? 'intro-login-heartbeat bg-white/90 ring-2 ring-[#7AA4D8]/45' : '')
+              }
               aria-label="eID-Bereich anzeigen"
             >
               <span className="text-[11px] font-bold tracking-tight text-[#003366]">eID</span>
@@ -271,7 +437,10 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
             <button
               type="button"
               onClick={() => focusAccessSection('wallet')}
-              className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-center transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8]"
+              className={
+                'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-center transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8] ' +
+                (accessGuidedSpot === 'card-wallet' ? 'intro-login-heartbeat bg-white/90 ring-2 ring-[#7AA4D8]/45' : '')
+              }
               aria-label="EU Wallet-Bereich anzeigen"
             >
               <span className="text-[11px] font-bold tracking-tight text-[#003366]">EU Wallet</span>
@@ -327,7 +496,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               ref={eidCardRef}
               tabIndex={-1}
               className={`${accessPathCardClass} intro-login-heartbeat transition-shadow duration-300 ${
-                accessHighlight === 'eid' ? 'ring-2 ring-[#7AA4D8] shadow-[0_0_0_3px_rgba(122,164,216,0.22)]' : ''
+                accessGuidedSpot === 'card-eid' || (!accessPreviewLocked && accessHighlight === 'eid')
+                  ? 'ring-2 ring-[#7AA4D8] shadow-[0_0_0_3px_rgba(122,164,216,0.22)]'
+                  : ''
               }`}
             >
               <div className="flex items-start justify-between gap-2">
@@ -352,7 +523,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                 type="button"
                 onClick={handleEidDemoClick}
                 onAnimationEnd={onOnboardingSpotlightAnimationEnd}
-                className="mt-2 inline-flex min-h-[34px] w-full items-center justify-center rounded-lg border border-[#CFE0F7] bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] transition hover:bg-[#F4F8FE] sm:mt-2.5"
+                tabIndex={accessPreviewLocked ? -1 : undefined}
+                className={
+                  'mt-2 inline-flex min-h-[34px] w-full items-center justify-center rounded-lg border border-[#CFE0F7] bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] transition hover:bg-[#F4F8FE] sm:mt-2.5 ' +
+                  (accessPreviewLocked ? 'pointer-events-none opacity-90' : '')
+                }
               >
                 Künftig per eID anmelden (Perspektive)
               </button>
@@ -362,7 +537,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               ref={walletCardRef}
               tabIndex={-1}
               className={`${accessPathCardClass} intro-login-heartbeat transition-shadow duration-300 ${
-                accessHighlight === 'wallet' ? 'ring-2 ring-[#7AA4D8] shadow-[0_0_0_3px_rgba(122,164,216,0.22)]' : ''
+                accessGuidedSpot === 'card-wallet' || (!accessPreviewLocked && accessHighlight === 'wallet')
+                  ? 'ring-2 ring-[#7AA4D8] shadow-[0_0_0_3px_rgba(122,164,216,0.22)]'
+                  : ''
               }`}
             >
               <div className="flex items-start justify-between gap-2">
@@ -399,7 +576,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                   <button
                     type="button"
                     onClick={() => setWalletKonzeptOpen((o) => !o)}
-                    className="mt-1.5 w-full rounded-lg border border-slate-200/90 bg-white py-1.5 text-center text-[10px] font-semibold text-[#003366] transition hover:bg-slate-50"
+                    tabIndex={accessPreviewLocked ? -1 : undefined}
+                    className={
+                      'mt-1.5 w-full rounded-lg border border-slate-200/90 bg-white py-1.5 text-center text-[10px] font-semibold text-[#003366] transition hover:bg-slate-50 ' +
+                      (accessPreviewLocked ? 'pointer-events-none opacity-90' : '')
+                    }
                     aria-expanded={walletKonzeptOpen}
                     aria-controls="login-eu-wallet-konzept-ablauf"
                   >
@@ -410,7 +591,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setWalletInfoOpen((p) => !p)}
-                className="mt-2 inline-flex min-h-[34px] w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] transition hover:bg-slate-50 sm:mt-2.5"
+                tabIndex={accessPreviewLocked ? -1 : undefined}
+                className={
+                  'mt-2 inline-flex min-h-[34px] w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] transition hover:bg-slate-50 sm:mt-2.5 ' +
+                  (accessPreviewLocked ? 'pointer-events-none opacity-90' : '')
+                }
                 aria-expanded={walletInfoOpen}
                 aria-controls="login-eu-wallet-info"
               >
@@ -452,7 +637,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               ) : null}
             </div>
 
-            <div className={accessPathCardClass}>
+            <div
+              ref={trustCardRef}
+              className={`${accessPathCardClass} transition-shadow duration-300 ${
+                accessGuidedSpot === 'card-trust'
+                  ? 'intro-login-heartbeat ring-2 ring-[#7AA4D8] shadow-[0_0_0_3px_rgba(122,164,216,0.22)]'
+                  : ''
+              }`}
+            >
               <div className="flex items-start justify-between gap-2">
                 <span
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white text-[10px] font-bold text-neutral-600"
@@ -476,8 +668,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    handleDemoModeClick();
-                    handleProceedToApp();
+                    if (accessAutoAfterSpeechTimerRef.current != null) {
+                      window.clearTimeout(accessAutoAfterSpeechTimerRef.current);
+                      accessAutoAfterSpeechTimerRef.current = null;
+                    }
+                    introSpeakRef.current?.stopIntroSpeech();
+                    finishAccessGuidedAndEnterApp();
                   }}
                   className="inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-xl bg-[#003D80] px-3 text-[12px] font-bold tracking-[0.01em] text-white shadow-[0_4px_14px_rgba(0,61,128,0.28)] transition hover:bg-[#00366f] active:scale-[0.99]"
                 >

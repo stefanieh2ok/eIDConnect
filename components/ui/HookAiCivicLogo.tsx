@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 
 type LogoVariant = 'light' | 'dark' | 'onBlue' | 'icon';
 
@@ -18,6 +17,7 @@ const SRC_BY_VARIANT: Record<LogoVariant, string> = {
   icon: '/brand/icon-only.svg?v=20260428c',
 };
 
+/** Intrinsisches Seitenverhältnis für Layout/CLS; Darstellung steuert CSS (`className` Höhe/Breite). */
 const DIMENSIONS_BY_VARIANT: Record<LogoVariant, { width: number; height: number }> = {
   light: { width: 980, height: 220 },
   dark: { width: 600, height: 140 },
@@ -32,14 +32,14 @@ export default function HookAiCivicLogo({
 }: HookAiCivicLogoProps) {
   const dimensions = DIMENSIONS_BY_VARIANT[variant];
   return (
-    <Image
+    <img
       src={SRC_BY_VARIANT[variant]}
       alt={alt}
       width={dimensions.width}
       height={dimensions.height}
-      className={`block h-auto w-auto object-contain ${className}`}
-      priority
-      unoptimized
+      decoding="async"
+      fetchPriority="high"
+      className={`block h-auto max-h-none w-auto object-contain ${className}`}
     />
   );
 }

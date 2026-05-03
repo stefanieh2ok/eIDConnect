@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
@@ -47,6 +47,8 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
   const router = useRouter();
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
+  const [accessBusy, setAccessBusy] = useState(false);
+  const accessErrorRef = useRef<HTMLParagraphElement | null>(null);
 
   const [requestName, setRequestName] = useState('');
   const [requestEmail, setRequestEmail] = useState('');
@@ -58,12 +60,29 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
 
   const handleZugang = () => {
     setError('');
+    const raw = input.trim();
     const token = extractAccessToken(input);
     if (!token) {
-      setError('Bitte füge den kompletten Link ein oder gib den Zugangscode ein.');
+      const pathOnly = raw.replace(/[#?].*$/, '').trim();
+      const looksIncomplete =
+        /\/acce([^s]|$)/i.test(pathOnly) ||
+        /\/acces([^s]|$)/i.test(pathOnly) ||
+        /\/access\/?$/i.test(pathOnly) ||
+        (/\/access\//i.test(pathOnly) && !/\/access\/[a-zA-Z0-9_-]{6,}/i.test(pathOnly));
+      setError(
+        looksIncomplete
+          ? 'Der Link wirkt unvollständig. Bitte den gesamten Zugangslink aus der E-Mail kopieren (Pfad muss …/access/… mit Code enthalten).'
+          : 'Bitte den kompletten Link einfügen oder den Zugangscode eingeben (z. B. dm_… oder der Teil nach /access/).',
+      );
+      queueMicrotask(() => accessErrorRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
       return;
     }
-    router.push(`/access/${token}`);
+    setAccessBusy(true);
+    try {
+      router.push(`/access/${token}`);
+    } finally {
+      setTimeout(() => setAccessBusy(false), 1500);
+    }
   };
 
   const handleRequestAccess = async (e: React.FormEvent) => {
@@ -203,18 +222,25 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
               setInput(e.target.value);
               setError('');
             }}
-            onKeyDown={(e) => e.key === 'Enter' && handleZugang()}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter') return;
+              e.preventDefault();
+              handleZugang();
+            }}
             className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3.5 text-base text-neutral-900 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-200"
           />
           {error ? (
-            <p className="text-sm text-red-600">{error}</p>
+            <p ref={accessErrorRef} className="text-sm text-red-600" role="alert">
+              {error}
+            </p>
           ) : null}
           <button
             type="button"
             onClick={handleZugang}
-            className="w-full py-3.5 rounded-xl font-semibold text-white bg-neutral-900 hover:bg-neutral-800 active:bg-neutral-700 transition-colors touch-manipulation"
+            disabled={accessBusy}
+            className="w-full rounded-xl bg-neutral-900 py-3.5 font-semibold text-white transition-colors hover:bg-neutral-800 active:bg-neutral-700 disabled:opacity-70 touch-manipulation"
           >
-            Zugang öffnen
+            {accessBusy ? 'Weiterleitung…' : 'Zugang öffnen'}
           </button>
         </div>
 

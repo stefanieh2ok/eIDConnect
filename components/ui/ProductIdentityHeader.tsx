@@ -21,10 +21,10 @@ export default function ProductIdentityHeader({
 
   const logoVariant = isOnBlue ? 'onBlue' : isDark ? 'dark' : 'light';
   const logoClass = isDark
-    ? 'h-[24px] w-auto max-w-[174px]'
+    ? 'h-[28px] w-auto max-w-[200px] sm:h-[30px] sm:max-w-[220px]'
     : isOnBlue
-      ? 'h-[20px] w-auto max-w-[156px] sm:h-[22px] sm:max-w-[168px]'
-      : 'h-[22px] w-auto max-w-[164px]';
+      ? 'h-[26px] w-auto max-w-[200px] sm:h-[30px] sm:max-w-[220px]'
+      : 'h-[36px] w-auto max-w-[min(300px,calc(100vw-10.5rem))] sm:h-[38px] sm:max-w-[320px]';
 
   return (
     <div className={`min-w-0 ${className}`}>

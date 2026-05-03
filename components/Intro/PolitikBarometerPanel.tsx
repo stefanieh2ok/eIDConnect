@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { THEME_NAMES } from '@/data/constants';
 import type { UserPreferences } from '@/types';
@@ -19,26 +19,6 @@ const HERO_PREVIEW_INITIAL: UserPreferences = {
   soziales: 0,
   sicherheit: 0,
 };
-
-const HERO_PREVIEW_TARGET: UserPreferences = {
-  umwelt: 50,
-  finanzen: 80,
-  bildung: 50,
-  digital: 90,
-  soziales: 50,
-  sicherheit: 50,
-};
-
-function scaleHeroPreviewValues(progress: number): UserPreferences {
-  return {
-    umwelt: Math.round(HERO_PREVIEW_TARGET.umwelt * progress),
-    finanzen: Math.round(HERO_PREVIEW_TARGET.finanzen * progress),
-    bildung: Math.round(HERO_PREVIEW_TARGET.bildung * progress),
-    digital: Math.round(HERO_PREVIEW_TARGET.digital * progress),
-    soziales: Math.round(HERO_PREVIEW_TARGET.soziales * progress),
-    sicherheit: Math.round(HERO_PREVIEW_TARGET.sicherheit * progress),
-  };
-}
 
 /**
  * Politikbarometer (Themenkompass): selbst gewählte Interessenschwerpunkte für
@@ -64,6 +44,8 @@ type Props = {
   editableWithoutConsent?: boolean;
   /** Walkthrough: nur Schieberegler-Chips, kein Fließtext — eine Idee pro Karte. */
   heroPreview?: boolean;
+  /** Walkthrough: einmal nach Abschluss der lokalen Vorschau-Animation (letzter Regler sichtbar). */
+  onHeroPreviewVisualDone?: () => void;
 };
 
 export default function PolitikBarometerPanel({
@@ -77,9 +59,13 @@ export default function PolitikBarometerPanel({
   density = 'default',
   editableWithoutConsent = false,
   heroPreview = false,
+  onHeroPreviewVisualDone,
 }: Props) {
   const { state, dispatch } = useApp();
   const [heroPreviewValues, setHeroPreviewValues] = useState<UserPreferences | null>(null);
+  const visualDoneFiredRef = useRef(false);
+  const onVisualDoneRef = useRef(onHeroPreviewVisualDone);
+  onVisualDoneRef.current = onHeroPreviewVisualDone;
   const compact = variant === 'compact';
   const tight = density === 'tight';
   const canEditPreferences = true;
@@ -102,35 +88,69 @@ export default function PolitikBarometerPanel({
     dispatch({ type: 'SET_PREFERENCES', payload: { [key]: value } });
   };
 
-  /** Walkthrough: lokale Wertfolge, damit der erste Schritt auch beim Erst-Mount sichtbar animiert. */
+  /** Walkthrough: lokale Vorschau — Regler nacheinander 0 → Ziel, mit Zwischenstufen; kein SET_PREFERENCES. */
   useEffect(() => {
     if (!heroPreview) {
       setHeroPreviewValues(null);
+      visualDoneFiredRef.current = false;
       return;
     }
-    setHeroPreviewValues(HERO_PREVIEW_INITIAL);
-    let tick: number | null = null;
-    const start = window.setTimeout(() => {
-      const startedAt = performance.now();
-      const durationMs = 900;
-      tick = window.setInterval(() => {
-        const progress = Math.min(1, (performance.now() - startedAt) / durationMs);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        setHeroPreviewValues(scaleHeroPreviewValues(eased));
-        if (progress >= 1) {
-          if (tick != null) {
-            window.clearInterval(tick);
-            tick = null;
-          }
-          setHeroPreviewValues(HERO_PREVIEW_TARGET);
-        }
-      }, 50);
-    }, 180);
-    return () => {
-      window.clearTimeout(start);
-      if (tick != null) {
-        window.clearInterval(tick);
+    visualDoneFiredRef.current = false;
+    const zeros: UserPreferences = { ...HERO_PREVIEW_INITIAL };
+    setHeroPreviewValues(zeros);
+
+    const SLIDE_MS = 420;
+    const PAUSE_MS = 150;
+    const STEPS = 10;
+    const INITIAL_DELAY_MS = 200;
+    const sequence: { key: keyof UserPreferences; target: number }[] = [
+      { key: 'digital', target: 90 },
+      { key: 'finanzen', target: 80 },
+      { key: 'bildung', target: 50 },
+      { key: 'umwelt', target: 50 },
+      { key: 'soziales', target: 50 },
+      { key: 'sicherheit', target: 50 },
+    ];
+
+    const timers: number[] = [];
+    const schedule = (fn: () => void, ms: number) => {
+      timers.push(window.setTimeout(fn, ms));
+    };
+
+    const buildState = (keyIndex: number, activeKey: keyof UserPreferences, activeValue: number): UserPreferences => {
+      const out: UserPreferences = { ...HERO_PREVIEW_INITIAL };
+      for (let i = 0; i < keyIndex; i++) {
+        const k = sequence[i]!.key;
+        out[k] = sequence[i]!.target;
       }
+      out[activeKey] = activeValue;
+      return out;
+    };
+
+    let cursor = INITIAL_DELAY_MS;
+    let lastStepEndMs = cursor;
+
+    sequence.forEach((item, keyIndex) => {
+      const { key, target } = item;
+      for (let s = 1; s <= STEPS; s++) {
+        const ms = cursor + (s / STEPS) * SLIDE_MS;
+        const value = Math.round((target * s) / STEPS);
+        schedule(() => {
+          setHeroPreviewValues(buildState(keyIndex, key, value));
+        }, ms);
+      }
+      lastStepEndMs = cursor + SLIDE_MS;
+      cursor += SLIDE_MS + PAUSE_MS;
+    });
+
+    schedule(() => {
+      if (visualDoneFiredRef.current) return;
+      visualDoneFiredRef.current = true;
+      onVisualDoneRef.current?.();
+    }, lastStepEndMs + 30);
+
+    return () => {
+      for (const id of timers) window.clearTimeout(id);
     };
   }, [heroPreview]);
 
@@ -261,7 +281,7 @@ export default function PolitikBarometerPanel({
               }`}
               style={{
                 ...sliderTrackStyle(displayedPreferences[key as keyof UserPreferences]),
-                transition: heroPreview ? 'background 260ms ease' : undefined,
+                transition: heroPreview ? 'background 400ms ease-out' : undefined,
                 opacity: canEditPreferences ? 1 : 0.55,
                 cursor: canEditPreferences ? 'pointer' : 'not-allowed',
               }}

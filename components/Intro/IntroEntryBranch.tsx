@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   INTRO_ENTRY_DIRECT,
   INTRO_ENTRY_SHORT_DU,
@@ -11,7 +11,7 @@ import {
   INTRO_SPOKEN_ENTRY_SIE,
 } from '@/data/introOverlayMarketing';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
-import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
+import { useIntroIsSpeaking, useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 
 type Props = {
@@ -35,38 +35,85 @@ export function IntroEntryBranch({
 }: Props) {
   /** Stabile API — nicht `useOptionalIntroOverlay()` (merged Objekt wechselt bei jedem TTS-Tick → Effect-Sturm). */
   const speakApi = useIntroSpeakApi();
+  const speakApiRef = useRef(speakApi);
+  speakApiRef.current = speakApi;
+  const isIntroSpeaking = useIntroIsSpeaking();
   const entryIntroPlayedRef = useRef(false);
+  const wasSpeakingRef = useRef(false);
+  const entrySpeechHeardRef = useRef(false);
+  const userInteractedRef = useRef(false);
+  const [primaryPulse, setPrimaryPulse] = useState(false);
+  const autoTimersRef = useRef<number[]>([]);
+
+  const clearAuto = useCallback(() => {
+    for (const id of autoTimersRef.current) window.clearTimeout(id);
+    autoTimersRef.current = [];
+  }, []);
 
   useEffect(() => {
     if (!open) {
       entryIntroPlayedRef.current = false;
+      wasSpeakingRef.current = false;
+      entrySpeechHeardRef.current = false;
+      userInteractedRef.current = false;
+      setPrimaryPulse(false);
+      clearAuto();
     }
-  }, [open]);
+  }, [open, clearAuto]);
 
   const speakEntry = useCallback(() => {
-    if (!speakApi) return;
+    const api = speakApiRef.current;
+    if (!api) return;
     const parts = du ? [...INTRO_SPOKEN_ENTRY_DU] : [...INTRO_SPOKEN_ENTRY_SIE];
-    speakApi.stopIntroSpeech();
-    speakApi.speakIntroParts(parts, 'intro-entry-1');
+    api.stopIntroSpeech();
+    api.speakIntroParts(parts, 'intro-entry-1');
     entryIntroPlayedRef.current = true;
-  }, [du, speakApi]);
+  }, [du]);
 
-  /** Früher Start auch auf Mobile, damit Clara direkt einführt. */
+  /** Ein Timer: Clara ~1 s nach Öffnen, ohne Warten auf Geste. */
   useEffect(() => {
-    if (!open || !speakApi) return;
-    if (!speakApi.readAloud) {
-      speakApi.stopIntroSpeech();
+    if (!open || !speakApiRef.current) return;
+    if (!speakApiRef.current.readAloud) {
+      speakApiRef.current.stopIntroSpeech();
       return;
     }
     if (entryIntroPlayedRef.current) return;
     const t = window.setTimeout(() => {
       if (entryIntroPlayedRef.current) return;
       speakEntry();
-    }, 450);
+    }, 1000);
     return () => {
       clearTimeout(t);
     };
-  }, [open, speakApi, speakApi?.readAloud, speakEntry]);
+  }, [open, speakApi?.readAloud, speakEntry]);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = wasSpeakingRef.current;
+    wasSpeakingRef.current = isIntroSpeaking;
+    if (entryIntroPlayedRef.current && isIntroSpeaking) {
+      entrySpeechHeardRef.current = true;
+    }
+    if (
+      !entryIntroPlayedRef.current ||
+      userInteractedRef.current ||
+      !speakApiRef.current?.readAloud ||
+      !prev ||
+      isIntroSpeaking
+    ) {
+      return;
+    }
+    if (!entrySpeechHeardRef.current) return;
+    entrySpeechHeardRef.current = false;
+    clearAuto();
+    setPrimaryPulse(true);
+    autoTimersRef.current.push(
+      window.setTimeout(() => {
+        setPrimaryPulse(false);
+        onStart();
+      }, 400),
+    );
+  }, [isIntroSpeaking, open, speakApi?.readAloud, onStart, clearAuto]);
 
   if (!open) return null;
 
@@ -93,7 +140,13 @@ export function IntroEntryBranch({
           onPointerDownCapture={(e) => {
             const t = e.target as HTMLElement;
             if (t.closest('.intro-meta-strip')) return;
-            if (!speakApi?.readAloud) return;
+            if (t.closest('.intro-entry-bottom-room button')) {
+              userInteractedRef.current = true;
+              clearAuto();
+              setPrimaryPulse(false);
+              return;
+            }
+            if (!speakApiRef.current?.readAloud) return;
             if (entryIntroPlayedRef.current) return;
             speakEntry();
           }}
@@ -102,6 +155,7 @@ export function IntroEntryBranch({
             surface="light"
             stepNumber={null}
             showClaraVoice
+            inlinePad="card"
             onClose={onDirectToApp}
             onSkip={onDirectToApp}
           />
@@ -117,14 +171,26 @@ export function IntroEntryBranch({
           <div className="intro-entry-bottom-room flex flex-col gap-2 px-4 pt-2 sm:px-6">
             <button
               type="button"
-              onClick={onStart}
-              className="btn-primary t-button w-full min-h-[48px]"
+              onClick={() => {
+                userInteractedRef.current = true;
+                clearAuto();
+                setPrimaryPulse(false);
+                speakApiRef.current?.stopIntroSpeech();
+                onStart();
+              }}
+              className={'btn-primary t-button w-full min-h-[48px] ' + (primaryPulse ? 'footer-heartbeat' : '')}
             >
               {INTRO_ENTRY_START}
             </button>
             <button
               type="button"
-              onClick={onDirectToApp}
+              onClick={() => {
+                userInteractedRef.current = true;
+                clearAuto();
+                setPrimaryPulse(false);
+                speakApiRef.current?.stopIntroSpeech();
+                onDirectToApp();
+              }}
               className="btn-secondary t-button min-h-[48px] w-full"
             >
               {INTRO_ENTRY_DIRECT}

@@ -513,10 +513,11 @@ const AppHeader: React.FC = () => {
         paddingTop: 'max(0.6rem, env(safe-area-inset-top, 0.6rem))',
       }}
     >
-      {/* ── Row 1: Brand + Aktionen ── */}
-      <div className="flex items-start justify-between gap-2 px-4 pb-2 pt-1">
-        <div className="min-w-0 flex-1 pr-2">
-          <ProductIdentityHeader className="shrink-0" />
+      {/* ── Row 1: Brand + Aktionen ──
+          Gleiche horizontale Ränder wie die blaue Tab-Zeile, damit das Wordmark über „Abstimmen“ wirkt. */}
+      <div className="flex items-center justify-between gap-2 px-0.5 pb-2 pt-1 sm:px-2">
+        <div className="min-w-0 flex-1 pr-1 sm:pr-2">
+          <ProductIdentityHeader className="max-w-full shrink-0" />
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <button

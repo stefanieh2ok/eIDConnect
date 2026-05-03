@@ -869,6 +869,22 @@ body {
   animation: footerHeartbeat 3.2s ease-in-out infinite;
 }
 
+/* Walkthrough Wahlen: Erststimme-Markierung sichtbar einzeichnen (nur Vorschau). */
+@keyframes intro-wahlen-mark-draw {
+  0% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.intro-wahlen-mark-draw {
+  display: inline-block;
+  animation: intro-wahlen-mark-draw 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 /* Header Heartbeat – Glow nach unten (nach Footer-Phase) */
 @keyframes headerHeartbeat {
   0%, 100% { box-shadow: 0 0 0 rgba(37, 99, 235, 0); }
@@ -1570,6 +1586,18 @@ body {
   border-bottom-color: rgba(15, 23, 42, 0.12);
 }
 
+/* Meta-Leiste: gleiche horizontale Kanten wie Karteninhalt (Tailwind px-4 / sm:px-5). */
+.intro-meta-strip.intro-meta-strip--pad-card {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .intro-meta-strip.intro-meta-strip--pad-card {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+}
+
 /* Intro: einmaliger, dezenter Leuchtrand wenn Claras TTS startet (Audio-Status-Button) */
 @keyframes intro-audio-glow {
   0% {
@@ -1897,7 +1925,8 @@ body {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 12;
+  /* Über dem Inhalt zeichnen, Eingaben bleiben darunter (siehe IphoneFrame DOM-Reihenfolge). */
+  z-index: 5;
   overflow: hidden;
 }
 

@@ -25,6 +25,8 @@ type Props = {
   showClaraVoice?: boolean;
   /** `light` für weiße Intro-Kachel (Kontrast wie Lautsprecher auf hell). */
   surface?: 'dark' | 'light';
+  /** Horizontale Innenabstände wie Karteninhalt (px-4 / sm:px-5). */
+  inlinePad?: 'none' | 'card';
   /**
    * @deprecated Framing-Texte leben in den eigentlichen Intro-Inhalten, nicht
    * mehr im oberen weißen Streifen.
@@ -41,6 +43,7 @@ export default function IntroMetaStrip({
   closeAriaLabel,
   showClaraVoice = false,
   surface = 'dark',
+  inlinePad = 'none',
 }: Props) {
   const onExit = onClose ?? onSkip;
   const exitAria = closeAriaLabel ?? 'Einführung beenden';
@@ -50,7 +53,8 @@ export default function IntroMetaStrip({
     <div
       className={
         'intro-meta-strip flex-shrink-0 font-sans antialiased [font-synthesis:none]' +
-        (onLight ? ' intro-meta-strip--on-light' : '')
+        (onLight ? ' intro-meta-strip--on-light' : '') +
+        (inlinePad === 'card' ? ' intro-meta-strip--pad-card' : '')
       }
     >
       <div className="flex min-w-0 max-w-full items-center justify-between gap-2">

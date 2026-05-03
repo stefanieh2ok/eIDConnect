@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { SectionLevelFilterIcon, selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
 import { activeLocationForLevel } from '@/lib/activeLocationForLevel';
 import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
 
@@ -27,10 +26,9 @@ type StatusFilter = 'alle' | MeldungsStatus;
 
 function demoMeldungenForGemeinde(gemeinde: string) {
   return [
-    { id: 1, titel: 'Schlagloch Hauptstraße Ecke Bahnhofstr.', ort: gemeinde, datum: '20.03.2026', status: 'in_bearbeitung' as const },
-    { id: 2, titel: 'Defektes Spielgerät auf dem Spielplatz', ort: gemeinde, datum: '18.03.2026', status: 'offen' as const },
-    { id: 3, titel: 'Straßenlaterne ausgefallen Waldstr.', ort: gemeinde, datum: '15.03.2026', status: 'erledigt' as const },
-    { id: 4, titel: 'Überwucherter Gehweg am Gemeindezentrum', ort: gemeinde, datum: '10.03.2026', status: 'erledigt' as const },
+    { id: 1, titel: 'Schlagloch Hauptstraße', ort: gemeinde, datum: '20.03.2026', status: 'in_bearbeitung' as const },
+    { id: 2, titel: 'Defektes Spielgerät auf Spielplatz', ort: gemeinde, datum: '18.03.2026', status: 'offen' as const },
+    { id: 3, titel: 'Straßenlaterne ausgefallen', ort: gemeinde, datum: '15.03.2026', status: 'erledigt' as const },
   ];
 }
 
@@ -214,46 +212,23 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
         isWalkthroughFilmMode ? 'walkthrough-meldungen-film' : ''
       } ${shellClass}`}
     >
-      {!isWalkthroughFilmMode && !embeddedInWalkthrough ? (
-        <div className={`flex items-start justify-between ${embeddedInWalkthrough ? 'mb-2' : 'mb-3'}`}>
-          <div className="t-meta mt-0.5">
-            {selectionLabelForSection('meldungen', state.activeLocation, state.residenceLocation)}
-          </div>
-          <SectionLevelFilterIcon section="meldungen" />
-        </div>
-      ) : null}
-      {/* Intro-Info, bewusst ruhig statt herohaft */}
-      {!isWalkthroughFilmMode && !embeddedInWalkthrough ? (
-        <div className={embeddedInWalkthrough ? 'card-content mb-3 p-4' : 'card-content mb-4 p-4'}>
-          <div className="mb-2 inline-flex items-center rounded-full border border-[#CFE0F7] bg-[#F4F8FE] px-2.5 py-1 text-[10px] font-semibold text-[#1F4F8A]">
-            Kommunaler Service
-          </div>
-          <p className="t-body-sm">
-            {du
-              ? `Melde Probleme oder Anliegen direkt an die Gemeindeverwaltung ${gemeinde}.`
-              : `Hinweise und Anliegen können direkt an die Gemeindeverwaltung ${gemeinde} gesendet werden.`}
-          </p>
-        </div>
-      ) : null}
-
       {/* Step: Kategorie wählen */}
       {step === 'kategorie' && (
-        <div className="card-content p-3 pb-24">
-          <p className="mb-2.5 text-sm font-semibold text-[#1A2B45]">
+        <div className="card-content p-2.5 pb-24">
+          <p className="mb-2 text-sm font-semibold text-[#1A2B45]">
             {du ? 'Was möchtest du melden?' : 'Was möchten Sie melden?'}
           </p>
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {KATEGORIEN.map((k) => (
               <button
                 key={k.id}
                 onClick={() => { setKategorie(k.id); setStep('details'); }}
-                className="card-compact group min-h-[68px] w-full text-left transition-all hover:border-[#8EB1DE] hover:bg-[#FBFDFF] hover:shadow-md active:translate-y-[1px] active:border-[#78D9D0] active:bg-[#F3FCFB]"
+                className="card-compact group min-h-[48px] w-full text-left transition-all hover:border-[#8EB1DE] hover:bg-[#FBFDFF] hover:shadow-md active:translate-y-[1px] active:border-[#78D9D0] active:bg-[#F3FCFB]"
                 style={{ borderColor: 'var(--gov-border, #D6E0EE)' }}
               >
                 <div className="flex items-center justify-between gap-3">
-                  <div>
+                  <div className="min-w-0">
                     <div className="text-[14px] font-semibold leading-snug text-[#1A2B45]">{k.label}</div>
-                    <div className="mt-0.5 text-xs text-gray-500">{k.hint}</div>
                   </div>
                   <span className="text-sm font-semibold text-neutral-400 transition-colors group-hover:text-[#1F4F8A]" aria-hidden>
                     &rsaquo;
@@ -265,15 +240,18 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
 
           {/* Letzte Meldungen (Demo) */}
           <div className="mt-5 rounded-xl border border-neutral-200 bg-[#FBFCFF] p-2.5">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                Aktuelle Meldungen in {gemeinde}
-              </p>
+            <div className="mb-2 space-y-1.5">
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                  Aktuelle Meldungen
+                </p>
+                <p className="mt-0.5 text-xs font-semibold text-[#1A2B45]">{gemeinde}</p>
+              </div>
               <div className="flex items-center gap-1 rounded-full border border-[#D6E0EE] bg-white p-1">
                 {[
                   { id: 'alle', label: 'Alle' },
                   { id: 'offen', label: 'Offen' },
-                  { id: 'in_bearbeitung', label: 'In Bearb.' },
+                  { id: 'in_bearbeitung', label: 'In Bearbeitung' },
                   { id: 'erledigt', label: 'Erledigt' },
                 ].map((option) => {
                   const active = statusFilter === option.id;
@@ -282,7 +260,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                       key={option.id}
                       type="button"
                       onClick={() => setStatusFilter(option.id as StatusFilter)}
-                      className="rounded-full px-2 py-1 text-[10px] font-semibold transition-colors"
+                      className="rounded-full px-2 py-1 text-[9.5px] font-semibold transition-colors"
                       style={
                         active
                           ? {
@@ -322,7 +300,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                   {m.status === 'offen'
                     ? 'Offen'
                     : m.status === 'in_bearbeitung'
-                    ? 'In Bearb.'
+                    ? 'In Bearbeitung'
                     : 'Erledigt'}
                 </span>
                 <div className="flex-1 min-w-0">
@@ -403,16 +381,15 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                       : 'Bitte beschreiben Sie das Problem so genau wie möglich...'
                   }
                   className={
-                    'form-textarea w-full resize-none text-[14px] leading-[1.45] [font-family:inherit] tracking-normal ' +
+                    'form-textarea w-full resize-none [font-family:inherit] tracking-normal ' +
                     (showDemoCaret ? 'text-transparent caret-transparent' : '')
                   }
-                  style={{ padding: '0.75rem 0.875rem' }}
                 />
                 {showDemoCaret ? (
                   <div
-                    className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-[14px] leading-[1.45] [font-family:inherit] tracking-normal text-[#1A2B45]"
+                    className="pointer-events-none absolute inset-0 rounded-2xl whitespace-pre-wrap break-words text-[15px] leading-[22px] [font-family:inherit] tracking-normal text-[#1A2B45]"
                     aria-hidden
-                    style={{ padding: '0.75rem 0.875rem' }}
+                    style={{ padding: '14px' }}
                   >
                     {beschreibung}
                     <span className="intro-typewriter-caret ml-px inline-block h-[1em] w-[2px] bg-[#0055A4]" />
@@ -426,25 +403,24 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                 {isWalkthroughFilmMode ? 'Standort / Adresse' : 'Standort / Adresse (optional)'}
               </label>
               <div className="flex gap-2">
-                <div className="relative flex-1">
+                <div className="relative min-h-0 flex-1">
                   <input
                     type="text"
                     value={adresse}
                     onChange={(e) => setAdresse(e.target.value)}
                     placeholder={`z. B. Hauptstraße 12, ${gemeinde}`}
                     className={
-                      'form-input w-full text-[14px] leading-[1.45] [font-family:inherit] tracking-normal ' +
+                      'form-input w-full [font-family:inherit] tracking-normal ' +
                       (showDemoAddressCaret ? 'text-transparent caret-transparent' : '')
                     }
                   />
                   {showDemoAddressCaret ? (
                     <div
-                      className="pointer-events-none absolute inset-0 truncate text-[14px] leading-[1.45] [font-family:inherit] tracking-normal text-[#1A2B45]"
+                      className="pointer-events-none absolute inset-0 flex min-h-[48px] items-center overflow-x-auto whitespace-nowrap rounded-[14px] px-[14px] text-[15px] leading-5 [font-family:inherit] tracking-normal text-[#1A2B45] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                       aria-hidden
-                      style={{ padding: '0.625rem 0.75rem' }}
                     >
                       {adresse}
-                      <span className="intro-typewriter-caret ml-px inline-block h-[1em] w-[2px] bg-[#0055A4]" />
+                      <span className="intro-typewriter-caret ml-px inline-block h-[1em] w-[2px] shrink-0 bg-[#0055A4]" />
                     </div>
                   ) : null}
                 </div>
@@ -507,16 +483,30 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
               ) : null}
 
               {showDemoUpload && demoUploaded ? (
-                <div className={isWalkthroughFilmMode ? 'space-y-1' : 'space-y-1.5'}>
+                <div className={isWalkthroughFilmMode ? 'space-y-1.5' : 'space-y-1.5'}>
                   {demoPhotoLabel ? (
                     <div className="text-[10px] font-semibold text-emerald-800">Foto hinzugefügt</div>
                   ) : null}
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <div className="intro-upload-pop relative overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                  <div
+                    className={
+                      isWalkthroughFilmMode
+                        ? 'flex justify-center pt-0.5'
+                        : 'grid grid-cols-3 gap-1.5'
+                    }
+                  >
+                    <div
+                      className={
+                        'intro-upload-pop relative overflow-hidden rounded-xl border border-neutral-200 bg-white ' +
+                        (isWalkthroughFilmMode ? 'w-full max-w-[280px] shadow-sm' : '')
+                      }
+                    >
                       <button
                         type="button"
                         onClick={() => setDemoImageZoom((z) => !z)}
-                        className={`relative block w-full overflow-hidden ${isWalkthroughFilmMode ? 'h-20' : 'h-20'}`}
+                        className={
+                          'relative block w-full overflow-hidden ' +
+                          (isWalkthroughFilmMode ? 'h-[200px]' : 'h-20')
+                        }
                         title="Bild vergrößern"
                       >
                         <img
@@ -531,7 +521,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                     </div>
                   </div>
                   {demoFinalReady ? (
-                    <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700">
+                    <div className="mt-0.5 inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700">
                       Bereit zur Weiterleitung
                     </div>
                   ) : null}

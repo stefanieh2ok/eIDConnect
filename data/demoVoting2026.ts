@@ -220,10 +220,10 @@ export function regionalPraemienForCity(cityName: string) {
       },
       {
         id: 'rk3',
-        name: 'Kino im Saarpfalz-Kreis – Gutschein 2 Personen',
+        name: 'CineStar Saarbrücken – Kinogutschein 2 Personen',
         points: 4200,
         emoji: '🎬',
-        description: 'Kinogutschein regional einlösbar',
+        description: 'Kinogutschein für CineStar Saarbrücken',
       },
       {
         id: 'rk4',

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useIntroIsSpeaking, useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { activeLocationForLevel } from '@/lib/activeLocationForLevel';
@@ -273,10 +273,6 @@ function IntroAbstimmenWalkthroughDemo({
 
 function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
   const btw = useMemo(() => WAHLEN_DATA.find((w) => w.id === 'btw25'), []);
-  const merz = useMemo(
-    () => btw?.kandidaten?.find((k) => /Friedrich\s+Merz/i.test(k.name)) ?? btw?.kandidaten?.[0],
-    [btw],
-  );
   const cdu = useMemo(
     () => btw?.parteien?.find((p) => /CDU/i.test(p.name)) ?? btw?.parteien?.[0],
     [btw],
@@ -292,18 +288,25 @@ function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
   const sourcePdfUrl =
     'https://www.cdu.de/app/uploads/2025/01/km_btw_2025_wahlprogramm_langfassung_ansicht.pdf';
 
+  /** Cross-Zeichnung 480 ms, danach Pause, dann Programm, dann Quellen-Hervorhebung, dann visual-ready. */
+  const CROSS_ANIM_MS = 480;
+  const PAUSE_AFTER_CROSS_MS = 200;
+  const PAUSE_BEFORE_SOURCE_MS = 420;
+  const HOLD_SOURCE_MS = 400;
+
   useEffect(() => {
     doneRef.current = false;
     setPhase('idle');
-    const t0 = window.setTimeout(() => setPhase('focus'), 650);
-    const t1 = window.setTimeout(() => setPhase('tick'), 980);
-    const t2 = window.setTimeout(() => setPhase('program'), 1380);
-    const t3 = window.setTimeout(() => setPhase('source'), 1700);
+    const t0 = window.setTimeout(() => setPhase('focus'), 380);
+    const t1 = window.setTimeout(() => setPhase('tick'), 820);
+    const tProgram = 820 + CROSS_ANIM_MS + PAUSE_AFTER_CROSS_MS;
+    const t2 = window.setTimeout(() => setPhase('program'), tProgram);
+    const t3 = window.setTimeout(() => setPhase('source'), tProgram + PAUSE_BEFORE_SOURCE_MS);
     const t4 = window.setTimeout(() => {
       if (doneRef.current) return;
       doneRef.current = true;
       onDoneRef.current();
-    }, 1900);
+    }, tProgram + PAUSE_BEFORE_SOURCE_MS + HOLD_SOURCE_MS);
     return () => {
       window.clearTimeout(t0);
       window.clearTimeout(t1);
@@ -322,67 +325,81 @@ function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[420px]">
-      <div className="rounded-2xl border border-[#D6E0EE] bg-white shadow-sm">
-        <div className="border-b border-[#E6EDF7] px-4 pb-2 pt-3">
-          <div className="text-[11px] font-bold tracking-tight text-[#003366]">Wahlen</div>
-          <div className="mt-0.5 text-[12px] font-bold text-[#1A2B45]">{btw.name}</div>
-          <div className="mt-0.5 text-[10px] font-medium text-neutral-500">
+    <div className="mx-auto w-full max-w-full min-w-0">
+      <div className="rounded-xl border border-[#D6E0EE] bg-white shadow-sm sm:rounded-2xl">
+        <div className="border-b border-[#E6EDF7] px-3 pb-1.5 pt-2 sm:px-3.5 sm:pt-2.5">
+          <div className="text-[12px] font-bold tracking-tight text-[#003366]">Wahlen</div>
+          <div className="mt-0.5 text-[13px] font-bold leading-snug text-[#1A2B45] sm:text-[14px]">{btw.name}</div>
+          <div className="mt-0.5 text-[11px] font-medium leading-snug text-neutral-600">
             Vorschau · {btw.datum} · {btw.wahlkreis}
           </div>
         </div>
 
-        <div className="px-4 pb-3 pt-3">
-          <div className="overflow-hidden rounded-lg border border-neutral-800/40 bg-[#FFF4A8] px-2 pb-1.5 pt-1.5 shadow-sm">
-            <p className="text-[7px] font-bold tracking-[0.12em] text-neutral-900">STIMMZETTEL</p>
-            <p className="mt-0.5 text-[7.5px] font-bold leading-tight text-neutral-900">{btw.name}</p>
-            <p className="text-[6px] font-semibold leading-snug text-neutral-800">
+        <div className="px-2.5 pb-2 pt-2 sm:px-3 sm:pb-2.5 sm:pt-2.5">
+          <div className="rounded-lg border border-neutral-800/45 bg-[#FFF4A8] px-2 py-2 shadow-sm sm:px-2.5 sm:py-2.5">
+            <p className="text-[9px] font-bold tracking-[0.1em] text-neutral-900 sm:text-[10px]">STIMMZETTEL</p>
+            <p className="mt-0.5 text-[11px] font-bold leading-tight text-neutral-900 sm:text-[12px]">{btw.name}</p>
+            <p className="text-[9px] font-semibold leading-snug text-neutral-800 sm:text-[10px]">
               {btw.datum} · {btw.wahlkreis}
             </p>
-            <div className="mt-1.5 border-t border-black/25 pt-1">
-              <p className="text-[6px] font-bold uppercase tracking-wide text-neutral-800">Erststimme · Bewerber</p>
-              <div className="mt-1 space-y-0.5">
+            <div className="mt-2 border-t border-black/25 pt-1.5">
+              <p className="text-[9px] font-bold uppercase tracking-wide text-neutral-800 sm:text-[10px]">
+                Erststimme · Bewerber
+              </p>
+              <div className="mt-1.5 space-y-1">
                 {erst.map((k) => {
                   const isMerz = /Friedrich\s+Merz/i.test(k.name);
+                  const showMerzMark = isMerz && (phase === 'tick' || phase === 'program' || phase === 'source');
                   return (
                     <div
                       key={`${k.partei}-${k.name}`}
-                      className="relative flex min-h-[22px] items-center gap-1.5 rounded border border-black/30 bg-[#FFEB8A] px-1 py-0.5"
+                      className={
+                        'relative flex min-h-[30px] items-center gap-2 rounded border border-black/35 bg-[#FFEB8A] px-1.5 py-1 sm:min-h-[32px] ' +
+                        (isMerz && (phase === 'focus' || phase === 'tick')
+                          ? 'ring-2 ring-[#003366]/30 intro-login-heartbeat'
+                          : '')
+                      }
                     >
                       <span
                         className={
-                          'flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border-2 bg-white ' +
-                          (isMerz && phase === 'tick' ? 'border-neutral-900 text-neutral-900' : 'border-neutral-900/65 text-transparent')
+                          'flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-sm border-2 bg-white sm:h-5 sm:w-5 ' +
+                          (isMerz ? 'border-neutral-900' : 'border-neutral-900/70')
                         }
                         aria-hidden
                       >
-                        ✗
+                        {showMerzMark ? (
+                          <span
+                            key="merz-stimme-mark"
+                            className="intro-wahlen-mark-draw text-[13px] font-black leading-none text-[#003366] sm:text-[14px]"
+                          >
+                            ✗
+                          </span>
+                        ) : null}
                       </span>
-                      <div className="min-w-0 flex-1 leading-tight">
-                        <span className="text-[7px] font-bold text-neutral-900">{k.partei}</span>
-                        <span className="text-[6.5px] font-semibold text-neutral-800"> — {k.name}</span>
+                      <div className="min-w-0 flex-1 leading-snug">
+                        <span className="text-[10px] font-bold text-neutral-900 sm:text-[11px]">{k.partei}</span>
+                        <span className="text-[9.5px] font-semibold text-neutral-800 sm:text-[10.5px]"> — {k.name}</span>
                       </div>
-                      {isMerz && phase === 'focus' ? (
-                        <span className="pointer-events-none absolute -inset-[1px] rounded-md ring-2 ring-emerald-500/35" />
-                      ) : null}
                     </div>
                   );
                 })}
               </div>
             </div>
-            <div className="mt-1.5 border-t border-black/20 pt-1">
-              <p className="text-[6px] font-bold uppercase tracking-wide text-neutral-800">Zweitstimme · Partei (Auszug)</p>
-              <div className="mt-1 space-y-0.5">
+            <div className="mt-2 border-t border-black/20 pt-1.5">
+              <p className="text-[9px] font-bold uppercase tracking-wide text-neutral-800 sm:text-[10px]">
+                Zweitstimme · Partei (Auszug)
+              </p>
+              <div className="mt-1.5 space-y-1">
                 {zweit.map((p) => (
                   <div
                     key={p.name}
-                    className="flex min-h-[20px] items-center gap-1.5 rounded border border-black/25 bg-[#FFEB8A] px-1 py-0.5"
+                    className="flex min-h-[28px] items-center gap-2 rounded border border-black/28 bg-[#FFEB8A] px-1.5 py-1 sm:min-h-[30px]"
                   >
                     <span
-                      className="flex h-3.5 w-3.5 shrink-0 rounded-sm border-2 border-neutral-900/70 bg-white"
+                      className="flex h-[16px] w-[16px] shrink-0 rounded-sm border-2 border-neutral-900/70 bg-white sm:h-[18px] sm:w-[18px]"
                       aria-hidden
                     />
-                    <span className="text-[6.5px] font-semibold leading-tight text-neutral-900">{p.name}</span>
+                    <span className="text-[9.5px] font-semibold leading-snug text-neutral-900 sm:text-[10.5px]">{p.name}</span>
                   </div>
                 ))}
               </div>
@@ -393,41 +410,38 @@ function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
             href={sourcePrimaryUrl}
             target="_blank"
             rel="noopener noreferrer"
+            tabIndex={-1}
             className={
-              'mt-3 block overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition-[max-height,opacity,transform] duration-500 ease-out ' +
-              (phase === 'program' ? 'max-h-[240px] opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-1')
+              'pointer-events-none mt-2.5 block overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition-[max-height,opacity,transform] duration-500 ease-out sm:mt-3 ' +
+              (phase === 'program' || phase === 'source'
+                ? 'max-h-[280px] opacity-100 translate-y-0'
+                : 'max-h-0 opacity-0 -translate-y-1')
             }
           >
-            <div className="px-3 py-2">
-              <div className="text-[10px] font-bold uppercase tracking-wide text-slate-600">
+            <div className="px-2.5 py-2 sm:px-3 sm:py-2.5">
+              <div className="text-[11px] font-bold uppercase tracking-wide text-slate-600 sm:text-[12px]">
                 Programmauszug · {cdu?.name ?? 'CDU/CSU'}
               </div>
-              <div className="mt-1 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-800">
+              <div className="mt-1.5 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
                 Verifizierte Quelle · CDU/CSU
               </div>
-              <div className="mt-1 text-[11px] leading-snug text-slate-800 [text-wrap:pretty]">
+              <div className="mt-1.5 text-[12px] leading-snug text-slate-800 [text-wrap:pretty] sm:text-[13px]">
                 {(cdu as any)?.programm ?? 'Programmauszug ist in der Vorschau hinterlegt.'}
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 <span
                   className={
-                    'inline-flex items-center rounded-md border px-2 py-1 text-[10px] font-semibold text-[#003366] ' +
+                    'inline-flex scale-100 items-center rounded-md border px-2 py-1.5 text-[11px] font-semibold text-[#003366] transition-[box-shadow,transform,background-color,border-color] duration-300 sm:py-2 sm:text-[12px] ' +
                     (phase === 'source'
-                      ? 'border-[#7AA4D8] bg-[#EAF3FF] shadow-[0_0_0_2px_rgba(59,130,246,0.22)]'
+                      ? 'footer-heartbeat scale-[1.02] border-[#2563eb] bg-[#E8F1FF] shadow-[0_0_0_3px_rgba(37,99,235,0.22)]'
                       : 'border-slate-200 bg-white')
                   }
                 >
                   Offizielle Quelle öffnen
                 </span>
-                <a
-                  href={sourcePdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-700 hover:bg-slate-50"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <span className="inline-flex items-center rounded-md border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-medium text-slate-600 sm:text-[11px]">
                   PDF (Langfassung)
-                </a>
+                </span>
               </div>
             </div>
           </a>
@@ -443,12 +457,14 @@ function WalkthroughRealSectionEmbed({
   du,
   calendarPriorities,
   onAbstimmenDone,
+  onPolitikbarometerVisualDone,
   onPraemienConsentDone,
 }: {
   stepId: IntroOverlayStepId;
   du: boolean;
   calendarPriorities: UserPreferences | undefined;
   onAbstimmenDone: () => void;
+  onPolitikbarometerVisualDone: () => void;
   onPraemienConsentDone: () => void;
 }) {
   switch (stepId) {
@@ -482,6 +498,7 @@ function WalkthroughRealSectionEmbed({
           leadDu=""
           leadSie=""
           heroPreview
+          onHeroPreviewVisualDone={onPolitikbarometerVisualDone}
         />
       );
     default:
@@ -536,6 +553,12 @@ export default function DemoIntroWalkthrough({
     return base;
   }, [clara.line10s, clara.speakSegments, isLast, du]);
 
+  const speakApi = useIntroSpeakApi();
+  const isIntroSpeaking = useIntroIsSpeaking();
+  const onPolitikbarometerVisualDone = useCallback(() => {
+    setNextPulse(true);
+  }, []);
+
   const preview = useMemo(() => {
     const caption = WALKTHROUGH_FOCUS_CAPTIONS[step.id as IntroOverlayStepId];
     const subtitle = WALKTHROUGH_STEP_SUBTITLE[step.id as IntroOverlayStepId];
@@ -573,6 +596,7 @@ export default function DemoIntroWalkthrough({
             du={du}
             calendarPriorities={calendarPriorities}
             onAbstimmenDone={() => setNextPulse(true)}
+            onPolitikbarometerVisualDone={onPolitikbarometerVisualDone}
             onPraemienConsentDone={() => {
               speechCancelledRef.current = true;
               if (pulseTimerRef.current != null) {
@@ -590,10 +614,17 @@ export default function DemoIntroWalkthrough({
         </div>
       </div>
     );
-  }, [step.id, du, fillDeviceFrame, state.consentClaraPersonalization, state.preferences]);
-
-  const speakApi = useIntroSpeakApi();
-  const isIntroSpeaking = useIntroIsSpeaking();
+  }, [
+    step.id,
+    du,
+    fillDeviceFrame,
+    state.consentClaraPersonalization,
+    state.preferences,
+    isLast,
+    steps.length,
+    speakApi,
+    onPolitikbarometerVisualDone,
+  ]);
   const speechStepKeyRef = useRef<string>('');
   const speechStartedRef = useRef(false);
   const speechCancelledRef = useRef(false);
@@ -669,8 +700,9 @@ export default function DemoIntroWalkthrough({
     }
     // Hard stop on step entry to prevent any overlap with previous narration.
     speakApi.stopIntroSpeech();
-    const needsVisualReady = step.id === 'abstimmen' || step.id === 'meldungen' || step.id === 'wahlen';
-    if (needsVisualReady && !nextPulse) {
+    const needsVisualReadyForSpeech =
+      step.id === 'abstimmen' || step.id === 'meldungen' || step.id === 'wahlen';
+    if (needsVisualReadyForSpeech && !nextPulse) {
       return () => {
         if (pulseTimerRef.current != null) {
           window.clearTimeout(pulseTimerRef.current);
@@ -685,7 +717,7 @@ export default function DemoIntroWalkthrough({
     }
     const t = window.setTimeout(() => {
       speakApi.speakIntroParts(speakParts, speechKey);
-    }, 60);
+    }, 950);
     return () => {
       window.clearTimeout(t);
       if (pulseTimerRef.current != null) {
@@ -723,7 +755,12 @@ export default function DemoIntroWalkthrough({
     if (!speechStartedRef.current) return;
     if (speechCancelledRef.current) return;
     if (speechAutoAdvancedRef.current) return;
-    if ((step.id === 'abstimmen' || step.id === 'meldungen' || step.id === 'wahlen') && !nextPulse) return;
+    const needsVisualReadyForAdvance =
+      step.id === 'abstimmen' ||
+      step.id === 'meldungen' ||
+      step.id === 'wahlen' ||
+      step.id === 'politikbarometer';
+    if (needsVisualReadyForAdvance && !nextPulse) return;
 
     speechAutoAdvancedRef.current = true;
 
@@ -744,7 +781,7 @@ export default function DemoIntroWalkthrough({
       } else {
         setIdx((p) => Math.min(steps.length - 1, p + 1));
       }
-    }, 400);
+    }, 650);
 
     return () => {
       if (pulseTimerRef.current != null) {
