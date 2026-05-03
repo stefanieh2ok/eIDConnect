@@ -2,7 +2,7 @@ import type { IntroOverlayStepId } from '@/data/introOverlayMarketing';
 
 /**
  * Pro Walkthrough-Screen: UI (short/long) und **Spoken** (`speakSegments*`) getrennt.
- * HookAI Civic Demo — GovTech-Ton, keine Gamification, kein Stimmungsbarometer.
+ * HookAI Civic Demo — klarer, moderner Ton, keine Gamification.
  */
 export type WalkthroughClaraBlock = {
   label: string;
@@ -23,18 +23,18 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
     line10sDu: 'Kommunales Beispiel: Kirkel im Saarland – beispielhaft, ohne Richtungsvorgabe.',
     line10sSie: 'Kommunales Beispiel: Kirkel im Saarland – beispielhaft, ohne Richtungsvorgabe.',
     shortDu:
-      'Hier siehst du ein Beispiel aus Kirkel im Saarland: eine kommunale Abstimmung, etwa zu Schule, Verkehr, Digitalisierung oder öffentlicher Infrastruktur. Die KI bereitet dir Pro und Contra verständlich auf – ohne eine Richtung vorzugeben. Danach entscheidest du selbst.',
+      'So ist eine kommunale Abstimmung aufgebaut: Pro und Contra helfen bei der Einordnung, danach entscheidest du bewusst über die drei Felder. Später siehst du nur das Gesamtergebnis — nicht deine einzelne Stimme.',
     shortSie:
-      'Hier sehen Sie ein Beispiel aus Kirkel im Saarland: eine kommunale Abstimmung, etwa zu Schule, Verkehr, Digitalisierung oder öffentlicher Infrastruktur. Die KI bereitet Ihnen Pro und Contra verständlich auf – ohne eine Richtung vorzugeben. Danach entscheiden Sie selbst.',
+      'So ist eine kommunale Abstimmung aufgebaut: Pro und Contra helfen bei der Einordnung, danach entscheiden Sie bewusst über die drei Felder. Später sehen Sie nur das Gesamtergebnis — nicht Ihre einzelne Stimme.',
     longDu:
-      'Hier siehst du ein Beispiel aus Kirkel im Saarland: eine kommunale Abstimmung, etwa zu Schule, Verkehr, Digitalisierung oder öffentlicher Infrastruktur. Die KI bereitet dir Pro und Contra verständlich auf – ohne eine Richtung vorzugeben. Danach entscheidest du selbst.',
+      'Jetzt wird’s konkreter: So ist eine kommunale Abstimmung aufgebaut. Pro und Contra helfen dir bei der Einordnung, abgestimmt wird anschließend bewusst über die drei Auswahlfelder darunter. Sichtbar ist später nur das Gesamtergebnis — nicht deine einzelne Entscheidung.',
     longSie:
-      'Hier sehen Sie ein Beispiel aus Kirkel im Saarland: eine kommunale Abstimmung, etwa zu Schule, Verkehr, Digitalisierung oder öffentlicher Infrastruktur. Die KI bereitet Ihnen Pro und Contra verständlich auf – ohne eine Richtung vorzugeben. Danach entscheiden Sie selbst.',
+      'Jetzt wird’s konkreter: So ist eine kommunale Abstimmung aufgebaut. Pro und Contra helfen Ihnen bei der Einordnung, abgestimmt wird anschließend bewusst über die drei Auswahlfelder darunter. Sichtbar ist später nur das Gesamtergebnis — nicht Ihre einzelne Entscheidung.',
     speakSegmentsDu: [
-      'Hier siehst du ein Beispiel aus Kirkel im Saarland: eine kommunale Abstimmung, etwa zu Schule, Verkehr, Digitalisierung oder öffentlicher Infrastruktur. Die KI bereitet dir Pro und Contra verständlich auf – ohne eine Richtung vorzugeben. Danach entscheidest du selbst.',
+      'Jetzt wird’s konkreter: So ist eine kommunale Abstimmung aufgebaut. Pro und Contra helfen dir bei der Einordnung, abgestimmt wird anschließend bewusst über die drei Auswahlfelder darunter. Sichtbar ist später nur das Gesamtergebnis — nicht deine einzelne Entscheidung.',
     ],
     speakSegmentsSie: [
-      'Hier sehen Sie ein Beispiel aus Kirkel im Saarland: eine kommunale Abstimmung, etwa zu Schule, Verkehr, Digitalisierung oder öffentlicher Infrastruktur. Die KI bereitet Ihnen Pro und Contra verständlich auf – ohne eine Richtung vorzugeben. Danach entscheiden Sie selbst.',
+      'Jetzt wird’s konkreter: So ist eine kommunale Abstimmung aufgebaut. Pro und Contra helfen Ihnen bei der Einordnung, abgestimmt wird anschließend bewusst über die drei Auswahlfelder darunter. Sichtbar ist später nur das Gesamtergebnis — nicht Ihre einzelne Entscheidung.',
     ],
   },
   wahlen: {
@@ -42,18 +42,18 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
     line10sDu: 'Wahlvorschau am Beispiel Bundestagswahl – nicht die eigentliche Wahl.',
     line10sSie: 'Wahlvorschau am Beispiel Bundestagswahl – nicht die eigentliche Wahl.',
     shortDu:
-      'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl. Am Beispiel einer Bundestagswahl kannst du nachvollziehen, welche Parteien, Kandidierenden, Programme und offiziellen Quellen relevant sind. So bist du besser vorbereitet, bevor du eine Wahlentscheidung triffst.',
+      'Kandidierende, Parteien und verifizierte Quellen liegen gebündelt an einem Ort — zum strukturierten Lesen, ohne schon abzustimmen. Perspektivisch lässt sich daran auch ein sicherer digitaler Wahlzugang vorbereiten.',
     shortSie:
-      'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl. Am Beispiel einer Bundestagswahl können Sie nachvollziehen, welche Parteien, Kandidierenden, Programme und offiziellen Quellen relevant sind. So sind Sie besser vorbereitet, bevor Sie eine Wahlentscheidung treffen.',
+      'Kandidierende, Parteien und verifizierte Quellen liegen gebündelt an einem Ort — zum strukturierten Lesen, ohne schon abzustimmen. Perspektivisch lässt sich daran auch ein sicherer digitaler Wahlzugang vorbereiten.',
     longDu:
-      'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl. Am Beispiel einer Bundestagswahl kannst du nachvollziehen, welche Parteien, Kandidierenden, Programme und offiziellen Quellen relevant sind. So bist du besser vorbereitet, bevor du eine Wahlentscheidung triffst.',
+      'In der Wahlvorschau findest du Kandidierende, Parteien und verifizierte Quellen gebündelt an einem Ort. So kannst du dich strukturiert vorbereiten, ohne schon eine Stimme abzugeben. Perspektivisch lässt sich so auch ein sicherer digitaler Wahlzugang verständlich vorbereiten.',
     longSie:
-      'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl. Am Beispiel einer Bundestagswahl können Sie nachvollziehen, welche Parteien, Kandidierenden, Programme und offiziellen Quellen relevant sind. So sind Sie besser vorbereitet, bevor Sie eine Wahlentscheidung treffen.',
+      'In der Wahlvorschau finden Sie Kandidierende, Parteien und verifizierte Quellen gebündelt an einem Ort. So können Sie sich strukturiert vorbereiten, ohne schon eine Stimme abzugeben. Perspektivisch lässt sich so auch ein sicherer digitaler Wahlzugang verständlich vorbereiten.',
     speakSegmentsDu: [
-      'Hier siehst du eine Wahlvorschau – nicht die eigentliche Wahl. Am Beispiel einer Bundestagswahl kannst du nachvollziehen, welche Parteien, Kandidierenden, Programme und offiziellen Quellen relevant sind. So bist du besser vorbereitet, bevor du eine Wahlentscheidung triffst.',
+      'In der Wahlvorschau findest du Kandidierende, Parteien und verifizierte Quellen gebündelt an einem Ort. So kannst du dich strukturiert vorbereiten, ohne schon eine Stimme abzugeben. Perspektivisch lässt sich so auch ein sicherer digitaler Wahlzugang verständlich vorbereiten.',
     ],
     speakSegmentsSie: [
-      'Hier sehen Sie eine Wahlvorschau – nicht die eigentliche Wahl. Am Beispiel einer Bundestagswahl können Sie nachvollziehen, welche Parteien, Kandidierenden, Programme und offiziellen Quellen relevant sind. So sind Sie besser vorbereitet, bevor Sie eine Wahlentscheidung treffen.',
+      'In der Wahlvorschau finden Sie Kandidierende, Parteien und verifizierte Quellen gebündelt an einem Ort. So können Sie sich strukturiert vorbereiten, ohne schon eine Stimme abzugeben. Perspektivisch lässt sich so auch ein sicherer digitaler Wahlzugang verständlich vorbereiten.',
     ],
   },
   kalender: {
@@ -61,18 +61,18 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
     line10sDu: 'Kalender: Fristen, Abstimmungen und Beteiligung auf mehreren Ebenen.',
     line10sSie: 'Kalender: Fristen, Abstimmungen und Beteiligung auf mehreren Ebenen.',
     shortDu:
-      'Im Kalender siehst du relevante Termine an einem Ort – zum Beispiel Fristen, Abstimmungen, Wahltermine und Beteiligungsmöglichkeiten auf kommunaler Ebene, im Saarland oder auf Bundesebene. So geht nichts unter, was für dich wichtig sein könnte.',
+      'Abstimmungen, Fristen und Wahltermine laufen an einem Ort zusammen. Themen, die du im Politikbarometer stärker gewichtet hast, können später gezielter sichtbar werden.',
     shortSie:
-      'Im Kalender sehen Sie relevante Termine an einem Ort – zum Beispiel Fristen, Abstimmungen, Wahltermine und Beteiligungsmöglichkeiten auf kommunaler Ebene, im Saarland oder auf Bundesebene. So geht nichts unter, was für Sie wichtig sein könnte.',
+      'Abstimmungen, Fristen und Wahltermine laufen an einem Ort zusammen. Themen, die Sie im Politikbarometer stärker gewichtet haben, können später gezielter sichtbar werden.',
     longDu:
-      'Im Kalender siehst du relevante Termine an einem Ort – zum Beispiel Fristen, Abstimmungen, Wahltermine und Beteiligungsmöglichkeiten auf kommunaler Ebene, im Saarland oder auf Bundesebene. So geht nichts unter, was für dich wichtig sein könnte.',
+      'Im Kalender laufen relevante Termine zusammen — zum Beispiel Abstimmungen, Fristen oder Wahltermine. Themen, die du im Politikbarometer stärker gewichtet hast, können hier später gezielter sichtbar werden.',
     longSie:
-      'Im Kalender sehen Sie relevante Termine an einem Ort – zum Beispiel Fristen, Abstimmungen, Wahltermine und Beteiligungsmöglichkeiten auf kommunaler Ebene, im Saarland oder auf Bundesebene. So geht nichts unter, was für Sie wichtig sein könnte.',
+      'Im Kalender laufen relevante Termine zusammen — zum Beispiel Abstimmungen, Fristen oder Wahltermine. Themen, die Sie im Politikbarometer stärker gewichtet haben, können hier später gezielter sichtbar werden.',
     speakSegmentsDu: [
-      'Im Kalender siehst du relevante Termine an einem Ort – zum Beispiel Fristen, Abstimmungen, Wahltermine und Beteiligungsmöglichkeiten auf kommunaler Ebene, im Saarland oder auf Bundesebene. So geht nichts unter, was für dich wichtig sein könnte.',
+      'Im Kalender laufen relevante Termine zusammen — zum Beispiel Abstimmungen, Fristen oder Wahltermine. Themen, die du im Politikbarometer stärker gewichtet hast, können hier später gezielter sichtbar werden.',
     ],
     speakSegmentsSie: [
-      'Im Kalender sehen Sie relevante Termine an einem Ort – zum Beispiel Fristen, Abstimmungen, Wahltermine und Beteiligungsmöglichkeiten auf kommunaler Ebene, im Saarland oder auf Bundesebene. So geht nichts unter, was für Sie wichtig sein könnte.',
+      'Im Kalender laufen relevante Termine zusammen — zum Beispiel Abstimmungen, Fristen oder Wahltermine. Themen, die Sie im Politikbarometer stärker gewichtet haben, können hier später gezielter sichtbar werden.',
     ],
   },
   meldungen: {
@@ -80,37 +80,39 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
     line10sDu: 'Meldung an die Gemeinde Kirkel – nachvollziehbarer Bearbeitungsstand.',
     line10sSie: 'Meldung an die Gemeinde Kirkel – nachvollziehbarer Bearbeitungsstand.',
     shortDu:
-      'Hier meldest du ein Anliegen direkt an die Gemeinde – zum Beispiel ein Problem auf einem Spielplatz, eine defekte Laterne oder eine Gefahrenstelle. Du siehst danach nachvollziehbar, wie der Bearbeitungsstand ist.',
+      'Du gibst Anliegen mit Kategorie, Kurztext, Ort und Foto an die Gemeinde weiter — der Bearbeitungsstand bleibt transparent.',
     shortSie:
-      'Hier melden Sie ein Anliegen direkt an die Gemeinde – zum Beispiel ein Problem auf einem Spielplatz, eine defekte Laterne oder eine Gefahrenstelle. Sie sehen danach nachvollziehbar, wie der Bearbeitungsstand ist.',
+      'Sie geben Anliegen mit Kategorie, Kurztext, Ort und Foto an die Gemeinde weiter — der Bearbeitungsstand bleibt transparent.',
     longDu:
-      'Hier meldest du ein Anliegen direkt an die Gemeinde – zum Beispiel ein Problem auf einem Spielplatz, eine defekte Laterne oder eine Gefahrenstelle. Du siehst danach nachvollziehbar, wie der Bearbeitungsstand ist.',
+      'Mit Meldungen gibst du Anliegen direkt an die Gemeinde weiter — mit Kategorie, kurzer Beschreibung, Ort und Foto. Danach bleibt der Bearbeitungsstand transparent nachvollziehbar.',
     longSie:
-      'Hier melden Sie ein Anliegen direkt an die Gemeinde – zum Beispiel ein Problem auf einem Spielplatz, eine defekte Laterne oder eine Gefahrenstelle. Sie sehen danach nachvollziehbar, wie der Bearbeitungsstand ist.',
+      'Mit Meldungen geben Sie Anliegen direkt an die Gemeinde weiter — mit Kategorie, kurzer Beschreibung, Ort und Foto. Danach bleibt der Bearbeitungsstand transparent nachvollziehbar.',
     speakSegmentsDu: [
-      'Hier meldest du ein Anliegen direkt an die Gemeinde – zum Beispiel ein Problem auf einem Spielplatz, eine defekte Laterne oder eine Gefahrenstelle. Du siehst danach nachvollziehbar, wie der Bearbeitungsstand ist.',
+      'Mit Meldungen gibst du Anliegen direkt an die Gemeinde weiter — mit Kategorie, kurzer Beschreibung, Ort und Foto. Danach bleibt der Bearbeitungsstand transparent nachvollziehbar.',
     ],
     speakSegmentsSie: [
-      'Hier melden Sie ein Anliegen direkt an die Gemeinde – zum Beispiel ein Problem auf einem Spielplatz, eine defekte Laterne oder eine Gefahrenstelle. Sie sehen danach nachvollziehbar, wie der Bearbeitungsstand ist.',
+      'Mit Meldungen geben Sie Anliegen direkt an die Gemeinde weiter — mit Kategorie, kurzer Beschreibung, Ort und Foto. Danach bleibt der Bearbeitungsstand transparent nachvollziehbar.',
     ],
   },
   praemien: {
     label: 'Prämien',
-    line10sDu: 'Prämien: freiwillig, lokal gedacht – unabhängig vom Abstimmungsverhalten.',
-    line10sSie: 'Prämien: freiwillig, lokal gedacht – unabhängig vom Abstimmungsverhalten.',
+    line10sDu: 'Prämien: freiwillig, lokal gedacht — unabhängig vom Abstimmungsverhalten.',
+    line10sSie: 'Prämien: freiwillig, lokal gedacht — unabhängig vom Abstimmungsverhalten.',
     shortDu:
-      'Prämien sind freiwillig und lokal gedacht. Wenn du sie aktivierst, können dir nach abgeschlossenen Beteiligungen regionale Vorteile angezeigt werden – unabhängig davon, wie du abgestimmt hast.',
+      'Nach abgeschlossener Beteiligung kann ein Gutschein erscheinen — ein Tap öffnet den QR-Code, perspektivisch auch fürs Apple Wallet. Die Vorschau zeigt gleich den Ablauf.',
     shortSie:
-      'Prämien sind freiwillig und lokal gedacht. Wenn Sie sie aktivieren, können Ihnen nach abgeschlossenen Beteiligungen regionale Vorteile angezeigt werden – unabhängig davon, wie Sie abgestimmt haben.',
+      'Nach abgeschlossener Beteiligung kann ein Gutschein erscheinen — ein Tap öffnet den QR-Code, perspektivisch auch fürs Apple Wallet. Die Vorschau zeigt gleich den Ablauf.',
     longDu:
-      'Prämien sind freiwillig und lokal gedacht. Wenn du sie aktivierst, können dir nach abgeschlossenen Beteiligungen regionale Vorteile angezeigt werden – unabhängig davon, wie du abgestimmt hast.',
+      'Zum Schluss zeige ich dir, wie freiwillige Prämien funktionieren. Nach einer abgeschlossenen Beteiligung kann zum Beispiel ein Gutschein fürs Naturfreibad erscheinen. Ein Tap öffnet den QR-Code — und perspektivisch lässt sich dieser direkt ins Apple Wallet übernehmen.',
     longSie:
-      'Prämien sind freiwillig und lokal gedacht. Wenn Sie sie aktivieren, können Ihnen nach abgeschlossenen Beteiligungen regionale Vorteile angezeigt werden – unabhängig davon, wie Sie abgestimmt haben.',
+      'Zum Schluss zeige ich Ihnen, wie freiwillige Prämien funktionieren. Nach einer abgeschlossenen Beteiligung kann zum Beispiel ein Gutschein fürs Naturfreibad erscheinen. Ein Tap öffnet den QR-Code — und perspektivisch lässt sich dieser direkt ins Apple Wallet übernehmen.',
     speakSegmentsDu: [
-      'Prämien sind freiwillig und lokal gedacht. Wenn du sie aktivierst, können dir nach abgeschlossenen Beteiligungen regionale Vorteile angezeigt werden – unabhängig davon, wie du abgestimmt hast.',
+      'Zum Schluss zeige ich dir, wie freiwillige Prämien funktionieren. Nach einer abgeschlossenen Beteiligung kann zum Beispiel ein Gutschein fürs Naturfreibad erscheinen.',
+      'Ein Tap öffnet den QR-Code — und perspektivisch lässt sich dieser direkt ins Apple Wallet übernehmen. Das ist eine Perspektiv-Vorschau, kein echter Wallet-Eintrag.',
     ],
     speakSegmentsSie: [
-      'Prämien sind freiwillig und lokal gedacht. Wenn Sie sie aktivieren, können Ihnen nach abgeschlossenen Beteiligungen regionale Vorteile angezeigt werden – unabhängig davon, wie Sie abgestimmt haben.',
+      'Zum Schluss zeige ich Ihnen, wie freiwillige Prämien funktionieren. Nach einer abgeschlossenen Beteiligung kann zum Beispiel ein Gutschein fürs Naturfreibad erscheinen.',
+      'Ein Tap öffnet den QR-Code — und perspektivisch lässt sich dieser direkt ins Apple Wallet übernehmen. Das ist eine Perspektiv-Vorschau, kein echter Wallet-Eintrag.',
     ],
   },
   politikbarometer: {
@@ -118,18 +120,18 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
     line10sDu: 'Themen markieren – neutral, ohne Empfehlung und ohne Meinungsprofil.',
     line10sSie: 'Themen markieren – neutral, ohne Empfehlung und ohne Meinungsprofil.',
     shortDu:
-      'Zuerst markierst du, welche Themen dich besonders interessieren – zum Beispiel Digitalisierung, Wirtschaft, Bildung, Verkehr oder Sicherheit. So können später passende Abstimmungen, Termine und Informationen schneller sichtbar werden. Es entsteht keine politische Empfehlung und kein Meinungsprofil.',
+      'Du setzt thematische Schwerpunkte — später können passende Termine und Beteiligungen stärker hervortreten, etwa im Kalender. Orientierung, keine politische Empfehlung.',
     shortSie:
-      'Zuerst markieren Sie, welche Themen Sie besonders interessieren – zum Beispiel Digitalisierung, Wirtschaft, Bildung, Verkehr oder Sicherheit. So können später passende Abstimmungen, Termine und Informationen schneller sichtbar werden. Es entsteht keine politische Empfehlung und kein Meinungsprofil.',
+      'Sie setzen thematische Schwerpunkte — später können passende Termine und Beteiligungen stärker hervortreten, etwa im Kalender. Orientierung, keine politische Empfehlung.',
     longDu:
-      'Zuerst markierst du, welche Themen dich besonders interessieren – zum Beispiel Digitalisierung, Wirtschaft, Bildung, Verkehr oder Sicherheit. So können später passende Abstimmungen, Termine und Informationen schneller sichtbar werden. Es entsteht keine politische Empfehlung und kein Meinungsprofil.',
+      'Am Anfang setzt du deine thematischen Schwerpunkte. Wenn dich zum Beispiel Digitalisierung, Bildung oder Sicherheit besonders interessieren, können passende Termine und Beteiligungen später gezielter hervorgehoben werden — etwa auch im Kalender. Das dient der Orientierung, nicht der politischen Empfehlung.',
     longSie:
-      'Zuerst markieren Sie, welche Themen Sie besonders interessieren – zum Beispiel Digitalisierung, Wirtschaft, Bildung, Verkehr oder Sicherheit. So können später passende Abstimmungen, Termine und Informationen schneller sichtbar werden. Es entsteht keine politische Empfehlung und kein Meinungsprofil.',
+      'Am Anfang setzen Sie Ihre thematischen Schwerpunkte. Wenn Sie zum Beispiel Digitalisierung, Bildung oder Sicherheit besonders interessieren, können passende Termine und Beteiligungen später gezielter hervorgehoben werden — etwa auch im Kalender. Das dient der Orientierung, nicht der politischen Empfehlung.',
     speakSegmentsDu: [
-      'Zuerst markierst du, welche Themen dich besonders interessieren – zum Beispiel Digitalisierung, Wirtschaft, Bildung, Verkehr oder Sicherheit. So können später passende Abstimmungen, Termine und Informationen schneller sichtbar werden. Es entsteht keine politische Empfehlung und kein Meinungsprofil.',
+      'Am Anfang setzt du deine thematischen Schwerpunkte. Wenn dich zum Beispiel Digitalisierung, Bildung oder Sicherheit besonders interessieren, können passende Termine und Beteiligungen später gezielter hervorgehoben werden — etwa auch im Kalender. Das dient der Orientierung, nicht der politischen Empfehlung.',
     ],
     speakSegmentsSie: [
-      'Zuerst markieren Sie, welche Themen Sie besonders interessieren – zum Beispiel Digitalisierung, Wirtschaft, Bildung, Verkehr oder Sicherheit. So können später passende Abstimmungen, Termine und Informationen schneller sichtbar werden. Es entsteht keine politische Empfehlung und kein Meinungsprofil.',
+      'Am Anfang setzen Sie Ihre thematischen Schwerpunkte. Wenn Sie zum Beispiel Digitalisierung, Bildung oder Sicherheit besonders interessieren, können passende Termine und Beteiligungen später gezielter hervorgehoben werden — etwa auch im Kalender. Das dient der Orientierung, nicht der politischen Empfehlung.',
     ],
   },
 };

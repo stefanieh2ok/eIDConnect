@@ -24,8 +24,8 @@ describe('buildIntroTtsManifest', () => {
   it('Walkthrough: erster TTS-Block (Du) = Clara-Sprachtext ohne Schritt-Präfix (Politikbarometer)', () => {
     const du = buildIntroTtsManifest(true);
     expect(du[2].tts).not.toMatch(/^Schritt \d+ von/);
-    expect(du[2].tts).toMatch(/Zuerst markierst du, welche Themen dich in Kirkel/);
-    expect(du[2].tts).toMatch(/keine politische Empfehlung und kein Meinungsprofil/);
+    expect(du[2].tts).toMatch(/Am Anfang setzt du deine thematischen Schwerpunkte/);
+    expect(du[2].tts).toMatch(/Orientierung, nicht der politischen Empfehlung/);
   });
 
   it('letzter TTS-Block (Du) enthält Abschlusstext', () => {

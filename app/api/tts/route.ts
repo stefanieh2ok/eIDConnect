@@ -1,3 +1,5 @@
+import { CLARA_OPENAI_TTS_INSTRUCTIONS_DE } from '@/lib/claraTtsVoiceStyle';
+
 export async function POST(req: Request) {
   const key = process.env.OPENAI_API_KEY;
   if (!key) {
@@ -31,6 +33,7 @@ export async function POST(req: Request) {
       voice: 'nova',
       input: text.slice(0, 4000),
       speed,
+      instructions: CLARA_OPENAI_TTS_INSTRUCTIONS_DE,
     }),
   });
 

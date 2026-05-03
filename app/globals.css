@@ -1598,6 +1598,78 @@ body {
   }
 }
 
+/* Walkthrough: obere Meta-Leiste — etwas straffere Kanten, Chip darf kürzen */
+.intro-meta-strip.intro-meta-strip--compact-toolbar {
+  padding-top: 0.28rem;
+  padding-bottom: 0.38rem;
+}
+
+/* Prämien-Walkthrough: dezente Fokus- und Wallet-Pulse (motion-reduce respektiert) */
+@keyframes intro-wt-soft-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.35);
+  }
+  100% {
+    box-shadow: 0 0 0 6px rgba(14, 165, 233, 0);
+  }
+}
+@keyframes intro-wt-cta-nudge {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(0.97);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes intro-wt-wallet-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 85, 164, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(0, 85, 164, 0.12);
+  }
+}
+.intro-wt-card-focus {
+  animation: intro-wt-soft-glow 1.1s ease-out 1;
+  border-color: rgba(14, 165, 233, 0.55) !important;
+}
+.intro-wt-cta-autotap {
+  animation: intro-wt-cta-nudge 0.45s ease-out 1;
+}
+.intro-wt-wallet-emphasis {
+  animation: intro-wt-wallet-pulse 1.25s ease-in-out 2;
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro-wt-card-focus,
+  .intro-wt-cta-autotap,
+  .intro-wt-wallet-emphasis {
+    animation: none;
+  }
+}
+
+@keyframes intro-wt-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.intro-wt-sheet-panel {
+  animation: intro-wt-sheet-in 0.32s ease-out 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro-wt-sheet-panel {
+    animation: none;
+  }
+}
+
 /* Intro: einmaliger, dezenter Leuchtrand wenn Claras TTS startet (Audio-Status-Button) */
 @keyframes intro-audio-glow {
   0% {

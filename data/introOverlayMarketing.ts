@@ -90,8 +90,8 @@ export const INTRO_SPOKEN_ANREDE_OPENING_DU: readonly string[] = [];
 export const INTRO_SPOKEN_ANREDE_OPENING_SIE: readonly string[] = [];
 export const INTRO_SPOKEN_ANREDE_OPENING_NEUTRAL: readonly string[] = [];
 
-export const INTRO_ANREDE_UI_TITLE_DU = 'Wie möchtest du angesprochen werden?';
-export const INTRO_ANREDE_UI_TITLE_SIE = 'Wie möchten Sie angesprochen werden?';
+export const INTRO_ANREDE_UI_TITLE_DU = 'Bevor wir loslegen: Wie darf ich dich ansprechen?';
+export const INTRO_ANREDE_UI_TITLE_SIE = 'Bevor wir loslegen: Wie darf ich Sie ansprechen?';
 
 export const INTRO_ANREDE_SHORT_DU =
   'Ich führe dich kurz durch HookAI Civic: sicherer Bürgerzugang, Orientierung und digitale Beteiligung.';
@@ -161,12 +161,8 @@ export const INTRO_ENTRY_DROPDOWN_DU =
 export const INTRO_ENTRY_DROPDOWN_SIE =
   'Ich zeige Ihnen die zentralen Funktionen für Orientierung, Beteiligung und digitale Kommunikation — klar, schnell und ohne Umwege.';
 
-export const INTRO_SPOKEN_ENTRY_DU: readonly string[] = [
-  'Ich führe dich jetzt kurz durch die wichtigsten Bereiche.',
-];
-export const INTRO_SPOKEN_ENTRY_SIE: readonly string[] = [
-  'Ich führe Sie jetzt kurz durch die wichtigsten Bereiche.',
-];
+export const INTRO_SPOKEN_ENTRY_DU: readonly string[] = ['Perfekt, dann starten wir mit einem kurzen Überblick.'];
+export const INTRO_SPOKEN_ENTRY_SIE: readonly string[] = ['Perfekt, dann starten wir mit einem kurzen Überblick.'];
 
 /** @deprecated */ export const INTRO_ENTRY_LEAD_DU = INTRO_ENTRY_SHORT_DU;
 /** @deprecated */ export const INTRO_ENTRY_LEAD_SIE = INTRO_ENTRY_SHORT_SIE;
@@ -249,18 +245,12 @@ export const INTRO_ACCESS_CONFIRMED_BODY = 'Relevante Beteiligungen und Termine 
 /** @deprecated */ export const INTRO_EID_SPOKEN_MVP = '';
 
 export const INTRO_SPOKEN_EID_SEGMENTS_DU: readonly string[] = [
-  'Hier beginnt dein sicherer Bürgerzugang.',
-  'In dieser Vorschau wird der Einstieg beispielhaft über die eID gezeigt. Perspektivisch kann ein solcher Zugang auch über die EU Digital Identity Wallet erfolgen.',
-  'Das bedeutet: Du könntest dich künftig digital ausweisen und bestimmte Nachweise kontrolliert teilen — zum Beispiel Wohnort, Kommune oder Teilnahmeberechtigung.',
-  'Wichtig ist: Es geht nicht darum, ein politisches Profil zu erstellen. Deine digitale Identität dient nur dazu, Zuständigkeiten und Berechtigungen sicher zu prüfen.',
-  'Du entscheidest, welche Daten freigegeben werden. HookAI Civic soll nur die Informationen nutzen, die für den jeweiligen Bürgerdienst wirklich erforderlich sind.',
+  'Zum Einstieg zeige ich dir, wie sicherer Bürgerzugang perspektivisch funktionieren kann — klassisch über eID oder künftig über die EU Wallet.',
+  'In dieser Vorschau geht es um Zuständigkeit und Berechtigung, nicht um ein politisches Profil. Du entscheidest, welche Daten wirklich nötig sind.',
 ];
 export const INTRO_SPOKEN_EID_SEGMENTS_SIE: readonly string[] = [
-  'Hier beginnt Ihr sicherer Bürgerzugang.',
-  'In dieser Vorschau wird der Einstieg beispielhaft über die eID gezeigt. Perspektivisch kann ein solcher Zugang auch über die EU Digital Identity Wallet erfolgen.',
-  'Das bedeutet: Sie könnten sich künftig digital ausweisen und bestimmte Nachweise kontrolliert teilen — zum Beispiel Wohnort, Kommune oder Teilnahmeberechtigung.',
-  'Wichtig ist: Es geht nicht darum, ein politisches Profil zu erstellen. Ihre digitale Identität dient nur dazu, Zuständigkeiten und Berechtigungen sicher zu prüfen.',
-  'Sie entscheiden, welche Daten freigegeben werden. HookAI Civic soll nur die Informationen nutzen, die für den jeweiligen Bürgerdienst wirklich erforderlich sind.',
+  'Zum Einstieg zeige ich Ihnen, wie sicherer Bürgerzugang perspektivisch funktionieren kann — klassisch über eID oder künftig über die EU Wallet.',
+  'In dieser Vorschau geht es um Zuständigkeit und Berechtigung, nicht um ein politisches Profil. Sie entscheiden, welche Daten wirklich nötig sind.',
 ];
 
 export const INTRO_EID_FRAMING =

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle, Clock, ListChecks } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
@@ -16,7 +16,8 @@ type StatusRow = {
 
 type LeaderboardSectionProps = {
   embeddedInWalkthrough?: boolean;
-  onWalkthroughConsentActivate?: () => void;
+  /** Feuert, wenn die Prämien-Demo (Highlight → Gutschein → QR → Wallet-Vorschau) durchlaufen ist — für Walkthrough-Auto-Weiter. */
+  onWalkthroughCinematicComplete?: () => void;
 };
 
 type PraemieBenefit = {
@@ -137,9 +138,18 @@ function rewardVisual(name: string): {
   return { label: 'PR', className: 'border-slate-200 bg-slate-50 text-slate-700' };
 }
 
+type WalkthroughPraemienPhase =
+  | 'idle'
+  | 'highlight'
+  | 'cta_pulse'
+  | 'sheet'
+  | 'wallet_emphasis'
+  | 'wallet_preview'
+  | 'done';
+
 const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
   embeddedInWalkthrough = false,
-  onWalkthroughConsentActivate,
+  onWalkthroughCinematicComplete,
 }) => {
   const { state, dispatch } = useApp();
   const du = state.anrede === 'du';
@@ -153,6 +163,9 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
 
   const [voucherSheet, setVoucherSheet] = useState<VoucherSheetState | null>(null);
   const [walletPerspektiveAck, setWalletPerspektiveAck] = useState(false);
+  const [wtPhase, setWtPhase] = useState<WalkthroughPraemienPhase>('idle');
+  const wtTimersRef = useRef<number[]>([]);
+  const wtCancelledRef = useRef(false);
 
   const closeVoucherSheet = useCallback(() => {
     setWalletPerspektiveAck(false);
@@ -207,15 +220,101 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
     ...rows.map((row) => ({ label: row.label, value: row.value.toLocaleString('de-DE') })),
   ];
 
+  const showcaseIdx = useMemo(() => {
+    const i = benefits.findIndex((b) => /naturfreibad|freibad/i.test(b.name));
+    return i >= 0 ? i : 0;
+  }, [benefits]);
+
+  useEffect(() => {
+    if (!embeddedInWalkthrough) {
+      setWtPhase('idle');
+      return;
+    }
+    setWtPhase('idle');
+    setWalletPerspektiveAck(false);
+    setVoucherSheet(null);
+    wtCancelledRef.current = false;
+    const push = (id: number) => {
+      wtTimersRef.current.push(id);
+    };
+    const clearWt = () => {
+      wtTimersRef.current.forEach((t) => window.clearTimeout(t));
+      wtTimersRef.current = [];
+    };
+
+    push(
+      window.setTimeout(() => {
+        if (wtCancelledRef.current) return;
+        dispatch({ type: 'SET_CONSENT_LOCAL_BENEFITS', payload: true });
+      }, 350),
+    );
+    push(
+      window.setTimeout(() => {
+        if (wtCancelledRef.current) return;
+        setWtPhase('highlight');
+      }, 900),
+    );
+    push(
+      window.setTimeout(() => {
+        if (wtCancelledRef.current) return;
+        setWtPhase('cta_pulse');
+      }, 2300),
+    );
+    push(
+      window.setTimeout(() => {
+        if (wtCancelledRef.current) return;
+        const b = benefits[showcaseIdx];
+        if (!b) return;
+        setWalletPerspektiveAck(false);
+        setVoucherSheet({ benefit: b, benefitIndex: showcaseIdx });
+        setWtPhase('sheet');
+      }, 2900),
+    );
+    push(
+      window.setTimeout(() => {
+        if (wtCancelledRef.current) return;
+        setWtPhase('wallet_emphasis');
+      }, 4300),
+    );
+    push(
+      window.setTimeout(() => {
+        if (wtCancelledRef.current) return;
+        setWalletPerspektiveAck(true);
+        setWtPhase('wallet_preview');
+      }, 5400),
+    );
+    push(
+      window.setTimeout(() => {
+        if (wtCancelledRef.current) return;
+        setWtPhase('done');
+        onWalkthroughCinematicComplete?.();
+      }, 7800),
+    );
+
+    return () => {
+      wtCancelledRef.current = true;
+      clearWt();
+    };
+  }, [embeddedInWalkthrough, benefits, showcaseIdx, dispatch, onWalkthroughCinematicComplete]);
+
   const sheetBenefit = voucherSheet?.benefit;
   const sheetIndex = voucherSheet?.benefitIndex ?? 0;
-  const sheetLocalState = sheetBenefit
+  const sheetLocalStateRaw = sheetBenefit
     ? getLocalBenefitState({
         consentLocalBenefits: state.consentLocalBenefits,
         completedParticipationCount: completed,
         benefitIndex: sheetIndex,
       })
     : null;
+  const sheetLocalState =
+    sheetBenefit && embeddedInWalkthrough && voucherSheet
+      ? {
+          consentRequired: false,
+          eligibilityReason: 'Beteiligung abgeschlossen' as const,
+          independentOfVoteChoice: true as const,
+          status: 'available' as const,
+        }
+      : sheetLocalStateRaw;
   const sheetProvider = sheetBenefit ? providerAndLocation(sheetBenefit.name, sheetBenefit.description, cityName) : null;
   const sheetMockCode = sheetBenefit ? formatMockVoucherCode(cityName, sheetBenefit.id) : '';
 
@@ -234,7 +333,6 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
               checked={state.consentLocalBenefits}
               onChange={(e) => {
                 dispatch({ type: 'SET_CONSENT_LOCAL_BENEFITS', payload: e.target.checked });
-                if (embeddedInWalkthrough && e.target.checked) onWalkthroughConsentActivate?.();
               }}
               className="mt-0.5 h-4 w-4 shrink-0 rounded border-neutral-300 text-[#003366]"
               aria-label="Prämien anzeigen"
@@ -249,17 +347,24 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
 
       <div className={compact ? 'space-y-2' : 'card-content space-y-2.5'}>
           {benefits.map((b, idx) => {
-            const localBenefit = getLocalBenefitState({
+            const rawBenefit = getLocalBenefitState({
               consentLocalBenefits: state.consentLocalBenefits,
               completedParticipationCount: completed,
               benefitIndex: idx,
             });
+            const localBenefit =
+              embeddedInWalkthrough && idx === showcaseIdx && state.consentLocalBenefits
+                ? { ...rawBenefit, consentRequired: false, status: 'available' as const }
+                : rawBenefit;
             const visual = rewardVisual(b.name);
             const openSheet = () => {
               if (embeddedInWalkthrough) return;
               setWalletPerspektiveAck(false);
               setVoucherSheet({ benefit: b, benefitIndex: idx });
             };
+            const showcaseHighlight =
+              embeddedInWalkthrough && idx === showcaseIdx && (wtPhase === 'highlight' || wtPhase === 'cta_pulse');
+            const ctaPulse = embeddedInWalkthrough && idx === showcaseIdx && wtPhase === 'cta_pulse';
             return (
               <button
                 key={b.id}
@@ -269,7 +374,9 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
                   embeddedInWalkthrough
                     ? 'pointer-events-none cursor-default'
                     : 'cursor-pointer hover:border-[#0055A4]/30 hover:shadow-md active:scale-[0.997] active:border-[#0055A4]/40'
-                } ${compact ? 'px-2 py-2' : 'px-3 py-3'}`}
+                } ${compact ? 'px-2 py-2' : 'px-3 py-3'} ${
+                  showcaseHighlight ? 'intro-wt-card-focus z-[1] ring-1 ring-sky-400/45' : ''
+                }`}
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -338,29 +445,15 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
                   </div>
                 </div>
                 <div
-                  className={`mt-2.5 border-t border-neutral-100 pt-2.5 text-center text-[11px] font-semibold text-[#003B73] ${compact ? 'text-[10.5px]' : ''}`}
+                  className={`mt-2.5 border-t border-neutral-100 pt-2.5 text-center text-[11px] font-semibold text-[#003B73] ${compact ? 'text-[10.5px]' : ''} ${
+                    ctaPulse ? 'intro-wt-cta-autotap' : ''
+                  }`}
                 >
                   {localBenefit.consentRequired ? 'Details anzeigen' : 'Gutschein anzeigen'}
                 </div>
               </button>
             );
           })}
-        {compact ? (
-          <div
-            className="pointer-events-none rounded-xl border border-sky-100/90 bg-gradient-to-b from-sky-50/90 to-white px-2.5 py-2 shadow-sm"
-            aria-hidden
-          >
-            <p className="text-center text-[10px] font-bold leading-tight text-[#0f172a]">Naturfreibad Kirkel</p>
-            <p className="mt-0.5 text-center text-[9px] font-semibold text-[#003B73]">Gutschein anzeigen</p>
-            <QrStylePlaceholder seed="walkthrough-naturfreibad-kirkel-v1" variant="walkthroughThumb" />
-            <p className="mt-1 text-center text-[7.5px] font-semibold uppercase tracking-wide text-neutral-600">
-              Wallet perspektivisch
-            </p>
-            <p className="mt-0.5 text-center text-[8px] font-medium leading-snug text-neutral-700">
-              Beteiligung, nicht Meinung.
-            </p>
-          </div>
-        ) : null}
       </div>
 
       <div className={`flex flex-wrap gap-1 ${compact ? 'pt-0.5' : 'pt-1'}`}>
@@ -393,7 +486,12 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
             aria-label="Schließen"
             onClick={closeVoucherSheet}
           />
-          <div className="relative z-[1] flex max-h-[min(92dvh,calc(100dvh-4.5rem))] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl">
+          <div
+            className={
+              'relative z-[1] flex max-h-[min(92dvh,calc(100dvh-4.5rem))] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl ' +
+              (embeddedInWalkthrough ? 'intro-wt-sheet-panel' : '')
+            }
+          >
             <div className="shrink-0 px-3 pb-2 pt-3">
               <h2 id="voucher-sheet-title" className="text-[14px] font-bold leading-snug text-[#1A2B45]">
                 {sheetBenefit.name}
@@ -431,18 +529,41 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
               </div>
               <p className="mt-2 text-[9px] font-medium text-neutral-800">Gültig bis: 30.09.2026</p>
               <p className="mt-0.5 text-[9px] text-neutral-600">Einlösbar vor Ort per QR-Code</p>
-              <p className="mt-1 text-[8.5px] font-medium text-neutral-600">QR-Code in der App. Wallet perspektivisch.</p>
+              {!embeddedInWalkthrough ? (
+                <p className="mt-1 text-[8.5px] font-medium text-neutral-600">QR-Code in der App. Wallet perspektivisch.</p>
+              ) : null}
             </div>
-            <div className="max-h-[5.25rem] shrink-0 overflow-y-auto overscroll-contain border-t border-neutral-100/80 px-3 py-1.5">
-              <p className="text-[9px] font-semibold leading-snug text-[#1A2B45]">Prämien belohnen Beteiligung, nicht Meinung.</p>
-              <p className="mt-0.5 text-[8.5px] leading-snug text-neutral-600">
-                {du
-                  ? 'Partner sehen nur, ob ein Gutschein gültig ist – nicht, wie du abgestimmt hast.'
-                  : 'Partner sehen nur, ob ein Gutschein gültig ist – nicht, wie Sie abgestimmt haben.'}
-              </p>
-            </div>
+            {embeddedInWalkthrough ? (
+              <div className="shrink-0 border-t border-neutral-100/80 px-3 py-1.5">
+                <p className="text-[9px] font-semibold leading-snug text-[#1A2B45]">Prämien belohnen Beteiligung, nicht Meinung.</p>
+                <p className="mt-0.5 text-[8.5px] leading-snug text-neutral-600">
+                  {du
+                    ? 'Partner sehen nur die Gültigkeit — nicht dein Abstimmungsverhalten.'
+                    : 'Partner sehen nur die Gültigkeit — nicht Ihr Abstimmungsverhalten.'}
+                </p>
+              </div>
+            ) : (
+              <div className="max-h-[5.25rem] shrink-0 overflow-y-auto overscroll-contain border-t border-neutral-100/80 px-3 py-1.5">
+                <p className="text-[9px] font-semibold leading-snug text-[#1A2B45]">Prämien belohnen Beteiligung, nicht Meinung.</p>
+                <p className="mt-0.5 text-[8.5px] leading-snug text-neutral-600">
+                  {du
+                    ? 'Partner sehen nur, ob ein Gutschein gültig ist – nicht, wie du abgestimmt hast.'
+                    : 'Partner sehen nur, ob ein Gutschein gültig ist – nicht, wie Sie abgestimmt haben.'}
+                </p>
+              </div>
+            )}
             <div className="shrink-0 border-t border-neutral-200 bg-[#FAFBFC] px-3 py-2.5">
-              {walletPerspektiveAck ? (
+              {walletPerspektiveAck && embeddedInWalkthrough ? (
+                <div
+                  className="mb-2 overflow-hidden rounded-xl border border-neutral-200 bg-gradient-to-b from-neutral-900 to-neutral-800 px-3 py-2.5 text-white shadow-inner"
+                  aria-hidden
+                >
+                  <p className="text-[7px] font-semibold uppercase tracking-[0.12em] text-white/65">Apple Wallet · Vorschau</p>
+                  <p className="mt-1 text-[12px] font-bold leading-tight">Zum Wallet hinzugefügt (Vorschau)</p>
+                  <p className="mt-0.5 text-[9px] font-medium text-white/85">{sheetBenefit.name}</p>
+                  <p className="mt-1 text-[8px] text-white/65">Nur Demonstration — kein echter Pass.</p>
+                </div>
+              ) : walletPerspektiveAck ? (
                 <p className="mb-2 rounded-md bg-white/80 px-2 py-1.5 text-center text-[8.5px] leading-snug text-neutral-700">
                   Wallet-Funktion perspektivisch verfügbar. Der Gutschein bleibt aktuell als QR-Code in der App sichtbar.
                 </p>
@@ -451,7 +572,10 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
                 <button
                   type="button"
                   onClick={() => setWalletPerspektiveAck(true)}
-                  className="w-full rounded-xl border border-[#0055A4]/35 bg-[#F0F6FC] px-3 py-2 text-[11px] font-semibold text-[#003B73] shadow-sm hover:bg-[#E4EEF8] sm:flex-1"
+                  className={
+                    'w-full rounded-xl border border-[#0055A4]/35 bg-[#F0F6FC] px-3 py-2 text-[11px] font-semibold text-[#003B73] shadow-sm hover:bg-[#E4EEF8] sm:flex-1 ' +
+                    (embeddedInWalkthrough && wtPhase === 'wallet_emphasis' ? 'intro-wt-wallet-emphasis' : '')
+                  }
                 >
                   In Wallet speichern
                 </button>

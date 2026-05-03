@@ -458,14 +458,14 @@ function WalkthroughRealSectionEmbed({
   calendarPriorities,
   onAbstimmenDone,
   onPolitikbarometerVisualDone,
-  onPraemienConsentDone,
+  onPraemienCinematicComplete,
 }: {
   stepId: IntroOverlayStepId;
   du: boolean;
   calendarPriorities: UserPreferences | undefined;
   onAbstimmenDone: () => void;
   onPolitikbarometerVisualDone: () => void;
-  onPraemienConsentDone: () => void;
+  onPraemienCinematicComplete: () => void;
 }) {
   switch (stepId) {
     case 'abstimmen':
@@ -488,7 +488,9 @@ function WalkthroughRealSectionEmbed({
         />
       );
     case 'praemien':
-      return <LeaderboardSection embeddedInWalkthrough onWalkthroughConsentActivate={onPraemienConsentDone} />;
+      return (
+        <LeaderboardSection embeddedInWalkthrough onWalkthroughCinematicComplete={onPraemienCinematicComplete} />
+      );
     case 'politikbarometer':
       return (
         <PolitikBarometerPanel
@@ -521,6 +523,7 @@ export default function DemoIntroWalkthrough({
   const [showDemoTooltip, setShowDemoTooltip] = useState(false);
   const [nextPulse, setNextPulse] = useState(false);
   const [continuePulse, setContinuePulse] = useState(false);
+  const [praemienCinematicDone, setPraemienCinematicDone] = useState(false);
   const demoTooltipTimerRef = useRef<number | null>(null);
   const pulseTimerRef = useRef<number | null>(null);
   const autoAdvanceTimerRef = useRef<number | null>(null);
@@ -558,6 +561,18 @@ export default function DemoIntroWalkthrough({
   const onPolitikbarometerVisualDone = useCallback(() => {
     setNextPulse(true);
   }, []);
+
+  const onPraemienCinematicComplete = useCallback(() => {
+    setPraemienCinematicDone(true);
+  }, []);
+
+  const prevWalkthroughStepRef = useRef(step.id);
+  useEffect(() => {
+    if (prevWalkthroughStepRef.current !== step.id) {
+      prevWalkthroughStepRef.current = step.id;
+      if (step.id === 'praemien') setPraemienCinematicDone(false);
+    }
+  }, [step.id]);
 
   const preview = useMemo(() => {
     const caption = WALKTHROUGH_FOCUS_CAPTIONS[step.id as IntroOverlayStepId];
@@ -597,19 +612,7 @@ export default function DemoIntroWalkthrough({
             calendarPriorities={calendarPriorities}
             onAbstimmenDone={() => setNextPulse(true)}
             onPolitikbarometerVisualDone={onPolitikbarometerVisualDone}
-            onPraemienConsentDone={() => {
-              speechCancelledRef.current = true;
-              if (pulseTimerRef.current != null) {
-                window.clearTimeout(pulseTimerRef.current);
-                pulseTimerRef.current = null;
-              }
-              if (autoAdvanceTimerRef.current != null) {
-                window.clearTimeout(autoAdvanceTimerRef.current);
-                autoAdvanceTimerRef.current = null;
-              }
-              speakApi?.stopIntroSpeech();
-              if (!isLast) setIdx((p) => Math.min(steps.length - 1, p + 1));
-            }}
+            onPraemienCinematicComplete={onPraemienCinematicComplete}
           />
         </div>
       </div>
@@ -624,6 +627,7 @@ export default function DemoIntroWalkthrough({
     steps.length,
     speakApi,
     onPolitikbarometerVisualDone,
+    onPraemienCinematicComplete,
   ]);
   const speechStepKeyRef = useRef<string>('');
   const speechStartedRef = useRef(false);
@@ -755,12 +759,13 @@ export default function DemoIntroWalkthrough({
     if (!speechStartedRef.current) return;
     if (speechCancelledRef.current) return;
     if (speechAutoAdvancedRef.current) return;
-    const needsVisualReadyForAdvance =
+    const needsNextPulseAdvance =
       step.id === 'abstimmen' ||
       step.id === 'meldungen' ||
       step.id === 'wahlen' ||
       step.id === 'politikbarometer';
-    if (needsVisualReadyForAdvance && !nextPulse) return;
+    if (needsNextPulseAdvance && !nextPulse) return;
+    if (step.id === 'praemien' && !praemienCinematicDone) return;
 
     speechAutoAdvancedRef.current = true;
 
@@ -794,7 +799,17 @@ export default function DemoIntroWalkthrough({
       }
       speechAutoAdvancedRef.current = false;
     };
-  }, [isIntroSpeaking, idx, step.id, isLast, nextPulse, speakApi?.readAloud, steps.length, onFinish]);
+  }, [
+    isIntroSpeaking,
+    idx,
+    step.id,
+    isLast,
+    nextPulse,
+    praemienCinematicDone,
+    speakApi?.readAloud,
+    steps.length,
+    onFinish,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -852,6 +867,8 @@ export default function DemoIntroWalkthrough({
             surface="light"
             stepNumber={null}
             showClaraVoice
+            inlinePad="card"
+            toolbarDensity="compact"
             onSkip={skipIntroOrBackToEid}
             onClose={exitIntroOrBackToEid}
             closeAriaLabel={idx === 0 ? 'Zurück zur eID-Vorschau' : undefined}

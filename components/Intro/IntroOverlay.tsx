@@ -188,6 +188,13 @@ export const INTRO_META_ICON_BUTTON_DARK_CLASS =
 export const INTRO_META_ICON_BUTTON_LIGHT_CLASS =
   'inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border transition border-slate-300/90 text-slate-600/90 hover:text-slate-900 hover:bg-slate-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-slate-400';
 
+/** Kompaktere Toolbar auf schmalen Phones (Walkthrough), gleiche Fläche wie 7×7-Close. */
+export const INTRO_META_ICON_BUTTON_DARK_COMPACT_CLASS =
+  'inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border transition border-white/25 text-white/80 hover:text-white hover:border-white/40 hover:bg-white/8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/45';
+
+export const INTRO_META_ICON_BUTTON_LIGHT_COMPACT_CLASS =
+  'inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border transition border-slate-300/90 text-slate-600/90 hover:text-slate-900 hover:bg-slate-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-slate-400';
+
 /** Kompaktes Text-Label für Vorlesen (Legacy; Header nutzt bevorzugt `IntroAudioStatusButton`). */
 export function IntroReadAloudToggle({ theme = 'light' }: ReadAloudToggleProps = {}) {
   const api = useIntroSpeakApi();
@@ -227,7 +234,12 @@ type IntroAudioStatusTheme = 'dark' | 'light';
  * Dünnes Lautsprecher-Icon: AN (Volume2) / AUS (VolumeX) — gleiche Session-Logik wie `readAloud`.
  * Kurz aufleuchtender Rand, wenn TTS startet (siehe `.intro-audio-status-pulse` in globals.css).
  */
-export function IntroAudioStatusButton({ theme = 'dark' }: { theme?: IntroAudioStatusTheme } = {}) {
+type IntroToolbarDensity = 'default' | 'compact';
+
+export function IntroAudioStatusButton({
+  theme = 'dark',
+  density = 'default',
+}: { theme?: IntroAudioStatusTheme; density?: IntroToolbarDensity } = {}) {
   const api = useIntroSpeakApi();
   const isIntroSpeaking = useIntroIsSpeaking();
   const [pulse, setPulse] = useState(false);
@@ -274,6 +286,15 @@ export function IntroAudioStatusButton({ theme = 'dark' }: { theme?: IntroAudioS
         ? 'ring-1 ring-sky-300/40'
         : 'ring-1 ring-sky-600/35'
       : '';
+  const compact = density === 'compact';
+  const btnBase = onDark
+    ? compact
+      ? INTRO_META_ICON_BUTTON_DARK_COMPACT_CLASS
+      : INTRO_META_ICON_BUTTON_DARK_CLASS
+    : compact
+      ? INTRO_META_ICON_BUTTON_LIGHT_COMPACT_CLASS
+      : 'inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border transition border-slate-300/90 text-slate-600/90 hover:text-slate-900 hover:bg-slate-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-slate-400';
+  const iconSz = compact ? 'h-4 w-4' : 'h-[18px] w-[18px]';
 
   return (
     <button
@@ -284,9 +305,7 @@ export function IntroAudioStatusButton({ theme = 'dark' }: { theme?: IntroAudioS
       title={title}
       onClick={() => setReadAloud(!readAloud)}
       className={[
-        onDark
-          ? INTRO_META_ICON_BUTTON_DARK_CLASS
-          : 'inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border transition border-slate-300/90 text-slate-600/90 hover:text-slate-900 hover:bg-slate-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-slate-400',
+        btnBase,
         activeRing,
         readAloud && isIntroSpeaking && onDark ? 'text-sky-100/90' : '',
         readAloud && isIntroSpeaking && !onDark ? 'text-sky-700' : '',
@@ -296,32 +315,34 @@ export function IntroAudioStatusButton({ theme = 'dark' }: { theme?: IntroAudioS
         .join(' ')}
     >
       {readAloud ? (
-        <Volume2
-          className={`h-[18px] w-[18px] shrink-0 ${onDark ? '' : 'text-slate-700'}`}
-          strokeWidth={1.5}
-          aria-hidden
-        />
+        <Volume2 className={`${iconSz} shrink-0 ${onDark ? '' : 'text-slate-700'}`} strokeWidth={1.5} aria-hidden />
       ) : (
-        <VolumeX
-          className={`h-[18px] w-[18px] shrink-0 ${onDark ? 'text-white/55' : 'text-slate-400'}`}
-          strokeWidth={1.5}
-          aria-hidden
-        />
+        <VolumeX className={`${iconSz} shrink-0 ${onDark ? 'text-white/55' : 'text-slate-400'}`} strokeWidth={1.5} aria-hidden />
       )}
     </button>
   );
 }
 
-export function IntroSpeechSpeedToggle({ theme = 'dark' }: { theme?: IntroAudioStatusTheme } = {}) {
+export function IntroSpeechSpeedToggle({
+  theme = 'dark',
+  density = 'default',
+}: { theme?: IntroAudioStatusTheme; density?: IntroToolbarDensity } = {}) {
   const { speechRate, setSpeechRate } = useClaraVoiceContext();
   const onDark = theme === 'dark';
+  const compact = density === 'compact';
 
   const baseCls = onDark
-    ? 'inline-flex h-8 items-center rounded-full border border-white/20 bg-white/8 p-0.5 text-[10px] font-semibold text-white/85'
-    : 'inline-flex h-8 items-center rounded-full border border-slate-300/90 bg-white p-0.5 text-[10px] font-semibold text-slate-600';
+    ? `inline-flex items-center rounded-full border border-white/20 bg-white/8 font-semibold text-white/85 ${
+        compact ? 'h-7 p-0.5 text-[9px]' : 'h-8 p-0.5 text-[10px]'
+      }`
+    : `inline-flex items-center rounded-full border border-slate-300/90 bg-white font-semibold text-slate-600 ${
+        compact ? 'h-7 p-0.5 text-[9px]' : 'h-8 p-0.5 text-[10px]'
+      }`;
 
   const btnCls = (active: boolean) =>
-    'inline-flex min-w-[38px] items-center justify-center rounded-full px-2 py-1 leading-none transition ' +
+    `inline-flex items-center justify-center rounded-full leading-none transition ${
+      compact ? 'min-w-[31px] px-1.5 py-0.5' : 'min-w-[38px] px-2 py-1'
+    } ` +
     (active
       ? onDark
         ? 'bg-white text-[#0F172A]'
