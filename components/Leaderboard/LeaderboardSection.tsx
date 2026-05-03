@@ -54,8 +54,8 @@ function providerAndLocation(name: string, description: string, cityName: string
 }
 
 /** Deterministic pseudo-QR grid (decorative only, no encoded payload). */
-function QrStylePlaceholder({ seed }: { seed: string }) {
-  const n = 19;
+function QrStylePlaceholder({ seed, variant = 'sheet' }: { seed: string; variant?: 'sheet' | 'walkthroughThumb' }) {
+  const n = variant === 'walkthroughThumb' ? 11 : 19;
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i) * (i + 1)) % 1_000_000;
   const cells = new Array<boolean>(n * n).fill(false);
@@ -83,9 +83,13 @@ function QrStylePlaceholder({ seed }: { seed: string }) {
     h = (h * 1103515245 + 12345) & 0x7fffffff;
     cells[i] = h % 3 === 0;
   }
+  const sizeClass =
+    variant === 'walkthroughThumb'
+      ? 'mt-1 w-[4.5rem] max-w-[72px] border-neutral-200/90 shadow-sm'
+      : 'mt-1.5 w-[min(13rem,min(72vw,220px))] max-w-[220px] border-neutral-300 shadow-md';
   return (
     <div
-      className="mx-auto mt-2 grid aspect-square w-[min(11.5rem,54vw)] max-w-[184px] gap-px border border-neutral-300 bg-neutral-300 p-px shadow-inner"
+      className={`mx-auto grid aspect-square gap-px border bg-neutral-300 p-px ${sizeClass}`}
       style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
       aria-hidden
     >
@@ -341,6 +345,22 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
               </button>
             );
           })}
+        {compact ? (
+          <div
+            className="pointer-events-none rounded-xl border border-sky-100/90 bg-gradient-to-b from-sky-50/90 to-white px-2.5 py-2 shadow-sm"
+            aria-hidden
+          >
+            <p className="text-center text-[10px] font-bold leading-tight text-[#0f172a]">Naturfreibad Kirkel</p>
+            <p className="mt-0.5 text-center text-[9px] font-semibold text-[#003B73]">Gutschein anzeigen</p>
+            <QrStylePlaceholder seed="walkthrough-naturfreibad-kirkel-v1" variant="walkthroughThumb" />
+            <p className="mt-1 text-center text-[7.5px] font-semibold uppercase tracking-wide text-neutral-600">
+              Wallet perspektivisch
+            </p>
+            <p className="mt-0.5 text-center text-[8px] font-medium leading-snug text-neutral-700">
+              Beteiligung, nicht Meinung.
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <div className={`flex flex-wrap gap-1 ${compact ? 'pt-0.5' : 'pt-1'}`}>
@@ -362,7 +382,7 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
 
       {voucherSheet && sheetBenefit && sheetLocalState && sheetProvider ? (
         <div
-          className="fixed inset-0 z-[820] flex items-end justify-center p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:items-center sm:p-4"
+          className="fixed inset-0 z-[820] flex items-end justify-center p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-3 sm:items-center sm:p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="voucher-sheet-title"
@@ -373,18 +393,18 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
             aria-label="Schließen"
             onClick={closeVoucherSheet}
           />
-          <div className="relative z-[1] flex max-h-[min(85vh,calc(100vh-5.5rem))] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl">
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-3 pt-4">
-              <h2 id="voucher-sheet-title" className="text-[15px] font-bold leading-snug text-[#1A2B45]">
+          <div className="relative z-[1] flex max-h-[min(92dvh,calc(100dvh-4.5rem))] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl">
+            <div className="shrink-0 px-3 pb-2 pt-3">
+              <h2 id="voucher-sheet-title" className="text-[14px] font-bold leading-snug text-[#1A2B45]">
                 {sheetBenefit.name}
               </h2>
-              <p className="mt-1 text-[11px] font-medium text-neutral-700">{sheetProvider.provider}</p>
-              <p className="mt-0.5 text-[10px] text-neutral-600">{sheetProvider.location}</p>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                <span className="rounded-full border border-sky-100 bg-sky-50 px-2 py-0.5 text-[9.5px] font-semibold text-[#0055A4]">
+              <p className="mt-0.5 text-[10px] font-medium text-neutral-700">{sheetProvider.provider}</p>
+              <p className="mt-0.5 text-[9.5px] leading-snug text-neutral-600">{sheetProvider.location}</p>
+              <div className="mt-2 flex flex-wrap gap-1">
+                <span className="rounded-full border border-sky-100 bg-sky-50 px-1.5 py-0.5 text-[9px] font-semibold text-[#0055A4]">
                   {sheetBenefit.points.toLocaleString('de-DE')} Punkte
                 </span>
-                <span className="rounded-full border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-[9.5px] font-semibold text-neutral-700">
+                <span className="rounded-full border border-neutral-200 bg-neutral-50 px-1.5 py-0.5 text-[9px] font-semibold text-neutral-700">
                   {sheetLocalState.consentRequired
                     ? 'Einwilligung erforderlich'
                     : sheetLocalState.status === 'available'
@@ -395,55 +415,55 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
                 </span>
               </div>
               {sheetLocalState.consentRequired ? (
-                <p className="mt-2 rounded-lg border border-amber-100 bg-amber-50/80 px-2.5 py-2 text-[10px] leading-snug text-amber-950">
-                  Nach Einwilligung kann der Gutschein hier angezeigt werden. Es werden keine Abstimmungsdetails an Partner übermittelt.
+                <p className="mt-1.5 rounded-md border border-amber-100 bg-amber-50/90 px-2 py-1 text-[8.5px] leading-snug text-amber-950">
+                  Nach Einwilligung hier sichtbar. Keine Abstimmungsdetails an Partner.
                 </p>
               ) : null}
-              <p className="mt-3 text-[10px] font-medium text-neutral-700">Gültig bis: 30.09.2026</p>
-              <p className="mt-0.5 text-[10px] text-neutral-600">Einlösbar vor Ort per QR-Code</p>
-              <p className="mt-1.5 text-[9.5px] leading-snug text-neutral-600">
-                Digitale Bereitstellung in der Wallet-App ist perspektivisch vorgesehen; der Gutschein bleibt zunächst in dieser App sichtbar.
-              </p>
-              <p className="mt-3 text-[10px] font-semibold leading-snug text-[#1A2B45]">
-                Prämien belohnen Beteiligung, nicht Meinung.
-              </p>
-              <p className="mt-1 text-[9.5px] leading-snug text-neutral-600">
+              <div className="mt-2.5 rounded-xl border border-neutral-200 bg-neutral-50 px-2 py-2">
+                <p className="text-center text-[8.5px] font-semibold uppercase tracking-wide text-neutral-600">
+                  QR-Code Vorschau
+                </p>
+                <QrStylePlaceholder seed={sheetBenefit.id + sheetMockCode} variant="sheet" />
+                <p className="mt-1.5 break-all text-center font-mono text-[12px] font-bold leading-tight tracking-tight text-[#0f172a]">
+                  {sheetMockCode}
+                </p>
+                <p className="mt-0.5 text-center text-[7.5px] font-medium text-neutral-500">Sicherer Gutschein-Code</p>
+              </div>
+              <p className="mt-2 text-[9px] font-medium text-neutral-800">Gültig bis: 30.09.2026</p>
+              <p className="mt-0.5 text-[9px] text-neutral-600">Einlösbar vor Ort per QR-Code</p>
+              <p className="mt-1 text-[8.5px] font-medium text-neutral-600">QR-Code in der App. Wallet perspektivisch.</p>
+            </div>
+            <div className="max-h-[5.25rem] shrink-0 overflow-y-auto overscroll-contain border-t border-neutral-100/80 px-3 py-1.5">
+              <p className="text-[9px] font-semibold leading-snug text-[#1A2B45]">Prämien belohnen Beteiligung, nicht Meinung.</p>
+              <p className="mt-0.5 text-[8.5px] leading-snug text-neutral-600">
                 {du
                   ? 'Partner sehen nur, ob ein Gutschein gültig ist – nicht, wie du abgestimmt hast.'
                   : 'Partner sehen nur, ob ein Gutschein gültig ist – nicht, wie Sie abgestimmt haben.'}
               </p>
-              <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-                <p className="text-center text-[9px] font-semibold uppercase tracking-wide text-neutral-600">QR-Code Vorschau</p>
-                <QrStylePlaceholder seed={sheetBenefit.id + sheetMockCode} />
-                <p className="mt-2 text-center text-[9px] font-medium text-neutral-600">Sicherer Gutschein-Code</p>
-                <p className="mt-1 break-all text-center font-mono text-[11px] font-semibold tracking-tight text-[#1A2B45]">{sheetMockCode}</p>
-                <p className="mt-1 text-center text-[8px] text-neutral-500">Konzeptionell, noch nicht aktiv</p>
-              </div>
             </div>
-            <div className="shrink-0 border-t border-neutral-100 bg-[#FAFBFC] px-4 py-3">
+            <div className="shrink-0 border-t border-neutral-200 bg-[#FAFBFC] px-3 py-2.5">
+              {walletPerspektiveAck ? (
+                <p className="mb-2 rounded-md bg-white/80 px-2 py-1.5 text-center text-[8.5px] leading-snug text-neutral-700">
+                  Wallet-Funktion perspektivisch verfügbar. Der Gutschein bleibt aktuell als QR-Code in der App sichtbar.
+                </p>
+              ) : null}
               <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
                 <button
                   type="button"
                   onClick={() => setWalletPerspektiveAck(true)}
-                  className="w-full rounded-xl border border-[#0055A4]/35 bg-[#F0F6FC] px-3 py-2.5 text-[11px] font-semibold text-[#003B73] shadow-sm hover:bg-[#E4EEF8] sm:flex-1"
+                  className="w-full rounded-xl border border-[#0055A4]/35 bg-[#F0F6FC] px-3 py-2 text-[11px] font-semibold text-[#003B73] shadow-sm hover:bg-[#E4EEF8] sm:flex-1"
                 >
                   In Wallet speichern
                 </button>
                 <button
                   type="button"
                   onClick={closeVoucherSheet}
-                  className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-[11px] font-semibold text-neutral-800 shadow-sm hover:bg-neutral-50 sm:flex-1"
+                  className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-[11px] font-semibold text-neutral-800 shadow-sm hover:bg-neutral-50 sm:flex-1"
                 >
                   Schließen
                 </button>
               </div>
-              {walletPerspektiveAck ? (
-                <p className="mt-2 text-center text-[8.5px] leading-snug text-neutral-600">
-                  Wallet-Funktion perspektivisch verfügbar. Der Gutschein bleibt aktuell als QR-Code in der App sichtbar.
-                </p>
-              ) : (
-                <p className="mt-2 text-center text-[8px] text-neutral-500">Wallet-Funktion perspektivisch verfügbar</p>
-              )}
+              <p className="mt-1.5 text-center text-[7.5px] text-neutral-500">Wallet-Funktion perspektivisch verfügbar</p>
             </div>
           </div>
         </div>
