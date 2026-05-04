@@ -22,6 +22,7 @@ import {
   writeWantsWalkthrough,
   clearIntroSessionKeys,
 } from '@/lib/introPreLoginPhase';
+import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
 import ClaraDock from '@/components/Clara/ClaraDock';
 import {
   CLARA_DOCK_EXTRA_BOTTOM_ANREDE_ENTRY,
@@ -41,12 +42,16 @@ import { playDemoLaunchAudio } from '@/lib/playDemoLaunchAudio';
 // Produkteinführung (4 Screens) vor Login/Onboarding — eigenes Flag, nicht mit eID/Anrede vermischen.
 const PRODUCT_INTRO_DONE_KEY = 'eidconnect_product_intro_done_v4';
 const REWARDS_OPTIN_PROMPT_SHOWN_KEY = 'eidconnect_rewards_optin_prompt_shown_v1';
+/** Demo-Standort wie im früheren LoginScreen — für geführten Walkthrough vor `SET_LOGGED_IN`. */
+const GUIDED_DEMO_STREET = 'Hauptstraße 1';
+const GUIDED_DEMO_PLZ = '66459';
+const GUIDED_DEMO_CITY = 'Kirkel';
 type BuergerAppProps = { variant?: 'fullscreen' | 'device' };
 
 export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) {
   const { state, dispatch } = useApp();
   /**
-   * Produkt-Intro: zuerst, danach erst eID-Onboarding (LoginScreen).
+   * Produkt-Intro / Post-Login-Walkthrough-Overlay.
    *
    * Start IMMER mit `true`, damit Server-HTML und Client-Hydration deckungsgleich sind
    * (sonst Hydration-Mismatch: Server rendert Intro, Client rendert LoginScreen, wenn
@@ -55,10 +60,10 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
    * Die korrekte Entscheidung treffen wir in einem `useLayoutEffect` weiter unten –
    * das läuft synchron vor dem Paint, also ohne sichtbares Aufflackern.
    */
-  // Einführungs-Flow (State Clarity): Anrede (Schritt 1) → eID/LoginScreen
-  // (Schritt 2) → Walkthrough (Schritte 3–8, inkl. Politikbarometer als
-  // letztem Schritt) → App. Der Walkthrough läuft jetzt ausschließlich POST-
-  // Login und zeigt dort die sechs Vorschau-Screens inkl. finaler Themenwahl.
+  // Einführungs-Flow: Anrede → Einstieg (Entry) → bei „Einführung starten“ direkt
+  // eingeloggter Walkthrough (Auth „Zugang & Demo“ zuerst). Die alte LoginScreen-
+  // Vollfläche (eID/EU-Wallet) entfällt für diesen Pfad — LoginScreen bleibt nur
+  // für Sonderfälle (z. B. Session „ok“ ohne Walkthrough-Wunsch).
   //
   // `postLoginIntroOpen` startet IMMER `true`, damit Server-HTML und Client-
   // Hydration deckungsgleich bleiben. Die eigentliche Entscheidung fällt in
@@ -142,6 +147,25 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     if (typeof window === 'undefined') return;
     setPreLogin(readPreLoginPhase());
   }, []);
+
+  /**
+   * Reload: Session „preLogin ok + Walkthrough“ ohne Redux-Login → sofort
+   * Demo einloggen (wie früher „Weiter in die Einführung“), ohne alte LoginScreen-UI.
+   */
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (state.isLoggedIn) return;
+    if (state.anrede == null) return;
+    if (readPreLoginPhase() !== 'ok') return;
+    if (!readWantsWalkthrough()) return;
+    try {
+      persistAndSyncDemoAddress(dispatch as never, GUIDED_DEMO_STREET, GUIDED_DEMO_PLZ, GUIDED_DEMO_CITY);
+    } catch {
+      // ignore
+    }
+    dispatch({ type: 'SET_LOGIN_AUTH_METHOD', payload: 'eid' });
+    dispatch({ type: 'SET_LOGGED_IN', payload: true });
+  }, [dispatch, state.isLoggedIn, state.anrede]);
 
   /** NDA / Vor-Seite / Phasenwechsel: kein ererbter Fenster- oder Innen-Scroll → Layout-Sprung vermeiden. */
   useLayoutEffect(() => {
@@ -274,15 +298,15 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     setPostLoginIntroOpen(false);
   };
 
-  /** Erster Walkthrough-Schritt: zurück zur eID-Demo (ohne Intro als „erledigt“ zu markieren). */
+  /** Erster Walkthrough-Schritt: zurück zum Einstieg (Entry), nicht zur alten LoginScreen-Fläche. */
   const backFromWalkthroughFirstStep = () => {
     try {
-      writePreLoginPhase('ok');
+      writePreLoginPhase('entry');
       writeWantsWalkthrough(true);
     } catch {
       // ignore
     }
-    setPreLogin('ok');
+    setPreLogin('entry');
     setPostLoginIntroOpen(true);
     dispatch({ type: 'SET_LOGGED_IN', payload: false });
   };
@@ -371,6 +395,13 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     } catch {
       // ignore
     }
+    try {
+      persistAndSyncDemoAddress(dispatch as never, GUIDED_DEMO_STREET, GUIDED_DEMO_PLZ, GUIDED_DEMO_CITY);
+    } catch {
+      // ignore
+    }
+    dispatch({ type: 'SET_LOGIN_AUTH_METHOD', payload: 'eid' });
+    dispatch({ type: 'SET_LOGGED_IN', payload: true });
     setPreLogin('ok');
   };
 
@@ -412,11 +443,20 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
               onDirectToApp={onEntryDirect}
               position={isDevice ? 'absolute' : 'fixed'}
             />
-            <LoginScreen
-              renderFrame={!isDevice}
-              preLoginPhase={preLogin}
-              onBackToEntry={() => setPreLogin('entry')}
-            />
+            {/*
+              Geführter Walkthrough: nach Entry → sofort Login (onEntryStart), daher
+              keine alte LoginScreen-Vollfläche. LoginScreen nur noch, wenn explizit
+              „ok“ ohne Walkthrough (Randfall) oder vorübergehende Client-Session.
+            */}
+            {!state.isLoggedIn &&
+            preLogin === 'ok' &&
+            !(readWantsWalkthrough() && state.anrede != null) ? (
+              <LoginScreen
+                renderFrame={!isDevice}
+                preLoginPhase={preLogin}
+                onBackToEntry={() => setPreLogin('entry')}
+              />
+            ) : null}
           </div>
         ) : (
           <>
@@ -434,7 +474,6 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                   <DemoIntroWalkthrough
                     du={state.anrede === 'du'}
                     residenceLocation={state.residenceLocation}
-                    startStepId="politikbarometer"
                     fillDeviceFrame={isDevice}
                     onClose={finishProductIntro}
                     onFinish={finishProductIntro}

@@ -34,7 +34,7 @@ export function IntroEntryBranch({
   onDirectToApp,
   position = 'fixed',
 }: Props) {
-  const { tryResumePendingAudioFromUserGesture } = useClaraVoiceContext();
+  const { tryResumePendingAudioFromUserGesture, unlockAudioFromUserGesture } = useClaraVoiceContext();
   /** Stabile API — nicht `useOptionalIntroOverlay()` (merged Objekt wechselt bei jedem TTS-Tick → Effect-Sturm). */
   const speakApi = useIntroSpeakApi();
   const speakApiRef = useRef(speakApi);
@@ -66,11 +66,12 @@ export function IntroEntryBranch({
   const speakEntry = useCallback(() => {
     const api = speakApiRef.current;
     if (!api) return;
+    unlockAudioFromUserGesture();
     const parts = du ? [...INTRO_SPOKEN_ENTRY_DU] : [...INTRO_SPOKEN_ENTRY_SIE];
     api.stopIntroSpeech();
     api.speakIntroParts(parts, 'intro-entry-1');
     entryIntroPlayedRef.current = true;
-  }, [du]);
+  }, [du, unlockAudioFromUserGesture]);
 
   /** Ein Timer: Clara ~1 s nach Öffnen, ohne Warten auf Geste. */
   useEffect(() => {

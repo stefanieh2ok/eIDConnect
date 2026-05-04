@@ -17,6 +17,7 @@ import React, {
 } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
+import { claraAudioDevLog, claraAudioPreview } from '@/lib/claraAudioDevLog';
 
 const SESSION_AUDIO = 'eidconnect_intro_audio_v1';
 
@@ -80,9 +81,35 @@ function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
   });
   const lastNarrationKeyRef = useRef<string | null>(null);
 
+  /** Nach fehlgeschlagenem TTS darf derselbe `narrationKey` erneut angestoßen werden (sonst stille Intro-Schritte). */
+  useEffect(() => {
+    const onTtsFailed = () => {
+      lastNarrationKeyRef.current = null;
+    };
+    window.addEventListener('eidconnect:clara-tts-failed', onTtsFailed);
+    return () => window.removeEventListener('eidconnect:clara-tts-failed', onTtsFailed);
+  }, []);
+
+  useEffect(() => {
+    claraAudioDevLog('intro entered');
+    try {
+      claraAudioDevLog(
+        'init readAloud=',
+        readAloud,
+        'session',
+        SESSION_AUDIO + '=' + (sessionStorage.getItem(SESSION_AUDIO) ?? '(unset)'),
+      );
+    } catch {
+      claraAudioDevLog('init readAloud=', readAloud, '(session unreadable)');
+    }
+    claraAudioDevLog('speaker UI follows readAloud (IntroAudioStatusButton)');
+    // Nur Initialwert beim Mount — nicht bei jedem readAloud-Toggle erneut loggen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const stopIntroSpeech = useCallback(() => {
     try {
-      stopSpeaking();
+      stopSpeaking('stopIntroSpeech');
     } catch {
       // ignore
     }
@@ -96,11 +123,15 @@ function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
       if (key != null && key !== '' && lastNarrationKeyRef.current === key) {
         return;
       }
+      const text = raw.replace(/\s+/g, ' ').replace(/[*#_`]/g, '').trim();
+      if (text.length < 2) {
+        claraAudioDevLog('speakIntro skipped: text too short after sanitize', 'key=', key ?? '(no-key)');
+        return;
+      }
       if (key != null && key !== '') {
         lastNarrationKeyRef.current = key;
       }
-      const text = raw.replace(/\s+/g, ' ').replace(/[*#_`]/g, '').trim();
-      if (text.length < 2) return;
+      claraAudioDevLog('speakIntro scheduled', 'key=', key ?? '(no-key)', 'preview=', claraAudioPreview(text));
       requestAnimationFrame(() => {
         requestAnimationFrame(() => speak(text));
       });
@@ -110,17 +141,39 @@ function IntroOverlayRoot({ children }: { children: React.ReactNode }) {
 
   const speakIntroParts = useCallback(
     (plainParts: string[], key?: string) => {
-      if (!readAloud) return;
+      claraAudioDevLog('speakIntroParts called', 'key=', key ?? '(no-key)', 'readAloud=', readAloud);
+      if (!readAloud) {
+        claraAudioDevLog('speakIntroParts skipped: readAloud false');
+        return;
+      }
       if (key != null && key !== '' && lastNarrationKeyRef.current === key) {
+        claraAudioDevLog('speakIntroParts skipped: duplicate narration key', key);
+        return;
+      }
+      const parts = plainParts
+        .map((p) => p.replace(/\s+/g, ' ').replace(/[*#_`]/g, '').trim())
+        .filter((p) => p.length >= 2);
+      if (parts.length < 1) {
+        claraAudioDevLog(
+          'speakIntroParts skipped: empty parts after filter',
+          'rawCount=',
+          plainParts.length,
+          'key=',
+          key ?? '(no-key)',
+        );
         return;
       }
       if (key != null && key !== '') {
         lastNarrationKeyRef.current = key;
       }
-      const parts = plainParts
-        .map((p) => p.replace(/\s+/g, ' ').replace(/[*#_`]/g, '').trim())
-        .filter((p) => p.length >= 2);
-      if (parts.length < 1) return;
+      const joinedPreview = parts.join('\n\n');
+      claraAudioDevLog(
+        'speakIntroParts enqueue',
+        'parts=',
+        parts.length,
+        'text preview=',
+        claraAudioPreview(joinedPreview),
+      );
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           if (parts.length === 1) {
@@ -194,10 +247,10 @@ export const INTRO_META_ICON_BUTTON_LIGHT_CLASS =
 
 /** Kompaktere Toolbar auf schmalen Phones (Walkthrough), gleiche Fläche wie 7×7-Close. */
 export const INTRO_META_ICON_BUTTON_DARK_COMPACT_CLASS =
-  'inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border transition border-white/25 text-white/80 hover:text-white hover:border-white/40 hover:bg-white/8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/45';
+  'inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border transition border-white/25 text-white/80 hover:text-white hover:border-white/40 hover:bg-white/8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/45';
 
 export const INTRO_META_ICON_BUTTON_LIGHT_COMPACT_CLASS =
-  'inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border transition border-slate-300/90 text-slate-600/90 hover:text-slate-900 hover:bg-slate-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-slate-400';
+  'inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border transition border-slate-300/90 text-slate-600/90 hover:text-slate-900 hover:bg-slate-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-slate-400';
 
 /** Kompaktes Text-Label für Vorlesen (Legacy; Header nutzt bevorzugt `IntroAudioStatusButton`). */
 export function IntroReadAloudToggle({ theme = 'light' }: ReadAloudToggleProps = {}) {
@@ -337,15 +390,15 @@ export function IntroSpeechSpeedToggle({
 
   const baseCls = onDark
     ? `inline-flex items-center rounded-full border border-white/20 bg-white/8 font-semibold text-white/85 ${
-        compact ? 'h-7 p-0.5 text-[9px]' : 'h-8 p-0.5 text-[10px]'
+        compact ? 'h-8 p-0.5 text-[9px]' : 'h-8 p-0.5 text-[10px]'
       }`
     : `inline-flex items-center rounded-full border border-slate-300/90 bg-white font-semibold text-slate-600 ${
-        compact ? 'h-7 p-0.5 text-[9px]' : 'h-8 p-0.5 text-[10px]'
+        compact ? 'h-8 p-0.5 text-[9px]' : 'h-8 p-0.5 text-[10px]'
       }`;
 
   const btnCls = (active: boolean) =>
     `inline-flex items-center justify-center rounded-full leading-none transition ${
-      compact ? 'min-w-[31px] px-1.5 py-0.5' : 'min-w-[38px] px-2 py-1'
+      compact ? 'min-w-[30px] px-1.5 py-0.5' : 'min-w-[38px] px-2 py-1'
     } ` +
     (active
       ? onDark

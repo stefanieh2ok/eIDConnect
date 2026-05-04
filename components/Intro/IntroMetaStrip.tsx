@@ -64,6 +64,7 @@ export default function IntroMetaStrip({
       ? INTRO_META_ICON_BUTTON_DARK_COMPACT_CLASS
       : INTRO_META_ICON_BUTTON_DARK_CLASS;
   const micIcon = compact ? 'h-4 w-4' : 'h-[18px] w-[18px]';
+  const closeBtn = micBtn;
 
   return (
     <div
@@ -77,17 +78,21 @@ export default function IntroMetaStrip({
         tryResumePendingAudioFromUserGesture();
       }}
     >
-      <div className="intro-meta-strip__row grid w-full min-w-0 max-w-full grid-cols-[minmax(0,max-content)_minmax(0,1fr)] items-center gap-x-1.5 sm:gap-2">
+      <div className="intro-meta-strip__row flex w-full min-w-0 max-w-full items-center gap-2 sm:gap-2.5">
         <span
           className={
-            'intro-meta-strip__pill inline-flex max-w-[min(46vw,10.5rem)] min-w-0 items-center truncate rounded-full px-2 py-[3px] text-[9px] font-bold uppercase tracking-[0.1em] text-white sm:max-w-none sm:px-2.5 sm:text-[10px]'
+            'intro-meta-strip__pill inline-flex min-w-0 shrink-0 items-center truncate rounded-full font-bold uppercase leading-none tracking-[0.1em] text-white ' +
+            (compact
+              ? 'h-7 max-w-[min(30vw,7.75rem)] px-2 text-[8px] sm:max-w-[9rem] sm:text-[9px]'
+              : 'h-8 max-w-[min(38vw,9.25rem)] px-2 text-[9px] sm:max-w-[11rem] sm:px-2.5 sm:text-[10px]')
           }
           style={{ background: 'var(--gov-primary, #003366)' }}
           title={INTRO_GLOBAL_PILL_LABEL}
         >
           {INTRO_GLOBAL_PILL_LABEL}
         </span>
-        <div className="intro-meta-strip__actions flex min-w-0 items-center justify-end gap-0.5 sm:gap-1.5">
+        <div className="min-h-px min-w-2 flex-1 shrink" aria-hidden />
+        <div className="intro-meta-strip__actions flex shrink-0 items-center gap-1 sm:gap-1.5">
           <IntroAudioStatusButton theme={onLight ? 'light' : 'dark'} density={toolbarDensity} />
           <IntroSpeechSpeedToggle theme={onLight ? 'light' : 'dark'} density={toolbarDensity} />
           {showClaraVoice ? (
@@ -110,12 +115,7 @@ export default function IntroMetaStrip({
               type="button"
               onClick={onExit}
               aria-label={exitAria}
-              className={
-                'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border text-sm leading-none ' +
-                (onLight
-                  ? 'border-slate-300/90 bg-white text-slate-600 hover:bg-slate-50'
-                  : 'border-white/30 bg-white/10 text-white hover:bg-white/20')
-              }
+              className={closeBtn + ' text-[16px] leading-none'}
             >
               ×
             </button>

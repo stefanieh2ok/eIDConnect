@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle, Clock, ListChecks } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
@@ -16,7 +16,7 @@ type StatusRow = {
 
 type LeaderboardSectionProps = {
   embeddedInWalkthrough?: boolean;
-  /** Feuert, wenn die Prämien-Demo (Highlight → Gutschein → QR → Wallet-Vorschau) durchlaufen ist — für Walkthrough-Auto-Weiter. */
+  /** Im Walkthrough: nach Schließen des Naturfreibad-Gutschein-Sheets (einmalig), damit „Weiter“ freigeschaltet wird. */
   onWalkthroughCinematicComplete?: () => void;
 };
 
@@ -33,6 +33,13 @@ type VoucherSheetState = {
   benefitIndex: number;
 };
 
+/** Walkthrough-Autosequenz (nur eingebettet) — list → Highlight → Sheet/QR → Wallet. */
+type PremiumDemoState = 'list' | 'highlight' | 'qr' | 'walletPrepared';
+
+function isNaturfreibadWalkthroughBenefit(b: PraemieBenefit): boolean {
+  return /naturfreibad|freibad/i.test(b.name);
+}
+
 function formatMockVoucherCode(cityName: string, benefitId: string): string {
   const citySlug = cityName
     .normalize('NFKD')
@@ -46,6 +53,9 @@ function formatMockVoucherCode(cityName: string, benefitId: string): string {
   return `HC-${citySlug}-2026-${suffix}`;
 }
 
+/** Feste Demo-Anzeige im Walkthrough-QR-Sheet (GovTech-Vorschau, nicht dynamisch). */
+const WALKTHROUGH_SHEET_VOUCHER_CODE = 'HC-KIRKEL-2026-4821';
+
 function providerAndLocation(name: string, description: string, cityName: string): { provider: string; location: string } {
   const parts = name.split(/\s*[–-]\s*/);
   const provider = parts[0]?.trim() || name;
@@ -55,8 +65,14 @@ function providerAndLocation(name: string, description: string, cityName: string
 }
 
 /** Deterministic pseudo-QR grid (decorative only, no encoded payload). */
-function QrStylePlaceholder({ seed, variant = 'sheet' }: { seed: string; variant?: 'sheet' | 'walkthroughThumb' }) {
-  const n = variant === 'walkthroughThumb' ? 11 : 19;
+function QrStylePlaceholder({
+  seed,
+  variant = 'sheet',
+}: {
+  seed: string;
+  variant?: 'sheet' | 'walkthroughThumb' | 'compactSheet';
+}) {
+  const n = variant === 'sheet' ? 19 : 11;
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (h + seed.charCodeAt(i) * (i + 1)) % 1_000_000;
   const cells = new Array<boolean>(n * n).fill(false);
@@ -85,9 +101,11 @@ function QrStylePlaceholder({ seed, variant = 'sheet' }: { seed: string; variant
     cells[i] = h % 3 === 0;
   }
   const sizeClass =
-    variant === 'walkthroughThumb'
-      ? 'mt-1 w-[4.5rem] max-w-[72px] border-neutral-200/90 shadow-sm'
-      : 'mt-1.5 w-[min(13rem,min(72vw,220px))] max-w-[220px] border-neutral-300 shadow-md';
+    variant === 'sheet'
+      ? 'mt-1.5 w-[min(13rem,min(72vw,220px))] max-w-[220px] border-neutral-300 shadow-md'
+      : variant === 'compactSheet'
+        ? 'mt-0 w-[3.35rem] max-w-[54px] border-slate-200/80 shadow-sm'
+        : 'mt-1 w-[4.5rem] max-w-[72px] border-neutral-200/90 shadow-sm';
   return (
     <div
       className={`mx-auto grid aspect-square gap-px border bg-neutral-300 p-px ${sizeClass}`}
@@ -138,16 +156,6 @@ function rewardVisual(name: string): {
   return { label: 'PR', className: 'border-slate-200 bg-slate-50 text-slate-700' };
 }
 
-type WalkthroughPraemienPhase =
-  | 'idle'
-  | 'highlight'
-  | 'tap_card'
-  | 'cta_pulse'
-  | 'sheet'
-  | 'wallet_emphasis'
-  | 'wallet_preview'
-  | 'done';
-
 const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
   embeddedInWalkthrough = false,
   onWalkthroughCinematicComplete,
@@ -164,14 +172,36 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
 
   const [voucherSheet, setVoucherSheet] = useState<VoucherSheetState | null>(null);
   const [walletPerspektiveAck, setWalletPerspektiveAck] = useState(false);
-  const [wtPhase, setWtPhase] = useState<WalkthroughPraemienPhase>('idle');
-  const wtTimersRef = useRef<number[]>([]);
-  const wtCancelledRef = useRef(false);
+  const [premiumDemoState, setPremiumDemoState] = useState<PremiumDemoState>('list');
+  const walkthroughRewardCompleteFiredRef = useRef(false);
+  const walkthroughSheetPanelRef = useRef<HTMLDivElement>(null);
+  const premiumTimersRef = useRef<number[]>([]);
+  const benefitsRef = useRef<PraemieBenefit[]>(benefits);
+  const showcaseIdxRef = useRef(0);
+  const voucherSheetRef = useRef<VoucherSheetState | null>(null);
+  const onWalkthroughPremiumCompleteRef = useRef(onWalkthroughCinematicComplete);
+  onWalkthroughPremiumCompleteRef.current = onWalkthroughCinematicComplete;
+
+  const clearPremiumTimers = useCallback(() => {
+    premiumTimersRef.current.forEach((id) => window.clearTimeout(id));
+    premiumTimersRef.current = [];
+  }, []);
+
+  const maybeFireWalkthroughPremiumComplete = useCallback((benefit: PraemieBenefit | null) => {
+    if (!embeddedInWalkthrough || !benefit || !isNaturfreibadWalkthroughBenefit(benefit)) return;
+    if (walkthroughRewardCompleteFiredRef.current) return;
+    walkthroughRewardCompleteFiredRef.current = true;
+    onWalkthroughPremiumCompleteRef.current?.();
+  }, [embeddedInWalkthrough]);
 
   const closeVoucherSheet = useCallback(() => {
+    if (embeddedInWalkthrough) {
+      clearPremiumTimers();
+      setPremiumDemoState('list');
+    }
     setWalletPerspektiveAck(false);
     setVoucherSheet(null);
-  }, []);
+  }, [embeddedInWalkthrough, clearPremiumTimers]);
 
   useEffect(() => {
     if (!voucherSheet) return;
@@ -181,6 +211,13 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [voucherSheet, closeVoucherSheet]);
+
+  useLayoutEffect(() => {
+    if (!embeddedInWalkthrough || !voucherSheet) return;
+    const el = walkthroughSheetPanelRef.current;
+    if (!el) return;
+    el.scrollIntoView({ block: 'center', inline: 'nearest' });
+  }, [embeddedInWalkthrough, voucherSheet, walletPerspektiveAck]);
 
   const rows = useMemo<StatusRow[]>(
     () => [
@@ -226,83 +263,78 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
     return i >= 0 ? i : 0;
   }, [benefits]);
 
+  benefitsRef.current = benefits;
+  showcaseIdxRef.current = showcaseIdx;
+  voucherSheetRef.current = voucherSheet;
+
+  const armPremiumTimer = useCallback((fn: () => void, ms: number) => {
+    const id = window.setTimeout(() => {
+      premiumTimersRef.current = premiumTimersRef.current.filter((x) => x !== id);
+      fn();
+    }, ms);
+    premiumTimersRef.current.push(id);
+  }, []);
+
   useEffect(() => {
     if (!embeddedInWalkthrough) {
-      setWtPhase('idle');
+      clearPremiumTimers();
+      setPremiumDemoState('list');
+      setWalletPerspektiveAck(false);
+      setVoucherSheet(null);
       return;
     }
-    setWtPhase('idle');
+    walkthroughRewardCompleteFiredRef.current = false;
+    setPremiumDemoState('list');
     setWalletPerspektiveAck(false);
     setVoucherSheet(null);
-    wtCancelledRef.current = false;
-    const push = (id: number) => {
-      wtTimersRef.current.push(id);
+    const consentTimer = window.setTimeout(() => {
+      dispatch({ type: 'SET_CONSENT_LOCAL_BENEFITS', payload: true });
+    }, 280);
+    return () => {
+      window.clearTimeout(consentTimer);
+      clearPremiumTimers();
     };
-    const clearWt = () => {
-      wtTimersRef.current.forEach((t) => window.clearTimeout(t));
-      wtTimersRef.current = [];
-    };
+  }, [embeddedInWalkthrough, dispatch, clearPremiumTimers]);
 
-    push(
-      window.setTimeout(() => {
-        if (wtCancelledRef.current) return;
-        dispatch({ type: 'SET_CONSENT_LOCAL_BENEFITS', payload: true });
-      }, 280),
-    );
-    push(
-      window.setTimeout(() => {
-        if (wtCancelledRef.current) return;
-        setWtPhase('highlight');
-      }, 720),
-    );
-    push(
-      window.setTimeout(() => {
-        if (wtCancelledRef.current) return;
-        setWtPhase('tap_card');
-      }, 1280),
-    );
-    push(
-      window.setTimeout(() => {
-        if (wtCancelledRef.current) return;
-        setWtPhase('cta_pulse');
-      }, 2080),
-    );
-    push(
-      window.setTimeout(() => {
-        if (wtCancelledRef.current) return;
-        const b = benefits[showcaseIdx];
-        if (!b) return;
-        setWalletPerspektiveAck(false);
-        setVoucherSheet({ benefit: b, benefitIndex: showcaseIdx });
-        setWtPhase('sheet');
-      }, 2880),
-    );
-    push(
-      window.setTimeout(() => {
-        if (wtCancelledRef.current) return;
-        setWtPhase('wallet_emphasis');
-      }, 4800),
-    );
-    push(
-      window.setTimeout(() => {
-        if (wtCancelledRef.current) return;
-        setWalletPerspektiveAck(true);
-        setWtPhase('wallet_preview');
-      }, 6200),
-    );
-    push(
-      window.setTimeout(() => {
-        if (wtCancelledRef.current) return;
-        setWtPhase('done');
-        onWalkthroughCinematicComplete?.();
-      }, 9800),
-    );
+  /** Walkthrough: automatische Demo (Highlight → Gutschein/QR → Wallet), ohne Clara anzufassen. */
+  useEffect(() => {
+    if (!embeddedInWalkthrough) return;
+
+    const MS_HIGHLIGHT = 1000;
+    const MS_QR = 3100;
+    const MS_WALLET = 5200;
+
+    clearPremiumTimers();
+
+    armPremiumTimer(() => {
+      setPremiumDemoState((s) => (s === 'list' ? 'highlight' : s));
+    }, MS_HIGHLIGHT);
+
+    armPremiumTimer(() => {
+      if (voucherSheetRef.current) {
+        setPremiumDemoState((s) => (s === 'walletPrepared' ? s : 'qr'));
+        return;
+      }
+      const idx = showcaseIdxRef.current;
+      const b = benefitsRef.current[idx];
+      if (!b || !isNaturfreibadWalkthroughBenefit(b)) return;
+      setWalletPerspektiveAck(false);
+      setVoucherSheet({ benefit: b, benefitIndex: idx });
+      setPremiumDemoState('qr');
+    }, MS_QR);
+
+    armPremiumTimer(() => {
+      const sh = voucherSheetRef.current;
+      if (!sh || !isNaturfreibadWalkthroughBenefit(sh.benefit)) return;
+      setWalletPerspektiveAck(true);
+      setPremiumDemoState('walletPrepared');
+      maybeFireWalkthroughPremiumComplete(sh.benefit);
+    }, MS_WALLET);
 
     return () => {
-      wtCancelledRef.current = true;
-      clearWt();
+      clearPremiumTimers();
     };
-  }, [embeddedInWalkthrough, benefits, showcaseIdx, dispatch, onWalkthroughCinematicComplete]);
+  }, [embeddedInWalkthrough, armPremiumTimer, clearPremiumTimers, maybeFireWalkthroughPremiumComplete]);
 
   const sheetBenefit = voucherSheet?.benefit;
   const sheetIndex = voucherSheet?.benefitIndex ?? 0;
@@ -327,8 +359,7 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
   const sheetIsWalkNaturfreibadDemo =
     Boolean(embeddedInWalkthrough && sheetBenefit && /naturfreibad|freibad/i.test(sheetBenefit.name));
 
-  const cinemaActive =
-    embeddedInWalkthrough && wtPhase !== 'idle' && wtPhase !== 'done';
+  const cinemaActive = embeddedInWalkthrough && voucherSheet !== null;
 
   return (
     <div
@@ -383,34 +414,28 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
                 : rawBenefit;
             const visual = rewardVisual(b.name);
             const openSheet = () => {
-              if (embeddedInWalkthrough) return;
+              if (embeddedInWalkthrough) {
+                clearPremiumTimers();
+                setPremiumDemoState('qr');
+              }
               setWalletPerspektiveAck(false);
               setVoucherSheet({ benefit: b, benefitIndex: idx });
             };
             const showcaseHighlight =
               embeddedInWalkthrough &&
               idx === showcaseIdx &&
-              (wtPhase === 'highlight' || wtPhase === 'tap_card' || wtPhase === 'cta_pulse');
+              voucherSheet === null &&
+              premiumDemoState === 'highlight';
             const dimSibling =
               embeddedInWalkthrough &&
               cinemaActive &&
-              idx !== showcaseIdx &&
-              (wtPhase === 'highlight' ||
-                wtPhase === 'tap_card' ||
-                wtPhase === 'cta_pulse' ||
-                wtPhase === 'sheet');
-            const ctaPulse = embeddedInWalkthrough && idx === showcaseIdx && wtPhase === 'cta_pulse';
-            const tapFinger = embeddedInWalkthrough && idx === showcaseIdx && wtPhase === 'tap_card';
+              idx !== showcaseIdx;
             return (
               <button
                 key={b.id}
                 type="button"
                 onClick={openSheet}
-                className={`relative w-full rounded-2xl border border-neutral-200 bg-white text-left shadow-sm transition-[transform,box-shadow,opacity,border-color] duration-500 ease-out select-none ${
-                  embeddedInWalkthrough
-                    ? 'pointer-events-none cursor-default'
-                    : 'cursor-pointer hover:border-[#0055A4]/30 hover:shadow-md active:scale-[0.997] active:border-[#0055A4]/40'
-                } ${compact ? 'px-2 py-2' : 'px-3 py-3'} ${
+                className={`relative w-full rounded-2xl border border-neutral-200 bg-white text-left shadow-sm transition-[transform,box-shadow,opacity,border-color] duration-500 ease-out select-none cursor-pointer hover:border-[#0055A4]/30 hover:shadow-md active:scale-[0.997] active:border-[#0055A4]/40 ${compact ? 'px-2 py-2' : 'px-3 py-3'} ${
                   showcaseHighlight
                     ? 'intro-wt-card-focus intro-wt-showcase-hero z-[4] ring-1 ring-sky-400/50'
                     : ''
@@ -483,22 +508,10 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
                   </div>
                 </div>
                 <div
-                  className={`mt-2.5 border-t border-neutral-100 pt-2.5 text-center text-[11px] font-semibold text-[#003B73] ${compact ? 'text-[10.5px]' : ''} ${
-                    ctaPulse ? 'intro-wt-cta-autotap' : ''
-                  }`}
+                  className={`mt-2.5 border-t border-neutral-100 pt-2.5 text-center text-[11px] font-semibold text-[#003B73] ${compact ? 'text-[10.5px]' : ''}`}
                 >
                   {localBenefit.consentRequired ? 'Details anzeigen' : 'Gutschein anzeigen'}
                 </div>
-                {tapFinger ? (
-                  <div
-                    className="pointer-events-none absolute inset-0 z-[2] flex items-end justify-center pb-8"
-                    aria-hidden
-                  >
-                    <div className="intro-wt-finger-dot flex h-11 w-11 items-center justify-center rounded-full border-2 border-sky-500/95 bg-white/95 shadow-[0_6px_20px_rgba(15,23,42,0.18)]">
-                      <span className="block h-3 w-3 rounded-full bg-sky-500 shadow-inner" />
-                    </div>
-                  </div>
-                ) : null}
               </button>
             );
           })}
@@ -522,28 +535,124 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
       ) : null}
 
       {voucherSheet && sheetBenefit && sheetLocalState && sheetProvider ? (
+        embeddedInWalkthrough ? (
         <div
-          className={
-            (embeddedInWalkthrough ? 'absolute' : 'fixed') +
-            ' inset-0 z-[820] flex items-end justify-center p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-3 sm:items-center sm:p-4'
-          }
+          className="absolute inset-0 z-[820] flex items-start justify-center overflow-x-hidden overflow-y-auto overscroll-contain px-2 pb-3 pt-2 sm:items-center sm:px-3 sm:pb-4 sm:pt-3"
+          style={{
+            paddingBottom: 'max(0.5rem, calc(env(safe-area-inset-bottom, 0px) + 0.35rem))',
+          }}
           role="dialog"
           aria-modal="true"
           aria-labelledby="voucher-sheet-title"
         >
           <button
             type="button"
+            className="absolute inset-0 intro-wt-sheet-backdrop bg-black/35 backdrop-blur-[2px]"
+            aria-label="Schließen"
+            onClick={closeVoucherSheet}
+          />
+          <div
+            ref={walkthroughSheetPanelRef}
             className={
-              'absolute inset-0 ' +
-              (embeddedInWalkthrough ? 'intro-wt-sheet-backdrop bg-black/55 backdrop-blur-[2px]' : 'bg-black/40')
+              'intro-wt-sheet-panel--cinema relative z-[1] flex w-full max-w-[min(100%,20rem)] min-h-0 max-h-[min(72dvh,calc(100dvh-9.5rem))] flex-col overflow-hidden rounded-2xl border border-slate-200/85 bg-white shadow-[0_16px_48px_rgba(15,23,42,0.12)] sm:max-h-[min(78dvh,32rem)] sm:max-w-md sm:shadow-xl'
             }
+          >
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 pb-1.5 pt-2.5 [-webkit-overflow-scrolling:touch] sm:px-3 sm:pb-2 sm:pt-3">
+              {!walletPerspektiveAck ? (
+                <>
+                  <h2 id="voucher-sheet-title" className="text-center text-[12px] font-bold leading-snug text-[#0f172a]">
+                    Dein QR-Code ist bereit
+                  </h2>
+                  <p className="mt-1 text-center text-[10px] leading-snug text-neutral-600">
+                    {du
+                      ? 'Zeige diesen Code beim Partner vor oder speichere ihn als Wallet-Pass.'
+                      : 'Zeigen Sie diesen Code beim Partner vor, oder speichern Sie ihn als Wallet-Pass.'}
+                  </p>
+                  <div className="mt-2 flex flex-col items-center gap-1 rounded-xl border border-slate-200/75 bg-white px-2 py-2">
+                    <QrStylePlaceholder
+                      seed={sheetBenefit.id + WALKTHROUGH_SHEET_VOUCHER_CODE}
+                      variant="compactSheet"
+                    />
+                    <p className="max-w-full break-all text-center font-mono text-[9px] font-semibold leading-tight tracking-tight text-[#0f172a]">
+                      {WALKTHROUGH_SHEET_VOUCHER_CODE}
+                    </p>
+                  </div>
+                  <p className="mt-1.5 text-center text-[7.5px] leading-snug text-slate-500">
+                    Prämien belohnen Beteiligung, nicht Meinung.{' '}
+                    {du ? 'Partner sehen nur die Gültigkeit.' : 'Partner sehen nur die Gültigkeit — nicht Ihr Abstimmungsverhalten.'}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 id="voucher-sheet-title" className="text-center text-[12px] font-bold leading-snug text-[#0f172a]">
+                    Wallet-Pass vorbereitet
+                  </h2>
+                  <p className="mt-1.5 text-center text-[10px] leading-snug text-neutral-600">
+                    In einer realen Umsetzung würde hier ein geprüfter Wallet-Pass erzeugt und lokal
+                    datenschutzkonform eingebunden.
+                  </p>
+                  <p className="mt-2 text-center text-[10px] font-semibold leading-snug text-neutral-700">
+                    Demo-Modus · keine echte Einlösung
+                  </p>
+                </>
+              )}
+            </div>
+            <div
+              className="shrink-0 space-y-1 border-t border-slate-200/60 bg-white/90 px-2.5 pt-1.5 backdrop-blur-[4px]"
+              style={{
+                paddingBottom: 'max(0.45rem, env(safe-area-inset-bottom, 0px))',
+              }}
+            >
+              {!walletPerspektiveAck ? (
+                <div className="flex flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      clearPremiumTimers();
+                      setWalletPerspektiveAck(true);
+                      setPremiumDemoState('walletPrepared');
+                      if (sheetBenefit) maybeFireWalkthroughPremiumComplete(sheetBenefit);
+                    }}
+                    className="min-h-[40px] w-full rounded-lg border border-[#003366]/25 bg-[#003366] px-2 py-1.5 text-[11px] font-semibold text-white shadow-sm active:bg-[#00264d]"
+                  >
+                    Zum Wallet hinzufügen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closeVoucherSheet}
+                    className="min-h-[40px] w-full rounded-lg border border-slate-200/90 bg-white px-2 py-1.5 text-[11px] font-semibold text-slate-800 shadow-sm hover:bg-slate-50/90"
+                  >
+                    Später ansehen
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={closeVoucherSheet}
+                  className="min-h-[40px] w-full rounded-lg border border-slate-200/90 bg-white px-2 py-1.5 text-[11px] font-semibold text-slate-800 shadow-sm hover:bg-slate-50/90"
+                >
+                  Schließen
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        ) : (
+        <div
+          className="fixed inset-0 z-[820] flex items-end justify-center p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-3 sm:items-center sm:p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="voucher-sheet-title"
+        >
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/40"
             aria-label="Schließen"
             onClick={closeVoucherSheet}
           />
           <div
             className={
-              'relative z-[1] flex max-h-[min(92dvh,calc(100dvh-4.5rem))] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl ' +
-              (embeddedInWalkthrough ? 'intro-wt-sheet-panel--cinema' : 'intro-wt-sheet-panel')
+              'relative z-[1] flex max-h-[min(92dvh,calc(100dvh-4.5rem))] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl intro-wt-sheet-panel'
             }
           >
             <div className="shrink-0 px-3 pb-2 pt-3">
@@ -650,10 +759,7 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
                 <button
                   type="button"
                   onClick={() => setWalletPerspektiveAck(true)}
-                  className={
-                    'w-full rounded-xl border border-[#0055A4]/35 bg-[#F0F6FC] px-3 py-2 text-[11px] font-semibold text-[#003B73] shadow-sm hover:bg-[#E4EEF8] sm:flex-1 ' +
-                    (embeddedInWalkthrough && wtPhase === 'wallet_emphasis' ? 'intro-wt-wallet-emphasis' : '')
-                  }
+                  className="w-full rounded-xl border border-[#0055A4]/35 bg-[#F0F6FC] px-3 py-2 text-[11px] font-semibold text-[#003B73] shadow-sm hover:bg-[#E4EEF8] sm:flex-1"
                 >
                   In Wallet speichern
                 </button>
@@ -669,6 +775,7 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
             </div>
           </div>
         </div>
+        )
       ) : null}
     </div>
   );

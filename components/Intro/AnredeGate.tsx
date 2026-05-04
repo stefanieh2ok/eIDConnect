@@ -31,7 +31,8 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
   const speakApi = useIntroSpeakApi();
   const speakApiRef = useRef(speakApi);
   speakApiRef.current = speakApi;
-  const { speakParts, stopSpeaking, tryResumePendingAudioFromUserGesture } = useClaraVoiceContext();
+  const { speakParts, stopSpeaking, tryResumePendingAudioFromUserGesture, unlockAudioFromUserGesture } =
+    useClaraVoiceContext();
   const hasUnlockedSpeechRef = useRef(false);
   const hasSpokenIntroRef = useRef(false);
   const hasSelectedSalutationRef = useRef(false);
@@ -76,7 +77,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
   useEffect(() => {
     if (!isOpen) return;
     if (!speakApi?.readAloud) {
-      stopSpeaking();
+      stopSpeaking('anrede:readAloud-off');
     }
   }, [isOpen, speakApi?.readAloud, stopSpeaking]);
 
@@ -97,15 +98,16 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
   const speakGateFromUserGesture = useCallback(
     (choice: 'du' | 'sie' | null) => {
       if (!speakApiRef.current?.readAloud) return;
+      unlockAudioFromUserGesture();
       unlockSpeechOnGesture();
-      stopSpeaking();
+      stopSpeaking('anrede:gate-gesture');
       speakParts(introAnredeGateSpokenParts(choice));
       hasSpokenIntroRef.current = true;
       if (choice === 'du' || choice === 'sie') {
         hasSelectedSalutationRef.current = true;
       }
     },
-    [speakParts, stopSpeaking, unlockSpeechOnGesture],
+    [speakParts, stopSpeaking, unlockAudioFromUserGesture, unlockSpeechOnGesture],
   );
 
   const maybeStartNeutralIntroFromGesture = useCallback(() => {

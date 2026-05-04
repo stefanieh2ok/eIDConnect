@@ -1600,8 +1600,16 @@ body {
 
 /* Walkthrough: obere Meta-Leiste — etwas straffere Kanten, Chip darf kürzen */
 .intro-meta-strip.intro-meta-strip--compact-toolbar {
-  padding-top: 0.28rem;
-  padding-bottom: 0.38rem;
+  padding-top: 0.3rem;
+  padding-bottom: 0.4rem;
+}
+.intro-meta-strip.intro-meta-strip--compact-toolbar .intro-meta-strip__row {
+  min-height: 2.25rem;
+  gap: 0.35rem;
+}
+.intro-meta-strip.intro-meta-strip--compact-toolbar .intro-meta-strip__actions {
+  gap: 0.3rem;
+  flex-wrap: nowrap;
 }
 
 /* Prämien-Walkthrough: dezente Fokus- und Wallet-Pulse (motion-reduce respektiert) */

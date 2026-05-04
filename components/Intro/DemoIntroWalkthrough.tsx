@@ -6,8 +6,6 @@ import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { useIntroIsSpeaking, useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import { activeLocationForLevel } from '@/lib/activeLocationForLevel';
 import {
-  INTRO_CLOSING_SPOKEN_SEGMENTS_DU,
-  INTRO_CLOSING_SPOKEN_SEGMENTS_SIE,
   INTRO_OUTRO_DROPDOWN_DU,
   INTRO_OUTRO_DROPDOWN_SIE,
   INTRO_OUTRO_LABEL,
@@ -17,8 +15,19 @@ import {
   INTRO_OVERLAY_STEPS,
 } from '@/data/introOverlayMarketing';
 import type { IntroOverlayStepId } from '@/data/introOverlayMarketing';
-import { claraBlockForStep } from '@/data/introWalkthroughClara';
+import {
+  machineContinueLabel,
+  machineNarrationPlain,
+  machineShort,
+  machineSpeakParts,
+  machineStepId,
+  machineTitle,
+  overlayIndexForMachineIndex,
+  WALKTHROUGH_MACHINE_STEPS,
+} from '@/lib/walkthroughOrchestration';
+import { claraAudioDebugEnabled, claraAudioDevLog, claraAudioPreview } from '@/lib/claraAudioDevLog';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
+import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
 import LiveSection from '@/components/Live/LiveSection';
 import LeaderboardSection from '@/components/Leaderboard/LeaderboardSection';
@@ -41,7 +50,7 @@ const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = 
 const WALKTHROUGH_STEP_SUBTITLE: Partial<Record<IntroOverlayStepId, string>> = {
   // UX/Legal positioning: makes it unmistakable this is a preview, not “I’m voting here”.
   wahlen: 'Wahlvorschau: Kandidierende, Programme und verifizierte Quellen.',
-  praemien: 'Automatischer Ablauf — wie ein kurzer Film, nur zur Veranschaulichung.',
+  praemien: 'Freiwillig · nur mit Einwilligung · lokaler Partnervorteil als Beispiel.',
 };
 
 function walkthroughSectionForStep(stepId: string): Section {
@@ -73,8 +82,8 @@ type Props = {
   onBackFromFirstStep?: () => void;
   /** Aktueller Walkthrough-Schritt für Clara-Kontext (Dock/Chat). */
   onWalkthroughStepChange?: (step: { id: string; label: string }) => void;
-  /** Gewünschter Einstiegsschritt (Standard: Abstimmen). */
-  startStepId?: IntroOverlayStepId;
+  /** Optional: Einstieg in der State-Machine (0 = Auth). Standard 0. */
+  startMachineIndex?: number;
   /** iPhone-Demo: weniger Innenabstand, Vorschau nutzt die volle Gerätefläche. */
   fillDeviceFrame?: boolean;
 };
@@ -246,7 +255,13 @@ function IntroAbstimmenWalkthroughDemo({
   return (
     <div className="relative w-full min-w-0">
       <div className="mx-auto w-full max-w-[420px] space-y-2">
-        {card ? <VotingCard card={card as any} /> : null}
+        {card ? (
+          <VotingCard
+            card={card as any}
+            introCompact
+            introProConExpanded
+          />
+        ) : null}
 
         <div className="relative">
           <VotingControls
@@ -453,6 +468,153 @@ function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
   );
 }
 
+/**
+ * Auth-Schritt im Walkthrough: Clara-Bubble + funktionale Tabs (eID / EU Wallet)
+ * + immer sichtbare Demo-Box. Der Schritt bleibt kompakt — kein eigener
+ * Inner-Scroll, keine künstlichen Spacer.
+ */
+function WalkthroughAuthContent({ du }: { du: boolean }) {
+  const [activeTab, setActiveTab] = useState<'eid' | 'wallet'>('eid');
+  /** In-Tab-Vorschau (per Tab) — schaltet einen kleinen Info-Block innerhalb des AKTIVEN Tabs ein. */
+  const [eidPreviewOpen, setEidPreviewOpen] = useState(false);
+  const [walletPreviewOpen, setWalletPreviewOpen] = useState(false);
+
+  const claraText = machineNarrationPlain(0, du);
+
+  const tabBtnBase =
+    'inline-flex min-h-[40px] flex-1 items-center justify-center rounded-md px-3 text-[12.5px] font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8]';
+  const tabBtnActive = 'bg-[#003D80] text-white shadow-sm';
+  const tabBtnInactive = 'bg-transparent text-slate-500 hover:text-[#003D80]';
+
+  return (
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col gap-2.5 px-3 pb-2 pt-1.5 sm:gap-3 sm:px-4 sm:pt-2">
+      <ClaraStepPanel
+        surface="light"
+        label="Zugang zur Demo"
+        short={claraText}
+        long=""
+        showTopicTitle={false}
+      />
+
+      <div
+        role="tablist"
+        aria-label="Zugangsperspektiven"
+        className="grid grid-cols-2 gap-1 rounded-lg border border-slate-200 bg-slate-50 p-1"
+      >
+        <button
+          id="walkthrough-auth-tab-eid"
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'eid'}
+          aria-controls="walkthrough-auth-tabpanel-eid"
+          tabIndex={activeTab === 'eid' ? 0 : -1}
+          onClick={() => setActiveTab('eid')}
+          className={`${tabBtnBase} ${activeTab === 'eid' ? tabBtnActive : tabBtnInactive}`}
+        >
+          eID
+        </button>
+        <button
+          id="walkthrough-auth-tab-wallet"
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'wallet'}
+          aria-controls="walkthrough-auth-tabpanel-wallet"
+          tabIndex={activeTab === 'wallet' ? 0 : -1}
+          onClick={() => setActiveTab('wallet')}
+          className={`${tabBtnBase} ${activeTab === 'wallet' ? tabBtnActive : tabBtnInactive}`}
+        >
+          EU Wallet
+        </button>
+      </div>
+
+      {activeTab === 'eid' ? (
+        <div
+          id="walkthrough-auth-tabpanel-eid"
+          role="tabpanel"
+          aria-labelledby="walkthrough-auth-tab-eid"
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm"
+        >
+          <h3 className="text-[13px] font-bold leading-snug text-[#1A2B45]">Mit eID anmelden</h3>
+          <p className="mt-1 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-800">
+            Perspektive · heute als Vorschau
+          </p>
+          <p className="mt-1.5 text-[11.5px] leading-relaxed text-neutral-700 [text-wrap:pretty]">
+            In der Demo wird der sichere Zugang beispielhaft über die Online-Ausweisfunktion erklärt. Eine echte Identifikation findet hier noch nicht statt.
+          </p>
+          <button
+            type="button"
+            aria-expanded={eidPreviewOpen}
+            aria-controls="walkthrough-auth-eid-preview"
+            onClick={() => setEidPreviewOpen((open) => !open)}
+            className="mt-2.5 inline-flex min-h-[40px] w-full items-center justify-center rounded-lg border border-[#CFE0F7] bg-white px-3 text-[11.5px] font-semibold text-[#1F4F8A] shadow-sm transition hover:bg-[#F4F8FE] active:scale-[0.99]"
+          >
+            {eidPreviewOpen ? 'eID-Vorschau einklappen' : 'eID-Perspektive ansehen'}
+          </button>
+          {eidPreviewOpen ? (
+            <div
+              id="walkthrough-auth-eid-preview"
+              className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-[10.5px] leading-relaxed text-emerald-900"
+            >
+              <p className="font-semibold">eID-Perspektive · Vorschau</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                <li>Online-Ausweisfunktion mit PIN</li>
+                <li>Berechtigung und Zuständigkeit prüfen</li>
+                <li>Datensparsam · nur das Nötige freigeben</li>
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <div
+          id="walkthrough-auth-tabpanel-wallet"
+          role="tabpanel"
+          aria-labelledby="walkthrough-auth-tab-wallet"
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm"
+        >
+          <h3 className="text-[13px] font-bold leading-snug text-[#1A2B45]">EU Digital Identity Wallet</h3>
+          <p className="mt-1 inline-flex rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#003366]">
+            Konzept · künftige Integration
+          </p>
+          <p className="mt-1.5 text-[11.5px] leading-relaxed text-neutral-700 [text-wrap:pretty]">
+            Die EU Digital Identity Wallet kann künftig als zusätzlicher Zugang dienen – zum Beispiel für Identität, Nachweise oder Berechtigungen.
+          </p>
+          <button
+            type="button"
+            aria-expanded={walletPreviewOpen}
+            aria-controls="walkthrough-auth-wallet-preview"
+            onClick={() => setWalletPreviewOpen((open) => !open)}
+            className="mt-2.5 inline-flex min-h-[40px] w-full items-center justify-center rounded-lg border border-[#CFE0F7] bg-white px-3 text-[11.5px] font-semibold text-[#1F4F8A] shadow-sm transition hover:bg-[#F4F8FE] active:scale-[0.99]"
+          >
+            {walletPreviewOpen ? 'Wallet-Vorschau einklappen' : 'Wallet-Perspektive ansehen'}
+          </button>
+          {walletPreviewOpen ? (
+            <div
+              id="walkthrough-auth-wallet-preview"
+              className="mt-2 rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-2 text-[10.5px] leading-relaxed text-[#0F2A4A]"
+            >
+              <p className="font-semibold">Wallet-Perspektive · Konzept</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                <li>Identität & Nachweise im Smartphone</li>
+                <li>Selektive Freigabe einzelner Attribute</li>
+                <li>EU-weit anschlussfähig (EUDI Wallet)</li>
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      <div className="rounded-lg border border-[#CFE0F7] bg-[#F4F8FE] px-2.5 py-2 shadow-sm sm:px-3 sm:py-2.5">
+        <h3 className="text-[11.5px] font-bold leading-snug text-[#1A2B45] sm:text-[12px]">
+          Demo ohne echte Identifikation
+        </h3>
+        <p className="mt-0.5 text-[10.5px] leading-snug text-neutral-700 [text-wrap:pretty] sm:mt-1 sm:text-[11px] sm:leading-relaxed">
+          Für die Präsentation nutzen wir eine Beispielidentität und Beispieldaten — Start über „Weiter“ unten.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 /** Gleiche Sektionen wie unter der Tab-Leiste — kein separates Mini-Layout. */
 function WalkthroughRealSectionEmbed({
   stepId,
@@ -491,7 +653,10 @@ function WalkthroughRealSectionEmbed({
       );
     case 'praemien':
       return (
-        <LeaderboardSection embeddedInWalkthrough onWalkthroughCinematicComplete={onPraemienCinematicComplete} />
+        <LeaderboardSection
+          embeddedInWalkthrough
+          onWalkthroughCinematicComplete={onPraemienCinematicComplete}
+        />
       );
     case 'politikbarometer':
       return (
@@ -517,7 +682,7 @@ export default function DemoIntroWalkthrough({
   onFinish,
   onBackFromFirstStep,
   onWalkthroughStepChange,
-  startStepId = 'abstimmen',
+  startMachineIndex: startMachineIndexProp = 0,
   fillDeviceFrame = false,
 }: Props) {
   const { dispatch, state } = useApp();
@@ -526,37 +691,28 @@ export default function DemoIntroWalkthrough({
   const [nextPulse, setNextPulse] = useState(false);
   const [continuePulse, setContinuePulse] = useState(false);
   const [praemienCinematicDone, setPraemienCinematicDone] = useState(false);
+  const [claraReadyToContinue, setClaraReadyToContinue] = useState(false);
   const demoTooltipTimerRef = useRef<number | null>(null);
-  const pulseTimerRef = useRef<number | null>(null);
-  const autoAdvanceTimerRef = useRef<number | null>(null);
-  const steps = INTRO_OVERLAY_STEPS;
-  const initialIdx = useMemo(() => {
-    const i = steps.findIndex((s) => s.id === startStepId);
-    return i >= 0 ? i : 0;
-  }, [startStepId, steps]);
-  const [idx, setIdx] = useState(initialIdx);
+  const overlaySteps = INTRO_OVERLAY_STEPS;
+  const machineCount = WALKTHROUGH_MACHINE_STEPS.length;
+  const initialMachine = useMemo(() => {
+    const n = Math.max(0, Math.min(machineCount - 1, Math.floor(startMachineIndexProp)));
+    return n;
+  }, [startMachineIndexProp, machineCount]);
+  const [machineIndex, setMachineIndex] = useState(initialMachine);
   useEffect(() => {
-    setIdx(initialIdx);
-  }, [initialIdx]);
-  const step = steps[idx];
-  const isLast = idx >= steps.length - 1;
+    setMachineIndex(initialMachine);
+  }, [initialMachine]);
 
-  const framingLine = introOverlayFramingLine(step.id, du);
-  const clara = useMemo(() => claraBlockForStep(step.id, du), [step.id, du]);
+  const overlayIdx = overlayIndexForMachineIndex(machineIndex);
+  const overlayStepId = overlayIdx !== null ? overlaySteps[overlayIdx]!.id : null;
+  const machineId = machineStepId(machineIndex);
+  const isLast = machineIndex >= machineCount - 1;
 
-  const speakParts = useMemo(() => {
-    const base: string[] =
-      clara.speakSegments.length > 0
-        ? [...clara.speakSegments]
-        : [clara.line10s].filter(Boolean);
-    if (isLast) {
-      return [
-        ...base,
-        ...(du ? INTRO_CLOSING_SPOKEN_SEGMENTS_DU : INTRO_CLOSING_SPOKEN_SEGMENTS_SIE),
-      ];
-    }
-    return base;
-  }, [clara.line10s, clara.speakSegments, isLast, du]);
+  const framingLine =
+    overlayStepId != null ? introOverlayFramingLine(overlayStepId, du) : '';
+
+  const speakParts = useMemo(() => machineSpeakParts(machineIndex, du), [machineIndex, du]);
 
   const speakApi = useIntroSpeakApi();
   const { tryResumePendingAudioFromUserGesture } = useClaraVoiceContext();
@@ -569,17 +725,56 @@ export default function DemoIntroWalkthrough({
     setPraemienCinematicDone(true);
   }, []);
 
-  const prevWalkthroughStepRef = useRef(step.id);
-  useEffect(() => {
-    if (prevWalkthroughStepRef.current !== step.id) {
-      prevWalkthroughStepRef.current = step.id;
-      if (step.id === 'praemien') setPraemienCinematicDone(false);
+  /**
+   * Gemeinsame "Weiter"-Logik: Pulse leeren, nächsten Schritt auslösen.
+   * `stopIntroSpeech` hier weglassen (außer letzter Schritt): sonst wird
+   * `playRequestId` im selben Tap vor `tryResume`/`pending` erhöht — iOS
+   * Pending-TTS wird verworfen (`requestId mismatch`).
+   */
+  const advanceWalkthrough = useCallback(() => {
+    speechCancelledRef.current = true;
+    setContinuePulse(false);
+    if (pulseTimerRef.current != null) {
+      window.clearTimeout(pulseTimerRef.current);
+      pulseTimerRef.current = null;
     }
-  }, [step.id]);
+    if (isLast) {
+      speakApi?.stopIntroSpeech();
+      onFinish();
+    } else {
+      setMachineIndex((p) => Math.min(machineCount - 1, p + 1));
+    }
+  }, [speakApi, isLast, onFinish, machineCount]);
+
+  const prevMachineRef = useRef(machineIndex);
+  useEffect(() => {
+    if (prevMachineRef.current !== machineIndex) {
+      prevMachineRef.current = machineIndex;
+      if (machineStepId(machineIndex) === 'praemien') setPraemienCinematicDone(false);
+    }
+  }, [machineIndex]);
 
   const preview = useMemo(() => {
-    const caption = WALKTHROUGH_FOCUS_CAPTIONS[step.id as IntroOverlayStepId];
-    const subtitle = WALKTHROUGH_STEP_SUBTITLE[step.id as IntroOverlayStepId];
+    const mid = machineStepId(machineIndex);
+    if (mid === 'auth') {
+      return <WalkthroughAuthContent du={du} />;
+    }
+    if (mid === 'outro') {
+      return (
+        <div className="mx-auto w-full max-w-md px-1 pb-0 pt-0">
+          <div className="rounded-xl border border-slate-200/90 bg-gradient-to-b from-slate-50/80 to-white px-3 py-2.5 shadow-sm">
+            <p className="text-[11px] leading-snug text-neutral-800">
+              {du
+                ? 'Du hast die wichtigsten Bereiche gesehen: Abstimmen, Wahlen, Kalender, Meldungen und Prämien.'
+                : 'Sie haben die wichtigsten Bereiche gesehen: Abstimmen, Wahlen, Kalender, Meldungen und Prämien.'}
+            </p>
+          </div>
+        </div>
+      );
+    }
+    if (!overlayStepId) return null;
+    const caption = WALKTHROUGH_FOCUS_CAPTIONS[overlayStepId];
+    const subtitle = WALKTHROUGH_STEP_SUBTITLE[overlayStepId];
     const calendarPriorities = state.consentClaraPersonalization ? state.preferences : undefined;
     return (
       <div className="flex min-h-0 w-full flex-1 flex-col overflow-hidden">
@@ -589,14 +784,13 @@ export default function DemoIntroWalkthrough({
           </div>
         ) : null}
         <div
-          key={step.id}
+          key={overlayStepId}
           className={
             'walkthrough-real-embed min-h-0 flex-1 overflow-x-hidden ' +
-            (step.id === 'meldungen' ? 'overflow-y-hidden ' : 'overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] ') +
+            (overlayStepId === 'meldungen' ? 'overflow-y-hidden ' : 'overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] ') +
             (fillDeviceFrame ? 'px-0 pt-0' : 'px-3 pt-2')
           }
           onPointerDown={() => {
-            // Subtle safety net: signal demo mode after any interaction.
             setShowDemoTooltip(true);
             if (demoTooltipTimerRef.current) window.clearTimeout(demoTooltipTimerRef.current);
             demoTooltipTimerRef.current = window.setTimeout(() => setShowDemoTooltip(false), 2200);
@@ -610,7 +804,7 @@ export default function DemoIntroWalkthrough({
             </div>
           ) : null}
           <WalkthroughRealSectionEmbed
-            stepId={step.id as IntroOverlayStepId}
+            stepId={overlayStepId}
             du={du}
             calendarPriorities={calendarPriorities}
             onAbstimmenDone={() => setNextPulse(true)}
@@ -621,24 +815,25 @@ export default function DemoIntroWalkthrough({
       </div>
     );
   }, [
-    step.id,
+    machineIndex,
     du,
     fillDeviceFrame,
+    overlayStepId,
     state.consentClaraPersonalization,
     state.preferences,
-    isLast,
-    steps.length,
-    speakApi,
     onPolitikbarometerVisualDone,
     onPraemienCinematicComplete,
   ]);
+
+  const primaryLong = useMemo(() => machineNarrationPlain(machineIndex, du), [machineIndex, du]);
+
   const speechStepKeyRef = useRef<string>('');
   const speechStartedRef = useRef(false);
   const speechCancelledRef = useRef(false);
-  const speechAutoAdvancedRef = useRef(false);
+  const pulseTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const section = walkthroughSectionForStep(step.id);
+    const section = overlayStepId ? walkthroughSectionForStep(overlayStepId) : 'live';
     dispatch({ type: 'SET_ACTIVE_SECTION', payload: section });
     if (section === 'meldungen') {
       dispatch({
@@ -646,7 +841,7 @@ export default function DemoIntroWalkthrough({
         payload: activeLocationForLevel(residenceLocation, 'kommune'),
       });
     }
-  }, [step.id, dispatch, residenceLocation]);
+  }, [overlayStepId, dispatch, residenceLocation]);
 
   useEffect(() => {
     return () => {
@@ -658,168 +853,221 @@ export default function DemoIntroWalkthrough({
     document.querySelectorAll<HTMLElement>('.intro-walkthrough-scroll').forEach((el) => {
       el.scrollTop = 0;
     });
-  }, [idx, step.id]);
+  }, [machineIndex, overlayStepId]);
 
   useLayoutEffect(() => {
-    // Reset “Weiter”-pulse whenever the step changes (layout: vor Speech-Effect, damit Gating nicht stale ist).
     setNextPulse(false);
     setContinuePulse(false);
+    if (machineId === 'auth' || machineId === 'outro' || overlayStepId === 'kalender') {
+      setNextPulse(true);
+    }
     if (pulseTimerRef.current != null) {
       window.clearTimeout(pulseTimerRef.current);
       pulseTimerRef.current = null;
     }
-    if (autoAdvanceTimerRef.current != null) {
-      window.clearTimeout(autoAdvanceTimerRef.current);
-      autoAdvanceTimerRef.current = null;
-    }
-  }, [step.id]);
+  }, [machineId, overlayStepId]);
 
   useEffect(() => {
-    onWalkthroughStepChange?.({ id: step.id, label: clara.label });
-  }, [step.id, clara.label, onWalkthroughStepChange]);
+    const gated: IntroOverlayStepId[] = ['abstimmen', 'meldungen', 'wahlen', 'politikbarometer'];
+    if (!overlayStepId || !gated.includes(overlayStepId)) return;
+    const t = window.setTimeout(() => setNextPulse(true), 4500);
+    return () => window.clearTimeout(t);
+  }, [overlayStepId, machineIndex]);
+
+  useEffect(() => {
+    onWalkthroughStepChange?.({ id: machineId, label: machineTitle(machineIndex) });
+  }, [machineIndex, machineId, onWalkthroughStepChange]);
+
+  useEffect(() => {
+    setClaraReadyToContinue(false);
+    if (!speakApi?.readAloud) {
+      const t = window.setTimeout(() => setClaraReadyToContinue(true), 160);
+      return () => window.clearTimeout(t);
+    }
+    /**
+     * Sicherheits-Fallback: Wenn TTS innerhalb von 1.5 s nicht angefangen hat
+     * (z. B. Backend langsam, iOS Audio-Gate noch nicht freigegeben), aktiviert
+     * sich „Weiter" trotzdem — der Nutzer wird nie >1,5 s blockiert.
+     */
+    const fail = window.setTimeout(() => setClaraReadyToContinue(true), 1500);
+    return () => window.clearTimeout(fail);
+  }, [machineIndex, speakApi?.readAloud]);
+
+  useEffect(() => {
+    if (speakApi?.readAloud && isIntroSpeaking) setClaraReadyToContinue(true);
+  }, [isIntroSpeaking, speakApi?.readAloud]);
+
+  /**
+   * DEV-only Step-Timing: misst Step-Wechsel → sichtbarer Clara-Text →
+   * `isSpeaking` (TTS-Pipeline beginnt, inkl. Fetch) → hörbare Wiedergabe
+   * (`playing` auf dem Audio-Element, siehe `useClaraVoice`).
+   * Wird im Production-Build vollständig wegoptimiert (process.env-Guard).
+   */
+  const stepTimingRef = useRef<{
+    stepId: string;
+    startedAt: number;
+    pipelineLogged: boolean;
+    audibleLogged: boolean;
+  }>({ stepId: '', startedAt: 0, pipelineLogged: false, audibleLogged: false });
+
+  useLayoutEffect(() => {
+    if (!claraAudioDebugEnabled()) return;
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    stepTimingRef.current = {
+      stepId: machineId,
+      startedAt: now,
+      pipelineLogged: false,
+      audibleLogged: false,
+    };
+    // eslint-disable-next-line no-console
+    console.log(`[WalkthroughTiming] step=${machineId} stepChanged=0ms`);
+    /* Clara-Text liegt mit dem Commit im DOM — auf das nächste Paint warten. */
+    let raf = 0;
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      raf = window.requestAnimationFrame(() => {
+        const elapsed = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - now;
+        // eslint-disable-next-line no-console
+        console.log(
+          `[WalkthroughTiming] step=${machineId} claraTextVisibleAfter=${Math.round(elapsed)}ms`,
+        );
+      });
+    }
+    return () => {
+      if (raf && typeof window !== 'undefined') window.cancelAnimationFrame(raf);
+    };
+  }, [machineIndex, machineId]);
+
+  /** `isSpeaking` springt in `playTts` direkt nach `stopSpeaking` an — noch vor `fetch`/`play()`. */
+  useEffect(() => {
+    if (!claraAudioDebugEnabled()) return;
+    if (!isIntroSpeaking) return;
+    const t = stepTimingRef.current;
+    if (t.stepId !== machineId || t.pipelineLogged || t.startedAt <= 0) return;
+    t.pipelineLogged = true;
+    const elapsed = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - t.startedAt;
+    // eslint-disable-next-line no-console
+    console.log(
+      `[WalkthroughTiming] step=${machineId} claraTtsPipelineStartedAfter=${Math.round(elapsed)}ms`,
+    );
+  }, [isIntroSpeaking, machineId]);
+
+  /** Hörbare Ausgabe: `playing` auf dem Audio-Element (siehe `useClaraVoice.attachClaraAudibleDevLog`). */
+  useEffect(() => {
+    if (!claraAudioDebugEnabled()) return;
+    const onAudible = (e: Event) => {
+      const ce = e as CustomEvent<{ at?: number }>;
+      const at = ce.detail?.at;
+      if (typeof at !== 'number') return;
+      const t = stepTimingRef.current;
+      if (t.startedAt <= 0 || t.audibleLogged) return;
+      t.audibleLogged = true;
+      const elapsed = at - t.startedAt;
+      // eslint-disable-next-line no-console
+      console.log(
+        `[WalkthroughTiming] step=${t.stepId} claraAudiblePlaybackAfter=${Math.round(elapsed)}ms`,
+      );
+    };
+    window.addEventListener('eidconnect:clara-audible-start', onAudible as EventListener);
+    return () => window.removeEventListener('eidconnect:clara-audible-start', onAudible as EventListener);
+  }, []);
 
   useEffect(() => {
     if (!speakApi) return;
+    const joinedPreview = speakParts.join('\n\n');
+    claraAudioDevLog('step entered=', machineId);
+    claraAudioDevLog('step speakParts=', speakParts.length, 'text preview=', claraAudioPreview(joinedPreview));
+    claraAudioDevLog('readAloud=', speakApi.readAloud);
     if (!speakApi.readAloud) {
+      claraAudioDevLog('walkthrough speech skipped: readAloud false');
       speechStepKeyRef.current = '';
       speechStartedRef.current = false;
       speechCancelledRef.current = true;
-      speechAutoAdvancedRef.current = false;
       setContinuePulse(false);
       if (pulseTimerRef.current != null) {
         window.clearTimeout(pulseTimerRef.current);
         pulseTimerRef.current = null;
       }
-      if (autoAdvanceTimerRef.current != null) {
-        window.clearTimeout(autoAdvanceTimerRef.current);
-        autoAdvanceTimerRef.current = null;
-      }
       return;
     }
-    const speechKey = `walkthrough-${idx}-${step.id}`;
+    const speechKey = `walkthrough-m${machineIndex}-${machineId}`;
     speechStepKeyRef.current = speechKey;
     speechStartedRef.current = false;
     speechCancelledRef.current = false;
-    speechAutoAdvancedRef.current = false;
-    if (autoAdvanceTimerRef.current != null) {
-      window.clearTimeout(autoAdvanceTimerRef.current);
-      autoAdvanceTimerRef.current = null;
-    }
-    // Hard stop on step entry to prevent any overlap with previous narration.
     speakApi.stopIntroSpeech();
+    /**
+     * Klein gehaltenes Delay (≤ 100 ms) — nur damit der Stop der vorherigen
+     * Wiedergabe sicher gelandet ist, bevor wir das nächste Segment anstoßen.
+     * Liegt deutlich unter dem 300-ms-Budget für sichtbaren Clara-Text und ist
+     * weit unter dem 1500-ms-Budget für Audio-Start.
+     */
     const t = window.setTimeout(() => {
       speechStartedRef.current = true;
+      claraAudioDevLog('speakIntroParts scheduled for', machineId, 'key=', speechKey);
       speakApi.speakIntroParts(speakParts, speechKey);
-    }, 950);
+    }, 80);
     return () => {
       window.clearTimeout(t);
       if (pulseTimerRef.current != null) {
         window.clearTimeout(pulseTimerRef.current);
         pulseTimerRef.current = null;
       }
-      if (autoAdvanceTimerRef.current != null) {
-        window.clearTimeout(autoAdvanceTimerRef.current);
-        autoAdvanceTimerRef.current = null;
-      }
       speakApi.stopIntroSpeech();
     };
-  }, [speakApi, speakApi?.readAloud, idx, step.id, speakParts]);
+  }, [speakApi, speakApi?.readAloud, machineIndex, machineId, speakParts]);
 
   useEffect(() => {
-    const gated: IntroOverlayStepId[] = ['abstimmen', 'meldungen', 'wahlen', 'politikbarometer'];
-    if (!gated.includes(step.id as IntroOverlayStepId)) return;
-    const t = window.setTimeout(() => setNextPulse(true), 4500);
-    return () => window.clearTimeout(t);
-  }, [step.id, idx]);
-
-  useEffect(() => {
-    if (!speakApi?.readAloud) {
-      setContinuePulse(false);
-      if (pulseTimerRef.current != null) {
-        window.clearTimeout(pulseTimerRef.current);
-        pulseTimerRef.current = null;
-      }
-      if (autoAdvanceTimerRef.current != null) {
-        window.clearTimeout(autoAdvanceTimerRef.current);
-        autoAdvanceTimerRef.current = null;
-      }
-      return;
-    }
-    const activeSpeechKey = `walkthrough-${idx}-${step.id}`;
+    if (!speakApi?.readAloud) return;
+    const activeSpeechKey = `walkthrough-m${machineIndex}-${machineId}`;
     if (speechStepKeyRef.current !== activeSpeechKey) return;
-
     if (isIntroSpeaking) {
       speechStartedRef.current = true;
       return;
     }
     if (!speechStartedRef.current) return;
     if (speechCancelledRef.current) return;
-    if (speechAutoAdvancedRef.current) return;
-    const needsNextPulseAdvance =
-      step.id === 'abstimmen' ||
-      step.id === 'meldungen' ||
-      step.id === 'wahlen' ||
-      step.id === 'politikbarometer';
-    if (needsNextPulseAdvance && !nextPulse) return;
-    if (step.id === 'praemien' && !praemienCinematicDone) return;
-
-    speechAutoAdvancedRef.current = true;
+    const needsEmbedPulse =
+      !!overlayStepId &&
+      (['abstimmen', 'meldungen', 'wahlen', 'politikbarometer'] as string[]).includes(overlayStepId);
+    if (needsEmbedPulse && !nextPulse) return;
+    if (machineId === 'praemien' && !praemienCinematicDone) return;
 
     pulseTimerRef.current = window.setTimeout(() => {
       pulseTimerRef.current = null;
       if (speechCancelledRef.current) return;
       if (!speakApi?.readAloud) return;
       setContinuePulse(true);
-    }, 250);
-
-    autoAdvanceTimerRef.current = window.setTimeout(() => {
-      autoAdvanceTimerRef.current = null;
-      if (speechCancelledRef.current) return;
-      if (!speakApi?.readAloud) return;
-      setContinuePulse(false);
-      if (isLast) {
-        onFinish();
-      } else {
-        setIdx((p) => Math.min(steps.length - 1, p + 1));
-      }
-    }, 650);
+      window.setTimeout(() => setContinuePulse(false), 900);
+    }, 200);
 
     return () => {
       if (pulseTimerRef.current != null) {
         window.clearTimeout(pulseTimerRef.current);
         pulseTimerRef.current = null;
       }
-      if (autoAdvanceTimerRef.current != null) {
-        window.clearTimeout(autoAdvanceTimerRef.current);
-        autoAdvanceTimerRef.current = null;
-      }
-      speechAutoAdvancedRef.current = false;
     };
   }, [
     isIntroSpeaking,
-    idx,
-    step.id,
-    isLast,
+    machineIndex,
+    machineId,
+    overlayStepId,
     nextPulse,
     praemienCinematicDone,
     speakApi?.readAloud,
-    steps.length,
-    onFinish,
   ]);
 
-  useEffect(() => {
-    return () => {
-      if (autoAdvanceTimerRef.current != null) {
-        window.clearTimeout(autoAdvanceTimerRef.current);
-        autoAdvanceTimerRef.current = null;
-      }
-    };
-  }, []);
+  const needsEmbedPulse =
+    !!overlayStepId &&
+    (['abstimmen', 'meldungen', 'wahlen', 'politikbarometer'] as string[]).includes(overlayStepId);
+  const weiterDisabled =
+    !claraReadyToContinue ||
+    (needsEmbedPulse && !nextPulse) ||
+    (machineId === 'praemien' && !praemienCinematicDone);
 
-  const liveAnnouncement = `Bereich ${clara.label}. ${clara.short} ${framingLine}`.trim();
+  const liveAnnouncement =
+    `Bereich ${machineTitle(machineIndex)}. ${machineShort(machineIndex, du)} ${framingLine}`.trim();
 
-  const exitIntroOrBackToEid = idx === 0 ? (onBackFromFirstStep ?? onClose) : onClose;
-  const skipIntroOrBackToEid = idx === 0 ? (onBackFromFirstStep ?? onFinish) : onFinish;
+  const exitIntroOrBackToEid = machineIndex === 0 ? (onBackFromFirstStep ?? onClose) : onClose;
+  const skipIntroOrBackToEid = machineIndex === 0 ? (onBackFromFirstStep ?? onFinish) : onFinish;
 
   return (
     <div
@@ -873,13 +1121,13 @@ export default function DemoIntroWalkthrough({
             toolbarDensity="compact"
             onSkip={skipIntroOrBackToEid}
             onClose={exitIntroOrBackToEid}
-            closeAriaLabel={idx === 0 ? 'Zurück zur eID-Vorschau' : undefined}
+            closeAriaLabel={machineIndex === 0 ? 'Zurück zur eID-Vorschau' : undefined}
           />
 
           <div
             className={
               'intro-walkthrough-scroll flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden ' +
-              (step.id === 'meldungen' ? 'overflow-y-hidden' : 'overflow-y-auto')
+              (machineId === 'meldungen' ? 'overflow-y-hidden' : 'overflow-y-auto')
             }
           >
             <div className="intro-walkthrough-focus-stage min-h-0 min-w-0 flex-1">
@@ -901,46 +1149,50 @@ export default function DemoIntroWalkthrough({
                   <h2
                     className={
                       'font-bold leading-snug tracking-tight text-[#0f172a] ' +
-                      (step.id === 'meldungen' ? 'text-[0.98rem] sm:text-[1rem]' : 'text-[1.0625rem] sm:text-lg')
+                      (machineId === 'meldungen' ? 'text-[0.98rem] sm:text-[1rem]' : 'text-[1.0625rem] sm:text-lg')
                     }
                   >
-                    {step.title}
+                    {machineTitle(machineIndex)}
                   </h2>
-                  <p
-                    className={
-                      'font-medium leading-snug text-neutral-600 sm:text-[13px] ' +
-                      (step.id === 'meldungen' ? 'mt-1 line-clamp-1 text-[11px]' : 'mt-1.5 line-clamp-2 text-[12px]')
-                    }
-                  >
-                    {clara.short}
-                  </p>
+                  {machineId !== 'auth' && machineId !== 'outro' ? (
+                    <p
+                      className={
+                        'font-medium leading-snug text-neutral-600 sm:text-[13px] ' +
+                        (machineId === 'meldungen' ? 'mt-1 line-clamp-1 text-[11px]' : 'mt-1.5 line-clamp-2 text-[12px]')
+                      }
+                    >
+                      {machineShort(machineIndex, du)}
+                    </p>
+                  ) : null}
                 </div>
                 <div
-                  key={step.id}
+                  key={`${machineIndex}-${overlayStepId ?? machineId}`}
                   className={
                     fillDeviceFrame
                       ? 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden ' +
-                        (step.id === 'meldungen' ? 'px-0.5 pb-0.5 pt-0.5 sm:px-1' : 'px-1 pb-1 pt-1 sm:px-1.5')
+                        (machineId === 'meldungen' ? 'px-0.5 pb-0.5 pt-0.5 sm:px-1' : 'px-1 pb-1 pt-1 sm:px-1.5')
                       : 'flex min-h-0 min-w-0 flex-none flex-col overflow-hidden px-3 pb-2 pt-2 sm:px-4'
                   }
                 >
                   {preview}
                 </div>
-                <div
-                  className={
-                    fillDeviceFrame
-                      ? 'shrink-0 border-t border-neutral-100/90 px-2 pb-1.5 pt-1 sm:px-2.5 sm:pb-2 sm:pt-1.5'
-                      : 'shrink-0 border-t border-neutral-100/90 px-3 pb-2 pt-1.5 sm:px-4 sm:pb-2 sm:pt-2'
-                  }
-                >
-                  <WalkthroughInfoDetails
-                    surface="light"
-                    primaryLong={clara.long}
-                    showOutro={false}
-                    outroShort={du ? INTRO_OUTRO_SHORT_DU : INTRO_OUTRO_SHORT_SIE}
-                    outroLong={du ? INTRO_OUTRO_DROPDOWN_DU : INTRO_OUTRO_DROPDOWN_SIE}
-                  />
-                </div>
+                {machineId !== 'auth' ? (
+                  <div
+                    className={
+                      fillDeviceFrame
+                        ? 'shrink-0 border-t border-neutral-100/90 px-2 pb-1.5 pt-1 sm:px-2.5 sm:pb-2 sm:pt-1.5'
+                        : 'shrink-0 border-t border-neutral-100/90 px-3 pb-2 pt-1.5 sm:px-4 sm:pb-2 sm:pt-2'
+                    }
+                  >
+                    <WalkthroughInfoDetails
+                      surface="light"
+                      primaryLong={primaryLong}
+                      showOutro={false}
+                      outroShort={du ? INTRO_OUTRO_SHORT_DU : INTRO_OUTRO_SHORT_SIE}
+                      outroLong={du ? INTRO_OUTRO_DROPDOWN_DU : INTRO_OUTRO_DROPDOWN_SIE}
+                    />
+                  </div>
+                ) : null}
                 </div>
               </div>
             </div>
@@ -954,11 +1206,6 @@ export default function DemoIntroWalkthrough({
                 </div>
               </div>
             ) : null}
-            {isLast ? (
-              <p className="t-body-sm text-center text-neutral-600">
-                Die Anwendung startet jetzt mit einem kurzen Übergang.
-              </p>
-            ) : null}
             <div className="flex gap-2">
             <button
               type="button"
@@ -969,16 +1216,12 @@ export default function DemoIntroWalkthrough({
                   window.clearTimeout(pulseTimerRef.current);
                   pulseTimerRef.current = null;
                 }
-                if (autoAdvanceTimerRef.current != null) {
-                  window.clearTimeout(autoAdvanceTimerRef.current);
-                  autoAdvanceTimerRef.current = null;
-                }
-                speakApi?.stopIntroSpeech();
-                if (idx === 0) {
+                if (machineIndex === 0) {
+                  speakApi?.stopIntroSpeech();
                   if (onBackFromFirstStep) onBackFromFirstStep();
                   return;
                 }
-                setIdx((p) => Math.max(0, p - 1));
+                setMachineIndex((p) => Math.max(0, p - 1));
               }}
               className="btn-ghost t-button inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center px-3"
             >
@@ -986,28 +1229,16 @@ export default function DemoIntroWalkthrough({
             </button>
             <button
               type="button"
-              onClick={() => {
-                speechCancelledRef.current = true;
-                setContinuePulse(false);
-                if (pulseTimerRef.current != null) {
-                  window.clearTimeout(pulseTimerRef.current);
-                  pulseTimerRef.current = null;
-                }
-                if (autoAdvanceTimerRef.current != null) {
-                  window.clearTimeout(autoAdvanceTimerRef.current);
-                  autoAdvanceTimerRef.current = null;
-                }
-                speakApi?.stopIntroSpeech();
-                if (isLast) onFinish();
-                else setIdx((p) => Math.min(steps.length - 1, p + 1));
-              }}
+              disabled={weiterDisabled}
+              onClick={advanceWalkthrough}
               className={
                 'btn-primary t-button min-h-[44px] min-w-0 flex-1 text-[15px] font-bold ' +
                 (continuePulse ? ' footer-heartbeat' : '') +
-                (isLast ? 'whitespace-nowrap' : '')
+                (isLast ? 'whitespace-nowrap' : '') +
+                (weiterDisabled ? ' opacity-45 pointer-events-none' : '')
               }
             >
-              {isLast ? 'App starten' : 'Weiter'}
+              {machineContinueLabel(machineIndex)}
             </button>
             </div>
           </div>
