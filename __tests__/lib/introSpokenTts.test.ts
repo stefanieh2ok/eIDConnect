@@ -16,12 +16,12 @@ describe('introSpokenTts', () => {
     expect(sieT).toMatch(/wir machen in der Sie-Form weiter/);
   });
 
-  it('eID-Login: Spoken — Zugang, eID, Kommune, Produktname aus Branding, ohne alte Floskeln', () => {
+  it('eID-Login: Spoken — Zugang, eID, Zuständigkeit/Berechtigung, Produktname aus Branding, ohne alte Floskeln', () => {
     const du = introEidLoginSpoken(true);
     expect(du).toMatch(/sicher|Bürgerzugang/);
     expect(du).toMatch(/eID/);
-    expect(du).toMatch(/Kommune/);
-    expect(du).toContain(APP_DISPLAY_NAME);
+    expect(du).toMatch(/Zuständigkeit|Berechtigung/);
+    expect(introAnredeGateSpoken(true)).toContain(APP_DISPLAY_NAME);
     expect(du).not.toMatch(/passgenaue|Reibung|wo sie hingehören/);
     expect(du).not.toMatch(/Demo-eID/);
   });
