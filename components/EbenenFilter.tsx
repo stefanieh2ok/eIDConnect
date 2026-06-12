@@ -28,6 +28,7 @@ const SECTION_LEVELS: Record<Section, EbeneLevel[]> = {
   news:        [],
   kalender:    ['bund', 'land', 'kreis', 'kommune'],
   meldungen:   ['kommune'],
+  fuermich:    [],
 };
 
 /** Only return levels that actually have voting cards (for live) or wahlen entries */

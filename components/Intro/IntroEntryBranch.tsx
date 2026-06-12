@@ -46,6 +46,8 @@ export function IntroEntryBranch({
   const userInteractedRef = useRef(false);
   const [primaryPulse, setPrimaryPulse] = useState(false);
   const autoTimersRef = useRef<number[]>([]);
+  /** Eindeutige Narration-Keys — sonst blockiert `speakIntroParts` bei doppeltem Aufruf mit Key `intro-entry-1`. */
+  const entrySpeakSeqRef = useRef(0);
 
   const clearAuto = useCallback(() => {
     for (const id of autoTimersRef.current) window.clearTimeout(id);
@@ -55,6 +57,7 @@ export function IntroEntryBranch({
   useEffect(() => {
     if (!open) {
       entryIntroPlayedRef.current = false;
+      entrySpeakSeqRef.current = 0;
       wasSpeakingRef.current = false;
       entrySpeechHeardRef.current = false;
       userInteractedRef.current = false;
@@ -69,7 +72,8 @@ export function IntroEntryBranch({
     unlockAudioFromUserGesture();
     const parts = du ? [...INTRO_SPOKEN_ENTRY_DU] : [...INTRO_SPOKEN_ENTRY_SIE];
     api.stopIntroSpeech();
-    api.speakIntroParts(parts, 'intro-entry-1');
+    const key = `intro-entry-${++entrySpeakSeqRef.current}`;
+    api.speakIntroParts(parts, key);
     entryIntroPlayedRef.current = true;
   }, [du, unlockAudioFromUserGesture]);
 
@@ -163,6 +167,7 @@ export function IntroEntryBranch({
             stepNumber={null}
             showClaraVoice
             inlinePad="card"
+            toolbarDensity="compact"
             onClose={onDirectToApp}
             onSkip={onDirectToApp}
           />

@@ -45,6 +45,8 @@ export default function DemoLinksTab() {
   const [testEmail, setTestEmail] = useState('');
   const [creatingTestLink, setCreatingTestLink] = useState(false);
   const [createdTestUrl, setCreatedTestUrl] = useState<string | null>(null);
+  const [createdTestExpiresAt, setCreatedTestExpiresAt] = useState<string | null>(null);
+  const [createdTestNotice, setCreatedTestNotice] = useState<string | null>(null);
   const [testLinkError, setTestLinkError] = useState<string | null>(null);
   const [testLinkCopied, setTestLinkCopied] = useState(false);
 
@@ -173,7 +175,7 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
     }
   }
 
-  async function createTestLink() {
+  async function createTestLink(expiresInMinutes?: number) {
     const fullName = `${(testVorname ?? '').trim()} ${(testNachname ?? '').trim()}`.trim();
     if (!fullName || !(testEmail ?? '').trim()) {
       setTestLinkError('Vorname, Nachname und E-Mail sind Pflichtfelder.');
@@ -181,6 +183,8 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
     }
     setTestLinkError(null);
     setCreatedTestUrl(null);
+    setCreatedTestExpiresAt(null);
+    setCreatedTestNotice(null);
     setCreatingTestLink(true);
     try {
       const res = await fetch('/api/admin/create-access-link', {
@@ -191,7 +195,7 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
           fullName,
           email: (testEmail ?? '').trim(),
           demoId: 'eidconnect-v1',
-          expiresInDays: 14,
+          ...(expiresInMinutes ? { expiresInMinutes } : { expiresInDays: 14 }),
           requireDocusign: false,
         }),
       });
@@ -202,6 +206,8 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
       }
       if (data.accessUrl) {
         setCreatedTestUrl(data.accessUrl);
+        setCreatedTestExpiresAt(data.expiresAt ?? null);
+        setCreatedTestNotice(data.notice ?? (data.devLocalMode ? 'Lokaler Dev-Modus aktiv.' : null));
         setTestVorname('');
         setTestNachname('');
         setTestEmail('');
@@ -350,8 +356,8 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
           Für Freunde und Tester – schneller Zugang mit Checkbox statt Anbindung an den Signaturdienst.
         </p>
         <p className="text-sm text-gray-600 mb-3">
-          Empfänger sieht die Vertraulichkeitserklärung, setzt ein Häkchen und kommt direkt in die Demo. 50 Zugriffe,
-          14 Tage gültig.
+          Empfänger sieht die Vertraulichkeitserklärung, setzt ein Häkchen und kommt direkt in die Demo. Standard:
+          14 Tage gültig — oder als Schnell-Link nur 10 Minuten.
         </p>
         <div className="grid gap-3 max-w-md">
           <div className="grid grid-cols-2 gap-2">
@@ -360,13 +366,36 @@ Vollständige Geheimhaltungsvereinbarung: ${ndaUrl}`;
           </div>
           <input type="email" placeholder="E-Mail-Adresse" value={testEmail} onChange={(e) => { setTestEmail(e.target.value); setTestLinkError(null); }} className="border border-gray-300 rounded-lg px-3 py-2" />
           {testLinkError && <p className="text-sm text-red-600">{testLinkError}</p>}
-          <button type="button" onClick={createTestLink} disabled={creatingTestLink} className="bg-emerald-600 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">
-            {creatingTestLink ? 'Erstelle…' : 'Test-Link erstellen'}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => createTestLink()}
+              disabled={creatingTestLink}
+              className="bg-emerald-600 text-white py-2 px-3 rounded-lg text-sm font-medium disabled:opacity-50"
+            >
+              {creatingTestLink ? 'Erstelle…' : 'Test-Link (14 Tage)'}
+            </button>
+            <button
+              type="button"
+              onClick={() => createTestLink(10)}
+              disabled={creatingTestLink}
+              className="border border-emerald-600 text-emerald-700 bg-white py-2 px-3 rounded-lg text-sm font-medium disabled:opacity-50 hover:bg-emerald-50"
+            >
+              {creatingTestLink ? 'Erstelle…' : 'Schnell-Link (10 Min.)'}
+            </button>
+          </div>
           {createdTestUrl && (
             <div className="rounded-lg border border-green-200 bg-green-50 p-3">
               <p className="text-sm font-medium text-green-800 mb-1">Test-Link erstellt:</p>
               <p className="text-xs text-green-700 break-all mb-2">{createdTestUrl}</p>
+              {createdTestExpiresAt ? (
+                <p className="text-xs text-green-800 mb-2">
+                  Gültig bis: {new Date(createdTestExpiresAt).toLocaleString('de-DE')}
+                </p>
+              ) : null}
+              {createdTestNotice ? (
+                <p className="text-xs text-amber-800 mb-2">{createdTestNotice}</p>
+              ) : null}
               <button type="button" onClick={copyTestLink} className="text-sm text-blue-600 hover:underline">
                 {testLinkCopied ? 'Kopiert!' : 'Link kopieren'}
               </button>

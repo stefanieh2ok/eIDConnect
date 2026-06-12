@@ -1,6 +1,12 @@
 import { randomBytes } from 'crypto';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sha256 } from '@/lib/security/hash';
+import {
+  devLocalCountAcceptanceEvents,
+  devLocalCountTokenSessions,
+  devLocalFindAccessTokenByHash,
+  isDevLocalAccessEnabled,
+} from '@/lib/security/dev-local-access';
 
 export type DemoAccessTokenRecord = {
   id: string;
@@ -45,10 +51,19 @@ export async function findAccessTokenByRawToken(
 
   if (error) {
     console.error('Token lookup failed:', error);
+    if (isDevLocalAccessEnabled()) {
+      return devLocalFindAccessTokenByHash(tokenHash);
+    }
     return null;
   }
 
-  return data as DemoAccessTokenRecord | null;
+  if (data) return data as DemoAccessTokenRecord;
+
+  if (isDevLocalAccessEnabled()) {
+    return devLocalFindAccessTokenByHash(tokenHash);
+  }
+
+  return null;
 }
 
 export function isTokenExpired(expiresAt: string): boolean {
@@ -58,6 +73,10 @@ export function isTokenExpired(expiresAt: string): boolean {
 
 /** Anzahl aktiver Sessions für diesen Access-Token (für max_devices). */
 export async function countTokenSessions(tokenId: string): Promise<number> {
+  if (isDevLocalAccessEnabled() && tokenId.startsWith('devlocal-')) {
+    return devLocalCountTokenSessions(tokenId);
+  }
+
   const { count, error } = await supabaseAdmin
     .from('demo_sessions')
     .select('*', { count: 'exact', head: true })
@@ -66,6 +85,7 @@ export async function countTokenSessions(tokenId: string): Promise<number> {
 
   if (error) {
     console.error('Counting token sessions failed:', error);
+    if (isDevLocalAccessEnabled()) return devLocalCountTokenSessions(tokenId);
     return 0;
   }
 
@@ -74,6 +94,10 @@ export async function countTokenSessions(tokenId: string): Promise<number> {
 
 /** Anzahl Akzeptanzen für diesen Token (für max_views). */
 export async function countAcceptanceEvents(tokenId: string): Promise<number> {
+  if (isDevLocalAccessEnabled() && tokenId.startsWith('devlocal-')) {
+    return devLocalCountAcceptanceEvents(tokenId);
+  }
+
   const { count, error } = await supabaseAdmin
     .from('demo_acceptance_logs')
     .select('*', { count: 'exact', head: true })
@@ -81,6 +105,7 @@ export async function countAcceptanceEvents(tokenId: string): Promise<number> {
 
   if (error) {
     console.error('Counting acceptance events failed:', error);
+    if (isDevLocalAccessEnabled()) return devLocalCountAcceptanceEvents(tokenId);
     return 0;
   }
 

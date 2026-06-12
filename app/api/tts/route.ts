@@ -1,3 +1,4 @@
+import { logClaraAiOutput } from '@/lib/ai/clara-ai-audit';
 import { CLARA_OPENAI_TTS_INSTRUCTIONS_DE } from '@/lib/claraTtsVoiceStyle';
 
 export async function POST(req: Request) {
@@ -80,6 +81,15 @@ export async function POST(req: Request) {
     }
 
     const audioBuffer = await response.arrayBuffer();
+
+    await logClaraAiOutput({
+      request: req,
+      channel: 'tts',
+      model: 'gpt-4o-mini-tts',
+      provider: 'openai',
+      inputText: text,
+      outputText: `[audio:${audioBuffer.byteLength}b]`,
+    }).catch(() => undefined);
 
     return new Response(audioBuffer, {
       headers: {

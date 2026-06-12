@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  getDemoRouteExtraHeaders,
+  getGlobalSecurityHeaders,
+} from '@/lib/security/headers';
 
 // Alles inline, damit keine Imports aus dem Projektpfad nötig sind (vermeidet
 // "Cannot find the middleware module" bei Pfaden mit Umlaut wie bürgerapp).
@@ -69,32 +73,25 @@ export function middleware(request: NextRequest) {
       });
     }
     const response = NextResponse.next();
+    applySecurityHeaders(response, false);
     response.headers.set('Cache-Control', 'no-store, private, max-age=0');
     return response;
   }
 
   const response = NextResponse.next();
-
-  if (needsDemoHeaders(pathname)) {
-    response.headers.set('Cache-Control', 'no-store, max-age=0');
-    response.headers.set('Pragma', 'no-cache');
-    response.headers.set('Expires', '0');
-    response.headers.set('X-Frame-Options', 'DENY');
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('Referrer-Policy', 'no-referrer');
-    response.headers.set('X-Robots-Tag', 'noindex, nofollow, noarchive');
-    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
-    const connectSrc = supabaseUrl
-      ? `'self' ${supabaseUrl} https://*.supabase.co wss://*.supabase.co`
-      : "'self' https://*.supabase.co wss://*.supabase.co";
-    response.headers.set(
-      'Content-Security-Policy',
-      ["default-src 'self'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'", "img-src 'self' data: blob: https:", "font-src 'self' data:", "style-src 'self' 'unsafe-inline'", "script-src 'self' 'unsafe-inline' 'unsafe-eval'", `connect-src ${connectSrc}`, "object-src 'none'", "media-src 'self' blob:"].join('; ')
-    );
-  }
-
+  applySecurityHeaders(response, needsDemoHeaders(pathname));
   return response;
+}
+
+function applySecurityHeaders(response: NextResponse, demoRoute: boolean) {
+  for (const [key, value] of Object.entries(getGlobalSecurityHeaders())) {
+    response.headers.set(key, value);
+  }
+  if (demoRoute) {
+    for (const [key, value] of Object.entries(getDemoRouteExtraHeaders())) {
+      response.headers.set(key, value);
+    }
+  }
 }
 
 export const config = {

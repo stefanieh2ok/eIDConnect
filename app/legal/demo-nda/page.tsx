@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ndaConfig } from '@/config/nda';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
-import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 export const metadata: Metadata = {
   title: `Vertraulichkeitserklärung – ${APP_DISPLAY_NAME}`,
@@ -25,8 +24,20 @@ export default async function DemoNdaPage({ searchParams }: Props) {
     <div className="min-h-screen bg-white text-[#162033]">
       <header className="sticky top-0 z-10 border-b border-[#DDE7F2] bg-white px-4 py-3 print:hidden">
         <div className="mx-auto flex max-w-[900px] items-center justify-between">
-          <div>
-            <ProductIdentityHeader />
+          <div className="min-w-0">
+            <div className="flex w-full items-center justify-start gap-2">
+              <img
+                src="/brand/icon-only.svg?v=20260428c"
+                alt={APP_DISPLAY_NAME}
+                width={20}
+                height={20}
+                className="h-5 w-5 shrink-0 object-contain"
+                decoding="async"
+              />
+              <span className="text-[18px] font-semibold leading-none tracking-[-0.01em] text-[#082A57]">
+                HookAI Civic
+              </span>
+            </div>
             <p className="mt-1 text-left text-[11px] font-medium leading-snug text-neutral-600">
               Informieren. Verstehen. Mitwirken.
             </p>

@@ -4,11 +4,13 @@ import React, { useState, useLayoutEffect, useEffect, useCallback, useMemo } fro
 import { useApp } from '@/context/AppContext';
 import LoginScreen from '@/components/Login/LoginScreen';
 import AppHeader from '@/components/Header/AppHeader';
+import AppBottomNav from '@/components/Header/AppBottomNav';
 import LiveSection from '@/components/Live/LiveSection';
 import LeaderboardSection from '@/components/Leaderboard/LeaderboardSection';
 import ElectionsSection from '@/components/Elections/ElectionsSection';
 import CalendarSection from '@/components/Calendar/CalendarSection';
 import MeldungenSection from '@/components/Meldungen/MeldungenSection';
+import FuerMichSection from '@/components/FuerMich/FuerMichSection';
 import StimmzettelModal from '@/components/Modals/StimmzettelModal';
 import IntroOverlay from '@/components/Intro/IntroOverlay';
 import DemoIntroWalkthrough from '@/components/Intro/DemoIntroWalkthrough';
@@ -85,7 +87,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     if (typeof window === 'undefined') return;
     resetViewportScroll();
     requestAnimationFrame(() => {
-      const el = document.getElementById('main-scroll');
+      const el = document.getElementById('main-content');
       if (!el) return;
       el.scrollTop = 0;
       try {
@@ -113,6 +115,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     news: [],
     kalender: ['bund', 'land', 'kreis', 'kommune'],
     meldungen: ['kommune'],
+    fuermich: ['bund', 'land', 'kreis', 'kommune'],
   };
   const locationLineForLaunch = useMemo(() => {
     const kommune = activeLocationForLevel(state.residenceLocation, 'kommune');
@@ -173,7 +176,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     if (state.isLoggedIn) return;
     const reset = () => {
       resetViewportScroll();
-      const inner = document.getElementById('login-main-scroll');
+      const inner = document.getElementById('login-main-content');
       if (inner) inner.scrollTop = 0;
     };
     reset();
@@ -317,6 +320,20 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     state.anrede != null &&
     readWantsWalkthrough();
 
+  const showMainBottomNav = state.isLoggedIn && !walkthroughChrome && !postLoginIntroOpen;
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (showMainBottomNav) {
+      document.documentElement.setAttribute('data-shell-nav', 'bottom');
+    } else if (state.isLoggedIn) {
+      document.documentElement.setAttribute('data-shell-nav', 'legacy');
+    } else {
+      document.documentElement.removeAttribute('data-shell-nav');
+    }
+    return () => document.documentElement.removeAttribute('data-shell-nav');
+  }, [showMainBottomNav, state.isLoggedIn]);
+
   const participationActivityCount =
     state.participationVoteCount + state.participationElectionCount + state.participationByLevel.kommune;
   const participationActivityRef = React.useRef(participationActivityCount);
@@ -373,6 +390,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
           />
         );
       case 'meldungen':   return <MeldungenSection />;
+      case 'fuermich':    return <FuerMichSection />;
       default:            return <LiveSection />;
     }
   };
@@ -485,7 +503,8 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
               <AppHeader />
 
               <main
-                id="main-scroll"
+                id="main-content"
+                aria-label="Hauptinhalt"
                 tabIndex={-1}
                 className={
                   'scrollbar-hide flex-1 min-h-0 overflow-y-auto scroll-smooth outline-none ' +
@@ -493,12 +512,13 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                 }
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
-                <div className="px-3 pt-3 pb-clara-dock-safe">
+                <div className="px-3 pt-2 pb-app-shell-safe">
                   {renderSection()}
                   <SecurityFaqFooter />
                 </div>
               </main>
 
+              <AppBottomNav hidden={!showMainBottomNav} />
               <ScrollToTopButton />
               <StimmzettelModal />
               {demoLaunchOpen ? (
@@ -595,7 +615,7 @@ function ScrollToTopButton() {
   const [visible, setVisible] = useState(false);
 
   useLayoutEffect(() => {
-    const el = document.getElementById('main-scroll');
+    const el = document.getElementById('main-content');
     if (!el) return;
     const onScroll = () => setVisible(el.scrollTop > 220);
     el.addEventListener('scroll', onScroll, { passive: true });
@@ -606,7 +626,7 @@ function ScrollToTopButton() {
   return (
     <button
       onClick={() =>
-        document.getElementById('main-scroll')?.scrollTo({ top: 0, behavior: 'smooth' })
+        document.getElementById('main-content')?.scrollTo({ top: 0, behavior: 'smooth' })
       }
       className="absolute z-[45] w-9 h-9 rounded-full text-white shadow-lg flex items-center justify-center"
       style={{

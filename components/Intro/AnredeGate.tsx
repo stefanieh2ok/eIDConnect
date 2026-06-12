@@ -34,11 +34,14 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
   const { speakParts, stopSpeaking, tryResumePendingAudioFromUserGesture, unlockAudioFromUserGesture } =
     useClaraVoiceContext();
   const hasUnlockedSpeechRef = useRef(false);
-  const hasSpokenIntroRef = useRef(false);
+  /** Neutraler Elevator: erst „gestartet“, wenn TTS wirklich läuft — sonst blockieren frühe Fehlversuche alle Retries. */
+  const neutralPitchAudioStartedRef = useRef(false);
   const hasSelectedSalutationRef = useRef(false);
   const lastSpokenSalutationRef = useRef<Anrede | null>(null);
   const lastReadAloud = useRef<boolean | null>(null);
   const isIntroSpeaking = useIntroIsSpeaking();
+  const isIntroSpeakingRef = useRef(isIntroSpeaking);
+  isIntroSpeakingRef.current = isIntroSpeaking;
   const wasIntroSpeakingRef = useRef(false);
   const pendingAutoWeiterRef = useRef(false);
   const salutationSpeechHeardRef = useRef(false);
@@ -62,7 +65,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
 
   useEffect(() => {
     if (!isOpen) {
-      hasSpokenIntroRef.current = false;
+      neutralPitchAudioStartedRef.current = false;
       hasSelectedSalutationRef.current = false;
       hasUnlockedSpeechRef.current = false;
       lastSpokenSalutationRef.current = null;
@@ -102,9 +105,9 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
       unlockSpeechOnGesture();
       stopSpeaking('anrede:gate-gesture');
       speakParts(introAnredeGateSpokenParts(choice));
-      hasSpokenIntroRef.current = true;
       if (choice === 'du' || choice === 'sie') {
         hasSelectedSalutationRef.current = true;
+        neutralPitchAudioStartedRef.current = true;
       }
     },
     [speakParts, stopSpeaking, unlockAudioFromUserGesture, unlockSpeechOnGesture],
@@ -113,7 +116,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
   const maybeStartNeutralIntroFromGesture = useCallback(() => {
     if (!speakApiRef.current?.readAloud) return;
     if (hasSelectedSalutationRef.current) return;
-    if (hasSpokenIntroRef.current) return;
+    if (neutralPitchAudioStartedRef.current) return;
     speakGateFromUserGesture(null);
   }, [speakGateFromUserGesture]);
 
@@ -154,28 +157,45 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
       return;
     }
     if (lastReadAloud.current === false && speakApi?.readAloud) {
-      hasSpokenIntroRef.current = false;
+      neutralPitchAudioStartedRef.current = false;
       hasSelectedSalutationRef.current = false;
       lastSpokenSalutationRef.current = null;
     }
     lastReadAloud.current = Boolean(speakApi?.readAloud);
   }, [isOpen, speakApi?.readAloud]);
 
+  /** Sobald Claras TTS für den neutralen Pitch wirklich läuft, keine weiteren Auto-Retries nötig. */
+  useEffect(() => {
+    if (!isOpen || !speakApi?.readAloud) return;
+    if (hasSelectedSalutationRef.current) return;
+    if (isIntroSpeaking) {
+      neutralPitchAudioStartedRef.current = true;
+    }
+  }, [isOpen, isIntroSpeaking, speakApi?.readAloud]);
+
   /**
-   * Kurzer verzögerter Start ohne zusätzlichen Tap; `speakGateFromUserGesture`
-   * setzt den Guard erst beim tatsächlichen Start.
+   * Desktop/Mobile: neutralen Intro-Pitch zuverlässig kurz nach Öffnen starten.
+   * Sofortiger erster Versuch + gestaffelte Retries, falls der erste Start blockiert war.
    */
   useEffect(() => {
     if (!isOpen || !speakApi?.readAloud) return;
-    if (hasSpokenIntroRef.current || hasSelectedSalutationRef.current) return;
+    if (neutralPitchAudioStartedRef.current || hasSelectedSalutationRef.current) return;
 
-    const id = window.setTimeout(() => {
+    const timers: number[] = [];
+    const tryStart = () => {
       if (!speakApiRef.current?.readAloud) return;
-      if (hasSpokenIntroRef.current || hasSelectedSalutationRef.current) return;
+      if (neutralPitchAudioStartedRef.current || hasSelectedSalutationRef.current) return;
+      if (isIntroSpeakingRef.current) return;
       speakGateFromUserGesture(null);
-    }, 1000);
+    };
 
-    return () => window.clearTimeout(id);
+    timers.push(window.setTimeout(tryStart, 0));
+    timers.push(window.setTimeout(tryStart, 1200));
+    timers.push(window.setTimeout(tryStart, 2800));
+
+    return () => {
+      for (const id of timers) window.clearTimeout(id);
+    };
   }, [isOpen, speakApi?.readAloud, speakGateFromUserGesture]);
 
   /** Nach Du/Sie: Claras Bestätigung endet → kurzer Weiter-Puls, nach ~400 ms dasselbe wie „Weiter“. */
@@ -318,6 +338,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
             stepNumber={null}
             showClaraVoice
             inlinePad="card"
+            toolbarDensity="compact"
             onSkip={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
             onClose={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
           />

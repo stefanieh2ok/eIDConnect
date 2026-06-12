@@ -36,107 +36,149 @@ type StepCopy = {
 
 const STEPS: Record<WalkthroughMachineStep, StepCopy> = {
   auth: {
-    title: 'Zugang & Demo',
+    title: 'Sicherer Zugang',
     shortDu:
-      'Hier geht es um den Zugang zur Demo. Für die Vorschau kannst du entweder die eID-Perspektive ansehen oder die EU-Wallet-Perspektive öffnen. Für die eigentliche Demo verwenden wir eine Beispielidentität.',
+      'Zuerst der sichere Zugang — perspektivisch per eID oder Wallet. Hier wird nichts Echtes ausgelöst; Identität und Entscheidung bleiben getrennt.',
     shortSie:
-      'Hier geht es um den Zugang zur Demo. Für die Vorschau können Sie entweder die eID-Perspektive ansehen oder die EU-Wallet-Perspektive öffnen. Für die eigentliche Demo verwenden wir eine Beispielidentität.',
+      'Zuerst der sichere Zugang — perspektivisch per eID oder Wallet. Hier wird nichts Echtes ausgelöst; Identität und Entscheidung bleiben getrennt.',
     speakPartsDu: [
-      'Hier geht es um den Zugang zur Demo. Für die Vorschau kannst du entweder die eID-Perspektive ansehen oder die EU-Wallet-Perspektive öffnen. Für die eigentliche Demo verwenden wir eine Beispielidentität.',
+      'Der erste Schritt ist der sichere Zugang.',
+      'Perspektivisch kann geprüft werden, ob du für eine Kommune oder Beteiligung berechtigt bist – zum Beispiel über die eID oder künftig über eine europäische Wallet.',
+      'Für diese Vorschau wird nichts Echtes ausgelöst. Wichtig ist nur das Prinzip: Identität und Entscheidung bleiben getrennt.',
     ],
     speakPartsSie: [
-      'Hier geht es um den Zugang zur Demo. Für die Vorschau können Sie entweder die eID-Perspektive ansehen oder die EU-Wallet-Perspektive öffnen. Für die eigentliche Demo verwenden wir eine Beispielidentität.',
+      'Der erste Schritt ist der sichere Zugang.',
+      'Perspektivisch kann geprüft werden, ob Sie für eine Kommune oder Beteiligung berechtigt sind – zum Beispiel über die eID oder künftig über eine europäische Wallet.',
+      'Für diese Vorschau wird nichts Echtes ausgelöst. Wichtig ist nur das Prinzip: Identität und Entscheidung bleiben getrennt.',
     ],
   },
   politikBarometer: {
     title: 'Politikbarometer',
     shortDu:
-      'Das Politik-Barometer zeigt dir, welche Themen gerade besonders relevant sind – lokal, im Saarland und auf Bundesebene. So entsteht ein schneller Überblick, bevor du tiefer in einzelne Beteiligungen einsteigst.',
+      'Themen-Schwerpunkte sortieren Inhalte neutral — ohne Profil. Passende Fristen und Termine werden im Kalender leichter erkennbar.',
     shortSie:
-      'Das Politik-Barometer zeigt Ihnen, welche Themen gerade besonders relevant sind – lokal, im Saarland und auf Bundesebene. So entsteht ein schneller Überblick, bevor Sie tiefer in einzelne Beteiligungen einsteigen.',
+      'Themen-Schwerpunkte sortieren Inhalte neutral — ohne Profil. Passende Fristen und Termine werden im Kalender leichter erkennbar.',
     speakPartsDu: [
-      'Das Politik-Barometer zeigt dir, welche Themen gerade besonders relevant sind – lokal, im Saarland und auf Bundesebene. So entsteht ein schneller Überblick, bevor du tiefer in einzelne Beteiligungen einsteigst.',
+      'Wir beginnen mit deinen Themen.',
+      'Du setzt Schwerpunkte – zum Beispiel bei Digitalisierung, Wirtschaft, Bildung oder Sicherheit. Die App nutzt diese Auswahl nicht, um dich politisch einzuordnen, sondern um Inhalte verständlicher zu sortieren.',
+      'So können später passende Beteiligungen, Fristen oder Termine im Kalender schneller sichtbar werden. Es entsteht keine Empfehlung und kein Meinungsprofil.',
     ],
     speakPartsSie: [
-      'Das Politik-Barometer zeigt Ihnen, welche Themen gerade besonders relevant sind – lokal, im Saarland und auf Bundesebene. So entsteht ein schneller Überblick, bevor Sie tiefer in einzelne Beteiligungen einsteigen.',
+      'Wir beginnen mit Ihren Themen.',
+      'Sie setzen Schwerpunkte – zum Beispiel bei Digitalisierung, Wirtschaft, Bildung oder Sicherheit. Die App nutzt diese Auswahl nicht, um Sie politisch einzuordnen, sondern um Inhalte verständlicher zu sortieren.',
+      'So können später passende Beteiligungen, Fristen oder Termine im Kalender schneller sichtbar werden. Es entsteht keine Empfehlung und kein Meinungsprofil.',
     ],
   },
   abstimmen: {
     title: 'Abstimmen',
     shortDu:
-      'Im Bereich Abstimmen kannst du Beteiligungen wie eine moderne Entscheidungskarte erleben. Du siehst das Thema, kannst Pro und Contra öffnen und entscheidest bewusst – nicht aus dem Bauch heraus, sondern informiert.',
+      'Orientierung wird zu Beteiligung: Pro und Contra zur Einordnung, dann bewusste Entscheidung. Sichtbar ist nur das Gesamtergebnis.',
     shortSie:
-      'Im Bereich Abstimmen können Sie Beteiligungen wie eine moderne Entscheidungskarte erleben. Sie sehen das Thema, können Pro und Contra öffnen und entscheiden bewusst – nicht aus dem Bauch heraus, sondern informiert.',
+      'Orientierung wird zu Beteiligung: Pro und Contra zur Einordnung, dann bewusste Entscheidung. Sichtbar ist nur das Gesamtergebnis.',
     speakPartsDu: [
-      'Im Bereich Abstimmen kannst du Beteiligungen wie eine moderne Entscheidungskarte erleben. Du siehst das Thema, kannst Pro und Contra öffnen und entscheidest bewusst – nicht aus dem Bauch heraus, sondern informiert.',
+      'Jetzt wird aus Orientierung Beteiligung.',
+      'Bei einer kommunalen Abstimmung findest du zuerst das Thema, die Frist und die wichtigsten Informationen.',
+      'Pro und Contra helfen dir, beide Seiten einzuordnen.',
+      'Entscheiden tust du anschließend bewusst über die Auswahlfelder darunter.',
+      'Sichtbar ist später nur das Gesamtergebnis – nicht deine einzelne Entscheidung.',
     ],
     speakPartsSie: [
-      'Im Bereich Abstimmen können Sie Beteiligungen wie eine moderne Entscheidungskarte erleben. Sie sehen das Thema, können Pro und Contra öffnen und entscheiden bewusst – nicht aus dem Bauch heraus, sondern informiert.',
+      'Jetzt wird aus Orientierung Beteiligung.',
+      'Bei einer kommunalen Abstimmung finden Sie zuerst das Thema, die Frist und die wichtigsten Informationen.',
+      'Pro und Contra helfen Ihnen, beide Seiten einzuordnen.',
+      'Entscheiden tun Sie anschließend bewusst über die Auswahlfelder darunter.',
+      'Sichtbar ist später nur das Gesamtergebnis – nicht Ihre einzelne Entscheidung.',
     ],
   },
   wahlen: {
     title: 'Wahlen',
     shortDu:
-      'Im Bereich Wahlen geht es nicht um eine echte Stimmabgabe, sondern um Orientierung. Du kannst Parteien, Programme und Kandidierende vergleichen und dir einen verifizierten Überblick verschaffen.',
+      'Wahlvorschau zur Vorbereitung — kein Wahlakt. Informationen gebündelt; die App empfiehlt keine politische Richtung.',
     shortSie:
-      'Im Bereich Wahlen geht es nicht um eine echte Stimmabgabe, sondern um Orientierung. Sie können Parteien, Programme und Kandidierende vergleichen und sich einen verifizierten Überblick verschaffen.',
+      'Wahlvorschau zur Vorbereitung — kein Wahlakt. Informationen gebündelt; die App empfiehlt keine politische Richtung.',
     speakPartsDu: [
-      'Im Bereich Wahlen geht es nicht um eine echte Stimmabgabe, sondern um Orientierung. Du kannst Parteien, Programme und Kandidierende vergleichen und dir einen verifizierten Überblick verschaffen.',
+      'Die Wahlvorschau ist kein Wahlakt, sondern Vorbereitung.',
+      'Du kannst Kandidierende, Parteien, Programme und verifizierte Quellen an einem Ort prüfen.',
+      'So wird transparenter, worauf eine Entscheidung beruhen kann.',
+      'Die Markierung im Stimmzettel zeigt nur, wie eine digitale Oberfläche funktionieren könnte.',
+      'Die Entscheidung selbst bleibt geheim.',
+      'Die App gibt keine politische Richtung vor.',
     ],
     speakPartsSie: [
-      'Im Bereich Wahlen geht es nicht um eine echte Stimmabgabe, sondern um Orientierung. Sie können Parteien, Programme und Kandidierende vergleichen und sich einen verifizierten Überblick verschaffen.',
+      'Die Wahlvorschau ist kein Wahlakt, sondern Vorbereitung.',
+      'Sie können Kandidierende, Parteien, Programme und verifizierte Quellen an einem Ort prüfen.',
+      'So wird transparenter, worauf eine Entscheidung beruhen kann.',
+      'Die Markierung im Stimmzettel zeigt nur, wie eine digitale Oberfläche funktionieren könnte.',
+      'Die Entscheidung selbst bleibt geheim.',
+      'Die App gibt keine politische Richtung vor.',
     ],
   },
   kalender: {
     title: 'Kalender',
     shortDu:
-      'Der Kalender bündelt relevante Termine: Abstimmungen, Beteiligungen und Wahlen. Über Filter erkennst du schnell, was für deine Kommune, dein Bundesland oder den Bund wichtig ist.',
+      'Fristen und Termine an einem Ort. Themen aus dem Politikbarometer können helfen, ohne politische Sortierung oder Empfehlung.',
     shortSie:
-      'Der Kalender bündelt relevante Termine: Abstimmungen, Beteiligungen und Wahlen. Über Filter erkennen Sie schnell, was für Ihre Kommune, Ihr Bundesland oder den Bund wichtig ist.',
+      'Fristen und Termine an einem Ort. Themen aus dem Politikbarometer können helfen, ohne politische Sortierung oder Empfehlung.',
     speakPartsDu: [
-      'Der Kalender bündelt relevante Termine: Abstimmungen, Beteiligungen und Wahlen. Über Filter erkennst du schnell, was für deine Kommune, dein Bundesland oder den Bund wichtig ist.',
+      'Im Kalender wird sichtbar, wann etwas wichtig wird.',
+      'Hier laufen Fristen, Beteiligungen, Wahltermine und kommunale Ereignisse an einem Ort zusammen.',
+      'Die Themen aus dem Politikbarometer können helfen, besonders passende Termine schneller zu erkennen – ohne politische Sortierung und ohne Empfehlung.',
     ],
     speakPartsSie: [
-      'Der Kalender bündelt relevante Termine: Abstimmungen, Beteiligungen und Wahlen. Über Filter erkennen Sie schnell, was für Ihre Kommune, Ihr Bundesland oder den Bund wichtig ist.',
+      'Im Kalender wird sichtbar, wann etwas wichtig wird.',
+      'Hier laufen Fristen, Beteiligungen, Wahltermine und kommunale Ereignisse an einem Ort zusammen.',
+      'Die Themen aus dem Politikbarometer können helfen, besonders passende Termine schneller zu erkennen – ohne politische Sortierung und ohne Empfehlung.',
     ],
   },
   meldungen: {
     title: 'Meldungen',
     shortDu:
-      'Unter Meldungen kannst du lokale Probleme strukturiert erfassen – zum Beispiel Schäden, Gefahrenstellen oder Hinweise im öffentlichen Raum. Die Demo zeigt, wie Meldungen priorisiert und nachvollziehbar weitergeleitet werden könnten.',
+      'Anliegen strukturiert an die Gemeinde — Kategorie, Text, Ort, Foto. Der Bearbeitungsstand bleibt nachvollziehbar.',
     shortSie:
-      'Unter Meldungen können Sie lokale Probleme strukturiert erfassen – zum Beispiel Schäden, Gefahrenstellen oder Hinweise im öffentlichen Raum. Die Demo zeigt, wie Meldungen priorisiert und nachvollziehbar weitergeleitet werden könnten.',
+      'Anliegen strukturiert an die Gemeinde — Kategorie, Text, Ort, Foto. Der Bearbeitungsstand bleibt nachvollziehbar.',
     speakPartsDu: [
-      'Unter Meldungen kannst du lokale Probleme strukturiert erfassen – zum Beispiel Schäden, Gefahrenstellen oder Hinweise im öffentlichen Raum. Die Demo zeigt, wie Meldungen priorisiert und nachvollziehbar weitergeleitet werden könnten.',
+      'Jetzt geht es in den Alltag.',
+      'Mit Meldungen gibst du ein Anliegen strukturiert an die Gemeinde weiter – mit Kategorie, kurzer Beschreibung, Ort und Foto.',
+      'Aus einer Beobachtung wird so ein nachvollziehbarer Vorgang, dessen Bearbeitungsstand später transparent bleibt.',
     ],
     speakPartsSie: [
-      'Unter Meldungen können Sie lokale Probleme strukturiert erfassen – zum Beispiel Schäden, Gefahrenstellen oder Hinweise im öffentlichen Raum. Die Demo zeigt, wie Meldungen priorisiert und nachvollziehbar weitergeleitet werden könnten.',
+      'Jetzt geht es in den Alltag.',
+      'Mit Meldungen geben Sie ein Anliegen strukturiert an die Gemeinde weiter – mit Kategorie, kurzer Beschreibung, Ort und Foto.',
+      'Aus einer Beobachtung wird so ein nachvollziehbarer Vorgang, dessen Bearbeitungsstand später transparent bleibt.',
     ],
   },
   praemien: {
     title: 'Prämien',
     shortDu:
-      'Bei Prämien siehst du, wie freiwillige Beteiligung auch sichtbar wertgeschätzt werden kann. Nur mit Einwilligung können lokale Vorteile angezeigt werden – zum Beispiel ein Naturfreibad-Gutschein als digitaler QR-Code fürs Wallet.',
+      'Freiwillige Prämien nach Beteiligung; QR in der App, perspektivisch Wallet. Beteiligung zählt — nicht die Meinung.',
     shortSie:
-      'Bei Prämien sehen Sie, wie freiwillige Beteiligung auch sichtbar wertgeschätzt werden kann. Nur mit Einwilligung können lokale Vorteile angezeigt werden – zum Beispiel ein Naturfreibad-Gutschein als digitaler QR-Code fürs Wallet.',
+      'Freiwillige Prämien nach Beteiligung; QR in der App, perspektivisch Wallet. Beteiligung zählt — nicht die Meinung.',
     speakPartsDu: [
-      'Bei Prämien siehst du, wie freiwillige Beteiligung auch sichtbar wertgeschätzt werden kann. Nur mit Einwilligung können lokale Vorteile angezeigt werden – zum Beispiel ein Naturfreibad-Gutschein als digitaler QR-Code fürs Wallet.',
+      'Zum Schluss kommen die freiwilligen Prämien.',
+      'Nach einer abgeschlossenen Beteiligung oder Rückmeldung kann zum Beispiel ein Gutschein fürs Naturfreibad verfügbar werden. Ein Tap öffnet den QR-Code direkt in der App.',
+      'Perspektivisch lässt sich so ein Gutschein auch ins Wallet übernehmen. Entscheidend bleibt: Prämien belohnen Beteiligung, nicht Meinung – deine konkrete Entscheidung wird dafür nicht ausgewertet.',
     ],
     speakPartsSie: [
-      'Bei Prämien sehen Sie, wie freiwillige Beteiligung auch sichtbar wertgeschätzt werden kann. Nur mit Einwilligung können lokale Vorteile angezeigt werden – zum Beispiel ein Naturfreibad-Gutschein als digitaler QR-Code fürs Wallet.',
+      'Zum Schluss kommen die freiwilligen Prämien.',
+      'Nach einer abgeschlossenen Beteiligung oder Rückmeldung kann zum Beispiel ein Gutschein fürs Naturfreibad verfügbar werden. Ein Tap öffnet den QR-Code direkt in der App.',
+      'Perspektivisch lässt sich so ein Gutschein auch ins Wallet übernehmen. Entscheidend bleibt: Prämien belohnen Beteiligung, nicht Meinung – Ihre konkrete Entscheidung wird dafür nicht ausgewertet.',
     ],
   },
   outro: {
     title: 'Rundgang abgeschlossen',
     shortDu:
-      'Du hast die wichtigsten Bereiche gesehen: Abstimmen, Wahlen, Kalender, Meldungen und Prämien.',
+      'Der Überblick ist fertig. Du kannst HookAI Civic jetzt selbst erkunden oder Clara gezielt Fragen stellen.',
     shortSie:
-      'Sie haben die wichtigsten Bereiche gesehen: Abstimmen, Wahlen, Kalender, Meldungen und Prämien.',
+      'Der Überblick ist fertig. Sie können HookAI Civic jetzt selbst erkunden oder Clara gezielt Fragen stellen.',
     speakPartsDu: [
-      'Damit endet der geführte Rundgang. Du kannst jetzt in die Demo wechseln und die Bereiche selbst ausprobieren.',
+      'Damit ist der geführte Überblick abgeschlossen.',
+      'Du kannst HookAI Civic jetzt selbst erkunden oder Clara gezielt Fragen stellen.',
+      'Der Grundgedanke bleibt: Menschen sollen leichter verstehen, einfacher mitwirken und dabei die Kontrolle über ihre Entscheidungen behalten.',
     ],
     speakPartsSie: [
-      'Damit endet der geführte Rundgang. Sie können jetzt in die Demo wechseln und die Bereiche selbst ausprobieren.',
+      'Damit ist der geführte Überblick abgeschlossen.',
+      'Sie können HookAI Civic jetzt selbst erkunden oder Clara gezielt Fragen stellen.',
+      'Der Grundgedanke bleibt: Menschen sollen leichter verstehen, einfacher mitwirken und dabei die Kontrolle über ihre Entscheidungen behalten.',
     ],
   },
 };

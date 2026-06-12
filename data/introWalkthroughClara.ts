@@ -42,18 +42,18 @@ export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClar
     line10sDu: 'Wahlvorschau am Beispiel Bundestagswahl – nicht die eigentliche Wahl.',
     line10sSie: 'Wahlvorschau am Beispiel Bundestagswahl – nicht die eigentliche Wahl.',
     shortDu:
-      'Kandidierende, Parteien und verifizierte Quellen liegen gebündelt an einem Ort — zum strukturierten Lesen, ohne schon abzustimmen. Perspektivisch lässt sich daran auch ein sicherer digitaler Wahlzugang vorbereiten.',
+      'Die Wahlvorschau ist kein Wahlakt, sondern Vorbereitung. Kandidierende, Parteien, Programme und verifizierte Quellen liegen gebündelt an einem Ort.',
     shortSie:
-      'Kandidierende, Parteien und verifizierte Quellen liegen gebündelt an einem Ort — zum strukturierten Lesen, ohne schon abzustimmen. Perspektivisch lässt sich daran auch ein sicherer digitaler Wahlzugang vorbereiten.',
+      'Die Wahlvorschau ist kein Wahlakt, sondern Vorbereitung. Kandidierende, Parteien, Programme und verifizierte Quellen liegen gebündelt an einem Ort.',
     longDu:
-      'In der Wahlvorschau findest du Kandidierende, Parteien und verifizierte Quellen gebündelt an einem Ort. So kannst du dich strukturiert vorbereiten, ohne schon eine Stimme abzugeben. Perspektivisch lässt sich so auch ein sicherer digitaler Wahlzugang verständlich vorbereiten.',
+      'Die Wahlvorschau ist kein Wahlakt, sondern Vorbereitung. Du kannst Kandidierende, Parteien, Programme und verifizierte Quellen an einem Ort prüfen. So wird transparenter, worauf eine Entscheidung beruhen kann. Die Markierung im Stimmzettel zeigt nur, wie eine digitale Oberfläche funktionieren könnte. Die App gibt keine politische Richtung vor. Die Entscheidung selbst bleibt geheim.',
     longSie:
-      'In der Wahlvorschau finden Sie Kandidierende, Parteien und verifizierte Quellen gebündelt an einem Ort. So können Sie sich strukturiert vorbereiten, ohne schon eine Stimme abzugeben. Perspektivisch lässt sich so auch ein sicherer digitaler Wahlzugang verständlich vorbereiten.',
+      'Die Wahlvorschau ist kein Wahlakt, sondern Vorbereitung. Sie können Kandidierende, Parteien, Programme und verifizierte Quellen an einem Ort prüfen. So wird transparenter, worauf eine Entscheidung beruhen kann. Die Markierung im Stimmzettel zeigt nur, wie eine digitale Oberfläche funktionieren könnte. Die App gibt keine politische Richtung vor. Die Entscheidung selbst bleibt geheim.',
     speakSegmentsDu: [
-      'In der Wahlvorschau findest du Kandidierende, Parteien und verifizierte Quellen gebündelt an einem Ort. So kannst du dich strukturiert vorbereiten, ohne schon eine Stimme abzugeben. Perspektivisch lässt sich so auch ein sicherer digitaler Wahlzugang verständlich vorbereiten.',
+      'Die Wahlvorschau ist kein Wahlakt, sondern Vorbereitung. Du kannst Kandidierende, Parteien, Programme und verifizierte Quellen an einem Ort prüfen. So wird transparenter, worauf eine Entscheidung beruhen kann. Die Markierung im Stimmzettel zeigt nur, wie eine digitale Oberfläche funktionieren könnte. Die App gibt keine politische Richtung vor. Die Entscheidung selbst bleibt geheim.',
     ],
     speakSegmentsSie: [
-      'In der Wahlvorschau finden Sie Kandidierende, Parteien und verifizierte Quellen gebündelt an einem Ort. So können Sie sich strukturiert vorbereiten, ohne schon eine Stimme abzugeben. Perspektivisch lässt sich so auch ein sicherer digitaler Wahlzugang verständlich vorbereiten.',
+      'Die Wahlvorschau ist kein Wahlakt, sondern Vorbereitung. Sie können Kandidierende, Parteien, Programme und verifizierte Quellen an einem Ort prüfen. So wird transparenter, worauf eine Entscheidung beruhen kann. Die Markierung im Stimmzettel zeigt nur, wie eine digitale Oberfläche funktionieren könnte. Die App gibt keine politische Richtung vor. Die Entscheidung selbst bleibt geheim.',
     ],
   },
   kalender: {

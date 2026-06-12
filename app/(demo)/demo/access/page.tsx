@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { AcceptNdaButton } from '@/components/security/AcceptNdaButton';
@@ -7,7 +8,7 @@ import { GATE_SUMMARY } from '@/lib/nda-content';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
 import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
-export default function DemoAccessPage() {
+function DemoAccessPageContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
@@ -57,5 +58,19 @@ export default function DemoAccessPage() {
         </div>
       </div>
     </IphoneFrame>
+  );
+}
+
+export default function DemoAccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-100">
+          <p className="text-gray-600 text-sm">Zugang wird geladen…</p>
+        </div>
+      }
+    >
+      <DemoAccessPageContent />
+    </Suspense>
   );
 }

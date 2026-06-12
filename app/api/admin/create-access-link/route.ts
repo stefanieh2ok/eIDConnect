@@ -4,6 +4,12 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sha256 } from '@/lib/security/hash';
 import { getNdaConfigForRecipient, getNdaDocumentHash } from '@/config/nda';
 import { isValidBasicAuth } from '@/lib/security/basic-auth';
+import { resolveTokenExpiresAt } from '@/lib/security/token-expiry';
+import { supabaseUserErrorMessage } from '@/lib/security/supabase-error-message';
+import {
+  devLocalInsertAccessToken,
+  isDevLocalAccessEnabled,
+} from '@/lib/security/dev-local-access';
 
 type Body = {
   fullName: string;
@@ -11,6 +17,8 @@ type Body = {
   company?: string;
   demoId?: string;
   expiresInDays?: number;
+  /** Kurzzeit-Link, z. B. 10 für 10 Minuten – hat Vorrang vor expiresInDays. */
+  expiresInMinutes?: number;
   requireDocusign?: boolean;
 };
 
@@ -45,10 +53,10 @@ export async function POST(request: NextRequest) {
     const rawToken = generateRawAccessToken();
     const tokenHash = sha256(rawToken);
     const demoId = (body.demoId ?? process.env.DEMO_ACCESS_DEFAULT_ID ?? 'eidconnect-v1').trim();
-    const expiresInDays = Math.max(1, Number(body.expiresInDays) || 30);
-    const expiresAt = new Date(
-      Date.now() + expiresInDays * 24 * 60 * 60 * 1000
-    ).toISOString();
+    const expiresAt = resolveTokenExpiresAt({
+      expiresInMinutes: body.expiresInMinutes,
+      expiresInDays: body.expiresInDays,
+    }).toISOString();
 
     const requireDocusign = body.requireDocusign !== false;
     const normalizedCompany = (body.company ?? '').trim() || null;
@@ -70,18 +78,37 @@ export async function POST(request: NextRequest) {
       require_docusign: requireDocusign,
     });
 
+    let devLocalMode = false;
+
     if (error) {
       console.error('create-access-link failed:', error);
-      return NextResponse.json(
-        { success: false, error: 'Link konnte nicht erstellt werden.' },
-        { status: 500 }
-      );
+      if (isDevLocalAccessEnabled()) {
+        devLocalInsertAccessToken({
+          tokenHash,
+          demoId,
+          fullName,
+          company: normalizedCompany,
+          email,
+          ndaVersion: ndaCfg.version,
+          ndaDocumentHash: getNdaDocumentHash({ email, company: normalizedCompany }),
+          expiresAt,
+          requireDocusign,
+        });
+        devLocalMode = true;
+        console.warn('[create-access-link] Supabase nicht erreichbar – lokaler Dev-Fallback aktiv.');
+      } else {
+        return NextResponse.json(
+          { success: false, error: supabaseUserErrorMessage(error) },
+          { status: 500 }
+        );
+      }
     }
 
-    const baseUrl =
-      process.env.ACCESS_LINK_BASE_URL ||
-      process.env.NEXT_PUBLIC_APP_URL ||
-      request.nextUrl.origin;
+    const baseUrl = devLocalMode
+      ? request.nextUrl.origin
+      : process.env.ACCESS_LINK_BASE_URL ||
+        process.env.NEXT_PUBLIC_APP_URL ||
+        request.nextUrl.origin;
 
     const accessUrl = `${baseUrl.replace(/\/$/, '')}/access/${rawToken}`;
 
@@ -90,6 +117,13 @@ export async function POST(request: NextRequest) {
       accessUrl,
       rawToken,
       expiresAt,
+      devLocalMode,
+      ...(devLocalMode
+        ? {
+            notice:
+              'Lokaler Dev-Modus (Supabase offline). Link gilt nur auf diesem Rechner in dieser Entwicklungsumgebung.',
+          }
+        : {}),
     });
   } catch (e) {
     console.error('create-access-link:', e);

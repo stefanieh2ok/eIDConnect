@@ -8,6 +8,8 @@ import { Wahl } from '@/types';
 import { selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
 import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
+import { candidateInitials, isCandidateImageVerified } from '@/lib/candidateImage';
+import { InfoHint } from '@/components/ui/InfoHint';
 
 interface ElectionsSectionProps {
   currentLocation?: string;
@@ -548,117 +550,91 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
     return badge;
   };
 
-  const sectionCardClass = 'card-content p-4';
+  const sectionCardClass = 'election-card';
+
+  const selectionLine = (() => {
+    const lvl = levelForResidenceLocation(state.activeLocation);
+    const lvlLabel = lvl === 'bund' ? 'Bund' : lvl === 'land' ? 'Land' : lvl === 'kreis' ? 'Kreis' : 'Kommune';
+    const region = DEMO_LOCATION_LABEL[state.activeLocation] ?? String(state.activeLocation);
+    return `${lvlLabel}${region && region !== 'Deutschland' ? ` · ${region}` : ''}`;
+  })();
+
+  const activeFilterLabels = [
+    state.activeLocation !== 'bundesweit'
+      ? `${selectedLevelUiLabel || 'Bund'}${selectedRegionLabel !== 'Deutschland' ? ` · ${selectedRegionLabel}` : ''}`
+      : null,
+    timeframeChipLabel,
+    statusChipLabel,
+  ].filter(Boolean) as string[];
 
   return (
-    <div className="card-section p-2.5">
-      <div className="mb-2 flex items-start justify-between">
-        <div>
-          <div className="t-meta">
-            {(() => {
-              const lvl = levelForResidenceLocation(state.activeLocation);
-              const lvlLabel = lvl === 'bund' ? 'Bund' : lvl === 'land' ? 'Land' : lvl === 'kreis' ? 'Kreis' : 'Kommune';
-              const region = DEMO_LOCATION_LABEL[state.activeLocation] ?? String(state.activeLocation);
-              // One clean line instead of “Auswahl: …” + redundant chips.
-              return `Auswahl: ${lvlLabel}${region && region !== 'Deutschland' ? ` · ${region}` : ''}`;
-            })()}
+    <div className="civic-module-shell">
+      <div className="election-meta-bar">
+        <div className="election-meta-bar__row">
+          <div className="flex min-w-0 items-center gap-1">
+            <span className="election-meta-bar__selection">{selectionLine}</span>
+            <InfoHint label="Wahlvorschau Hinweise">
+              <p>Wahlvorschau: Kandidierende, Programme und verifizierte Quellen.</p>
+              {showArchiv && currentLocation === 'saarland' ? (
+                <p className="mt-1">Letzte Landtagswahl Saarland: 27.03.2022</p>
+              ) : null}
+              {currentLocation === 'hessen' || currentLocation === 'viernheim' ? (
+                <p className="mt-1">
+                  Hessen: letzte Landtagswahl 08.10.2023
+                  {currentLocation === 'viernheim'
+                    ? ' · Kommunalwahl Viernheim in der Vorschau als aktuell geführt'
+                    : ' · nächster Termin vsl. 2028'}
+                </p>
+              ) : null}
+            </InfoHint>
           </div>
-          <div className="t-caption">Wahlvorschau: Kandidierende, Programme und verifizierte Quellen.</div>
-        </div>
-        <button
-          type="button"
-          onClick={() => setFilterSheetOpen(true)}
-          aria-label={`Filter öffnen${activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}`}
-          className="app-filter-btn h-9 px-3 hover:bg-neutral-50"
-        >
-          Filter{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}
-        </button>
-      </div>
-      {/* Saarland: letzte Wahl als Archiv-Info */}
-      {showArchiv && currentLocation === 'saarland' && (
-        <div className="mb-2 text-[11px] text-neutral-500">
-          Letzte Landtagswahl Saarland: <span className="font-semibold text-neutral-700">27.03.2022</span>
-        </div>
-      )}
-
-      {/* Hessen / Viernheim: Landtagswahl + Kommunalwahl-Kontext (Demo) */}
-      {(currentLocation === 'hessen' || currentLocation === 'viernheim') && (
-        <div className="mb-2 text-[11px] text-neutral-500">
-          Hessen: letzte Landtagswahl <span className="font-semibold text-neutral-700">08.10.2023</span>
-          {currentLocation === 'viernheim' ? (
-            <>
-              {' '}
-              · Kommunalwahl Stadt Viernheim in der Vorschau als <span className="font-semibold text-neutral-700">aktuell</span> geführt
-            </>
-          ) : (
-            <>
-              {' '}
-              · naechster regulaerer Termin vsl. <span className="font-semibold text-neutral-700">2028</span>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Segmentsteuerung + Chips (Filter nur bei Bedarf über Bottom Sheet) */}
-      <div className="app-segment mb-3">
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setShowArchiv(false)}
-            className={`app-segment-btn w-full py-2 transition ${
-              !showArchiv
-                ? 'app-segment-btn--active'
-                : 'bg-white text-gray-700 border border-gray-200'
-            }`}
-          >
-            Aktuell
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowArchiv(true)}
-            className={`app-segment-btn w-full py-2 transition ${
-              showArchiv
-                ? 'app-segment-btn--active'
-                : 'bg-white text-gray-700 border border-gray-200'
-            }`}
-          >
-            Ergebnisse
-          </button>
-        </div>
-
-        <div className="mt-2 flex flex-wrap gap-2">
-          {/* Region/Ebene (kombiniert, um Redundanz zu vermeiden) */}
-          {state.activeLocation !== 'bundesweit' ? (
-            <button type="button" onClick={clearRegionFilter} className="app-chip">
-              {(selectedLevelUiLabel || 'Bund') + (selectedRegionLabel !== 'Deutschland' ? ` · ${selectedRegionLabel}` : '')}
-              <span aria-hidden>×</span>
-            </button>
-          ) : null}
-
-          {/* Zeitraum Chip */}
-          {timeframeChipLabel ? (
+          <div className="flex shrink-0 items-center gap-1">
+            <div className="election-meta-bar__segment">
+              <button
+                type="button"
+                onClick={() => setShowArchiv(false)}
+                className={`election-meta-bar__segment-btn${!showArchiv ? ' election-meta-bar__segment-btn--active' : ''}`}
+              >
+                Aktuell
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowArchiv(true)}
+                className={`election-meta-bar__segment-btn${showArchiv ? ' election-meta-bar__segment-btn--active' : ''}`}
+              >
+                Ergebnisse
+              </button>
+            </div>
             <button
               type="button"
-              onClick={clearTimeframeFilter}
-              className="app-chip"
+              onClick={() => setFilterSheetOpen(true)}
+              aria-label={`Filter öffnen${activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}`}
+              className="election-meta-filter-btn"
             >
-              {timeframeChipLabel}
-              <span aria-hidden>×</span>
+              Filter{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}
             </button>
-          ) : null}
-
-          {/* Status Chip */}
-          {statusChipLabel ? (
-            <button
-              type="button"
-              onClick={() => setStatusUi('all')}
-              className="app-chip"
-            >
-              {statusChipLabel}
-              <span aria-hidden>×</span>
-            </button>
-          ) : null}
+          </div>
         </div>
+        {activeFilterLabels.length > 0 ? (
+          <div className="election-meta-bar__filters">
+            {activeFilterLabels.map((label, idx) => (
+              <span key={label}>
+                {idx > 0 ? ' · ' : 'Filter: '}
+                <button
+                  type="button"
+                  className="underline decoration-dotted underline-offset-2"
+                  onClick={() => {
+                    if (label === timeframeChipLabel) clearTimeframeFilter();
+                    else if (label === statusChipLabel) setStatusUi('all');
+                    else clearRegionFilter();
+                  }}
+                >
+                  {label}
+                </button>
+              </span>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {filterSheetOpen && (
@@ -1018,12 +994,6 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
             abgeschlossen: 'Abgeschlossen',
             archiviert: 'Archiviert',
           };
-          const statusClass: Record<ElectionStatus, string> = {
-            offen: 'bg-emerald-100 text-emerald-800',
-            demnaechst: 'bg-amber-100 text-amber-800',
-            abgeschlossen: 'bg-slate-100 text-slate-700',
-            archiviert: 'bg-neutral-100 text-neutral-700',
-          };
           const canParticipate = status === 'offen';
           return (
             <div key={wahl.id} className={`${sectionCardClass} mb-4 sm:p-5`}>
@@ -1036,81 +1006,85 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                     <div className="mt-1 text-[11px] text-gray-600">{wahl.datum}</div>
                   )}
                 </div>
-                <div className="flex w-full flex-wrap items-center justify-start gap-1.5 sm:w-auto sm:justify-end">
-                  {hasVoted && (
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-800 whitespace-nowrap">
-                      Bereits abgestimmt
-                    </span>
-                  )}
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${statusClass[status]}`}>
-                    {statusBadge[status]}
-                  </span>
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${badge.bg} ${badge.text}`}>
-                    {badge.label}
-                  </span>
+                <div className="election-card__meta sm:text-right">
+                  <span>{badge.label}</span>
+                  <span className={`election-card__meta-item--${status}`}>{statusBadge[status]}</span>
+                  {hasVoted ? <span className="election-card__meta-item--done">Abgestimmt</span> : null}
                 </div>
               </div>
 
               <p className="text-[11px] text-gray-600 mb-4">Wahlkreis {userWahlkreisByLevel && wahl.level ? (userWahlkreisByLevel[wahl.level as keyof typeof userWahlkreisByLevel] || wahl.wahlkreis) : wahl.wahlkreis}</p>
 
-              <div className="mt-3 space-y-3">
-                <div className="rounded-xl border border-neutral-200 bg-[#F8FAFD] p-3">
-                  <div className="text-[11px] font-semibold text-neutral-900">Ergebnis</div>
-                  {showArchiv ? (
-                    <div className="app-card-subtle mt-2 p-3">
-                      <div className="text-[11px] font-semibold text-neutral-900">Wahlergebnis</div>
-                      {wahl.ergebnis?.parteien && wahl.ergebnis.parteien.length > 0 ? (
-                        <div className="mt-2 space-y-2">
-                          {typeof wahl.ergebnis.wahlbeteiligung === 'number' && (
-                            <div className="text-[10px] text-neutral-600">
-                              Wahlbeteiligung: <span className="font-semibold text-neutral-800">{wahl.ergebnis.wahlbeteiligung}%</span>
-                            </div>
-                          )}
-                          <div className="space-y-1">
-                            {wahl.ergebnis.parteien.map((p) => (
-                              <div key={p.partei} className="flex items-center justify-between gap-3 text-[11px] text-neutral-800">
-                                <span className="min-w-0 truncate">{p.partei}</span>
-                                <span className="flex items-center gap-2 flex-shrink-0">
-                                  <span className="font-semibold">{p.prozent}%</span>
-                                  {typeof (p as any).sitze === 'number' ? (
-                                    <span className="text-[10px] text-neutral-500">{(p as any).sitze} Sitze</span>
-                                  ) : null}
-                                </span>
-                              </div>
-                            ))}
+              <div className="mt-2 space-y-2.5">
+                {showArchiv ? (
+                  <div className="election-result-panel">
+                    <div className="election-result-panel__title">Wahlergebnis</div>
+                    {wahl.ergebnis?.parteien && wahl.ergebnis.parteien.length > 0 ? (
+                      <div className="mt-1.5 space-y-1.5">
+                        {typeof wahl.ergebnis.wahlbeteiligung === 'number' && (
+                          <div className="text-[10px] text-[#5f6b7a]">
+                            Wahlbeteiligung:{' '}
+                            <span className="font-semibold text-[#003366]">{wahl.ergebnis.wahlbeteiligung}%</span>
                           </div>
-                          {wahl.ergebnis.koalition ? (
-                            <div className="pt-2 text-[10px] text-neutral-600">
-                              Koalition/Mehrheit: <span className="font-semibold text-neutral-800">{wahl.ergebnis.koalition}</span>
+                        )}
+                        <div className="space-y-1">
+                          {wahl.ergebnis.parteien.map((p) => (
+                            <div
+                              key={p.partei}
+                              className="flex items-center justify-between gap-3 text-[11px] text-[#1A2B45]"
+                            >
+                              <span className="min-w-0 truncate">{p.partei}</span>
+                              <span className="flex shrink-0 items-center gap-2">
+                                <span className="font-semibold">{p.prozent}%</span>
+                                {typeof (p as { sitze?: number }).sitze === 'number' ? (
+                                  <span className="text-[10px] text-[#6B7A99]">
+                                    {(p as { sitze: number }).sitze} Sitze
+                                  </span>
+                                ) : null}
+                              </span>
                             </div>
-                          ) : null}
+                          ))}
                         </div>
-                      ) : (
-                        <div className="mt-2 text-[11px] leading-relaxed text-neutral-700">
-                          Ergebnisdaten sind in der Vorschau für diese Wahl noch nicht hinterlegt.
-                          <div className="mt-1 text-[10px] text-neutral-500">
-                            Hinweis: Die Karte bleibt als Orientierungsansicht sichtbar, ohne Zahlen/Prozentwerte zu behaupten.
+                        {wahl.ergebnis.koalition ? (
+                          <div className="pt-1 text-[10px] text-[#5f6b7a]">
+                            Koalition/Mehrheit:{' '}
+                            <span className="font-semibold text-[#003366]">{wahl.ergebnis.koalition}</span>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="mt-2 text-[10px] text-slate-500">
-                      Ergebnisse werden im Bereich „Ergebnisse“ dargestellt.
-                    </p>
-                  )}
-                </div>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <p className="mt-1.5 text-[11px] leading-relaxed text-[#5f6b7a]">
+                        Ergebnisdaten sind in der Vorschau für diese Wahl noch nicht hinterlegt.
+                        <span className="mt-1 block text-[10px] text-[#6B7A99]">
+                          Orientierungsansicht ohne behauptete Prozentwerte.
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-[#6B7A99]">
+                    Ergebnisse werden im Bereich „Ergebnisse“ dargestellt.
+                  </p>
+                )}
 
-                <div className="rounded-xl border border-neutral-200 bg-white p-3">
-                  <div className="text-[11px] font-semibold text-neutral-900">Wahlvorschau</div>
+                <div className="civic-action-block">
+                  <div className="flex items-center gap-1 text-[11px] font-semibold text-[#003366]">
+                    Wahlvorschau
+                    <InfoHint label="Informationsansicht">
+                      <p>
+                        {du
+                          ? 'Stimmzettel, Kandidierende und Programme einsehen — keine Stimmabgabe in der Vorschau.'
+                          : 'Stimmzettel, Kandidierende und Programme einsehen — keine Stimmabgabe in der Vorschau.'}
+                      </p>
+                      <p className="mt-1">
+                        Perspektive eVoting: sichere Identitätsprüfung, Trennung von Identität und Stimme,
+                        gesetzliche Freigaben.
+                      </p>
+                    </InfoHint>
+                  </div>
                   <button
                     onClick={() => handleStimmzettelClick(wahl)}
-                    className="btn-gov-primary mt-2 w-full rounded-xl py-3 font-semibold transition-opacity"
-                    style={
-                      status !== 'demnaechst'
-                        ? { background: '#FBBF24', color: '#0A2540' }
-                        : { background: '#FEF3C7', color: '#78350F' }
-                    }
+                    className="btn-gov-primary mt-2 w-full rounded-xl py-2.5 text-[12px] font-semibold transition-opacity"
                   >
                     {status === 'demnaechst'
                       ? 'Termin ansehen'
@@ -1118,22 +1092,6 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                         ? 'Stimmzettel anzeigen'
                         : 'Stimmzettel (Vorschau) öffnen'}
                   </button>
-                  <div className="mt-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2.5 py-2">
-                    <p className="text-[10px] font-semibold text-neutral-700">Informationsansicht</p>
-                    <p className="mt-0.5 text-[10px] leading-relaxed text-neutral-600">
-                      {du
-                        ? 'Du kannst Stimmzettel, Kandidierende und Programme einsehen. Eine Stimmabgabe ist hier nicht möglich.'
-                        : 'Sie können Stimmzettel, Kandidierende und Programme einsehen. Eine Stimmabgabe ist hier nicht möglich.'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-                  <div className="text-[11px] font-semibold text-slate-800">Perspektive: eVoting</div>
-                  <p className="mt-1 text-[10px] leading-relaxed text-slate-600">
-                    Eine digitale Stimmabgabe ist perspektivisch möglich. Voraussetzung sind sichere
-                    Identitätsprüfung, Trennung von Identität und Stimme sowie gesetzliche Freigaben.
-                  </p>
                 </div>
               </div>
 
@@ -1142,71 +1100,60 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                   <h4 className="text-[11px] font-semibold mb-2">Amtsträger / Kandidaten:</h4>
                   {wahl.kandidaten.map((k, i) => {
                     const imgKey = `${wahl.id}-${i}`;
-                    const avatarKey = `${wahl.id}-${i}-avatar`;
-                    const avatarFailed = imageErrors[avatarKey];
-                    const useRealImage = k.image && !imageErrors[imgKey];
-                    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(k.name.replace(/,/g, ' '))}&size=128&background=1e3a8a&color=fff`;
-                    const imageSrc = useRealImage ? k.image! : avatarUrl;
-                    const showEmoji = avatarFailed;
+                    const showVerifiedImage =
+                      isCandidateImageVerified(k) && Boolean(k.image) && !imageErrors[imgKey];
+                    const initials = candidateInitials(k.name);
                     return (
-                      <div key={i} className="bg-gray-50 rounded-xl p-3 mb-2 flex items-center gap-3">
-                      <div className="flex-shrink-0 w-14 h-14 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-                        {showEmoji ? (
-                          <span className="text-sm font-bold text-gray-700">
-                            {k.name
-                              .split(/\s+/)
-                              .map((p) => p[0]?.toUpperCase() || '')
-                              .slice(0, 2)
-                              .join('')}
-                          </span>
-                        ) : (
-                          <img
-                            src={imageSrc}
-                            alt={k.name}
-                            className="w-full h-full object-cover"
-                            referrerPolicy="no-referrer"
-                            onError={() => markImageError(useRealImage ? imgKey : avatarKey)}
-                          />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-[11px]">{k.name}</div>
-                        <div className="text-[10px] text-gray-600">
-                          {k.partei}{k.alter ? ` • ${k.alter} Jahre` : ''}{k.beruf ? ` • ${k.beruf}` : ''}
+                      <div key={i} className="candidate-card mb-2 flex items-start gap-3">
+                        <div className="candidate-avatar" aria-hidden>
+                          {showVerifiedImage ? (
+                            <img
+                              src={k.image}
+                              alt=""
+                              className="h-full w-full object-cover"
+                              onError={() => markImageError(imgKey)}
+                            />
+                          ) : (
+                            <span className="candidate-avatar__initials">{initials || '?'}</span>
+                          )}
                         </div>
-                        <div className="flex gap-1 mt-1 flex-wrap">
-                          {k.positionen.map((pos, j) => (
-                            <span key={j} className="bg-blue-100 text-blue-900 px-2 py-0.5 rounded text-[10px]">
-                              {pos}
-                            </span>
-                          ))}
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[11px] font-semibold text-[#1A2B45]">{k.name}</div>
+                          <div className="text-[10px] text-[#5f6b7a]">
+                            {k.partei}
+                            {k.alter ? ` · ${k.alter} Jahre` : ''}
+                            {k.beruf ? ` · ${k.beruf}` : ''}
+                          </div>
+                          {!showVerifiedImage ? (
+                            <p className="mt-1 text-[9px] font-medium text-[#6B7A99]">
+                              Bild nicht verifiziert · Profilquelle prüfen
+                            </p>
+                          ) : null}
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {k.positionen.map((pos, j) => (
+                              <span key={j} className="candidate-position-pill">
+                                {pos}
+                              </span>
+                            ))}
+                          </div>
+                          {(k.quelle || k.quelleUrl) && (
+                            <p className="mt-1 text-[10px] text-[#6B7A99]">
+                              {k.quelleUrl ? (
+                                <a
+                                  href={k.quelleUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[#0055A4] hover:underline"
+                                >
+                                  Quelle: {k.quelle || 'Offizielle Seite'}
+                                </a>
+                              ) : (
+                                <>Quelle: {k.quelle}</>
+                              )}
+                            </p>
+                          )}
                         </div>
-                        {k.wikipediaUrl && (
-                          <a href={k.wikipediaUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-blue-600 hover:underline mt-1 inline-block">
-                            Wikipedia-Profil
-                          </a>
-                        )}
-                        {(k.quelle || k.quelleUrl) && (
-                          <p className="text-[10px] text-gray-500 mt-0.5">
-                            {k.quelleUrl ? (
-                              <a
-                                href={k.quelleUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:underline"
-                              >
-                                Quelle: {k.quelle || 'Offizielle Seite'}
-                              </a>
-                            ) : (
-                              <>Quelle: {k.quelle}</>
-                            )}
-                          </p>
-                        )}
-                        {(k as { confirmedByCandidate?: boolean }).confirmedByCandidate && (
-                          <p className="text-[10px] text-emerald-600 mt-1 font-medium">Von Kandidat*in bestätigt</p>
-                        )}
                       </div>
-                    </div>
                     );
                   })}
                 </div>

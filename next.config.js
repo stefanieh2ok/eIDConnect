@@ -1,7 +1,19 @@
 /** @type {import('next').NextConfig} */
+
+const { getGlobalSecurityHeaderPairs } = require('./lib/security/headers-next.cjs');
+const globalSecurityHeaders = getGlobalSecurityHeaderPairs();
+
 const nextConfig = {
   images: {
     domains: [],
+  },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: globalSecurityHeaders,
+      },
+    ];
   },
   experimental: {
     // DocuSign nutzt CommonJS intern (require('ApiClient') ohne ./),

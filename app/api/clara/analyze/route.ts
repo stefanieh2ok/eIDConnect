@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAPIConfig, createAPIHeaders } from '@/lib/api-config';
+import { logClaraAiOutput } from '@/lib/ai/clara-ai-audit';
+import { getChatProvider } from '@/lib/ai/get-chat-provider';
 import { buildClaraAnalyzePrompt, type AddressMode } from '@/lib/clara-system-prompt';
 import { buildHaushaltKontextFuerPrompt, haushaltScopeFromVotingCardId } from '@/data/haushaltsOfficialRefs';
 
@@ -10,18 +11,16 @@ const fallbackAnalysis = {
   pros: ['Neutrale Einordnung der Verfahrensschritte moeglich', 'Relevante Fristen und Zuständigkeiten koennen benannt werden'],
   cons: ['Ohne offizielle Detailquellen bleibt die Einordnung begrenzt', 'Keine politische Empfehlung oder Gewichtung einzelner Optionen'],
   confidence: 60,
-  alternativePerspectives: ['Pruefen Sie die zustaendige Wahl- oder Verwaltungsstelle', 'Vergleichen Sie offizielle Unterlagen der beteiligten Positionen'],
+  alternativePerspectives: ['Pruefen Sie die zustaendige Wahl- oder Verwaltungsstelle', 'Vergleichen Sie offizielle Unterlagen der beteiligenden Positionen'],
 };
 
 export async function POST(request: NextRequest) {
+  let inputFingerprint = '';
   try {
     const { votingCard, preferences, addressMode } = await request.json();
-    
+
     if (!votingCard) {
-      return NextResponse.json(
-        { error: 'Abstimmungsdaten sind erforderlich' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Abstimmungsdaten sind erforderlich' }, { status: 400 });
     }
 
     const hasPreferences =
@@ -36,20 +35,10 @@ export async function POST(request: NextRequest) {
       context: `Abstimmung: ${votingCard.title} (${votingCard.category})`,
     });
 
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json({
-        analysis: fallbackAnalysis,
-        source: 'local-fallback',
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-    const config = getAPIConfig();
-    const headers = createAPIHeaders(config.openai.apiKey);
-
     const ki = votingCard.kiAnalysis;
     const haushaltScope = haushaltScopeFromVotingCardId(String(votingCard.id ?? ''));
     const haushaltBlock = buildHaushaltKontextFuerPrompt(haushaltScope);
+    const sourceRefs = [haushaltScope, votingCard.id].filter(Boolean).map(String);
 
     const userPrompt = `Analysiere diese Abstimmung in der Konzeptvorschau (Inhalt ist Teil der Beispielkarte, im Sinne der Vorschau zu verwenden):
 
@@ -72,27 +61,36 @@ Pflicht:
 
 ${haushaltBlock}`;
 
-    const response = await fetch(`${config.openai.baseURL}/chat/completions`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        model: config.openai.model,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: 800,
-        temperature: 0.6,
-        stream: false
-      })
-    });
+    inputFingerprint = `${votingCard.id}:${votingCard.title}`;
 
-    if (!response.ok) {
-      throw new Error(`OpenAI API Fehler: ${response.status}`);
+    if (!process.env.OPENAI_API_KEY) {
+      const out = JSON.stringify(fallbackAnalysis);
+      await logClaraAiOutput({
+        request,
+        channel: 'analyze',
+        model: 'local-fallback',
+        provider: 'local',
+        inputText: inputFingerprint,
+        outputText: out,
+        sourceRefs,
+        fallback: true,
+      });
+      return NextResponse.json({
+        analysis: fallbackAnalysis,
+        source: 'local-fallback',
+        timestamp: new Date().toISOString(),
+      });
     }
 
-    const data = await response.json();
-    const analysisText = data.choices[0]?.message?.content || '{}';
+    const provider = getChatProvider();
+    const result = await provider.completeChat({
+      systemPrompt,
+      userMessage: userPrompt,
+      maxTokens: 800,
+      temperature: 0.6,
+    });
+
+    const analysisText = result.content || '{}';
 
     try {
       const analysis = JSON.parse(analysisText);
@@ -111,29 +109,58 @@ ${haushaltBlock}`;
           ? analysis.alternativePerspectives.filter((p: unknown) => typeof p === 'string')
           : ['Weitere Informationen erforderlich'],
       };
-      
+
+      await logClaraAiOutput({
+        request,
+        channel: 'analyze',
+        model: result.model,
+        provider: result.providerId,
+        inputText: inputFingerprint,
+        outputText: JSON.stringify(normalizedAnalysis),
+        sourceRefs,
+      });
+
       return NextResponse.json({
         analysis: normalizedAnalysis,
-        source: 'openai',
-        timestamp: new Date().toISOString()
+        source: result.providerId,
+        timestamp: new Date().toISOString(),
       });
     } catch {
+      const parsedFallback = {
+        personalMatch: 50,
+        reasoning: analysisText,
+        pros: ['Analyse verfügbar'],
+        cons: [],
+        confidence: 70,
+        alternativePerspectives: ['Weitere Informationen erforderlich'],
+      };
+      await logClaraAiOutput({
+        request,
+        channel: 'analyze',
+        model: result.model,
+        provider: result.providerId,
+        inputText: inputFingerprint,
+        outputText: analysisText,
+        sourceRefs,
+      });
       return NextResponse.json({
-        analysis: {
-          personalMatch: 50,
-          reasoning: analysisText,
-          pros: ['Analyse verfügbar'],
-          cons: [],
-          confidence: 70,
-          alternativePerspectives: ['Weitere Informationen erforderlich']
-        },
+        analysis: parsedFallback,
         source: 'parse-fallback',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
-
   } catch (error) {
     console.error('Clara Analyse API Fehler:', error);
+    const out = JSON.stringify(fallbackAnalysis);
+    await logClaraAiOutput({
+      request,
+      channel: 'analyze',
+      model: 'error-fallback',
+      provider: 'local',
+      inputText: inputFingerprint,
+      outputText: out,
+      fallback: true,
+    }).catch(() => undefined);
     return NextResponse.json(
       {
         analysis: fallbackAnalysis,

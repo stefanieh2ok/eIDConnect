@@ -74,6 +74,9 @@ export default function RootLayout({
   return (
     <html lang="de">
       <body className={inter.className}>
+        <a href="#main-content" className="skip-to-main">
+          Zum Hauptinhalt springen
+        </a>
         <ScrollRestoration />
         <InAppBrowserBanner />
         {children}

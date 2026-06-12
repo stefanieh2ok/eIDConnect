@@ -10,6 +10,7 @@ import { BW_CALENDAR_LOCATION_IDS, BW_KREIS_MENU_LABELS } from '@/data/badenWuer
 import { CalendarScopeFilter, type CalendarGeoScope } from '@/components/Filter/CalendarScopeFilter';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
 import type { EbeneLevel, UserPreferences } from '@/types';
+import { calendarMarkerStyle } from '@/lib/civicStatus';
 
 function buildHessenCalendarLocationTypes(): Record<string, string> {
   const o: Record<string, string> = { hessen: 'saarland' };
@@ -41,13 +42,17 @@ const BW_CAL_TYPES = buildBadenWuerttembergCalendarLocationTypes();
 interface MenuItem { id: string; name: string; level: string }
 
 interface CalendarEvent {
-  kind: 'wahl' | 'abstimmung';
+  kind: 'wahl' | 'abstimmung' | 'vormerkung';
   level: EbeneLevel;
   title: string;
   cardId?: string;
   location: string;
   /** Interne Sortierreihenfolge (ohne sichtbare Bewertungswerte in der UI). */
   points?: number;
+  privateReminderId?: string;
+  description?: string;
+  /** Abstimmungs-Frist (DD.MM.YYYY) für Ampel-Marker */
+  deadline?: string;
 }
 
 interface CalendarSectionProps {
@@ -310,6 +315,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
           cardId: item.id,
           location: loc,
           points: typeof item.points === 'number' ? item.points : undefined,
+          deadline: item.deadline || undefined,
         });
       }
     }
@@ -339,16 +345,65 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
     return data;
   }, [propVotingData]);
 
-  const calendarData = calendarDataFromVoting[currentYear] ?? {};
+  const calendarDataFromReminders = React.useMemo(() => {
+    const data: Record<number, Record<string, Record<number, CalendarEvent[]>>> = {};
+
+    for (const reminder of state.privateCalendarReminders) {
+      const d = new Date(reminder.startAt);
+      if (Number.isNaN(d.getTime())) continue;
+      const year = d.getFullYear();
+      const monthKey = MONTHS[d.getMonth()]?.key;
+      if (!monthKey) continue;
+      const day = d.getDate();
+      if (!data[year]) data[year] = {};
+      if (!data[year][monthKey]) data[year][monthKey] = {};
+      if (!data[year][monthKey][day]) data[year][monthKey][day] = [];
+      data[year][monthKey][day].push({
+        kind: 'vormerkung',
+        level: 'kommune',
+        title: reminder.title,
+        location: String(state.residenceLocation || 'kirkel'),
+        privateReminderId: reminder.id,
+        description: reminder.description,
+      });
+    }
+
+    return data;
+  }, [state.privateCalendarReminders, state.residenceLocation]);
+
+  const mergedCalendarData = React.useMemo(() => {
+    const merged: Record<number, Record<string, Record<number, CalendarEvent[]>>> = {
+      ...calendarDataFromVoting,
+    };
+
+    for (const [yearKey, months] of Object.entries(calendarDataFromReminders)) {
+      const year = Number(yearKey);
+      if (!merged[year]) merged[year] = {};
+      for (const [monthKey, days] of Object.entries(months)) {
+        if (!merged[year][monthKey]) merged[year][monthKey] = {};
+        for (const [dayKey, events] of Object.entries(days)) {
+          const day = Number(dayKey);
+          merged[year][monthKey][day] = [
+            ...(merged[year][monthKey][day] ?? []),
+            ...events,
+          ];
+        }
+      }
+    }
+
+    return merged;
+  }, [calendarDataFromVoting, calendarDataFromReminders]);
+
+  const calendarData = mergedCalendarData[currentYear] ?? {};
   const votingDataToUse = propVotingData || VOTING_DATA;
 
   const availableYears = React.useMemo(() => {
-    const years = Object.keys(calendarDataFromVoting)
+    const years = Object.keys(mergedCalendarData)
       .map((y) => Number(y))
       .filter((n) => Number.isFinite(n))
       .sort((a, b) => b - a);
     return years.length > 0 ? years : [now.getFullYear()];
-  }, [calendarDataFromVoting, now]);
+  }, [mergedCalendarData, now]);
 
   // Alle Abstimmungen des aktuellen Monats (Bund, Land, Kreis, Kommune) – nur aus votingData, sortiert nach Tag
   const allEventsThisMonth = React.useMemo(() => {
@@ -413,6 +468,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
             cardId: item.id,
             location: loc,
             points: typeof item.points === 'number' ? item.points : undefined,
+            deadline: item.deadline || undefined,
           },
           card: item
         });
@@ -435,9 +491,35 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
       });
     }
 
+    for (const reminder of state.privateCalendarReminders) {
+      const d = new Date(reminder.startAt);
+      if (Number.isNaN(d.getTime())) continue;
+      if (d.getFullYear() !== currentYear || d.getMonth() !== currentMonthIndex) continue;
+      out.push({
+        day: d.getDate(),
+        event: {
+          kind: 'vormerkung',
+          level: 'kommune',
+          title: reminder.title,
+          location: String(state.residenceLocation || 'kirkel'),
+          privateReminderId: reminder.id,
+          description: reminder.description,
+        },
+        card: null,
+      });
+    }
+
     out.sort((a, b) => a.day - b.day);
     return out;
-  }, [propVotingData, currentYear, currentMonthIndex, currentMonth.key, currentMonth.days]);
+  }, [
+    propVotingData,
+    currentYear,
+    currentMonthIndex,
+    currentMonth.key,
+    currentMonth.days,
+    state.privateCalendarReminders,
+    state.residenceLocation,
+  ]);
 
   const currentLocationKey = propLocation || state.activeLocation || 'deutschland';
   const normalizeEventLocation = (loc: string): string => {
@@ -475,9 +557,13 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
   const filteredEventsThisMonth = React.useMemo(() => {
     const allowed = new Set(availableLevels);
     return allEventsThisMonth
-      .filter(({ event }) => isEventInSelectedRegion(event.location))
-      .filter(({ event }) => allowed.has(event.level))
-      .filter(({ event }) => (geoScope === 'all' ? true : event.level === geoScope));
+      .filter(({ event }) =>
+        event.kind === 'vormerkung' ? true : isEventInSelectedRegion(event.location),
+      )
+      .filter(({ event }) => (event.kind === 'vormerkung' ? true : allowed.has(event.level)))
+      .filter(({ event }) =>
+        event.kind === 'vormerkung' ? true : geoScope === 'all' ? true : event.level === geoScope,
+      );
   }, [allEventsThisMonth, availableLevels, geoScope, mappedLocation]);
 
   const sortedEventsForList = React.useMemo(() => {
@@ -515,6 +601,10 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
   };
   
   const handleEventClick = (event: CalendarEvent) => {
+    if (event.kind === 'vormerkung') {
+      dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'fuermich' });
+      return;
+    }
     if (onEventClick && event.cardId) {
       onEventClick({ location: event.location, cardId: event.cardId });
     }
@@ -542,12 +632,16 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
     const events = calendarData[currentMonth.key]?.[day] ?? [];
     const allowed = new Set(availableLevels);
     const visible = events
-      .filter((e) => isEventInSelectedRegion(e.location))
-      .filter((e) => allowed.has(e.level))
-      .filter((e) => (geoScope === 'all' ? true : e.level === geoScope));
+      .filter((e) => (e.kind === 'vormerkung' ? true : isEventInSelectedRegion(e.location)))
+      .filter((e) => (e.kind === 'vormerkung' ? true : allowed.has(e.level)))
+      .filter((e) => (e.kind === 'vormerkung' ? true : geoScope === 'all' ? true : e.level === geoScope));
     if (visible.length > 0) {
-      // Wahl hat Priorität beim Klick, danach Abstimmung
-      const sorted = [...visible].sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'wahl' ? -1 : 1));
+      // Wahl hat Priorität beim Klick, danach Abstimmung, dann Vormerkung
+      const sorted = [...visible].sort((a, b) => {
+        const rank = (k: CalendarEvent['kind']) =>
+          k === 'wahl' ? 0 : k === 'abstimmung' ? 1 : 2;
+        return rank(a.kind) - rank(b.kind);
+      });
       handleEventClick(sorted[0]);
     }
   };
@@ -652,10 +746,11 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
             const events = calendarData[currentMonth.key]?.[day] ?? [];
             const allowed = new Set(availableLevels);
             const visible = events
-              .filter((e) => isEventInSelectedRegion(e.location))
-              .filter((e) => allowed.has(e.level))
-              .filter((e) => (geoScope === 'all' ? true : e.level === geoScope));
+              .filter((e) => (e.kind === 'vormerkung' ? true : isEventInSelectedRegion(e.location)))
+              .filter((e) => (e.kind === 'vormerkung' ? true : allowed.has(e.level)))
+              .filter((e) => (e.kind === 'vormerkung' ? true : geoScope === 'all' ? true : e.level === geoScope));
 
+            const hasVormerkung = visible.some((e) => e.kind === 'vormerkung');
             const wahlLevels = Array.from(
               new Set(
                 visible
@@ -700,8 +795,15 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
                 {/* Marker-Logik:
                     1) Event-Typ (primär): Wahl = gefüllt, Abstimmung = Outline
                     2) Ebene (sekundär): Farbe */}
-                {(wahlLevels.length > 0 || abstLevels.length > 0) && (
+                {(wahlLevels.length > 0 || abstLevels.length > 0 || hasVormerkung) && (
                   <div className="mt-1 flex flex-col items-center gap-0.5" aria-hidden>
+                    {hasVormerkung && (
+                      <span
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={calendarMarkerStyle('vormerkung')}
+                        title="Private Vormerkung"
+                      />
+                    )}
                     {wahlLevels.length > 0 && (
                       <div className="flex items-center gap-0.5">
                         {wahlLevels.slice(0, 2).map((lvl) => (
@@ -741,7 +843,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
         <h3 className="text-xs font-bold text-gray-700 mb-2">Legende</h3>
         <div className="space-y-2">
           {/* 1) Typ (Fill/Outline) */}
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: '#334155' }} aria-hidden />
               <span className="text-[11px] text-gray-700">Fill = Wahl</span>
@@ -749,6 +851,26 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
             <div className="flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full" style={{ border: '1px solid #334155', background: 'transparent' }} aria-hidden />
               <span className="text-[11px] text-gray-700">Outline = Abstimmung</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full" style={calendarMarkerStyle('vormerkung')} aria-hidden />
+              <span className="text-[11px] text-gray-700">Mint = Private Vormerkung</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ border: '1px solid #f59e0b', background: 'transparent' }}
+                aria-hidden
+              />
+              <span className="text-[11px] text-gray-700">Amber = Frist bald</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ border: '1px solid #ef4444', background: 'transparent' }}
+                aria-hidden
+              />
+              <span className="text-[11px] text-gray-700">Rot = Frist heute / kritisch</span>
             </div>
           </div>
 
@@ -794,50 +916,71 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
                 const matchedPreferenceKeys = getMatchedPreferenceKeys(card, priorities);
                 const isPriority = matchedPreferenceKeys.length > 0;
                 const relevanceReason = getRelevanceReason(matchedPreferenceKeys, duMode);
-                const typeLabel = event.kind === 'wahl' ? 'Wahl' : 'Abstimmung';
+                const typeLabel =
+                  event.kind === 'wahl'
+                    ? 'Wahl'
+                    : event.kind === 'vormerkung'
+                      ? 'Private Vormerkung'
+                      : 'Abstimmung';
+                const isVormerkung = event.kind === 'vormerkung';
                 return (
                   <button
-                    key={`${event.cardId}-${day}-${idx}`}
+                    key={`${event.cardId ?? event.privateReminderId ?? event.title}-${day}-${idx}`}
                     onClick={() => handleEventClick(event)}
-                    className={`w-full rounded-lg px-3 py-2 text-left hover:bg-gray-50 transition border border-neutral-200 ${
-                      isPriority ? 'ring-1 ring-emerald-300' : ''
-                    }`}
+                    className={`w-full rounded-lg px-3 py-2 text-left transition border ${
+                      isVormerkung
+                        ? 'border-[#D6E0EE] surface-mist-blue hover:bg-[var(--mist-blue-alt)]'
+                        : 'border-neutral-200 hover:bg-gray-50'
+                    } ${isPriority ? 'ring-1 ring-emerald-300' : ''}`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          {/* Typ (primär): Fill vs Outline */}
+                        <div className="flex flex-wrap items-center gap-2">
                           <span
                             className="h-2.5 w-2.5 rounded-full"
-                            style={
-                              event.kind === 'wahl'
-                                ? { background: LEVEL_COLOR[event.level].solid }
-                                : { border: `1px solid ${LEVEL_COLOR[event.level].border}`, background: 'transparent' }
-                            }
+                            style={(() => {
+                              if (event.kind === 'wahl') return calendarMarkerStyle('wahl');
+                              if (event.kind === 'vormerkung') return calendarMarkerStyle('vormerkung');
+                              const marker = calendarMarkerStyle('abstimmung', event.deadline);
+                              return {
+                                border: `1px solid ${marker.border}`,
+                                background: marker.background,
+                              };
+                            })()}
                             aria-hidden
                           />
                           <span className="text-[10px] font-bold text-neutral-700">{typeLabel}</span>
-                          {/* Ebene (sekundär): Label */}
-                          <span className="text-[10px] font-semibold text-neutral-600">{LEVEL_LABEL[event.level]}</span>
+                          {!isVormerkung ? (
+                            <span className="text-[10px] font-semibold text-neutral-600">
+                              {LEVEL_LABEL[event.level]}
+                            </span>
+                          ) : null}
                           <span className="text-[10px] text-neutral-500">
                             {day}. {currentMonth.name}
                           </span>
-                          {isPriority && (
+                          {isPriority && !isVormerkung ? (
                             <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-700">
                               Thematisch relevant
                             </span>
-                          )}
+                          ) : null}
                         </div>
                         <div className="mt-1 text-[11px] font-semibold text-neutral-900 line-clamp-1">
                           {event.title}
                         </div>
-                        {isPriority ? (
+                        {isVormerkung ? (
+                          <p className="mt-1 text-[10px] leading-snug text-emerald-800">
+                            Kein gebuchter Behördentermin · nur lokale Demo-Vormerkung.
+                          </p>
+                        ) : null}
+                        {isPriority && !isVormerkung ? (
                           <p className="mt-1 text-[10px] leading-snug text-slate-700">
                             {relevanceReason} Keine Empfehlung · nur thematische Relevanz.
                           </p>
                         ) : null}
                       </div>
-                      <span className="text-[10px] font-semibold text-neutral-400 mt-1 flex-shrink-0">Details</span>
+                      <span className="text-[10px] font-semibold text-neutral-400 mt-1 flex-shrink-0">
+                        {isVormerkung ? 'Wegweiser' : 'Details'}
+                      </span>
                     </div>
                   </button>
                 );

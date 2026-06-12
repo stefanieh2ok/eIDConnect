@@ -79,17 +79,14 @@ export default async function AccessPage({ params }: AccessPageProps) {
   return (
     <IphoneFrame>
       <div
-        className="flex h-full min-h-0 flex-col overflow-y-auto rounded-b-[1.75rem] px-2 pb-[88px] pt-1"
+        className="flex h-full min-h-0 flex-col overflow-x-hidden overflow-y-auto rounded-b-[1.75rem] px-2 pb-[88px] pt-1"
         style={{
           background: 'transparent',
         }}
       >
-        <div className="mx-auto w-full max-w-[360px] space-y-4 pb-6 text-neutral-950">
-          <div className="card-section">
-            <ProductIdentityHeader />
-            <p className="mt-1 text-left text-[11px] font-medium leading-snug text-neutral-600">
-              Informieren. Verstehen. Mitwirken.
-            </p>
+        <div className="mx-auto w-full max-w-[360px] min-w-0 space-y-4 pb-6 text-neutral-950">
+          <div className="card-section min-w-0 overflow-x-hidden">
+            <ProductIdentityHeader className="max-w-full shrink-0 -ml-5" />
             <h1 className="t-h1 mt-2">{ndaConfig.header || 'Vertraulicher Vorschau-Zugang'}</h1>
             <p className="t-body mt-3">
               Dieser personalisierte Zugang ist ausschließlich für die benannte Person bestimmt.

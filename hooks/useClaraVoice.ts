@@ -321,7 +321,7 @@ export const useClaraVoice = () => {
           body: JSON.stringify({ text, speed: speechRate }),
         });
 
-        const contentType = res.headers.get('content-type') ?? '';
+        const contentType = (res.headers.get('content-type') ?? '').split(';')[0]?.trim() ?? '';
         claraAudioDevLog('tts response status=', res.status, 'contentType=', contentType);
 
         if (!res.ok) {
@@ -344,19 +344,38 @@ export const useClaraVoice = () => {
           return;
         }
 
-        const blob = await res.blob();
-        if (requestId !== playRequestIdRef.current) {
-          claraAudioDevLog('stale request ignored after blob', 'requestId=', requestId, 'current=', playRequestIdRef.current);
-          return;
-        }
-        if (contentType.includes('application/json')) {
-          let rawDetail = 'unexpected_json_body';
+        /**
+         * Produktregel: Nur bei 200 + audio/mpeg weiterarbeiten — sonst kein Blob/Audio/play
+         * (Fehler zuerst an /api/tts beheben, nicht am Client „herumoptimieren“).
+         */
+        if (res.status !== 200) {
+          let rawDetail = `unexpected_status_${res.status}`;
           try {
-            rawDetail = (await blob.text()).slice(0, 500);
+            const t = (await res.text()).trim();
+            if (t) rawDetail = t.slice(0, 500);
           } catch {
             /* ignore */
           }
           finishTtsUnavailable(res.status, rawDetail, true);
+          return;
+        }
+        const ctLower = contentType.toLowerCase();
+        const isAudioMpeg = ctLower === 'audio/mpeg' || ctLower === 'audio/mp3';
+        if (!isAudioMpeg) {
+          let rawDetail = `expected_audio_mpeg_got:${contentType || '(empty)'}`;
+          try {
+            const t = (await res.text()).trim();
+            if (t) rawDetail = t.slice(0, 320);
+          } catch {
+            /* ignore */
+          }
+          finishTtsUnavailable(res.status, rawDetail, true);
+          return;
+        }
+
+        const blob = await res.blob();
+        if (requestId !== playRequestIdRef.current) {
+          claraAudioDevLog('stale request ignored after blob', 'requestId=', requestId, 'current=', playRequestIdRef.current);
           return;
         }
         if (blob.size < 1) {

@@ -31,7 +31,7 @@ export const APP_HIGHLIGHTS_FOR_LATER = [
     emoji: 'ℹ️',
     title: 'Politische Informationen klar & neutral',
     body: () =>
-      'Neutral, strukturiert und auf Basis nachvollziehbarer Quellen – ohne Empfehlungen.',
+      'Neutral, strukturiert und auf Basis verifizierter Quellen – ohne Empfehlungen.',
   },
   {
     emoji: '📅',
@@ -44,8 +44,8 @@ export const APP_HIGHLIGHTS_FOR_LATER = [
     title: 'Prämien & Status',
     body: (du: boolean) =>
       du
-        ? 'Du siehst Prämien nach Einwilligung sowie den nachvollziehbaren Status deiner Beteiligungen.'
-        : 'Sie sehen Prämien nach Einwilligung sowie den nachvollziehbaren Status Ihrer Beteiligungen.',
+        ? 'Du siehst Prämien nach Einwilligung sowie den transparenten Status deiner Beteiligungen.'
+        : 'Sie sehen Prämien nach Einwilligung sowie den transparenten Status Ihrer Beteiligungen.',
   },
   {
     emoji: '🤖',

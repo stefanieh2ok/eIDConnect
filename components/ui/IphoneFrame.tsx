@@ -28,7 +28,7 @@ export function IphoneFrame({
     <div
       className={`app-device-shell flex w-full flex-col items-center justify-center shadow-none ring-0 [filter:none] ${
         /* overflow: kein Inhalt (z. B. Walkthrough) darf optisch unter den Rahmen „auslaufen“. */
-        fillContainer ? 'min-h-0 flex-1 overflow-hidden' : 'h-full min-h-0'
+        fillContainer ? 'min-h-0 flex-1 overflow-visible' : 'h-full min-h-0'
       } ${outerClassName}`}
       style={
         outerStyle ?? {

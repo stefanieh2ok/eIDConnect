@@ -78,12 +78,12 @@ export default function IntroMetaStrip({
         tryResumePendingAudioFromUserGesture();
       }}
     >
-      <div className="intro-meta-strip__row flex w-full min-w-0 max-w-full items-center gap-2 sm:gap-2.5">
+      <div className="intro-meta-strip__row flex w-full min-w-0 max-w-full items-center justify-between gap-1.5 sm:gap-2">
         <span
           className={
-            'intro-meta-strip__pill inline-flex min-w-0 shrink-0 items-center truncate rounded-full font-bold uppercase leading-none tracking-[0.1em] text-white ' +
+            'intro-meta-strip__pill inline-flex min-w-0 shrink items-center truncate rounded-full font-bold uppercase leading-none tracking-[0.1em] text-white ' +
             (compact
-              ? 'h-7 max-w-[min(30vw,7.75rem)] px-2 text-[8px] sm:max-w-[9rem] sm:text-[9px]'
+              ? 'h-7 max-w-[min(26vw,7rem)] px-1.5 text-[8px] sm:max-w-[8.5rem] sm:px-2 sm:text-[9px]'
               : 'h-8 max-w-[min(38vw,9.25rem)] px-2 text-[9px] sm:max-w-[11rem] sm:px-2.5 sm:text-[10px]')
           }
           style={{ background: 'var(--gov-primary, #003366)' }}
@@ -91,8 +91,7 @@ export default function IntroMetaStrip({
         >
           {INTRO_GLOBAL_PILL_LABEL}
         </span>
-        <div className="min-h-px min-w-2 flex-1 shrink" aria-hidden />
-        <div className="intro-meta-strip__actions flex shrink-0 items-center gap-1 sm:gap-1.5">
+        <div className="intro-meta-strip__actions flex shrink-0 items-center gap-1">
           <IntroAudioStatusButton theme={onLight ? 'light' : 'dark'} density={toolbarDensity} />
           <IntroSpeechSpeedToggle theme={onLight ? 'light' : 'dark'} density={toolbarDensity} />
           {showClaraVoice ? (

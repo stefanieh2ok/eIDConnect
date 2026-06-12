@@ -26,6 +26,8 @@ import {
 } from '@/lib/resolveRegionFromAddress';
 import { ClaraVoiceProvider } from '@/components/Clara/ClaraVoiceContext';
 import { DEMO_POINTS_PER_MELDUNG, DEMO_POINTS_PER_WAHL } from '@/data/constants';
+import { EMPTY_FUER_MICH_PROFILE, type FuerMichProfileState } from '@/types/fuerMich';
+import type { PrivateCalendarReminder } from '@/lib/fuerMichTermin';
 
 export type RegistrationResidence = { plz: string; city: string };
 
@@ -150,6 +152,12 @@ interface AppState {
     kreis: number;
     kommune: number;
   };
+
+  /** Freiwillige Stammdaten (Wegweiser/Profil). Nur lokaler Session-State, keine Persistenz. */
+  buergerProfil: FuerMichProfileState;
+
+  /** Private Wegweiser-Vormerkungen — nur Session-State, kein Server/Supabase. */
+  privateCalendarReminders: PrivateCalendarReminder[];
 }
 
 type AppAction =
@@ -192,7 +200,10 @@ type AppAction =
         byLevel: { bund: number; land: number; kreis: number; kommune: number };
       };
     }
-  | { type: 'RECORD_MELDUNG_SUBMITTED'; payload?: { points?: number } };
+  | { type: 'RECORD_MELDUNG_SUBMITTED'; payload?: { points?: number } }
+  | { type: 'UPDATE_BUERGER_PROFIL'; payload: Partial<FuerMichProfileState> }
+  | { type: 'RESET_BUERGER_PROFIL' }
+  | { type: 'ADD_PRIVATE_CALENDAR_REMINDER'; payload: PrivateCalendarReminder };
 
 function meldenSectionAllowed(s: AppState): boolean {
   // Meldungen ist in der Demo immer nutzbar: wenn die echte Region nicht vollständig
@@ -239,6 +250,10 @@ const initialState: AppState = {
   participationVoteCount: 0,
   participationElectionCount: 0,
   participationByLevel: { bund: 0, land: 0, kreis: 0, kommune: 0 },
+
+  buergerProfil: EMPTY_FUER_MICH_PROFILE,
+
+  privateCalendarReminders: [],
 };
 
 function appReducer(state: AppState, action: AppAction): AppState {
@@ -409,6 +424,16 @@ function appReducer(state: AppState, action: AppAction): AppState {
           kommune: state.participationByLevel.kommune + 1,
         },
       };
+    }
+    case 'UPDATE_BUERGER_PROFIL':
+      return { ...state, buergerProfil: { ...state.buergerProfil, ...action.payload } };
+    case 'RESET_BUERGER_PROFIL':
+      return { ...state, buergerProfil: EMPTY_FUER_MICH_PROFILE };
+    case 'ADD_PRIVATE_CALENDAR_REMINDER': {
+      const next = state.privateCalendarReminders.filter(
+        (r) => r.serviceKey !== action.payload.serviceKey,
+      );
+      return { ...state, privateCalendarReminders: [...next, action.payload] };
     }
     default:
       return state;

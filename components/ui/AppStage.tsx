@@ -24,10 +24,10 @@ export function AppStage({
   children,
   stageWidthPx = 390,
   /** Etwas Luft für Rahmen & Home-Indikator (393×852-Logik + Rand) */
-  stageHeightPx = 880,
+  stageHeightPx = 920,
 }: AppStageProps) {
   /** Zusätzliche Verkleinerung nur bei Bedarf; 1 = reines scale-to-fit in den Stage-Viewport */
-  const DESKTOP_PRESENTATION_FACTOR = 1;
+  const DESKTOP_PRESENTATION_FACTOR = 0.98;
   const rootRef = useRef<HTMLDivElement | null>(null);
   const [desktopScale, setDesktopScale] = useState(1);
 
@@ -45,11 +45,17 @@ export function AppStage({
       if (!isDesktop) {
         next = 1;
       } else {
-        const availableWidth = Math.max(0, rect.width - 48);
-        const availableHeight = Math.max(0, rect.height - 48);
+        // Zusätzliche Sicherheitsreserve für Browser-Chrome/Taskbar,
+        // damit der komplette Phone-Rahmen inklusive Unterkante sichtbar bleibt.
+        const dynamicHorizontalInset = Math.max(64, Math.round(rect.width * 0.03));
+        const dynamicVerticalInset = Math.max(88, Math.round(rect.height * 0.1));
+        const availableWidth = Math.max(0, rect.width - dynamicHorizontalInset);
+        const availableHeight = Math.max(0, rect.height - dynamicVerticalInset);
         const scaleX = availableWidth / stageWidthPx;
         const scaleY = availableHeight / stageHeightPx;
-        const finalScale = Math.min(scaleX, scaleY, 1) * DESKTOP_PRESENTATION_FACTOR;
+        // Auf niedrigen Desktop-Höhen etwas defensiver skalieren.
+        const compactViewportFactor = rect.height < 820 ? 0.96 : 1;
+        const finalScale = Math.min(scaleX, scaleY, 1) * DESKTOP_PRESENTATION_FACTOR * compactViewportFactor;
         next = Number.isFinite(finalScale) && finalScale > 0 ? finalScale : 1;
       }
       // Mikro-Jitter durch sub-pixel Breiten-Änderungen (z. B. Scrollbar-Gutter,

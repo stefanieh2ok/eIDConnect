@@ -30,8 +30,8 @@ describe('buildIntroTtsManifest', () => {
 
   it('letzter TTS-Block (Du) enthält Abschlusstext', () => {
     const last = buildIntroTtsManifest(true).find((e) => e.id === 'praemien')!;
-    expect(last.tts).toContain('kurze Überblick');
+    expect(last.tts).toContain('Überblick abgeschlossen');
     expect(last.tts).toMatch(/HookAI Civic.*erkunden|erkunden.*HookAI Civic/);
-    expect(last.tts).toMatch(/neutral.*verständlich|verständlich.*neutral/);
+    expect(last.tts).toMatch(/Kontrolle über (deine|ihre|Ihre) Entscheidungen behalten/);
   });
 });

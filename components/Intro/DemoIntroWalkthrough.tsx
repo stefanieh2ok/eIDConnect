@@ -26,6 +26,7 @@ import {
   WALKTHROUGH_MACHINE_STEPS,
 } from '@/lib/walkthroughOrchestration';
 import { claraAudioDebugEnabled, claraAudioDevLog, claraAudioPreview } from '@/lib/claraAudioDevLog';
+import type { ClaraVoiceIntentType } from '@/lib/introVoiceIntents';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
@@ -106,45 +107,39 @@ function WalkthroughInfoDetails({
   const onLight = surface === 'light';
   return (
     <div className="mb-0 w-full min-w-0 space-y-1.5 [text-wrap:balance]">
-      <div
+      <button
+        type="button"
+        onClick={() => setOpenMain((v) => !v)}
         className={
-          'group overflow-hidden rounded-xl border ' +
-          (onLight
-            ? 'border-slate-200 bg-slate-50/80'
-            : 'border-white/15 bg-white/[0.04]')
+          'inline-flex cursor-pointer list-none items-center gap-1 rounded-md px-1 py-0.5 text-[11px] font-semibold transition [&::-webkit-details-marker]:hidden ' +
+          (onLight ? 'text-[#1F4F8A] hover:bg-slate-100/90' : 'text-sky-100/95 hover:bg-white/5')
         }
+        aria-expanded={openMain}
       >
-        <button
-          type="button"
-          onClick={() => setOpenMain((v) => !v)}
-          className={
-            'inline-flex w-full cursor-pointer list-none items-center justify-between gap-2 py-1.5 pl-2.5 pr-2.5 text-[11px] font-semibold transition [&::-webkit-details-marker]:hidden ' +
-            (onLight ? 'text-[#003366] hover:bg-slate-100/80' : 'text-sky-100/95 hover:bg-white/5')
-          }
-          aria-expanded={openMain}
+        <span>{openMain ? 'Weniger anzeigen' : 'Kurz erklärt'}</span>
+        <span
+          className={(onLight ? 'text-slate-400' : 'text-white/50') + ` transition ${openMain ? 'rotate-180' : ''}`}
+          aria-hidden
         >
-          <span>{openMain ? 'Weniger anzeigen' : 'Mehr anzeigen'}</span>
-          <span className={(onLight ? 'text-slate-400' : 'text-white/50') + ` transition ${openMain ? 'rotate-180' : ''}`} aria-hidden>
-            ▾
-          </span>
-        </button>
-        <div
-          className={`grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none ${
-            openMain ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-          }`}
-        >
-          <div className="min-h-0 overflow-hidden">
-            <p
-              className={
-                'border-t px-2.5 pb-2.5 pt-1.5 text-[11px] leading-relaxed [text-wrap:pretty] whitespace-pre-line ' +
-                (onLight
-                  ? 'border-slate-200 text-neutral-700'
-                  : 'border-white/10 text-white/[0.86]')
-              }
-            >
-              {primaryLong}
-            </p>
-          </div>
+          ▾
+        </span>
+      </button>
+      <div
+        className={`grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none ${
+          openMain ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+        }`}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <p
+            className={
+              'rounded-lg border px-2.5 pb-2 pt-1.5 text-[11px] leading-relaxed [text-wrap:pretty] whitespace-pre-line ' +
+              (onLight
+                ? 'border-slate-200 bg-slate-50/80 text-neutral-700'
+                : 'border-white/15 bg-white/[0.04] text-white/[0.86]')
+            }
+          >
+            {primaryLong}
+          </p>
         </div>
       </div>
       {showOutro ? (
@@ -218,8 +213,8 @@ function IntroAbstimmenWalkthroughDemo({
   useEffect(() => {
     doneRef.current = false;
     setPhase('idle');
-    const t0 = window.setTimeout(() => setPhase('highlight'), 600);
-    const t1 = window.setTimeout(() => setPhase('pressed'), 1100);
+    const t0 = window.setTimeout(() => setPhase('highlight'), 550);
+    const t1 = window.setTimeout(() => setPhase('pressed'), 1350);
     const t2 = window.setTimeout(() => {
       // Simulated vote action (no persistence beyond in-memory demo state)
       const restoreCanVote = !canVoteRef.current;
@@ -244,7 +239,7 @@ function IntroAbstimmenWalkthroughDemo({
         doneRef.current = true;
         onDoneRef.current();
       }
-    }, 1400);
+    }, 1950);
     return () => {
       window.clearTimeout(t0);
       window.clearTimeout(t1);
@@ -475,11 +470,33 @@ function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
  */
 function WalkthroughAuthContent({ du }: { du: boolean }) {
   const [activeTab, setActiveTab] = useState<'eid' | 'wallet'>('eid');
+  const [walletAutoPeek, setWalletAutoPeek] = useState(false);
+  const tabInteractedRef = useRef(false);
   /** In-Tab-Vorschau (per Tab) — schaltet einen kleinen Info-Block innerhalb des AKTIVEN Tabs ein. */
   const [eidPreviewOpen, setEidPreviewOpen] = useState(false);
   const [walletPreviewOpen, setWalletPreviewOpen] = useState(false);
 
-  const claraText = machineNarrationPlain(0, du);
+  const claraParts = machineSpeakParts(0, du);
+  const claraText = claraParts.join('\n\n');
+  const claraShort = claraParts[0] ?? machineShort(0, du);
+
+  /**
+   * Auth-Schritt: einmal kurz EU-Wallet mitzeigen (eID -> Wallet),
+   * damit beide Perspektiven sichtbar sind, ohne extra Tap.
+   */
+  useEffect(() => {
+    tabInteractedRef.current = false;
+    setActiveTab('eid');
+    setWalletAutoPeek(false);
+    const toWallet = window.setTimeout(() => {
+      if (tabInteractedRef.current) return;
+      setActiveTab('wallet');
+      setWalletAutoPeek(true);
+    }, 1800);
+    return () => {
+      window.clearTimeout(toWallet);
+    };
+  }, []);
 
   const tabBtnBase =
     'inline-flex min-h-[40px] flex-1 items-center justify-center rounded-md px-3 text-[12.5px] font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8]';
@@ -491,9 +508,10 @@ function WalkthroughAuthContent({ du }: { du: boolean }) {
       <ClaraStepPanel
         surface="light"
         label="Zugang zur Demo"
-        short={claraText}
-        long=""
+        short={claraShort}
+        long={claraText}
         showTopicTitle={false}
+        defaultExpanded={false}
       />
 
       <div
@@ -508,7 +526,11 @@ function WalkthroughAuthContent({ du }: { du: boolean }) {
           aria-selected={activeTab === 'eid'}
           aria-controls="walkthrough-auth-tabpanel-eid"
           tabIndex={activeTab === 'eid' ? 0 : -1}
-          onClick={() => setActiveTab('eid')}
+          onClick={() => {
+            tabInteractedRef.current = true;
+            setWalletAutoPeek(false);
+            setActiveTab('eid');
+          }}
           className={`${tabBtnBase} ${activeTab === 'eid' ? tabBtnActive : tabBtnInactive}`}
         >
           eID
@@ -520,8 +542,14 @@ function WalkthroughAuthContent({ du }: { du: boolean }) {
           aria-selected={activeTab === 'wallet'}
           aria-controls="walkthrough-auth-tabpanel-wallet"
           tabIndex={activeTab === 'wallet' ? 0 : -1}
-          onClick={() => setActiveTab('wallet')}
-          className={`${tabBtnBase} ${activeTab === 'wallet' ? tabBtnActive : tabBtnInactive}`}
+          onClick={() => {
+            tabInteractedRef.current = true;
+            setWalletAutoPeek(false);
+            setActiveTab('wallet');
+          }}
+          className={`${tabBtnBase} ${activeTab === 'wallet' ? tabBtnActive : tabBtnInactive} ${
+            walletAutoPeek ? 'footer-heartbeat' : ''
+          }`}
         >
           EU Wallet
         </button>
@@ -692,6 +720,7 @@ export default function DemoIntroWalkthrough({
   const [continuePulse, setContinuePulse] = useState(false);
   const [praemienCinematicDone, setPraemienCinematicDone] = useState(false);
   const [claraReadyToContinue, setClaraReadyToContinue] = useState(false);
+  const [autoAdvanceTick, setAutoAdvanceTick] = useState(0);
   const demoTooltipTimerRef = useRef<number | null>(null);
   const overlaySteps = INTRO_OVERLAY_STEPS;
   const machineCount = WALKTHROUGH_MACHINE_STEPS.length;
@@ -765,8 +794,8 @@ export default function DemoIntroWalkthrough({
           <div className="rounded-xl border border-slate-200/90 bg-gradient-to-b from-slate-50/80 to-white px-3 py-2.5 shadow-sm">
             <p className="text-[11px] leading-snug text-neutral-800">
               {du
-                ? 'Du hast die wichtigsten Bereiche gesehen: Abstimmen, Wahlen, Kalender, Meldungen und Prämien.'
-                : 'Sie haben die wichtigsten Bereiche gesehen: Abstimmen, Wahlen, Kalender, Meldungen und Prämien.'}
+                ? 'Der Überblick ist fertig. Du kannst HookAI Civic jetzt selbst erkunden oder Clara gezielt Fragen stellen.'
+                : 'Der Überblick ist fertig. Sie können HookAI Civic jetzt selbst erkunden oder Clara gezielt Fragen stellen.'}
             </p>
           </div>
         </div>
@@ -830,7 +859,23 @@ export default function DemoIntroWalkthrough({
   const speechStepKeyRef = useRef<string>('');
   const speechStartedRef = useRef(false);
   const speechCancelledRef = useRef(false);
+  const speechLaunchSeqRef = useRef(0);
+  const voicePausedRef = useRef(false);
+  const repeatSpeakSeqRef = useRef(0);
   const pulseTimerRef = useRef<number | null>(null);
+  const autoAdvanceTimerRef = useRef<number | null>(null);
+  const autoAdvanceFallbackRef = useRef<number | null>(null);
+
+  const clearAdvanceTimers = useCallback(() => {
+    if (pulseTimerRef.current != null) {
+      window.clearTimeout(pulseTimerRef.current);
+      pulseTimerRef.current = null;
+    }
+    if (autoAdvanceTimerRef.current != null) {
+      window.clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     const section = overlayStepId ? walkthroughSectionForStep(overlayStepId) : 'live';
@@ -856,19 +901,49 @@ export default function DemoIntroWalkthrough({
   }, [machineIndex, overlayStepId]);
 
   useLayoutEffect(() => {
+    /**
+     * `advanceWalkthrough` setzt `speechCancelledRef` vor dem Schrittwechsel.
+     * Ohne Reset hier kann der Auto-Advance-Effekt für die *neue* Folie sofort
+     * mit `speechCancelledRef === true` laufen → keine TTS-Nachverarbeitung, bis
+     * man einmal „Zurück“ triggert und die Maschine neu durchläuft.
+     */
+    speechCancelledRef.current = false;
+    voicePausedRef.current = false;
+    speechStartedRef.current = false;
+    speechLaunchSeqRef.current += 1;
     setNextPulse(false);
     setContinuePulse(false);
-    if (machineId === 'auth' || machineId === 'outro' || overlayStepId === 'kalender') {
+    setAutoAdvanceTick(0);
+    if (autoAdvanceTimerRef.current != null) {
+      window.clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
+    }
+    if (
+      machineId === 'auth' ||
+      machineId === 'outro' ||
+      machineId === 'politikBarometer' ||
+      overlayStepId === 'kalender'
+    ) {
       setNextPulse(true);
     }
-    if (pulseTimerRef.current != null) {
-      window.clearTimeout(pulseTimerRef.current);
-      pulseTimerRef.current = null;
+    clearAdvanceTimers();
+    if (autoAdvanceFallbackRef.current != null) {
+      window.clearTimeout(autoAdvanceFallbackRef.current);
+      autoAdvanceFallbackRef.current = null;
     }
-  }, [machineId, overlayStepId]);
+    autoAdvanceFallbackRef.current = window.setTimeout(() => {
+      setAutoAdvanceTick((n) => n + 1);
+    }, 4600);
+    return () => {
+      if (autoAdvanceFallbackRef.current != null) {
+        window.clearTimeout(autoAdvanceFallbackRef.current);
+        autoAdvanceFallbackRef.current = null;
+      }
+    };
+  }, [machineId, overlayStepId, clearAdvanceTimers]);
 
   useEffect(() => {
-    const gated: IntroOverlayStepId[] = ['abstimmen', 'meldungen', 'wahlen', 'politikbarometer'];
+    const gated: IntroOverlayStepId[] = ['abstimmen', 'meldungen', 'wahlen'];
     if (!overlayStepId || !gated.includes(overlayStepId)) return;
     const t = window.setTimeout(() => setNextPulse(true), 4500);
     return () => window.clearTimeout(t);
@@ -989,27 +1064,30 @@ export default function DemoIntroWalkthrough({
       }
       return;
     }
-    const speechKey = `walkthrough-m${machineIndex}-${machineId}`;
+    const launchSeq = speechLaunchSeqRef.current;
+    const speechKey = `walkthrough-m${machineIndex}-${machineId}-s${launchSeq}`;
     speechStepKeyRef.current = speechKey;
     speechStartedRef.current = false;
     speechCancelledRef.current = false;
     speakApi.stopIntroSpeech();
-    /**
-     * Klein gehaltenes Delay (≤ 100 ms) — nur damit der Stop der vorherigen
-     * Wiedergabe sicher gelandet ist, bevor wir das nächste Segment anstoßen.
-     * Liegt deutlich unter dem 300-ms-Budget für sichtbaren Clara-Text und ist
-     * weit unter dem 1500-ms-Budget für Audio-Start.
-     */
-    const t = window.setTimeout(() => {
-      speechStartedRef.current = true;
-      claraAudioDevLog('speakIntroParts scheduled for', machineId, 'key=', speechKey);
+    claraAudioDevLog('speakIntroParts scheduled for', machineId, 'key=', speechKey);
+    let stepCancelled = false;
+    queueMicrotask(() => {
+      if (stepCancelled) return;
+      if (speechLaunchSeqRef.current !== launchSeq) return;
+      if (speechStepKeyRef.current !== speechKey) return;
+      if (!speakApi.readAloud) return;
       speakApi.speakIntroParts(speakParts, speechKey);
-    }, 80);
+    });
     return () => {
-      window.clearTimeout(t);
+      stepCancelled = true;
       if (pulseTimerRef.current != null) {
         window.clearTimeout(pulseTimerRef.current);
         pulseTimerRef.current = null;
+      }
+      if (autoAdvanceTimerRef.current != null) {
+        window.clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = null;
       }
       speakApi.stopIntroSpeech();
     };
@@ -1023,13 +1101,20 @@ export default function DemoIntroWalkthrough({
       speechStartedRef.current = true;
       return;
     }
-    if (!speechStartedRef.current) return;
+    if (!speechStartedRef.current) {
+      /**
+       * Film-Flow Fallback: falls `isIntroSpeaking` nicht sauber anspringt/endet,
+       * dennoch automatisch weiterführen (manuell bleibt „Weiter“ jederzeit nutzbar).
+       */
+      if (autoAdvanceTick < 1) return;
+    }
     if (speechCancelledRef.current) return;
     const needsEmbedPulse =
       !!overlayStepId &&
-      (['abstimmen', 'meldungen', 'wahlen', 'politikbarometer'] as string[]).includes(overlayStepId);
+      (['abstimmen', 'meldungen', 'wahlen'] as string[]).includes(overlayStepId);
     if (needsEmbedPulse && !nextPulse) return;
     if (machineId === 'praemien' && !praemienCinematicDone) return;
+    if (voicePausedRef.current) return;
 
     pulseTimerRef.current = window.setTimeout(() => {
       pulseTimerRef.current = null;
@@ -1037,6 +1122,15 @@ export default function DemoIntroWalkthrough({
       if (!speakApi?.readAloud) return;
       setContinuePulse(true);
       window.setTimeout(() => setContinuePulse(false), 900);
+      if (autoAdvanceTimerRef.current != null) {
+        window.clearTimeout(autoAdvanceTimerRef.current);
+      }
+      autoAdvanceTimerRef.current = window.setTimeout(() => {
+        autoAdvanceTimerRef.current = null;
+        if (speechCancelledRef.current) return;
+        if (!speakApi?.readAloud) return;
+        advanceWalkthrough();
+      }, 950);
     }, 200);
 
     return () => {
@@ -1044,8 +1138,14 @@ export default function DemoIntroWalkthrough({
         window.clearTimeout(pulseTimerRef.current);
         pulseTimerRef.current = null;
       }
+      if (autoAdvanceTimerRef.current != null) {
+        window.clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = null;
+      }
     };
   }, [
+    advanceWalkthrough,
+    autoAdvanceTick,
     isIntroSpeaking,
     machineIndex,
     machineId,
@@ -1054,6 +1154,73 @@ export default function DemoIntroWalkthrough({
     praemienCinematicDone,
     speakApi?.readAloud,
   ]);
+
+  useEffect(() => {
+    const onVoiceIntent = (event: Event) => {
+      const intent = ((event as CustomEvent<{ intent?: ClaraVoiceIntentType }>).detail?.intent ??
+        'UNKNOWN') as ClaraVoiceIntentType;
+      if (!intent || intent === 'UNKNOWN') return;
+
+      const pauseSpeech = () => {
+        speechCancelledRef.current = true;
+        clearAdvanceTimers();
+        setContinuePulse(false);
+        speakApi?.stopIntroSpeech();
+      };
+
+      switch (intent) {
+        case 'SET_ADDRESS_DU':
+          dispatch({ type: 'SET_ANREDE', payload: 'du' });
+          return;
+        case 'SET_ADDRESS_SIE':
+          dispatch({ type: 'SET_ANREDE', payload: 'sie' });
+          return;
+        case 'NEXT_STEP':
+          voicePausedRef.current = false;
+          pauseSpeech();
+          if (isLast) {
+            onFinish();
+          } else {
+            setMachineIndex((p) => Math.min(machineCount - 1, p + 1));
+          }
+          return;
+        case 'PREVIOUS_STEP':
+          voicePausedRef.current = false;
+          pauseSpeech();
+          setMachineIndex((p) => Math.max(0, p - 1));
+          return;
+        case 'START_INTRO':
+          voicePausedRef.current = false;
+          pauseSpeech();
+          setMachineIndex(0);
+          return;
+        case 'OPEN_APP':
+          voicePausedRef.current = false;
+          pauseSpeech();
+          onFinish();
+          return;
+        case 'STOP_SPEECH':
+          voicePausedRef.current = true;
+          pauseSpeech();
+          return;
+        case 'REPEAT_CURRENT':
+          voicePausedRef.current = true;
+          pauseSpeech();
+          speechCancelledRef.current = false;
+          if (speakApi?.readAloud) {
+            const key = `walkthrough-repeat-m${machineIndex}-${++repeatSpeakSeqRef.current}`;
+            speakApi.speakIntroParts(speakParts, key);
+          }
+          return;
+        case 'HELP':
+        default:
+          return;
+      }
+    };
+    window.addEventListener('eidconnect:intro-voice-intent', onVoiceIntent as EventListener);
+    return () =>
+      window.removeEventListener('eidconnect:intro-voice-intent', onVoiceIntent as EventListener);
+  }, [clearAdvanceTimers, dispatch, isLast, machineCount, machineIndex, onFinish, speakApi, speakParts]);
 
   const needsEmbedPulse =
     !!overlayStepId &&
@@ -1171,28 +1338,22 @@ export default function DemoIntroWalkthrough({
                     fillDeviceFrame
                       ? 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden ' +
                         (machineId === 'meldungen' ? 'px-0.5 pb-0.5 pt-0.5 sm:px-1' : 'px-1 pb-1 pt-1 sm:px-1.5')
-                      : 'flex min-h-0 min-w-0 flex-none flex-col overflow-hidden px-3 pb-2 pt-2 sm:px-4'
+                      : 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 pb-2 pt-2 sm:px-4'
                   }
                 >
+                  {machineId !== 'auth' && machineId !== 'outro' ? (
+                    <div className="mb-2 shrink-0">
+                      <WalkthroughInfoDetails
+                        surface="light"
+                        primaryLong={primaryLong}
+                        showOutro={false}
+                        outroShort={du ? INTRO_OUTRO_SHORT_DU : INTRO_OUTRO_SHORT_SIE}
+                        outroLong={du ? INTRO_OUTRO_DROPDOWN_DU : INTRO_OUTRO_DROPDOWN_SIE}
+                      />
+                    </div>
+                  ) : null}
                   {preview}
                 </div>
-                {machineId !== 'auth' ? (
-                  <div
-                    className={
-                      fillDeviceFrame
-                        ? 'shrink-0 border-t border-neutral-100/90 px-2 pb-1.5 pt-1 sm:px-2.5 sm:pb-2 sm:pt-1.5'
-                        : 'shrink-0 border-t border-neutral-100/90 px-3 pb-2 pt-1.5 sm:px-4 sm:pb-2 sm:pt-2'
-                    }
-                  >
-                    <WalkthroughInfoDetails
-                      surface="light"
-                      primaryLong={primaryLong}
-                      showOutro={false}
-                      outroShort={du ? INTRO_OUTRO_SHORT_DU : INTRO_OUTRO_SHORT_SIE}
-                      outroLong={du ? INTRO_OUTRO_DROPDOWN_DU : INTRO_OUTRO_DROPDOWN_SIE}
-                    />
-                  </div>
-                ) : null}
                 </div>
               </div>
             </div>
@@ -1215,6 +1376,10 @@ export default function DemoIntroWalkthrough({
                 if (pulseTimerRef.current != null) {
                   window.clearTimeout(pulseTimerRef.current);
                   pulseTimerRef.current = null;
+                }
+                if (autoAdvanceTimerRef.current != null) {
+                  window.clearTimeout(autoAdvanceTimerRef.current);
+                  autoAdvanceTimerRef.current = null;
                 }
                 if (machineIndex === 0) {
                   speakApi?.stopIntroSpeech();

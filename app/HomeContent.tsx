@@ -128,7 +128,7 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
       <div className="mx-auto w-full max-w-[360px] flex flex-col items-center gap-6 rounded-2xl border border-white/25 bg-white/12 p-4 shadow-lg backdrop-blur-xl">
         {/* Marke */}
         <div className="w-full flex flex-col items-start gap-2 text-left">
-          <ProductIdentityHeader />
+          <ProductIdentityHeader className="max-w-full shrink-0 -ml-5" />
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">Zugang</p>
         </div>
 

@@ -33,11 +33,12 @@ npm install
 
 2. **Environment Setup:**
 ```bash
-# Kopiere die Beispiel-Konfiguration
-cp config/env.example .env.local
+# Kopiere die Beispiel-Konfiguration (Platzhalter, keine echten Secrets)
+cp .env.example .env.local
+# Alternativ: cp config/env.example .env.local
 
-# Bearbeite die .env.local Datei und füge deinen OpenAI API-Schlüssel hinzu
-# OPENAI_API_KEY=dein_openai_api_schlüssel_hier
+# Trage alle Werte in .env.local ein — siehe .env.example oder docs/ENVIRONMENT_SETUP.md
+# OPENAI_API_KEY, NEXT_PUBLIC_SUPABASE_*, ADMIN_BASIC_*, RESEND_API_KEY, …
 ```
 
 3. **Development Server starten:**
@@ -135,13 +136,38 @@ Strict TypeScript Konfiguration in `tsconfig.json` mit Path Mapping für bessere
 ### Next.js
 Optimiert für Next.js 14 mit App Router. Konfiguration in `next.config.js`.
 
+## Environment-Variablen (Übersicht)
+
+Vollständige Liste mit Platzhaltern: **`.env.example`** und **`config/env.example`**.  
+Nie `.env.local` committen.
+
+| Variable | Zweck |
+|----------|--------|
+| `OPENAI_API_KEY` | Clara Chat/TTS (Server) |
+| `NEXT_PUBLIC_APP_URL` | Basis-URL (lokal: `http://localhost:3002`) |
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Client |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-APIs, Admin |
+| `ADMIN_BASIC_USER` / `ADMIN_BASIC_PASS` | Basic Auth `/admin` |
+| `ADMIN_DEMO_SECRET` | Demo-Token-Signierung |
+| `RESEND_API_KEY` / `SEND_ACCESS_EMAIL_FROM` | Zugangs-E-Mails |
+| `DOCUSIGN_*` | Optional NDA per DocuSign |
+
+Details: [docs/ENVIRONMENT_SETUP.md](docs/ENVIRONMENT_SETUP.md), Due Diligence: [docs/due-diligence/](docs/due-diligence/).
+
 ## Deployment
 
 ### Vercel (Empfohlen)
+1. Repo mit Vercel verbinden, Node **≥ 20**.
+2. Env-Variablen aus `.env.example` in **Settings → Environment Variables** setzen.
+3. Build: `npm run build`, Start: `next start` (Port über Vercel).
+4. Nach Deploy: Admin-Credentials und Supabase-RLS prüfen.
+
 ```bash
 npm run build
-vercel --prod
+npm run deploy:vercel:prod   # oder: npx vercel --prod
 ```
+
+**Sicherheit:** Globale Header (CSP, HSTS in Production, X-Frame-Options, …) via `next.config.js` und `middleware.ts` — siehe `lib/security/headers.ts`.
 
 ### Docker
 ```dockerfile
@@ -164,7 +190,8 @@ CMD ["npm", "start"]
 
 ## Lizenz
 
-MIT License - siehe LICENSE Datei für Details.
+Proprietär (Entwurf) — Copyright Stefanie Hook, siehe **LICENSE** und **NOTICE.md**.  
+Open-Source-Abhängigkeiten: `docs/due-diligence/sbom.json`.
 
 ## Contributing
 

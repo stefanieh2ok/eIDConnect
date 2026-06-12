@@ -33,15 +33,19 @@ export const INTRO_GLOBAL_PILL_LABEL = 'Einführung';
  * (Stimme = dieselbe freundliche Engine wie im Clara-Dock, nicht „blindes Vorlesen“).
  */
 export const INTRO_CLARA_WELCOME_LINES_DU = [
-  'Hallo, ich bin Clara, die KI-Agentin von HookAI Civic.',
-  'Diese Einführung führt dich souverän durch die wichtigsten Bereiche. Am Ende wechselst du in die volle Anwendung.',
-  'Mich erreichst du jederzeit über das Clara-Symbol am unteren Rand.',
+  'Willkommen. Ich bin Clara, die KI-Agentin von HookAI Civic.',
+  'HookAI Civic verbindet digitale Identität, verständliche Bürgerinformation und kommunale Beteiligung in einer App.',
+  'Statt lange zu suchen, siehst du an einem Ort, welche Themen relevant sind, welche Argumente es gibt, welche Termine anstehen und wie Anliegen direkt an die Gemeinde vorbereitet werden können.',
+  'Ich begleite dich jetzt durch die wichtigsten Bereiche: sicherer Zugang, Orientierung, Beteiligung, Wahlen, Kalender, Meldungen und freiwillige Prämien.',
+  'Unten erreichst du mich jederzeit am lila Symbol.',
 ] as const;
 
 export const INTRO_CLARA_WELCOME_LINES_SIE = [
-  'Hallo, ich bin Clara, die KI-Agentin von HookAI Civic.',
-  'Diese Einführung führt Sie souverän durch die wichtigsten Bereiche. Am Ende wechseln Sie in die volle Anwendung.',
-  'Mich erreichen Sie jederzeit über das Clara-Symbol am unteren Rand.',
+  'Willkommen. Ich bin Clara, die KI-Agentin von HookAI Civic.',
+  'HookAI Civic verbindet digitale Identität, verständliche Bürgerinformation und kommunale Beteiligung in einer App.',
+  'Statt lange zu suchen, sehen Sie an einem Ort, welche Themen relevant sind, welche Argumente es gibt, welche Termine anstehen und wie Anliegen direkt an die Gemeinde vorbereitet werden können.',
+  'Ich begleite Sie jetzt durch die wichtigsten Bereiche: sicherer Zugang, Orientierung, Beteiligung, Wahlen, Kalender, Meldungen und freiwillige Prämien.',
+  'Unten erreichen Sie mich jederzeit am lila Symbol.',
 ] as const;
 
 export function introClaraWelcomePlain(du: boolean): string {
@@ -54,15 +58,17 @@ export function introClaraWelcomePlain(du: boolean): string {
  */
 export const INTRO_SPOKEN_WELCOME_SEGMENTS_DU = [
   'Willkommen. Ich bin Clara, die KI-Agentin von HookAI Civic.',
-  'Ich begleite dich durch die wichtigsten Bereiche.',
-  'Orientierung, Beteiligung und leichte Navigation stehen im Mittelpunkt.',
+  'HookAI Civic verbindet digitale Identität, verständliche Bürgerinformation und kommunale Beteiligung in einer App.',
+  'Statt lange zu suchen, siehst du an einem Ort, welche Themen relevant sind, welche Argumente es gibt, welche Termine anstehen und wie Anliegen direkt an die Gemeinde vorbereitet werden können.',
+  'Ich begleite dich jetzt durch die wichtigsten Bereiche: sicherer Zugang, Orientierung, Beteiligung, Wahlen, Kalender, Meldungen und freiwillige Prämien.',
   'Unten erreichst du mich jederzeit am lila Symbol.',
 ] as const;
 
 export const INTRO_SPOKEN_WELCOME_SEGMENTS_SIE = [
   'Willkommen. Ich bin Clara, die KI-Agentin von HookAI Civic.',
-  'Ich begleite Sie durch die wichtigsten Bereiche.',
-  'Orientierung, Beteiligung und leichte Navigation stehen im Mittelpunkt.',
+  'HookAI Civic verbindet digitale Identität, verständliche Bürgerinformation und kommunale Beteiligung in einer App.',
+  'Statt lange zu suchen, sehen Sie an einem Ort, welche Themen relevant sind, welche Argumente es gibt, welche Termine anstehen und wie Anliegen direkt an die Gemeinde vorbereitet werden können.',
+  'Ich begleite Sie jetzt durch die wichtigsten Bereiche: sicherer Zugang, Orientierung, Beteiligung, Wahlen, Kalender, Meldungen und freiwillige Prämien.',
   'Unten erreichen Sie mich jederzeit am lila Symbol.',
 ] as const;
 
@@ -90,8 +96,8 @@ export const INTRO_SPOKEN_ANREDE_OPENING_DU: readonly string[] = [];
 export const INTRO_SPOKEN_ANREDE_OPENING_SIE: readonly string[] = [];
 export const INTRO_SPOKEN_ANREDE_OPENING_NEUTRAL: readonly string[] = [];
 
-export const INTRO_ANREDE_UI_TITLE_DU = 'Bevor wir loslegen: Wie darf ich dich ansprechen?';
-export const INTRO_ANREDE_UI_TITLE_SIE = 'Bevor wir loslegen: Wie darf ich Sie ansprechen?';
+export const INTRO_ANREDE_UI_TITLE_DU = 'Bevor wir starten: Wie darf ich dich ansprechen?';
+export const INTRO_ANREDE_UI_TITLE_SIE = 'Bevor wir starten: Wie darf ich Sie ansprechen?';
 
 export const INTRO_ANREDE_SHORT_DU =
   'Ich führe dich kurz durch HookAI Civic: sicherer Bürgerzugang, Orientierung und digitale Beteiligung.';
@@ -105,21 +111,25 @@ export const INTRO_ANREDE_DROPDOWN_SIE =
 
 export const INTRO_ANREDE_DROPDOWN_NEUTRAL = INTRO_ANREDE_DROPDOWN_SIE;
 
-/** Clara vor Anredewahl (TTS). */
+/**
+ * Clara vor Anredewahl (TTS) — konsequent Sie-Form, bis die Nutzerin der Nutzer ausdrücklich Du wählt.
+ */
 export const INTRO_ANREDE_GATE_PRE_CHOICE_SPOKEN_SEGMENTS: readonly string[] = [
-  'Hallo, ich bin Clara. Ich führe dich kurz durch HookAI Civic.',
-  'HookAI Civic zeigt dir, wie digitale Beteiligung verständlich werden kann: Du siehst politische Abstimmungen in deiner Gemeinde, verstehst Pro und Contra, erhältst Wahlvorschauen mit Kandidierenden, Programmen und offiziellen Quellen – und kannst Anliegen direkt an deine Gemeinde melden. Sicher, nachvollziehbar und ohne politische Empfehlung.',
-  'Bevor wir starten: Möchtest du per Du oder per Sie weitermachen?',
+  'Hallo, ich bin Clara, die KI-Agentin von HookAI Civic.',
+  'Ich begleite Sie gleich durch einen kurzen Überblick: sicherer Zugang, verständliche Orientierung, digitale Beteiligung, Meldungen an die Gemeinde und freiwillige Prämien.',
+  'Bevor wir starten: Wie darf ich Sie ansprechen?',
 ];
 
-/** Clara nach Auswahl „Du“ (TTS, ohne erneuten Elevator). */
+/** Clara nach Auswahl „Du“ — erst hier Wechsel in die Du-Ansprache. */
 export const INTRO_ANREDE_GATE_AFTER_DU_SPOKEN_SEGMENTS: readonly string[] = [
-  'Alles klar, wir machen in der Du-Form weiter.',
+  'Sehr gern.',
+  'Dann bleiben wir ab jetzt beim Du. Ich führe dich jetzt Schritt für Schritt durch den Überblick.',
 ];
 
 /** Clara nach Auswahl „Sie“ (TTS). */
 export const INTRO_ANREDE_GATE_AFTER_SIE_SPOKEN_SEGMENTS: readonly string[] = [
-  'Alles klar, wir machen in der Sie-Form weiter.',
+  'Sehr gern.',
+  'Dann bleiben wir bei der Sie-Form. Ich führe Sie jetzt Schritt für Schritt durch den Überblick.',
 ];
 
 /**
@@ -161,8 +171,14 @@ export const INTRO_ENTRY_DROPDOWN_DU =
 export const INTRO_ENTRY_DROPDOWN_SIE =
   'Ich zeige Ihnen die zentralen Funktionen für Orientierung, Beteiligung und digitale Kommunikation — klar, schnell und ohne Umwege.';
 
-export const INTRO_SPOKEN_ENTRY_DU: readonly string[] = ['Perfekt, dann starten wir mit einem kurzen Überblick.'];
-export const INTRO_SPOKEN_ENTRY_SIE: readonly string[] = ['Perfekt, dann starten wir mit einem kurzen Überblick.'];
+export const INTRO_SPOKEN_ENTRY_DU: readonly string[] = [
+  'Perfekt, dann starten wir mit einem kurzen Überblick.',
+  'Du musst jetzt nichts suchen oder selbst herausfinden – ich führe dich einmal flüssig durch die wichtigsten Bereiche.',
+];
+export const INTRO_SPOKEN_ENTRY_SIE: readonly string[] = [
+  'Perfekt, dann starten wir mit einem kurzen Überblick.',
+  'Sie müssen jetzt nichts suchen oder selbst herausfinden – ich führe Sie einmal flüssig durch die wichtigsten Bereiche.',
+];
 
 /** @deprecated */ export const INTRO_ENTRY_LEAD_DU = INTRO_ENTRY_SHORT_DU;
 /** @deprecated */ export const INTRO_ENTRY_LEAD_SIE = INTRO_ENTRY_SHORT_SIE;
@@ -245,12 +261,14 @@ export const INTRO_ACCESS_CONFIRMED_BODY = 'Relevante Beteiligungen und Termine 
 /** @deprecated */ export const INTRO_EID_SPOKEN_MVP = '';
 
 export const INTRO_SPOKEN_EID_SEGMENTS_DU: readonly string[] = [
-  'Zum Einstieg zeige ich dir, wie sicherer Bürgerzugang perspektivisch funktionieren kann — klassisch über eID oder künftig über die EU Wallet.',
-  'In dieser Vorschau geht es um Zuständigkeit und Berechtigung, nicht um ein politisches Profil. Du entscheidest, welche Daten wirklich nötig sind.',
+  'Der erste Schritt ist der sichere Zugang.',
+  'Perspektivisch kann geprüft werden, ob du für eine Kommune oder Beteiligung berechtigt bist – zum Beispiel über die eID oder künftig über eine europäische Wallet.',
+  'Für diese Vorschau wird nichts Echtes ausgelöst. Wichtig ist nur das Prinzip: Identität und Entscheidung bleiben getrennt.',
 ];
 export const INTRO_SPOKEN_EID_SEGMENTS_SIE: readonly string[] = [
-  'Zum Einstieg zeige ich Ihnen, wie sicherer Bürgerzugang perspektivisch funktionieren kann — klassisch über eID oder künftig über die EU Wallet.',
-  'In dieser Vorschau geht es um Zuständigkeit und Berechtigung, nicht um ein politisches Profil. Sie entscheiden, welche Daten wirklich nötig sind.',
+  'Der erste Schritt ist der sichere Zugang.',
+  'Perspektivisch kann geprüft werden, ob Sie für eine Kommune oder Beteiligung berechtigt sind – zum Beispiel über die eID oder künftig über eine europäische Wallet.',
+  'Für diese Vorschau wird nichts Echtes ausgelöst. Wichtig ist nur das Prinzip: Identität und Entscheidung bleiben getrennt.',
 ];
 
 export const INTRO_EID_FRAMING =
@@ -280,18 +298,14 @@ export const INTRO_CLOSING_TEXT_SIE = `${INTRO_OUTRO_SHORT_SIE}\n\n${INTRO_OUTRO
 export const INTRO_CLOSING_TEXT_DU = `${INTRO_OUTRO_SHORT_DU}\n\n${INTRO_OUTRO_DROPDOWN_DU.split('\n\n')[0]}`;
 
 export const INTRO_CLOSING_SPOKEN_SEGMENTS_SIE: readonly string[] = [
-  'Das war der kurze Überblick.',
+  'Damit ist der geführte Überblick abgeschlossen.',
   'Sie können HookAI Civic jetzt selbst erkunden oder Clara gezielt Fragen stellen.',
-  'Ich antworte neutral, verständlich und nur auf das, was Sie wissen möchten.',
-  'Ihre Identität wird nur geprüft, damit klar ist, dass Sie teilnahmeberechtigt sind.',
-  'Ziel ist: prüfbare Teilnahme, aber geheime Entscheidung.',
+  'Der Grundgedanke bleibt: Menschen sollen leichter verstehen, einfacher mitwirken und dabei die Kontrolle über ihre Entscheidungen behalten.',
 ];
 export const INTRO_CLOSING_SPOKEN_SEGMENTS_DU: readonly string[] = [
-  'Das war der kurze Überblick.',
+  'Damit ist der geführte Überblick abgeschlossen.',
   'Du kannst HookAI Civic jetzt selbst erkunden oder Clara gezielt Fragen stellen.',
-  'Ich antworte neutral, verständlich und nur auf das, was du wissen möchtest.',
-  'Deine Identität wird nur geprüft, damit klar ist, dass du teilnahmeberechtigt bist.',
-  'Ziel ist: prüfbare Teilnahme, aber geheime Entscheidung.',
+  'Der Grundgedanke bleibt: Menschen sollen leichter verstehen, einfacher mitwirken und dabei die Kontrolle über ihre Entscheidungen behalten.',
 ];
 
 /** Letzter Walkthrough-Schritt (Politikbarometer): bewusst nur zwei Wörter — kein „Einführung beenden & …“. */

@@ -64,13 +64,27 @@ function providerAndLocation(name: string, description: string, cityName: string
   return { provider, location };
 }
 
+function scrollWithinContainerNearest(container: HTMLElement, target: HTMLElement, behavior: ScrollBehavior = 'auto') {
+  const containerRect = container.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+  const overTop = targetRect.top - containerRect.top;
+  const overBottom = targetRect.bottom - containerRect.bottom;
+  if (overTop < 0) {
+    container.scrollTo({ top: container.scrollTop + overTop, behavior });
+    return;
+  }
+  if (overBottom > 0) {
+    container.scrollTo({ top: container.scrollTop + overBottom, behavior });
+  }
+}
+
 /** Deterministic pseudo-QR grid (decorative only, no encoded payload). */
 function QrStylePlaceholder({
   seed,
   variant = 'sheet',
 }: {
   seed: string;
-  variant?: 'sheet' | 'walkthroughThumb' | 'compactSheet';
+  variant?: 'sheet' | 'walkthroughThumb' | 'compactSheet' | 'walkthroughSheet';
 }) {
   const n = variant === 'sheet' ? 19 : 11;
   let h = 0;
@@ -105,7 +119,9 @@ function QrStylePlaceholder({
       ? 'mt-1.5 w-[min(13rem,min(72vw,220px))] max-w-[220px] border-neutral-300 shadow-md'
       : variant === 'compactSheet'
         ? 'mt-0 w-[3.35rem] max-w-[54px] border-slate-200/80 shadow-sm'
-        : 'mt-1 w-[4.5rem] max-w-[72px] border-neutral-200/90 shadow-sm';
+        : variant === 'walkthroughSheet'
+          ? 'mt-0 w-[min(4.25rem,28vw)] max-w-[72px] border-slate-200/80 shadow-sm'
+          : 'mt-1 w-[4.5rem] max-w-[72px] border-neutral-200/90 shadow-sm';
   return (
     <div
       className={`mx-auto grid aspect-square gap-px border bg-neutral-300 p-px ${sizeClass}`}
@@ -168,13 +184,23 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
   const confirmed = submitted > 0 ? Math.max(0, submitted - inReview) : 0;
   const completed = state.participationElectionCount;
   const cityName = DEMO_LOCATION_LABEL[state.activeLocation] ?? 'Kommune';
-  const benefits = useMemo(() => regionalPraemienForCity(cityName).slice(0, 4) as PraemieBenefit[], [cityName]);
+  /** Im Walkthrough: Naturfreibad-Karte nach oben, damit Highlight & Scroll immer sichtbar sind. */
+  const benefits = useMemo(() => {
+    const raw = regionalPraemienForCity(cityName).slice(0, 4) as PraemieBenefit[];
+    if (!embeddedInWalkthrough) return raw;
+    const ni = raw.findIndex((b) => /naturfreibad|freibad/i.test(b.name));
+    if (ni <= 0) return raw;
+    const copy = [...raw];
+    const [hit] = copy.splice(ni, 1);
+    return [hit, ...copy];
+  }, [cityName, embeddedInWalkthrough]);
 
   const [voucherSheet, setVoucherSheet] = useState<VoucherSheetState | null>(null);
   const [walletPerspektiveAck, setWalletPerspektiveAck] = useState(false);
   const [premiumDemoState, setPremiumDemoState] = useState<PremiumDemoState>('list');
   const walkthroughRewardCompleteFiredRef = useRef(false);
   const walkthroughSheetPanelRef = useRef<HTMLDivElement>(null);
+  const walkthroughShowcaseRowRef = useRef<HTMLButtonElement | null>(null);
   const premiumTimersRef = useRef<number[]>([]);
   const benefitsRef = useRef<PraemieBenefit[]>(benefits);
   const showcaseIdxRef = useRef(0);
@@ -216,7 +242,10 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
     if (!embeddedInWalkthrough || !voucherSheet) return;
     const el = walkthroughSheetPanelRef.current;
     if (!el) return;
-    el.scrollIntoView({ block: 'center', inline: 'nearest' });
+    const container = el.closest('.walkthrough-real-embed') as HTMLElement | null;
+    if (!container) return;
+    // Nur den inneren Phone-Scroll bewegen, niemals window/body.
+    scrollWithinContainerNearest(container, el, 'auto');
   }, [embeddedInWalkthrough, voucherSheet, walletPerspektiveAck]);
 
   const rows = useMemo<StatusRow[]>(
@@ -263,6 +292,19 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
     return i >= 0 ? i : 0;
   }, [benefits]);
 
+  useLayoutEffect(() => {
+    if (!embeddedInWalkthrough || premiumDemoState !== 'highlight' || voucherSheet !== null) return;
+    const el = walkthroughShowcaseRowRef.current;
+    if (!el) return;
+    const container = el.closest('.walkthrough-real-embed') as HTMLElement | null;
+    if (!container) return;
+    const id = window.requestAnimationFrame(() => {
+      // Kein scrollIntoView: verhindert Sprung des gesamten Walkthrough-Viewports.
+      scrollWithinContainerNearest(container, el, 'smooth');
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [embeddedInWalkthrough, premiumDemoState, voucherSheet, showcaseIdx]);
+
   benefitsRef.current = benefits;
   showcaseIdxRef.current = showcaseIdx;
   voucherSheetRef.current = voucherSheet;
@@ -300,9 +342,11 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
   useEffect(() => {
     if (!embeddedInWalkthrough) return;
 
-    const MS_HIGHLIGHT = 1000;
-    const MS_QR = 3100;
-    const MS_WALLET = 5200;
+    const MS_HIGHLIGHT = 700;
+    const MS_QR = 1900;
+    const MS_WALLET = 3300;
+    /** Verhindert dauerhaft gesperrtes „Weiter“, falls kein Naturfreibad in der regionalen Liste o. Ä. */
+    const MS_CINEMATIC_FAILSAFE = MS_WALLET + 3200;
 
     clearPremiumTimers();
 
@@ -330,6 +374,12 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
       setPremiumDemoState('walletPrepared');
       maybeFireWalkthroughPremiumComplete(sh.benefit);
     }, MS_WALLET);
+
+    armPremiumTimer(() => {
+      if (walkthroughRewardCompleteFiredRef.current) return;
+      walkthroughRewardCompleteFiredRef.current = true;
+      onWalkthroughPremiumCompleteRef.current?.();
+    }, MS_CINEMATIC_FAILSAFE);
 
     return () => {
       clearPremiumTimers();
@@ -364,7 +414,9 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
   return (
     <div
       className={
-        (compact ? 'relative isolate z-0 space-y-2 pb-3 intro-wt-praemien-root' : 'space-y-3 pb-28') +
+        (compact
+          ? 'relative isolate z-0 min-w-0 max-w-full space-y-2 overflow-x-hidden pb-3 intro-wt-praemien-root'
+          : 'space-y-3 pb-28') +
         (cinemaActive ? ' intro-wt-praemien-root--active' : '')
       }
     >
@@ -434,6 +486,7 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
               <button
                 key={b.id}
                 type="button"
+                ref={embeddedInWalkthrough && idx === showcaseIdx ? walkthroughShowcaseRowRef : undefined}
                 onClick={openSheet}
                 className={`relative w-full rounded-2xl border border-neutral-200 bg-white text-left shadow-sm transition-[transform,box-shadow,opacity,border-color] duration-500 ease-out select-none cursor-pointer hover:border-[#0055A4]/30 hover:shadow-md active:scale-[0.997] active:border-[#0055A4]/40 ${compact ? 'px-2 py-2' : 'px-3 py-3'} ${
                   showcaseHighlight
@@ -537,99 +590,80 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
       {voucherSheet && sheetBenefit && sheetLocalState && sheetProvider ? (
         embeddedInWalkthrough ? (
         <div
-          className="absolute inset-0 z-[820] flex items-start justify-center overflow-x-hidden overflow-y-auto overscroll-contain px-2 pb-3 pt-2 sm:items-center sm:px-3 sm:pb-4 sm:pt-3"
-          style={{
-            paddingBottom: 'max(0.5rem, calc(env(safe-area-inset-bottom, 0px) + 0.35rem))',
-          }}
+          className="absolute inset-0 z-[820] flex items-center justify-center overflow-x-hidden overflow-y-auto overscroll-contain px-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-[max(0.5rem,env(safe-area-inset-top,0px))] sm:px-3 sm:pb-4 sm:pt-3"
           role="dialog"
           aria-modal="true"
           aria-labelledby="voucher-sheet-title"
         >
           <button
             type="button"
-            className="absolute inset-0 intro-wt-sheet-backdrop bg-black/35 backdrop-blur-[2px]"
+            className="absolute inset-0 intro-wt-sheet-backdrop bg-black/25 backdrop-blur-[1px]"
             aria-label="Schließen"
             onClick={closeVoucherSheet}
           />
           <div
             ref={walkthroughSheetPanelRef}
             className={
-              'intro-wt-sheet-panel--cinema relative z-[1] flex w-full max-w-[min(100%,20rem)] min-h-0 max-h-[min(72dvh,calc(100dvh-9.5rem))] flex-col overflow-hidden rounded-2xl border border-slate-200/85 bg-white shadow-[0_16px_48px_rgba(15,23,42,0.12)] sm:max-h-[min(78dvh,32rem)] sm:max-w-md sm:shadow-xl'
+              'intro-wt-sheet-panel--cinema relative z-[1] mt-0 flex w-full max-w-[min(100%,19rem)] min-h-0 max-h-[min(72svh,30rem)] flex-col overflow-hidden rounded-2xl border border-slate-200/85 bg-white shadow-[0_12px_36px_rgba(15,23,42,0.14)] sm:mb-0 sm:max-h-[min(78dvh,32rem)] sm:max-w-md sm:shadow-xl'
             }
           >
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 pb-1.5 pt-2.5 [-webkit-overflow-scrolling:touch] sm:px-3 sm:pb-2 sm:pt-3">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-2 pb-1 pt-2 sm:px-3 sm:pb-1.5 sm:pt-2.5">
               {!walletPerspektiveAck ? (
                 <>
-                  <h2 id="voucher-sheet-title" className="text-center text-[12px] font-bold leading-snug text-[#0f172a]">
+                  <h2 id="voucher-sheet-title" className="text-center text-[11px] font-bold leading-tight text-[#0f172a] sm:text-[12px]">
                     Dein QR-Code ist bereit
                   </h2>
-                  <p className="mt-1 text-center text-[10px] leading-snug text-neutral-600">
+                  <p className="mt-0.5 text-center text-[9px] leading-snug text-neutral-600 sm:text-[10px]">
                     {du
                       ? 'Zeige diesen Code beim Partner vor oder speichere ihn als Wallet-Pass.'
                       : 'Zeigen Sie diesen Code beim Partner vor, oder speichern Sie ihn als Wallet-Pass.'}
                   </p>
-                  <div className="mt-2 flex flex-col items-center gap-1 rounded-xl border border-slate-200/75 bg-white px-2 py-2">
+                  <div className="mt-1 flex shrink-0 flex-col items-center gap-0 rounded-lg border border-slate-200/75 bg-slate-50/80 px-1.5 py-1.5">
                     <QrStylePlaceholder
                       seed={sheetBenefit.id + WALKTHROUGH_SHEET_VOUCHER_CODE}
-                      variant="compactSheet"
+                      variant="walkthroughSheet"
                     />
-                    <p className="max-w-full break-all text-center font-mono text-[9px] font-semibold leading-tight tracking-tight text-[#0f172a]">
+                    <p className="max-w-full break-all text-center font-mono text-[8px] font-semibold leading-tight tracking-tight text-[#0f172a] sm:text-[9px]">
                       {WALKTHROUGH_SHEET_VOUCHER_CODE}
                     </p>
                   </div>
-                  <p className="mt-1.5 text-center text-[7.5px] leading-snug text-slate-500">
+                  <p className="mt-0.5 text-center text-[7.5px] leading-snug text-slate-500 sm:mt-1 sm:text-[7.5px]">
                     Prämien belohnen Beteiligung, nicht Meinung.{' '}
                     {du ? 'Partner sehen nur die Gültigkeit.' : 'Partner sehen nur die Gültigkeit — nicht Ihr Abstimmungsverhalten.'}
                   </p>
                 </>
               ) : (
                 <>
-                  <h2 id="voucher-sheet-title" className="text-center text-[12px] font-bold leading-snug text-[#0f172a]">
+                  <h2 id="voucher-sheet-title" className="text-center text-[11px] font-bold leading-tight text-[#0f172a] sm:text-[12px]">
                     Wallet-Pass vorbereitet
                   </h2>
-                  <p className="mt-1.5 text-center text-[10px] leading-snug text-neutral-600">
+                  <p className="mt-0.5 text-center text-[8.5px] leading-snug text-neutral-600 sm:mt-1 sm:text-[10px]">
                     In einer realen Umsetzung würde hier ein geprüfter Wallet-Pass erzeugt und lokal
                     datenschutzkonform eingebunden.
                   </p>
-                  <p className="mt-2 text-center text-[10px] font-semibold leading-snug text-neutral-700">
-                    Demo-Modus · keine echte Einlösung
+                  <p className="mt-1 text-center text-[8.5px] font-semibold leading-snug text-neutral-700 sm:mt-1.5 sm:text-[10px]">
+                    Zum Wallet hinzugefügt (Vorschau)
                   </p>
                 </>
               )}
             </div>
             <div
-              className="shrink-0 space-y-1 border-t border-slate-200/60 bg-white/90 px-2.5 pt-1.5 backdrop-blur-[4px]"
+              className="shrink-0 border-t border-slate-200/60 bg-white/95 px-1.5 pt-0.5 backdrop-blur-[4px] sm:px-2.5 sm:pt-1.5"
               style={{
-                paddingBottom: 'max(0.45rem, env(safe-area-inset-bottom, 0px))',
+                paddingBottom: 'max(0.35rem, env(safe-area-inset-bottom, 0px))',
               }}
             >
               {!walletPerspektiveAck ? (
-                <div className="flex flex-col gap-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      clearPremiumTimers();
-                      setWalletPerspektiveAck(true);
-                      setPremiumDemoState('walletPrepared');
-                      if (sheetBenefit) maybeFireWalkthroughPremiumComplete(sheetBenefit);
-                    }}
-                    className="min-h-[40px] w-full rounded-lg border border-[#003366]/25 bg-[#003366] px-2 py-1.5 text-[11px] font-semibold text-white shadow-sm active:bg-[#00264d]"
-                  >
-                    Zum Wallet hinzufügen
-                  </button>
-                  <button
-                    type="button"
-                    onClick={closeVoucherSheet}
-                    className="min-h-[40px] w-full rounded-lg border border-slate-200/90 bg-white px-2 py-1.5 text-[11px] font-semibold text-slate-800 shadow-sm hover:bg-slate-50/90"
-                  >
-                    Später ansehen
-                  </button>
-                </div>
+                <p className="px-0.5 py-0.5 text-center text-[8px] leading-snug text-neutral-500 sm:py-1 sm:text-[8.5px]">
+                  {du
+                    ? 'Wallet-Highlight folgt automatisch — kein Tippen nötig.'
+                    : 'Wallet-Highlight folgt automatisch — kein Tippen nötig.'}
+                </p>
               ) : (
                 <button
                   type="button"
                   onClick={closeVoucherSheet}
-                  className="min-h-[40px] w-full rounded-lg border border-slate-200/90 bg-white px-2 py-1.5 text-[11px] font-semibold text-slate-800 shadow-sm hover:bg-slate-50/90"
+                  className="min-h-[38px] w-full rounded-lg border border-slate-200/90 bg-white px-2 py-1.5 text-[11px] font-semibold text-slate-800 shadow-sm hover:bg-slate-50/90"
                 >
                   Schließen
                 </button>

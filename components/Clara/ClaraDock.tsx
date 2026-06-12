@@ -279,10 +279,10 @@ export default function ClaraDock({
   /** Kompakte Pille (~halbe visuelle Größe), schmale max-Breite; Anrede-„Weiter“ per extraBottomOffset frei. */
   const pillToolbar = (
     <div
-      className="pointer-events-auto flex w-auto max-w-[min(11rem,76vw)] shrink-0 items-center gap-0.5 rounded-full border bg-white px-1 py-0.5 shadow-[0_4px_14px_rgba(76,29,149,0.2),0_1px_3px_rgba(15,23,42,0.08)] backdrop-blur-xl"
+      className="pointer-events-auto flex w-auto max-w-[min(9rem,62vw)] shrink-0 items-center gap-0.5 rounded-full border bg-white/95 px-1 py-0.5 shadow-[0_2px_8px_rgba(76,29,149,0.12)] backdrop-blur-md"
       style={{
-        borderColor: 'rgba(124, 58, 237, 0.35)',
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(243,232,255,0.90) 100%)',
+        borderColor: 'rgba(124, 58, 237, 0.25)',
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,245,255,0.92) 100%)',
       }}
       role="toolbar"
       aria-label="Clara – KI-Assistentin (neutral, keine Wahlempfehlung)"
@@ -290,22 +290,22 @@ export default function ClaraDock({
       <button
         type="button"
         onClick={() => setChatOpen(true)}
-        className="inline-flex h-6 items-center gap-1 rounded-full px-2 text-[9px] font-semibold leading-none text-[#4C1D95] transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+        className="inline-flex h-5 items-center gap-0.5 rounded-full px-1.5 text-[8.5px] font-semibold leading-none text-[#4C1D95] transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
         aria-label="Frag Clara – Chat öffnen"
         title="Frag Clara"
       >
-        <MessageCircle size={11} strokeWidth={2.2} aria-hidden="true" />
-        <span className="max-w-[5.5rem] truncate sm:max-w-none">Clara</span>
+        <MessageCircle size={10} strokeWidth={2.2} aria-hidden="true" />
+        <span className="max-w-[4rem] truncate sm:max-w-none">Clara</span>
       </button>
       <span className="h-3.5 w-px shrink-0 bg-[#7C3AED]/25" aria-hidden="true" />
       <button
         type="button"
         onClick={() => openVoiceSession()}
-        className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[#4C1D95] transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+        className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[#4C1D95] transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
         aria-label="Mit Clara sprechen (Voice)"
         title="Mit Clara sprechen"
       >
-        <Mic size={11} strokeWidth={2.2} aria-hidden="true" />
+        <Mic size={10} strokeWidth={2.2} aria-hidden="true" />
       </button>
     </div>
   );
@@ -342,7 +342,7 @@ export default function ClaraDock({
       <div
         className={`pointer-events-none absolute inset-x-0 flex justify-center ${toolbarZClassName}`}
         style={{
-          bottom: `calc(1rem + ${extraBottomOffset} + env(safe-area-inset-bottom, 0px))`,
+          bottom: `calc(var(--clara-dock-pill-bottom, 1rem) + ${extraBottomOffset})`,
         }}
         aria-hidden={chatOpen || voiceOpen}
       >
@@ -465,6 +465,7 @@ export default function ClaraDock({
         isOpen={voiceOpen}
         onClose={() => setVoiceOpen(false)}
         currentCard={currentCard}
+        walkthroughActive={walkthroughActive}
         preLoginVoicePhase={preLoginVoicePhase}
         onAnredeVoiceChoice={onAnredeVoiceChoice}
         onIntroEntryVoiceChoice={onIntroEntryVoiceChoice}

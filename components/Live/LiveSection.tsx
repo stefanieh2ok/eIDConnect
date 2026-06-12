@@ -9,6 +9,7 @@ import VotingControls from '@/components/Voting/VotingControls';
 import ClaraVoiceInterface from '@/components/Clara/ClaraVoiceInterface';
 import { ThumbsUp, ThumbsDown, Minus, X } from 'lucide-react';
 import { SectionLevelFilterIcon, selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
+import { InfoHint } from '@/components/ui/InfoHint';
 import { getVotingStatsForYear } from '@/lib/getVotingStatsForYear';
 
 const VOTING_STATS_YEAR = 2026;
@@ -188,29 +189,28 @@ const LiveSection: React.FC = () => {
         <SectionLevelFilterIcon section="live" />
       </div>
 
-      <button
-        type="button"
-        onClick={() => setBulkOpen(true)}
-        className="app-card min-w-0 px-3 py-2 break-words text-left"
-        style={{
-          background: 'rgba(255,255,255,0.96)',
-        }}
-        aria-label="Liste der offenen Abstimmungen öffnen"
-      >
-        <p className="t-meta font-semibold text-[#1A2B45]">Abstimmungen {VOTING_STATS_YEAR} · Kartenansicht</p>
-        <p className="t-caption mt-0.5">
-          {votingStats2026.total2026 > 0 ? (
-            <>
-              {VOTING_STATS_YEAR} · {votingStats2026.total2026} Abstimmungen verfügbar
-              {votingStats2026.open2026 > 0 ? ` · ${votingStats2026.open2026} aktuell offen` : null}
-            </>
-          ) : (
-            <>Für {VOTING_STATS_YEAR} sind in dieser Vorschau-Ansicht keine Abstimmungsdaten hinterlegt.</>
-          )}
-        </p>
-      </button>
+      <div className="flex items-center justify-between gap-2 border-b border-[#E8EEF5] pb-2">
+        <button
+          type="button"
+          onClick={() => setBulkOpen(true)}
+          className="min-w-0 text-left"
+          aria-label="Liste der offenen Abstimmungen öffnen"
+        >
+          <p className="text-[11px] font-semibold text-[#1A2B45]">
+            Abstimmungen {VOTING_STATS_YEAR}
+            {totalCards > 1 ? ` · ${state.currentCardIndex + 1}/${totalCards}` : ''}
+          </p>
+          <p className="mt-0.5 text-[10px] text-[#6B7A99]">
+            {votingStats2026.total2026 > 0
+              ? `${votingStats2026.total2026} verfügbar${votingStats2026.open2026 > 0 ? ` · ${votingStats2026.open2026} offen` : ''}`
+              : 'Keine Daten in der Vorschau'}
+          </p>
+        </button>
+        <InfoHint label="Abstimmungs-Vorschau">
+          <p>Kartenansicht mit Demo-Stimmen — keine echte Abstimmung.</p>
+        </InfoHint>
+      </div>
 
-      {/* ── Tab-Leiste: Aktuell / Ergebnisse ── */}
       <div className="app-segment flex gap-1">
         {(['aktuell', 'ergebnisse'] as const).map((tab) => {
           const isActive = abstimmungTab === tab;
@@ -218,36 +218,9 @@ const LiveSection: React.FC = () => {
             <button
               key={tab}
               onClick={() => setAbstimmungTab(tab)}
-              className={`app-segment-btn flex-1 py-2 transition-all ${isActive ? 'app-segment-btn--active' : 'border border-neutral-200 bg-white text-gray-700'}`}
-              style={
-                isActive
-                  ? {
-                      background: 'linear-gradient(135deg, #002855 0%, #0055A4 100%)',
-                      color: '#fff',
-                      boxShadow: '0 2px 8px rgba(0,60,150,0.20)',
-                    }
-                  : undefined
-              }
+              className={`app-segment-btn flex-1 py-2 transition-all ${isActive ? 'app-segment-btn--active' : ''}`}
             >
-              {tab === 'aktuell' ? (
-                <>
-                  Abstimmungen
-                  {totalCards > 1 && (
-                    <span
-                      className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded-full"
-                      style={
-                        isActive
-                          ? { background: 'rgba(255,255,255,0.2)' }
-                          : { background: 'var(--gov-primary-light)' }
-                      }
-                    >
-                      {state.currentCardIndex + 1}/{totalCards}
-                    </span>
-                  )}
-                </>
-              ) : (
-                'Ergebnisse'
-              )}
+              {tab === 'aktuell' ? 'Abstimmungen' : 'Ergebnisse'}
             </button>
           );
         })}
@@ -271,7 +244,7 @@ const LiveSection: React.FC = () => {
             </button>
 
             {showStats && (
-              <div className="card-content mt-1 flex items-center justify-between gap-3 rounded-2xl bg-white text-[#162033]">
+              <div className="civic-stats-row mt-1 flex items-center justify-between gap-3 text-[#162033]">
                 <div className="text-center flex-1">
                   <div className="t-kicker opacity-55">Live</div>
                   <div className="t-card-title">{activeNow.toLocaleString('de-DE')}</div>
@@ -301,17 +274,21 @@ const LiveSection: React.FC = () => {
         <div className="space-y-3">
           {currentData.vergangen && currentData.vergangen.length > 0 ? (
             currentData.vergangen.map((ergebnis) => (
-              <div key={ergebnis.id} className="card-content border-l-4" style={{ borderLeftColor: ergebnis.ergebnis === 'Angenommen' ? '#22c55e' : '#ef4444' }}>
+              <div
+                key={ergebnis.id}
+                className="civic-result-row border-l-4"
+                style={{ borderLeftColor: ergebnis.ergebnis === 'Angenommen' ? '#34D399' : '#F59E0B' }}
+              >
                 <div className="flex justify-between items-start mb-1.5 gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="t-caption mb-0.5">Vorlage {ergebnis.nummer}</div>
                     <h3 className="t-card-title">{ergebnis.title}</h3>
                   </div>
                   <span
-                    className={`badge-status flex-shrink-0 ${
+                    className={`status-pill flex-shrink-0 ${
                       ergebnis.ergebnis === 'Angenommen'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-700'
+                        ? 'status-pill--mint'
+                        : 'status-pill--amber'
                     }`}
                   >
                     {ergebnis.ergebnis}

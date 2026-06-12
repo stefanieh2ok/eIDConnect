@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { isValidBasicAuth } from '@/lib/security/basic-auth';
+import { resolveTokenExpiresAt } from '@/lib/security/token-expiry';
+import { supabaseUserErrorMessage } from '@/lib/security/supabase-error-message';
 
 type Body = {
   recipientName: string;
   recipientOrg?: string;
   expiresInDays?: number;
+  /** Kurzzeit-Link, z. B. 10 für 10 Minuten – hat Vorrang vor expiresInDays. */
+  expiresInMinutes?: number;
 };
 
 function slug(s: string): string {
@@ -32,7 +36,6 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as Body;
     const recipientName = (body.recipientName ?? '').trim();
     const recipientOrg = (body.recipientOrg ?? '').trim() || null;
-    const expiresInDays = Math.max(1, Number(body.expiresInDays) || 30);
 
     if (!recipientName) {
       return NextResponse.json(
@@ -41,8 +44,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const exp = new Date();
-    exp.setDate(exp.getDate() + expiresInDays);
+    const exp = resolveTokenExpiresAt({
+      expiresInMinutes: body.expiresInMinutes,
+      expiresInDays: body.expiresInDays,
+    });
     const token = `${slug(recipientOrg || recipientName)}-${Date.now().toString(36)}`;
 
     const { data, error } = await supabaseAdmin
@@ -60,7 +65,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('create-demo-token failed:', error);
       return NextResponse.json(
-        { success: false, error: 'Link konnte nicht erstellt werden.' },
+        { success: false, error: supabaseUserErrorMessage(error) },
         { status: 500 }
       );
     }
@@ -74,6 +79,7 @@ export async function POST(request: NextRequest) {
       success: true,
       token: data,
       demoUrl,
+      expiresAt: exp.toISOString(),
     });
   } catch (e) {
     console.error('create-demo-token:', e);

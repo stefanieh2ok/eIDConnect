@@ -16,7 +16,9 @@ describe('ElectionsSection', () => {
         <ElectionsSection currentLocation="deutschland" />
       </AppProvider>
     );
-    expect(screen.getByText('Wahlvorschau: Kandidierende, Programme und verifizierte Quellen.')).toBeInTheDocument();
+    expect(screen.getByText('Bund', { selector: '.election-meta-bar__selection' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Wahlvorschau Hinweise' }));
+    expect(screen.getByText(/Wahlvorschau: Kandidierende, Programme und verifizierte Quellen/)).toBeInTheDocument();
   });
 
   it('shows "Bereits abgestimmt" for voted election after vote is recorded', async () => {
@@ -40,7 +42,7 @@ describe('ElectionsSection', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Ergebnisse' }));
     await waitFor(() => {
-      expect(screen.getByText('Bereits abgestimmt')).toBeInTheDocument();
+      expect(screen.getByText('Abgestimmt')).toBeInTheDocument();
     });
     expect(screen.getByText('Stimmzettel anzeigen')).toBeInTheDocument();
   });
