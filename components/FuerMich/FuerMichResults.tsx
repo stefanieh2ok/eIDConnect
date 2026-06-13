@@ -28,6 +28,10 @@ import {
 import FuerMichDocumentPrep from '@/components/FuerMich/FuerMichDocumentPrep';
 import FuerMichTerminweg from '@/components/FuerMich/FuerMichTerminweg';
 import CivicDocumentPacket from '@/components/FuerMich/CivicDocumentPacket';
+import CivicPacketBadge from '@/components/FuerMich/CivicPacketBadge';
+import { useApp } from '@/context/AppContext';
+import { buildPacketSummary } from '@/lib/civicPacketSummary';
+import { hasCivicBundle } from '@/lib/civicRegistryIndex';
 import type { FuerMichProfileState, LifeEventId } from '@/types/fuerMich';
 import {
   evidenceListStatusTone,
@@ -105,6 +109,7 @@ export default function FuerMichResults({
   selectedLifeEventLabel,
   onChangeSituation,
 }: FuerMichResultsProps) {
+  const { state } = useApp();
   const externalLink = useExternalLink();
   const [detail, setDetail] = useState<KirkelService | null>(null);
   const [showAllNachweise, setShowAllNachweise] = useState(false);
@@ -204,6 +209,13 @@ export default function FuerMichResults({
     );
   };
 
+  const renderCivicBadge = (service: KirkelService) => {
+    if (!hasCivicBundle(service.leistung_key)) return null;
+    const summary = buildPacketSummary(service.leistung_key, state.useDemoStammdaten);
+    if (!summary) return null;
+    return <CivicPacketBadge summary={summary} />;
+  };
+
   const renderRichCard = (service: KirkelService, variant: 'primary' | 'secondary' = 'primary') => {
     const isPriority = service.badge === 'wichtig';
     const hasDocHint = service.badge === 'nachweis';
@@ -244,6 +256,8 @@ export default function FuerMichResults({
         <p className="mt-2.5 text-[11px] font-semibold text-[#1A2B45]">{service.zustaendige_stelle}</p>
         <p className="mt-0.5 text-[10px] text-[#6B7A99]">{service.region}</p>
 
+        {renderCivicBadge(service)}
+
         <button
           type="button"
           onClick={() => openDetail(service)}
@@ -261,18 +275,25 @@ export default function FuerMichResults({
       key={service.id}
       type="button"
       onClick={() => openDetail(service)}
-      className="flex w-full min-h-[44px] items-center justify-between gap-2 rounded-xl border border-[#D6E0EE] bg-white px-3 py-2.5 text-left shadow-sm transition-colors hover:bg-[#FBFDFF] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003366]"
+      className="flex w-full min-h-[44px] flex-col gap-1 rounded-xl border border-[#D6E0EE] bg-white px-3 py-2.5 text-left shadow-sm transition-colors hover:bg-[#FBFDFF] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003366]"
     >
-      <span className="min-w-0">
-        <span className="flex items-center gap-2">
-          <span className="truncate text-[13px] font-bold text-[#1A2B45]">{service.titel}</span>
-          <Badge badge={service.badge} />
+      <span className="flex w-full items-center justify-between gap-2">
+        <span className="min-w-0">
+          <span className="flex items-center gap-2">
+            <span className="truncate text-[13px] font-bold text-[#1A2B45]">{service.titel}</span>
+            <Badge badge={service.badge} />
+          </span>
+          <span className="mt-0.5 block truncate text-[11px] text-[#6B7A99]">
+            {service.zustaendige_stelle}
+          </span>
         </span>
-        <span className="mt-0.5 block truncate text-[11px] text-[#6B7A99]">
-          {service.zustaendige_stelle}
-        </span>
+        <ChevronRight size={16} className="shrink-0 text-[#003366]" aria-hidden />
       </span>
-      <ChevronRight size={16} className="shrink-0 text-[#003366]" aria-hidden />
+      {hasCivicBundle(service.leistung_key) ? (
+        <span className="pointer-events-none w-full" onClick={(e) => e.stopPropagation()}>
+          {renderCivicBadge(service)}
+        </span>
+      ) : null}
     </button>
   );
 
@@ -513,9 +534,10 @@ function FuerMichDetailPanel({
             </button>
           ) : null}
 
-          {service.leistung_key === 'personalausweis-eid' ? (
+          {hasCivicBundle(service.leistung_key) ? (
             <CivicDocumentPacket
               leistungKey={service.leistung_key}
+              mode="card"
               du={du}
               onOpenSource={onOpenExternalUrl}
             />

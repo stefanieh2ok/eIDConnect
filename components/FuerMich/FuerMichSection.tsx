@@ -92,7 +92,7 @@ export default function FuerMichSection() {
 
     window.dispatchEvent(
 
-      new CustomEvent('app:open-settings', { detail: { scrollTo: 'settings-stammdaten' } }),
+      new CustomEvent('app:open-settings', { detail: { scrollTo: 'settings-demo-stammdaten' } }),
 
     );
 

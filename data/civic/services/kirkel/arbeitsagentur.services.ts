@@ -1,8 +1,9 @@
 import type { CivicService } from '@/types/civic';
 
+import { buildAlg1Disclaimer } from '@/lib/civicCompliance';
+
 const VERIFIED_AT = '2026-06-13';
-const BASE_DISCLAIMER =
-  'Diese Übersicht bereitet deinen Behördengang vor. Demo / nicht amtlich. Verbindlich entscheidet die zuständige Stelle. Kontakt- und Postlogik bitte auf der offiziellen BA-Seite prüfen. Keine Einreichung über diese App.';
+const BASE_DISCLAIMER = buildAlg1Disclaimer();
 
 export const ALG1_ORIENTIERUNG: CivicService = {
   serviceId: 'alg1-orientierung',

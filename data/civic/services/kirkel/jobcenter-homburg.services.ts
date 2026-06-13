@@ -1,8 +1,9 @@
 import type { CivicService } from '@/types/civic';
 
+import { buildBuergergeldDisclaimer } from '@/lib/civicCompliance';
+
 const VERIFIED_AT = '2026-06-13';
-const BASE_DISCLAIMER =
-  'Diese Übersicht bereitet deinen Behördengang vor. Demo / nicht amtlich. Verbindlich entscheidet die zuständige Stelle. Keine Einreichung über diese App. Keine Anspruchsprüfung.';
+const BASE_DISCLAIMER = buildBuergergeldDisclaimer();
 
 export const BUERGERGELD_ERSTANTRAG: CivicService = {
   serviceId: 'buergergeld-erstantrag',

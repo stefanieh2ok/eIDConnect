@@ -15,9 +15,12 @@ import type {
   CivicSourceRef,
 } from '@/types/civic';
 
-const DEMO_NOTICE = 'Demo / nicht amtlich.';
-const BINDING_NOTICE = 'Verbindlich entscheidet die zuständige Stelle.';
-const NO_SUBMISSION_NOTICE = 'Keine echte Einreichung über diese App.';
+import {
+  buildAlg1Disclaimer,
+  buildBaseServiceDisclaimer,
+  buildBuergergeldDisclaimer,
+  CIVIC_DEMO_NOTICE,
+} from '@/lib/civicCompliance';
 
 function formatAddress(profile: CivicDemoProfile): string {
   const { street, houseNumber, postalCode, city } = profile.address;
@@ -166,7 +169,9 @@ function buildSourceRefs(service: CivicService, authority: CivicAuthority): Civi
 }
 
 function buildDisclaimer(service: CivicService): string {
-  return [service.disclaimer, DEMO_NOTICE, BINDING_NOTICE, NO_SUBMISSION_NOTICE].join(' ');
+  if (service.serviceId === 'buergergeld-erstantrag') return buildBuergergeldDisclaimer();
+  if (service.serviceId === 'alg1-orientierung') return buildAlg1Disclaimer();
+  return buildBaseServiceDisclaimer();
 }
 
 /**

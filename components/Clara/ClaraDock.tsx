@@ -15,6 +15,10 @@ import {
   WALKTHROUGH_VOICE_OPEN_LINE_DU,
   WALKTHROUGH_VOICE_OPEN_LINE_SIE,
 } from '@/lib/claraVoiceOpenPrompts';
+import {
+  civicClaraContextChipLabel,
+  type CivicClaraContextPayload,
+} from '@/lib/civicClaraContext';
 
 /**
  * Globaler "Clara-Dock": schlanke, glasige Pille am unteren Rand der App.
@@ -101,6 +105,7 @@ export default function ClaraDock({
   const [voiceOpeningSeed, setVoiceOpeningSeed] = useState<string | null>(null);
   const [externalPrompt, setExternalPrompt] = useState<string | null>(null);
   const [autoSend, setAutoSend] = useState(false);
+  const [civicContext, setCivicContext] = useState<CivicClaraContextPayload | null>(null);
   const [autoOpenedFromNda, setAutoOpenedFromNda] = useState(false);
 
   /** Pre-Login oder Walkthrough: nur Mic oben rechts — volle Pille nur in der normalen App. */
@@ -180,9 +185,14 @@ export default function ClaraDock({
       const detail = (e as CustomEvent).detail ?? {};
       const prompt: string = typeof detail?.prompt === 'string' ? detail.prompt : '';
       const auto: boolean = Boolean(detail?.autoSend ?? Boolean(prompt));
+      const civic =
+        detail?.civicContext && typeof detail.civicContext === 'object'
+          ? (detail.civicContext as CivicClaraContextPayload)
+          : null;
       setExternalPrompt(prompt || null);
       setAutoSend(auto);
-      setUseContext(!prompt); // wenn expliziter Prompt kommt, Karten-Kontext-Chip aus
+      setCivicContext(civic);
+      setUseContext(!prompt);
       setChatOpen(true);
     };
     const onVoice = () => {
@@ -198,9 +208,9 @@ export default function ClaraDock({
 
   useEffect(() => {
     if (!chatOpen) {
-      // Beim Schließen zurücksetzen, damit der nächste Aufruf frisch startet.
       setExternalPrompt(null);
       setAutoSend(false);
+      setCivicContext(null);
     }
   }, [chatOpen]);
 
@@ -233,13 +243,16 @@ export default function ClaraDock({
   }, [state.activeSection, state.activeLocation, state.currentCardIndex]);
 
   const contextChipLabel = useMemo(() => {
+    if (civicContext) {
+      return civicClaraContextChipLabel(civicContext);
+    }
     if (walkthroughActive && walkthroughStep) {
       return `Einführung · ${walkthroughStep.label}`;
     }
     const sectionLbl = SECTION_LABEL[state.activeSection] ?? 'Vorschau';
     if (currentCard?.title) return `${sectionLbl} · ${currentCard.title}`;
     return sectionLbl;
-  }, [walkthroughActive, walkthroughStep, state.activeSection, currentCard]);
+  }, [civicContext, walkthroughActive, walkthroughStep, state.activeSection, currentCard]);
 
   const [useContext, setUseContext] = useState(true);
 

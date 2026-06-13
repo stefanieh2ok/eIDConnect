@@ -1,4 +1,9 @@
 import type { CivicDemoProfile } from '@/types/civic';
+import {
+  CIVIC_DEMO_NOTICE,
+  CIVIC_DEMO_STAMMDATEN_HINT,
+  CIVIC_NO_SUBMISSION,
+} from '@/lib/civicCompliance';
 
 export const MAX_MUSTERMANN: CivicDemoProfile = {
   profileId: 'max-mustermann-demo',
@@ -19,8 +24,7 @@ export const MAX_MUSTERMANN: CivicDemoProfile = {
   federalState: 'Saarland',
   employmentStatus: 'arbeitssuchend',
   vehicleOwner: true,
-  demoNotice:
-    'Demo-Profil „Max Mustermann“ — alle Angaben sind fiktiv und nicht amtlich. Keine echte Einreichung.',
+  demoNotice: `${CIVIC_DEMO_NOTICE}. ${CIVIC_DEMO_STAMMDATEN_HINT} ${CIVIC_NO_SUBMISSION}.`,
 };
 
 export const DEMO_CIVIC_PROFILES: CivicDemoProfile[] = [MAX_MUSTERMANN];

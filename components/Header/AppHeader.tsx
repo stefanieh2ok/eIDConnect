@@ -19,6 +19,11 @@ import {
 import type { ChildAgeBand } from '@/types/fuerMich';
 import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
+import {
+  CIVIC_DEMO_STAMMDATEN_HINT,
+  CIVIC_DEMO_STAMMDATEN_LABEL,
+  CIVIC_DEMO_STAMMDATEN_PERSON,
+} from '@/lib/civicCompliance';
 
 const LEVEL_CONFIG: Record<EbeneLevel, { label: string; sublabel: string; location: Location }> = {
   bund:    { label: 'Bund',    sublabel: 'Deutschland', location: 'bundesweit' },
@@ -330,7 +335,34 @@ const AppHeader: React.FC = () => {
                   </div>
                 </section>
 
-                {/* 4. Sprache */}
+                {/* 4. Demo-Stammdaten (Civic Trust) */}
+                <section
+                  id="settings-demo-stammdaten"
+                  className="settings-shell-section"
+                  style={{ scrollMarginTop: '8px' }}
+                >
+                  <p className="text-[13px] font-bold text-[#003366]">{CIVIC_DEMO_STAMMDATEN_LABEL}</p>
+                  <p className="mt-1 text-[12px] font-semibold text-[#1A2B45]">
+                    {CIVIC_DEMO_STAMMDATEN_PERSON}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-neutral-600">{CIVIC_DEMO_STAMMDATEN_HINT}</p>
+                  <label className="mt-2 flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2.5">
+                    <span className="text-[11px] font-semibold text-[#1A2B45]">
+                      {t('Demo-Stammdaten verwenden', 'Demo-Stammdaten verwenden')}
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={state.useDemoStammdaten}
+                      onChange={(e) =>
+                        dispatch({ type: 'SET_USE_DEMO_STAMMDATEN', payload: e.target.checked })
+                      }
+                      className="h-4 w-4 shrink-0 accent-[#003366]"
+                      aria-label={t('Demo-Stammdaten verwenden', 'Demo-Stammdaten verwenden')}
+                    />
+                  </label>
+                </section>
+
+                {/* 5. Sprache */}
                 <section id="settings-stammdaten" className="settings-shell-section" style={{ scrollMarginTop: '8px' }}>
                   <p className="text-[13px] font-bold text-[#003366]">Sprache</p>
                   <p className="mt-1 text-[11px] text-neutral-700">

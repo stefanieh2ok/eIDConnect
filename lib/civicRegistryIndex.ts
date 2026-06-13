@@ -55,3 +55,16 @@ export function resolveCivicBundle(leistungKey: string): {
 export function hasCivicBundle(leistungKey: string): boolean {
   return resolveCivicBundle(leistungKey) !== null;
 }
+
+export function resolveCivicBundleByServiceId(serviceId: string): {
+  service: CivicService;
+  authority: CivicAuthority;
+  forms: CivicForm[];
+} | null {
+  const service = getCivicServiceById(serviceId);
+  if (!service) return null;
+  const authority = getCivicAuthorityById(service.authorityId);
+  if (!authority) return null;
+  const forms = getFormsForService(service.serviceId);
+  return { service, authority, forms };
+}

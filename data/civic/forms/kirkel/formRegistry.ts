@@ -13,6 +13,7 @@ export const KIRKEL_CIVIC_FORMS: CivicForm[] = [
     formType: 'official_reference',
     sourceUrl:
       'https://www.kirkel.de/buergerservice-und-verwaltung/buergeramt/personalausweis/',
+    demoPreviewPath: '/demo-documents/kirkel/buergeramt/personalausweis/demo-preview.html',
     fields: [
       { fieldId: 'firstName', label: 'Vorname', required: true },
       { fieldId: 'lastName', label: 'Nachname', required: true },
@@ -59,7 +60,7 @@ export const KIRKEL_CIVIC_FORMS: CivicForm[] = [
     formType: 'demo_preview',
     sourceUrl:
       'https://www.saarpfalz-kreis.de/verwaltung-politik/behoerden/kfz-zulassungsstelle/',
-    demoPreviewPath: '/demo-documents/kfz-ummeldung-preview.pdf',
+    demoPreviewPath: '/demo-documents/saarpfalz-kreis/kfz/demo-preview.html',
     fields: [
       { fieldId: 'firstName', label: 'Vorname', required: true },
       { fieldId: 'lastName', label: 'Nachname', required: true },
@@ -82,7 +83,7 @@ export const KIRKEL_CIVIC_FORMS: CivicForm[] = [
     serviceId: 'buergergeld-erstantrag',
     formType: 'demo_preview',
     sourceUrl: 'https://www.saarpfalz-kreis.de/buergerservice/jobcenter/',
-    demoPreviewPath: '/demo-documents/buergergeld-erstantrag-preview.pdf',
+    demoPreviewPath: '/demo-documents/jobcenter-homburg/buergergeld/demo-preview.html',
     fields: [
       { fieldId: 'firstName', label: 'Vorname', required: true },
       { fieldId: 'lastName', label: 'Nachname', required: true },
@@ -106,7 +107,7 @@ export const KIRKEL_CIVIC_FORMS: CivicForm[] = [
     serviceId: 'alg1-orientierung',
     formType: 'generated_packet',
     sourceUrl: 'https://www.arbeitsagentur.de/vor-ort/jobcenter/jobcenter-saarland',
-    demoPreviewPath: '/demo-documents/alg1-orientierung-preview.pdf',
+    demoPreviewPath: '/demo-documents/arbeitsagentur/alg1/demo-preview.html',
     fields: [
       { fieldId: 'firstName', label: 'Vorname', required: true },
       { fieldId: 'lastName', label: 'Nachname', required: true },

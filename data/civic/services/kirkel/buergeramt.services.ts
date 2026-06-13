@@ -1,8 +1,9 @@
 import type { CivicService } from '@/types/civic';
 
+import { buildBaseServiceDisclaimer } from '@/lib/civicCompliance';
+
 const VERIFIED_AT = '2026-06-13';
-const BASE_DISCLAIMER =
-  'Diese Übersicht bereitet deinen Behördengang vor. Demo / nicht amtlich. Verbindlich entscheidet die zuständige Stelle. Keine Einreichung über diese App.';
+const BASE_DISCLAIMER = buildBaseServiceDisclaimer();
 
 export const PERSONALAUSWEIS_EID: CivicService = {
   serviceId: 'personalausweis-eid',
