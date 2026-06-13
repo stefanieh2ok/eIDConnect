@@ -27,6 +27,7 @@ import {
 } from '@/lib/fuerMichClaraPrompt';
 import FuerMichDocumentPrep from '@/components/FuerMich/FuerMichDocumentPrep';
 import FuerMichTerminweg from '@/components/FuerMich/FuerMichTerminweg';
+import CivicDocumentPacket from '@/components/FuerMich/CivicDocumentPacket';
 import type { FuerMichProfileState, LifeEventId } from '@/types/fuerMich';
 import {
   evidenceListStatusTone,
@@ -406,6 +407,13 @@ export default function FuerMichResults({
           onChangeSituation={onChangeSituation ? changeSituationFromDetail : undefined}
           onOpenOfficial={() => openOfficial(detail)}
           onAskClara={() => askClara(detail.titel)}
+          onOpenExternalUrl={(url) => {
+            if (externalLink) {
+              externalLink.openExternal(url, detail.titel);
+            } else if (typeof window !== 'undefined') {
+              window.open(url, '_blank', 'noopener,noreferrer');
+            }
+          }}
         />
       ) : null}
     </section>
@@ -423,6 +431,7 @@ function FuerMichDetailPanel({
   onChangeSituation,
   onOpenOfficial,
   onAskClara,
+  onOpenExternalUrl,
 }: {
   service: KirkelService;
   du: boolean;
@@ -434,6 +443,7 @@ function FuerMichDetailPanel({
   onChangeSituation?: () => void;
   onOpenOfficial: () => void;
   onAskClara: () => void;
+  onOpenExternalUrl: (url: string) => void;
 }) {
   const closeBtnRef = useRef<HTMLButtonElement>(null);
   const backLabelLong = 'Zurück zum Wegweiser';
@@ -501,6 +511,14 @@ function FuerMichDetailPanel({
               <Sparkles size={13} aria-hidden />
               {du ? 'Diesen Schritt erklären' : 'Diesen Schritt erklären'}
             </button>
+          ) : null}
+
+          {service.leistung_key === 'personalausweis-eid' ? (
+            <CivicDocumentPacket
+              leistungKey={service.leistung_key}
+              du={du}
+              onOpenSource={onOpenExternalUrl}
+            />
           ) : null}
 
           <FuerMichDocumentPrep
