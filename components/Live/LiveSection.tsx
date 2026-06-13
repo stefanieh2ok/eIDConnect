@@ -6,8 +6,7 @@ import { VOTING_DATA } from '@/data/constants';
 import { VoteType, AbstimmungTab } from '@/types';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
-import ClaraVoiceInterface from '@/components/Clara/ClaraVoiceInterface';
-import { ThumbsUp, ThumbsDown, Minus, X } from 'lucide-react';
+import { CheckCircle, X } from 'lucide-react';
 import { SectionLevelFilterIcon, selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
 import { InfoHint } from '@/components/ui/InfoHint';
 import { getVotingStatsForYear } from '@/lib/getVotingStatsForYear';
@@ -34,7 +33,6 @@ function isOpenDeadline(deadline?: string): boolean {
 const LiveSection: React.FC = () => {
   const { state, dispatch } = useApp();
   const [abstimmungTab, setAbstimmungTab] = useState<AbstimmungTab>('aktuell');
-  const [showClaraVoice, setShowClaraVoice] = useState(false);
   const [activeNow, setActiveNow] = useState(3_847_291);
   const [showStats, setShowStats] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
@@ -342,59 +340,32 @@ const LiveSection: React.FC = () => {
         </div>
       )}
 
-      {/* Hinweis: Clara-Chat & Voice liegen jetzt global im ClaraDock (unten in der App),
-          damit es nur einen einzigen Clara-Gesprächsort gibt. Die Karten-InfoBox triggert
-          den Dock-Chat per CustomEvent ("clara:open-chat") – kein zweites Modal mehr. */}
-      <ClaraVoiceInterface
-        isOpen={showClaraVoice}
-        onClose={() => setShowClaraVoice(false)}
-        currentCard={currentCard}
-      />
+      {/* Clara-Chat & Voice: global im ClaraDock — kein zweites Modal in dieser Section. */}
 
-      {/* Vote-Bestätigung (Glassmorphism-Overlay) */}
+      {/* Vote-Bestätigung — neutral, ohne Rot/Grün-Signalfarben */}
       {state.voteResult && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-6"
-          style={{ background: 'rgba(0,20,60,0.55)', backdropFilter: 'blur(6px)' }}
+          className="civic-vote-feedback-overlay"
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="vote-feedback-title"
         >
-          <div
-            className="max-w-xs w-full text-center rounded-3xl p-7"
-            style={{
-              background: 'rgba(255,255,255,0.14)',
-              backdropFilter: 'blur(28px)',
-              WebkitBackdropFilter: 'blur(28px)',
-              border: '1px solid rgba(255,255,255,0.22)',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
-            }}
-          >
-            {state.voteResult.vote === 'DAFÜR' && (
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3"
-                style={{ background: 'rgba(34,197,94,0.20)', border: '2px solid rgba(34,197,94,0.5)' }}>
-                <ThumbsUp size={28} className="text-green-400" />
-              </div>
-            )}
-            {state.voteResult.vote === 'DAGEGEN' && (
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3"
-                style={{ background: 'rgba(239,68,68,0.20)', border: '2px solid rgba(239,68,68,0.5)' }}>
-                <ThumbsDown size={28} className="text-red-400" />
-              </div>
-            )}
-            {state.voteResult.vote === 'ENTHALTEN' && (
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3"
-                style={{ background: 'rgba(148,163,184,0.20)', border: '2px solid rgba(148,163,184,0.4)' }}>
-                <span className="text-sm font-bold text-slate-300">ENT</span>
-              </div>
-            )}
-            <h3 id="vote-feedback-title" className="text-base font-bold text-white mb-1">
+          <div className="civic-vote-feedback-card">
+            <div className="civic-vote-feedback-icon" aria-hidden>
+              <CheckCircle size={28} className="text-[var(--color-civic-blue)]" />
+            </div>
+            <h3 id="vote-feedback-title" className="civic-vote-feedback-title">
               {du ? 'Deine Auswahl wurde erfasst.' : 'Ihre Auswahl wurde erfasst.'}
             </h3>
-            <p className="text-xs text-white/75 mb-4">{voteResultHumanLabel(state.voteResult.vote)}</p>
+            <p className="civic-vote-feedback-meta">{voteResultHumanLabel(state.voteResult.vote)}</p>
+            <p className="civic-vote-feedback-note">
+              {du
+                ? 'Mitwirkungspunkte sind unabhängig von deiner Entscheidung.'
+                : 'Mitwirkungspunkte sind unabhängig von Ihrer Entscheidung.'}
+            </p>
             <button
               type="button"
-              className="w-full rounded-xl border border-white/30 bg-white/12 py-2.5 text-xs font-semibold text-white hover:bg-white/18"
+              className="civic-vote-feedback-btn civic-vote-feedback-btn--primary"
               onClick={(e) => {
                 e.stopPropagation();
                 dispatch({ type: 'SET_VOTE_RESULT', payload: null });
@@ -404,7 +375,7 @@ const LiveSection: React.FC = () => {
             </button>
             <button
               type="button"
-              className="mt-2 w-full rounded-xl border border-white/25 py-2.5 text-xs font-semibold text-white/90 hover:bg-white/10"
+              className="civic-vote-feedback-btn"
               onClick={(e) => {
                 e.stopPropagation();
                 performUndo();
@@ -416,7 +387,7 @@ const LiveSection: React.FC = () => {
         </div>
       )}
       {bulkOpen && (
-        <div className="fixed inset-0 z-[85] flex flex-col justify-end" role="dialog" aria-modal="true" aria-label="Bulk-Abstimmung">
+        <div className="civic-bulk-vote-sheet" role="dialog" aria-modal="true" aria-label="Bulk-Abstimmung">
           <button
             type="button"
             className="absolute inset-0 bg-black/22"
@@ -475,51 +446,42 @@ const LiveSection: React.FC = () => {
                         ) : null}
                       </div>
                       <div className="mb-2 text-[10px] text-neutral-500">Frist {card.deadline}</div>
-                      <div className="flex items-center gap-2.5">
+                      <div className="civic-vote-actions civic-vote-actions--compact">
                         <button
                           type="button"
                           onClick={() => handleBulkVote(card.id, 'against')}
-                          className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border-[3px] transition ${
-                            selected === 'against'
-                              ? 'border-red-500 bg-red-500 text-white shadow-[0_4px_14px_rgba(239,68,68,0.30)]'
-                              : 'border-red-500 bg-white text-red-500'
-                          }`}
+                          className={`civic-vote-action civic-vote-action--reject${selected === 'against' ? ' civic-vote-action--selected' : ''}`}
+                          aria-pressed={selected === 'against'}
                           aria-label="Ablehnen"
                         >
-                          <ThumbsDown size={20} strokeWidth={2.2} aria-hidden />
+                          Ablehnen
                         </button>
                         <button
                           type="button"
                           onClick={() => handleBulkVote(card.id, 'abstain')}
-                          className={`inline-flex min-h-[36px] min-w-[36px] items-center justify-center rounded-full border-2 transition ${
-                            selected === 'abstain'
-                              ? 'border-slate-500 bg-slate-100 text-slate-700'
-                              : 'border-neutral-300 bg-white text-neutral-500'
-                          }`}
+                          className={`civic-vote-action civic-vote-action--abstain${selected === 'abstain' ? ' civic-vote-action--selected' : ''}`}
+                          aria-pressed={selected === 'abstain'}
                           aria-label="Enthalten"
                         >
-                          <Minus size={17} strokeWidth={2.6} aria-hidden />
+                          Enthalten
                         </button>
                         <button
                           type="button"
                           onClick={() => handleBulkVote(card.id, 'for')}
-                          className={`inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border-[3px] transition ${
-                            selected === 'for'
-                              ? 'border-emerald-500 bg-emerald-500 text-white shadow-[0_4px_14px_rgba(34,197,94,0.30)]'
-                              : 'border-emerald-500 bg-white text-emerald-600'
-                          }`}
+                          className={`civic-vote-action civic-vote-action--accept${selected === 'for' ? ' civic-vote-action--selected' : ''}`}
+                          aria-pressed={selected === 'for'}
                           aria-label="Zustimmen"
                         >
-                          <ThumbsUp size={20} strokeWidth={2.2} aria-hidden />
+                          Zustimmen
                         </button>
-                        {selected ? (
-                          <span className="ml-0.5 text-[10px] font-medium text-[#0F766E]">
-                            {voteResultHumanLabel(
-                              selected === 'for' ? 'DAFÜR' : selected === 'against' ? 'DAGEGEN' : 'ENTHALTEN',
-                            )}
-                          </span>
-                        ) : null}
                       </div>
+                      {selected ? (
+                        <p className="mt-1.5 text-[12px] text-[var(--color-text-secondary)]">
+                          {voteResultHumanLabel(
+                            selected === 'for' ? 'DAFÜR' : selected === 'against' ? 'DAGEGEN' : 'ENTHALTEN',
+                          )}
+                        </p>
+                      ) : null}
                     </div>
                   );
                 })

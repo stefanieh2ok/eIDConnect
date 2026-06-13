@@ -205,7 +205,7 @@ describe('FuerMichLifeEventPicker – Auswahl', () => {
 
 
 
-  it('leert die Auswahl über „Auswahl ändern“', () => {
+  it('leert die Auswahl über „Andere Situation wählen“', () => {
 
     render(<PickerHarness />);
 
@@ -215,7 +215,7 @@ describe('FuerMichLifeEventPicker – Auswahl', () => {
 
     fireEvent.click(option);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Auswahl ändern' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Andere Situation wählen' }));
 
     expect(option).toHaveAttribute('aria-pressed', 'false');
 

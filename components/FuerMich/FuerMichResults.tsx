@@ -449,7 +449,7 @@ function FuerMichDetailPanel({
 
   return (
     <div
-      className="fixed inset-0 z-[90] flex items-end justify-center bg-black/50 px-3 pb-[max(1rem,env(safe-area-inset-bottom,1rem))] pt-[max(0.75rem,env(safe-area-inset-top,0.75rem))] sm:items-center"
+      className="fuer-mich-detail-overlay"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -460,7 +460,7 @@ function FuerMichDetailPanel({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex min-h-[40px] min-w-0 flex-1 items-center gap-1 rounded-lg px-1 py-1.5 text-left text-[11px] font-semibold text-[#003366] hover:bg-[var(--mist-blue-alt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003366]"
+            className="civic-hit-target inline-flex min-w-0 flex-1 items-center gap-1 rounded-lg px-2 text-left text-[13px] font-semibold text-[var(--color-civic-navy)] hover:bg-[var(--color-surface-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-civic-navy)]"
           >
             <ChevronLeft size={15} className="shrink-0" aria-hidden />
             <span className="sm:hidden">Zurück</span>
@@ -471,7 +471,7 @@ function FuerMichDetailPanel({
             type="button"
             onClick={onClose}
             aria-label="Schließen"
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#D6E0EE] bg-white text-[#374151] hover:bg-[var(--mist-blue)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003366]"
+            className="civic-hit-target shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] bg-white text-[var(--color-text-primary)] hover:bg-[var(--color-surface-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-civic-navy)]"
           >
             <X size={16} aria-hidden />
           </button>

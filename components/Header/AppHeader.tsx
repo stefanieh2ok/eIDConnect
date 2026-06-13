@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '@/context/AppContext';
 import { EbeneLevel, Location, Section } from '@/types';
-import { CalendarDays, ChevronLeft, ListChecks, Settings } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ListChecks, Settings, X } from 'lucide-react';
 import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
 import { normalizePlz, parseLegacyDemoAddress, suggestCityFromPlz } from '@/data/plzDemoLookup';
 import {
@@ -249,9 +249,10 @@ const AppHeader: React.FC = () => {
     showSettings && overlayRoot
       ? createPortal(
           <div
-            className="pointer-events-auto absolute inset-0 z-[120] flex items-end justify-center bg-black/40 p-2"
+            className="settings-overlay pointer-events-auto"
             role="dialog"
             aria-modal="true"
+            aria-labelledby="trust-center-title"
             onClick={() => setShowSettings(false)}
           >
             <div
@@ -261,19 +262,19 @@ const AppHeader: React.FC = () => {
             >
               <div className="sticky top-0 z-10 mb-0 flex items-center justify-between border-b border-[#D6E0EE] bg-white px-4 py-3">
                 <div className="min-w-0">
-                  <h3 className="text-base font-bold text-[#003366]">Einstellungen</h3>
-                  <p className="mt-0.5 text-[10px] font-semibold text-[#5f6b7a]">
-                    {t('Vorschau-Einstellungen (kein Produktivkonto)', 'Vorschau-Einstellungen (kein Produktivkonto)')}
+                  <h3 id="trust-center-title" className="text-base font-bold text-[#003366]">Trust Center</h3>
+                  <p className="mt-0.5 text-[13px] font-medium text-[#5f6b7a]">
+                    {t('Profil, Transparenz & Barrierefreiheit', 'Profil, Transparenz & Barrierefreiheit')}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowSettings(false)}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-neutral-200 text-neutral-600 hover:bg-neutral-100"
-                  aria-label="Einstellungen schließen"
+                  className="civic-hit-target shrink-0 items-center justify-center rounded-full border border-neutral-200 text-neutral-600 hover:bg-neutral-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#003366]"
+                  aria-label="Trust Center schließen"
                   ref={closeSettingsBtnRef}
                 >
-                  x
+                  <X size={18} aria-hidden />
                 </button>
               </div>
 
@@ -288,9 +289,9 @@ const AppHeader: React.FC = () => {
                   Zurück zur App
                 </button>
 
-                {/* 2. Mein Profil */}
+                {/* 2. Profil & Haushalt */}
                 <section className="settings-shell-section">
-                  <p className="text-[13px] font-bold text-[#003366]">Mein Profil</p>
+                  <p className="text-[13px] font-bold text-[#003366]">Profil &amp; Haushalt</p>
                   <p className="mt-1 text-[11px] leading-relaxed text-neutral-600">
                     {t(
                       'Alle Angaben sind freiwillig und helfen nur, Inhalte besser einzuordnen.',
@@ -378,9 +379,9 @@ const AppHeader: React.FC = () => {
                   </div>
                 </section>
 
-                {/* 6. Region */}
+                {/* 6. Kommune & Zuständigkeit */}
                 <section className="settings-shell-section">
-                  <p className="text-[13px] font-bold text-[#003366]">Region</p>
+                  <p className="text-[13px] font-bold text-[#003366]">Kommune &amp; Zuständigkeit</p>
                   <p className="mt-1 text-[11px] text-neutral-700">
                     PLZ und Wohnort genügen für die regionale Orientierung (kein eID-Nachweis).
                   </p>
@@ -625,27 +626,27 @@ const AppHeader: React.FC = () => {
                 </section>
 
                 <section className="settings-shell-section">
-                  <p className="text-[13px] font-bold text-[#003366]">Prämien</p>
+                  <p className="text-[13px] font-bold text-[#003366]">Mitwirkungspunkte (optional)</p>
                   <p className="mt-1 text-[11px] text-neutral-700">
                     {t(
-                      'Aktiviere Prämien, wenn nach abgeschlossenen Beteiligungen oder Rückmeldungen passende Angebote verfügbar sind.',
-                      'Aktivieren Sie Prämien, wenn nach abgeschlossenen Beteiligungen oder Rückmeldungen passende Angebote verfügbar sind.',
+                      'Mitwirkungspunkte sind unabhängig von deiner Entscheidung bei Abstimmungen.',
+                      'Mitwirkungspunkte sind unabhängig von Ihrer Entscheidung bei Abstimmungen.',
                     )}
                   </p>
-                  <label className="mt-2 flex items-start gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-[11px] text-neutral-800">
+                  <label className="mt-2 flex min-h-[44px] items-start gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-2 text-[11px] text-neutral-800">
                     <input
                       type="checkbox"
                       checked={state.consentLocalBenefits}
                       onChange={(e) => {
                         dispatch({ type: 'SET_CONSENT_LOCAL_BENEFITS', payload: e.target.checked });
                         showSettingsHint(
-                          e.target.checked ? 'Prämien aktiviert.' : 'Prämien deaktiviert.',
-                          e.target.checked ? 'Prämien aktiviert.' : 'Prämien deaktiviert.',
+                          e.target.checked ? 'Mitwirkungspunkte aktiviert.' : 'Mitwirkungspunkte deaktiviert.',
+                          e.target.checked ? 'Mitwirkungspunkte aktiviert.' : 'Mitwirkungspunkte deaktiviert.',
                         );
                       }}
                       className="mt-0.5 h-4 w-4 rounded border-neutral-300 text-[#003366]"
                     />
-                    <span>Prämien anzeigen</span>
+                    <span>Mitwirkungspunkte anzeigen</span>
                   </label>
                   <p className="mt-1.5 text-[10px] text-neutral-600">
                     {t(
@@ -660,11 +661,11 @@ const AppHeader: React.FC = () => {
                     type="button"
                     onClick={() => {
                       dispatch({ type: 'SET_CONSENT_LOCAL_BENEFITS', payload: false });
-                      showSettingsHint('Prämien deaktiviert.', 'Prämien deaktiviert.');
+                      showSettingsHint('Mitwirkungspunkte deaktiviert.', 'Mitwirkungspunkte deaktiviert.');
                     }}
                     className="mt-2 w-full rounded-lg border border-neutral-300 bg-white py-1.5 text-[10.5px] font-semibold text-neutral-800 hover:bg-neutral-50"
                   >
-                    Prämien deaktivieren
+                    Mitwirkungspunkte deaktivieren
                   </button>
                 </section>
 
@@ -802,7 +803,7 @@ const AppHeader: React.FC = () => {
   return (
     <header
       id="tour-footer"
-      className="app-shell-header sticky top-0 z-50"
+      className="app-shell-header"
       style={{
         paddingTop: 'max(0.55rem, env(safe-area-inset-top, 0.55rem))',
       }}
@@ -819,11 +820,12 @@ const AppHeader: React.FC = () => {
             className={`app-shell-utility-btn ${
               state.activeSection === 'kalender' ? 'app-shell-utility-btn--active' : ''
             }`}
-            aria-label="Kalender öffnen"
+            aria-label="Termine öffnen"
             aria-current={state.activeSection === 'kalender' ? 'page' : undefined}
-            title="Kalender"
+            title="Termine"
           >
-            <CalendarDays size={17} aria-hidden />
+            <CalendarDays size={22} aria-hidden />
+            <span className="app-shell-utility-btn__label">Termine</span>
           </button>
           <button
             type="button"
@@ -832,19 +834,19 @@ const AppHeader: React.FC = () => {
             className={`app-shell-utility-btn px-2 ${
               state.activeSection === 'leaderboard' ? 'app-shell-utility-btn--active' : ''
             }`}
-            aria-label="Prämien öffnen"
+            aria-label="Mitwirkung öffnen"
             aria-current={state.activeSection === 'leaderboard' ? 'page' : undefined}
           >
-            <ListChecks className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            <span className="app-shell-utility-btn__label">Prämien</span>
+            <ListChecks className="h-[18px] w-[18px] shrink-0" aria-hidden />
+            <span className="app-shell-utility-btn__label">Mitwirkung</span>
           </button>
           <button
             type="button"
             onClick={() => setShowSettings(true)}
             className="app-shell-utility-btn"
-            aria-label="Einstellungen öffnen"
+            aria-label="Trust Center öffnen"
           >
-            <Settings size={17} />
+            <Settings size={22} aria-hidden />
           </button>
         </div>
       </div>

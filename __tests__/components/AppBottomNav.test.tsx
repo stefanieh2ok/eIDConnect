@@ -20,8 +20,8 @@ describe('AppBottomNav', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Wegweiser' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Meldungen' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Abstimmen' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Melden' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Beteiligen' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Wahlen' })).toBeInTheDocument();
   });
 
@@ -33,7 +33,7 @@ describe('AppBottomNav', () => {
       </AppProvider>,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Abstimmen' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Beteiligen' }));
     expect(screen.getByTestId('active-section')).toHaveTextContent('live');
   });
 });

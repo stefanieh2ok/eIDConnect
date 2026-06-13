@@ -482,7 +482,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                 sonst ändert sich beim Login das Wrapper-Verhältnis und der gescalte iPhone-Frame
                 „springt" sichtbar. Nur Farbe/app-body wird hinzugefügt. */}
             <div
-              className={`relative flex flex-col app-body bg-[#F7F9FC] h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
+              className={`civic-app-shell relative flex flex-col app-body bg-[#F7F9FC] h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
                 walkthroughChrome ? 'z-[650]' : ''
               } ${isDevice ? '' : 'min-h-[100dvh]'}`}
             >
@@ -514,7 +514,9 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
               >
                 <div className="px-3 pt-2 pb-app-shell-safe">
                   {renderSection()}
-                  <SecurityFaqFooter />
+                  {state.activeSection !== 'fuermich' && state.activeSection !== 'live' ? (
+                    <SecurityFaqFooter />
+                  ) : null}
                 </div>
               </main>
 

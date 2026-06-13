@@ -387,12 +387,31 @@ const ClaraChat: React.FC<ClaraProps> = ({
       {/* Messages – scrollbar, nicht abgeschnitten */}
       <div
         ref={messagesScrollRef}
-        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 space-y-3"
-        style={{ background: LAVENDER.bg }}
+        className={
+          dockSheet
+            ? 'clara-chat-dock__messages space-y-3'
+            : 'flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 space-y-3'
+        }
+        style={dockSheet ? undefined : { background: LAVENDER.bg }}
       >
         {messages.map((message) => (
           <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] min-w-0 rounded-2xl px-4 py-2 break-words ${message.type === 'user' ? 'bg-gray-200 text-gray-900' : ''}`} style={message.type === 'clara' ? { background: LAVENDER.bubble, color: LAVENDER.text, border: '1px solid rgba(139, 92, 246, 0.2)' } : {}}>
+            <div
+              className={`max-w-[85%] min-w-0 rounded-2xl px-4 py-2 break-words ${
+                message.type === 'user'
+                  ? dockSheet
+                    ? 'clara-bubble--dock-user'
+                    : 'bg-gray-200 text-gray-900'
+                  : dockSheet
+                    ? 'clara-bubble--dock-clara'
+                    : ''
+              }`}
+              style={
+                message.type === 'clara' && !dockSheet
+                  ? { background: LAVENDER.bubble, color: LAVENDER.text, border: '1px solid rgba(139, 92, 246, 0.2)' }
+                  : {}
+              }
+            >
               <div className="flex-1 min-w-0">
                 {message.content.startsWith('ARIA EXECUTIVE INTELLIGENCE') ? (
                   <div className="aria-box">
@@ -407,11 +426,24 @@ const ClaraChat: React.FC<ClaraProps> = ({
                   <div className="text-sm whitespace-pre-line break-words">{message.content}</div>
                 )}
                 {message.sources && message.sources.length > 0 && (
-                  <div className="mt-2 pt-2 border-t text-xs break-words" style={{ borderColor: LAVENDER.border }}>
-                    <span className="font-semibold" style={{ color: LAVENDER.text }}>Quellenverweis:</span>
-                    {message.sources.map((source, index) => (
-                      <div key={index} className="mt-0.5" style={{ color: LAVENDER.text }}>• {source}</div>
-                    ))}
+                  <div className={dockSheet ? 'clara-source-cards' : 'mt-2 pt-2 border-t text-xs break-words'} style={dockSheet ? undefined : { borderColor: LAVENDER.border }}>
+                    {dockSheet ? (
+                      <>
+                        <p className="clara-source-card__label">Quellen</p>
+                        {message.sources.map((source, index) => (
+                          <div key={index} className="clara-source-card">
+                            {source}
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-semibold" style={{ color: LAVENDER.text }}>Quellenverweis:</span>
+                        {message.sources.map((source, index) => (
+                          <div key={index} className="mt-0.5" style={{ color: LAVENDER.text }}>• {source}</div>
+                        ))}
+                      </>
+                    )}
                   </div>
                 )}
                 <div className="text-[10px] opacity-60 mt-1">{message.timestamp.toLocaleTimeString()}</div>
@@ -423,9 +455,9 @@ const ClaraChat: React.FC<ClaraProps> = ({
           <div className="flex justify-start">
             <div className="rounded-2xl px-4 py-2" style={{ background: LAVENDER.bubble, border: '1px solid rgba(139, 92, 246, 0.2)' }}>
               <div className="flex gap-1">
-                <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: LAVENDER.accent }}></div>
-                <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: LAVENDER.accent, animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: LAVENDER.accent, animationDelay: '0.2s' }}></div>
+                <div className="clara-typing-dot w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: dockSheet ? 'var(--color-clara-purple)' : LAVENDER.accent }}></div>
+                <div className="clara-typing-dot w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: dockSheet ? 'var(--color-clara-purple)' : LAVENDER.accent, animationDelay: '0.1s' }}></div>
+                <div className="clara-typing-dot w-2 h-2 rounded-full animate-bounce" style={{ backgroundColor: dockSheet ? 'var(--color-clara-purple)' : LAVENDER.accent, animationDelay: '0.2s' }}></div>
               </div>
             </div>
           </div>
@@ -455,8 +487,11 @@ const ClaraChat: React.FC<ClaraProps> = ({
       ) : null}
 
       {/* Input (+ optional Sprechen nur außerhalb Dock-Sheet) */}
-      <div className="p-3 border-t flex-shrink-0" style={{ borderColor: LAVENDER.border }}>
-        <div className="flex gap-2">
+      <div
+        className={`flex-shrink-0 border-t ${dockSheet ? 'clara-chat-dock__input-row' : 'p-3'}`}
+        style={dockSheet ? undefined : { borderColor: LAVENDER.border }}
+      >
+        <div className="flex w-full gap-2">
           <input
             type="text"
             value={inputMessage}
@@ -470,16 +505,27 @@ const ClaraChat: React.FC<ClaraProps> = ({
             placeholder={
               introWalkthrough
                 ? t('Frage zu diesem Schritt …', 'Frage zu diesem Schritt …')
-                : t('Frag Clara: Was sagt die SPD zum Thema Wohnen?', 'Fragen Sie Clara: Was sagt die SPD zum Thema Wohnen?')
+                : t('Frag Clara …', 'Fragen Sie Clara …')
             }
-            className="flex-1 p-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2"
-            style={{ borderColor: LAVENDER.border, background: LAVENDER.bg }}
+            className={dockSheet ? 'clara-chat-dock__input' : 'flex-1 p-2.5 text-sm border rounded-lg focus:outline-none focus:ring-2'}
+            style={dockSheet ? undefined : { borderColor: LAVENDER.border, background: LAVENDER.bg }}
           />
           <button
             onClick={sendMessage}
             disabled={!inputMessage.trim() || isTyping}
-            className="px-3 py-2.5 text-white rounded-lg text-sm font-bold transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            style={!inputMessage.trim() || isTyping ? { backgroundColor: LAVENDER.border } : { ...IRIDESCENT_BUTTON, color: LAVENDER.text }}
+            className={
+              dockSheet
+                ? 'clara-chat-dock__send'
+                : 'px-3 py-2.5 text-white rounded-lg text-sm font-bold transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed'
+            }
+            aria-label="Nachricht senden"
+            style={
+              dockSheet
+                ? undefined
+                : !inputMessage.trim() || isTyping
+                  ? { backgroundColor: LAVENDER.border }
+                  : { ...IRIDESCENT_BUTTON, color: LAVENDER.text }
+            }
           >
             Senden
           </button>

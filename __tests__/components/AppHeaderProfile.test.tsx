@@ -30,7 +30,7 @@ function setup() {
 }
 
 function openSettings() {
-  fireEvent.click(screen.getByLabelText('Einstellungen öffnen'));
+  fireEvent.click(screen.getByLabelText('Trust Center öffnen'));
 }
 
 describe('AppHeader – Profil/Settings', () => {

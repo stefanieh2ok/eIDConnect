@@ -7,6 +7,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
 
 import { InfoHint } from '@/components/ui/InfoHint';
+import { CivicTrustBar } from '@/components/shell/CivicTrustBar';
 import { useApp } from '@/context/AppContext';
 
 import FuerMichLifeEventPicker from '@/components/FuerMich/FuerMichLifeEventPicker';
@@ -203,7 +204,13 @@ export default function FuerMichSection() {
 
       />
 
-
+      <CivicTrustBar
+        onOpenSecurity={() => {
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('app:open-settings'));
+          }
+        }}
+      />
 
       {hasFullResults ? (
 

@@ -67,7 +67,7 @@ export default function FuerMichLifeEventPicker({
             >
               <span className="lebenslagen-board__title">{cluster.title}</span>
               <span className="lebenslagen-board__meta">
-                <span className="lebenslagen-board__count">{cluster.eventIds.length}</span>
+                <span className="lebenslagen-board__count-chip">{cluster.eventIds.length}</span>
                 <ChevronRight
                   className={`lebenslagen-board__chevron${isOpen ? ' lebenslagen-board__chevron--open' : ''}`}
                   size={14}

@@ -38,10 +38,10 @@ export default function FuerMichInlineBehördenweg({
       <p className="mt-1.5 text-[10px] font-semibold text-[#003366]">{metaLine}</p>
       <div className="fuer-mich-inline-weg__actions">
         <button type="button" onClick={onShowFullResults} className="fuer-mich-inline-weg__primary">
-          Erste Schritte ansehen
+          Behördenweg öffnen
         </button>
         <button type="button" onClick={onClearSelection} className="fuer-mich-inline-weg__secondary">
-          Auswahl ändern
+          Andere Situation wählen
         </button>
       </div>
     </div>

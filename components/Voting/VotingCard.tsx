@@ -82,54 +82,19 @@ const VotingCard: React.FC<VotingCardProps> = memo(
           </p>
         </div>
 
-        {/* ── Live-Abstimmungsbarometer: Verlauf rot → grau → grün (Ablehnen · Enthalten · Zustimmen) ── */}
         <div className={`px-4 ${introCompact ? 'pb-1' : 'pb-2'}`}>
-          <div
-            className="rounded-full p-[1.5px]"
-            style={{
-              background: 'linear-gradient(90deg, #dc2626 0%, #94a3b8 50%, #16a34a 100%)',
-            }}
-            title="Ablehnen · Enthalten · Zustimmen"
-          >
-            <div
-              className={`flex w-full min-w-0 overflow-hidden rounded-full ${introBarIcons ? 'h-7' : 'h-6'}`}
-              style={{ background: 'rgba(15, 23, 42, 0.04)' }}
-            >
-              <div
-                className="flex min-w-0 items-center justify-center text-[10px] font-bold text-white shadow-sm"
-                style={{
-                  width: `${card.no}%`,
-                  background: 'linear-gradient(180deg, #f87171 0%, #dc2626 45%, #b91c1c 100%)',
-                }}
-              >
-                {card.no > 0 ? `${card.no}%` : ''}
-              </div>
-              <div
-                className="flex min-w-0 items-center justify-center text-[10px] font-semibold"
-                style={{
-                  width: `${card.abstain}%`,
-                  background: 'linear-gradient(180deg, #e2e8f0 0%, #94a3b8 50%, #64748b 100%)',
-                  color: 'rgba(15, 23, 42, 0.9)',
-                }}
-              >
-                {card.abstain > 0 ? `${card.abstain}%` : ''}
-              </div>
-              <div
-                className="flex min-w-0 items-center justify-center text-[10px] font-bold text-white shadow-sm"
-                style={{
-                  width: `${card.yes}%`,
-                  background: 'linear-gradient(180deg, #4ade80 0%, #22c55e 45%, #15803d 100%)',
-                }}
-              >
-                {card.yes > 0 ? `${card.yes}%` : ''}
-              </div>
-            </div>
+          <div className="civic-vote-bar" title="Ablehnen · Enthalten · Zustimmen" aria-label="Abstimmungsverlauf">
+            <div className="civic-vote-bar__seg civic-vote-bar__seg--reject" style={{ width: `${card.no}%` }} />
+            <div className="civic-vote-bar__seg civic-vote-bar__seg--abstain" style={{ width: `${card.abstain}%` }} />
+            <div className="civic-vote-bar__seg civic-vote-bar__seg--accept" style={{ width: `${card.yes}%` }} />
           </div>
-          <div className="flex justify-between mt-1">
-            <span className="text-[10px] text-[#6B7A99]">
-              {card.votes.toLocaleString('de-DE')} Stimmen
+          <div className="mt-1.5 flex justify-between text-[12px] text-[var(--color-text-secondary)]">
+            <span>
+              {card.no}% · {card.abstain}% · {card.yes}% — {card.votes.toLocaleString('de-DE')} Stimmen
             </span>
-            <span className="text-[10px] text-[#94a3b8]">Live-Verlauf</span>
+            <button type="button" className="underline decoration-dotted underline-offset-2">
+              Quellen
+            </button>
           </div>
           {introDemoVoteDisclaimer ? (
             <p className="mt-1 text-[9px] leading-snug text-neutral-600">

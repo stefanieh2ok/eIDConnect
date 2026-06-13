@@ -37,10 +37,21 @@ const FLOW_STEPS: { key: Step; label: string }[] = [
   { key: 'bestaetigt', label: 'Status' },
 ];
 
+function MeldungFlowCompact({ step }: { step: Step }) {
+  const stepNum = step === 'kategorie' ? 1 : step === 'details' ? 2 : 3;
+  const label =
+    step === 'kategorie' ? 'Kategorie wählen' : step === 'details' ? 'Details eingeben' : 'Status';
+  return (
+    <p className="meldung-flow-compact" aria-label="Meldungsablauf">
+      Schritt <strong>{stepNum} von 3</strong> · {label}
+    </p>
+  );
+}
+
 function MeldungFlowStepper({ step }: { step: Step }) {
   const currentIdx = step === 'kategorie' ? 0 : step === 'details' ? 1 : 2;
   return (
-    <div className="civic-flow-stepper" aria-label="Meldungsablauf">
+    <div className="civic-flow-stepper hidden sm:flex" aria-label="Meldungsablauf">
       {FLOW_STEPS.map((flowStep, idx) => (
         <React.Fragment key={flowStep.key}>
           <div
@@ -263,7 +274,12 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
         isWalkthroughFilmMode ? 'walkthrough-meldungen-film' : ''
       } ${shellClass}`}
     >
-      {!isWalkthroughFilmMode ? <MeldungFlowStepper step={step} /> : null}
+      {!isWalkthroughFilmMode ? (
+        <>
+          <MeldungFlowCompact step={step} />
+          <MeldungFlowStepper step={step} />
+        </>
+      ) : null}
 
       {/* Step: Kategorie wählen */}
       {step === 'kategorie' && (

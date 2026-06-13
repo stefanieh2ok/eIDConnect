@@ -280,8 +280,8 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
 
   const compact = embeddedInWalkthrough;
   const voluntaryNote = du
-    ? 'Du kannst diese Funktion jederzeit wieder deaktivieren. Deine konkrete Entscheidung wird nicht ausgewertet.'
-    : 'Sie können diese Funktion jederzeit wieder deaktivieren. Ihre konkrete Entscheidung wird nicht ausgewertet.';
+    ? 'Mitwirkungspunkte sind unabhängig von deiner Entscheidung. Du kannst diese Funktion jederzeit wieder deaktivieren.'
+    : 'Mitwirkungspunkte sind unabhängig von Ihrer Entscheidung. Sie können diese Funktion jederzeit wieder deaktivieren.';
   const statusChips = [
     { label: 'Beteiligung abgeschlossen', value: completed > 0 ? 'Ja' : 'Noch offen' },
     ...rows.map((row) => ({ label: row.label, value: row.value.toLocaleString('de-DE') })),
@@ -425,9 +425,9 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
           className={`rounded-xl border border-neutral-100 bg-white ${compact ? 'px-2 py-1.5' : 'px-2.5 py-2'}`}
         >
           <p className={`font-bold text-[#1A2B45] ${compact ? 'text-[10px]' : 'text-[11px]'}`}>
-            Prämien freiwillig anzeigen
+            Mitwirkungspunkte freiwillig anzeigen
           </p>
-          <label className="mt-1 flex items-start gap-2 text-[11px] text-neutral-800">
+          <label className="mt-1 flex min-h-[44px] items-start gap-2 text-[11px] text-neutral-800">
             <input
               type="checkbox"
               checked={state.consentLocalBenefits}
@@ -435,9 +435,9 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
                 dispatch({ type: 'SET_CONSENT_LOCAL_BENEFITS', payload: e.target.checked });
               }}
               className="mt-0.5 h-4 w-4 shrink-0 rounded border-neutral-300 text-[#003366]"
-              aria-label="Prämien anzeigen"
+              aria-label="Mitwirkungspunkte anzeigen"
             />
-            <span>Ich möchte verfügbare Prämien sehen.</span>
+            <span>Ich möchte verfügbare Mitwirkungspunkte sehen.</span>
           </label>
           <p className={`mt-1 leading-snug text-neutral-500 ${compact ? 'text-[9.5px]' : 'text-[10px]'}`}>
             {voluntaryNote}
@@ -590,7 +590,7 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
       {voucherSheet && sheetBenefit && sheetLocalState && sheetProvider ? (
         embeddedInWalkthrough ? (
         <div
-          className="absolute inset-0 z-[820] flex items-center justify-center overflow-x-hidden overflow-y-auto overscroll-contain px-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-[max(0.5rem,env(safe-area-inset-top,0px))] sm:px-3 sm:pb-4 sm:pt-3"
+          className="civic-modal-overlay absolute inset-0 flex items-center justify-center overflow-x-hidden overflow-y-auto overscroll-contain px-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-[max(0.5rem,env(safe-area-inset-top,0px))] sm:px-3 sm:pb-4 sm:pt-3"
           role="dialog"
           aria-modal="true"
           aria-labelledby="voucher-sheet-title"
@@ -628,7 +628,7 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
                     </p>
                   </div>
                   <p className="mt-0.5 text-center text-[7.5px] leading-snug text-slate-500 sm:mt-1 sm:text-[7.5px]">
-                    Prämien belohnen Beteiligung, nicht Meinung.{' '}
+                    Mitwirkungspunkte belohnen Beteiligung, nicht Meinung.{' '}
                     {du ? 'Partner sehen nur die Gültigkeit.' : 'Partner sehen nur die Gültigkeit — nicht Ihr Abstimmungsverhalten.'}
                   </p>
                 </>
@@ -673,7 +673,7 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
         </div>
         ) : (
         <div
-          className="fixed inset-0 z-[820] flex items-end justify-center p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-3 sm:items-center sm:p-4"
+          className="civic-modal-overlay fixed inset-0 flex items-end justify-center p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-3 sm:items-center sm:p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby="voucher-sheet-title"
@@ -756,7 +756,7 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
             </div>
             {embeddedInWalkthrough ? (
               <div className="shrink-0 border-t border-neutral-100/80 px-3 py-1.5">
-                <p className="text-[9px] font-semibold leading-snug text-[#1A2B45]">Prämien belohnen Beteiligung, nicht Meinung.</p>
+                <p className="text-[9px] font-semibold leading-snug text-[#1A2B45]">Mitwirkungspunkte belohnen Beteiligung, nicht Meinung.</p>
                 <p className="mt-0.5 text-[8.5px] leading-snug text-neutral-600">
                   {du
                     ? 'Partner sehen nur die Gültigkeit — nicht dein Abstimmungsverhalten.'
@@ -765,7 +765,7 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
               </div>
             ) : (
               <div className="max-h-[5.25rem] shrink-0 overflow-y-auto overscroll-contain border-t border-neutral-100/80 px-3 py-1.5">
-                <p className="text-[9px] font-semibold leading-snug text-[#1A2B45]">Prämien belohnen Beteiligung, nicht Meinung.</p>
+                <p className="text-[9px] font-semibold leading-snug text-[#1A2B45]">Mitwirkungspunkte belohnen Beteiligung, nicht Meinung.</p>
                 <p className="mt-0.5 text-[8.5px] leading-snug text-neutral-600">
                   {du
                     ? 'Partner sehen nur, ob ein Gutschein gültig ist – nicht, wie du abgestimmt hast.'

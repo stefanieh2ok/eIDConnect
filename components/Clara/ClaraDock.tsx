@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { MessageCircle, Mic, X } from 'lucide-react';
+import { MessageCircle, Mic } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { VOTING_DATA } from '@/data/constants';
 import ClaraChat from '@/components/Clara/ClaraChat';
 import ClaraVoiceInterface from '@/components/Clara/ClaraVoiceInterface';
+import { ClaraBottomSheet, type ClaraSheetSize } from '@/components/Clara/ClaraBottomSheet';
 import type { PreLoginVoicePhase } from '@/components/Clara/ClaraVoiceInterface';
 import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { ClaraAI } from '@/services/claraAI';
@@ -94,6 +95,7 @@ export default function ClaraDock({
   const { state } = useApp();
   const { speak: speakVoice } = useClaraVoiceContext();
   const [chatOpen, setChatOpen] = useState(false);
+  const [sheetSize, setSheetSize] = useState<ClaraSheetSize>('half');
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [voiceUiNonce, setVoiceUiNonce] = useState(0);
   const [voiceOpeningSeed, setVoiceOpeningSeed] = useState<string | null>(null);
@@ -276,10 +278,28 @@ export default function ClaraDock({
     setUseContext(false);
   };
 
+  const handleQuickAction = useCallback(
+    (action: string) => {
+      const ctx = contextChipLabel;
+      const prompts: Record<string, string> = {
+        'Schritt erklären': `Erkläre mir den aktuellen Schritt im Kontext „${ctx}“ sachlich und neutral. Keine Abstimmungsempfehlung.`,
+        'Unterlagen prüfen': `Welche Unterlagen sind im Kontext „${ctx}“ relevant? Nenne nur überprüfbare Quellen.`,
+        'Termin vorbereiten': `Wie bereite ich einen Termin im Kontext „${ctx}“ vor? Gib eine kurze, neutrale Checkliste.`,
+        'Quelle anzeigen': `Zeige mir überprüfbare Quellen zum Kontext „${ctx}“. Kennzeichne Demo- und Beispielwerte.`,
+      };
+      const prompt = prompts[action];
+      if (!prompt) return;
+      setExternalPrompt(prompt);
+      setAutoSend(true);
+      setUseContext(false);
+    },
+    [contextChipLabel],
+  );
+
   /** Kompakte Pille (~halbe visuelle Größe), schmale max-Breite; Anrede-„Weiter“ per extraBottomOffset frei. */
   const pillToolbar = (
     <div
-      className="pointer-events-auto flex w-auto max-w-[min(9rem,62vw)] shrink-0 items-center gap-0.5 rounded-full border bg-white/95 px-1 py-0.5 shadow-[0_2px_8px_rgba(76,29,149,0.12)] backdrop-blur-md"
+      className="clara-dock-pill pointer-events-auto flex w-auto max-w-[min(9rem,62vw)] shrink-0 items-center gap-0.5 rounded-full border bg-white/95 px-1 py-0.5 shadow-[0_2px_8px_rgba(76,29,149,0.12)] backdrop-blur-md"
       style={{
         borderColor: 'rgba(124, 58, 237, 0.25)',
         background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,245,255,0.92) 100%)',
@@ -289,23 +309,26 @@ export default function ClaraDock({
     >
       <button
         type="button"
-        onClick={() => setChatOpen(true)}
-        className="inline-flex h-5 items-center gap-0.5 rounded-full px-1.5 text-[8.5px] font-semibold leading-none text-[#4C1D95] transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+        onClick={() => {
+          setSheetSize('half');
+          setChatOpen(true);
+        }}
+        className="clara-dock-pill__btn"
         aria-label="Frag Clara – Chat öffnen"
         title="Frag Clara"
       >
-        <MessageCircle size={10} strokeWidth={2.2} aria-hidden="true" />
+        <MessageCircle size={14} strokeWidth={2.2} aria-hidden="true" />
         <span className="max-w-[4rem] truncate sm:max-w-none">Clara</span>
       </button>
       <span className="h-3.5 w-px shrink-0 bg-[#7C3AED]/25" aria-hidden="true" />
       <button
         type="button"
         onClick={() => openVoiceSession()}
-        className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[#4C1D95] transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
+        className="clara-dock-pill__btn clara-dock-pill__btn--icon"
         aria-label="Mit Clara sprechen (Voice)"
         title="Mit Clara sprechen"
       >
-        <Mic size={10} strokeWidth={2.2} aria-hidden="true" />
+        <Mic size={14} strokeWidth={2.2} aria-hidden="true" />
       </button>
     </div>
   );
@@ -355,111 +378,34 @@ export default function ClaraDock({
       {compactMicOnlyControl}
       {pillFloating}
 
-      {chatOpen && (
-        <div
-          className={`${overlayPosition === 'fixed' ? 'fixed' : 'absolute'} inset-0 z-[800] flex items-end justify-center overscroll-contain bg-black/45 p-2 sm:p-4`}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Clara – KI-Assistentin"
-          onClick={() => setChatOpen(false)}
+      {chatOpen && !showCompactMicOnly ? (
+        <ClaraBottomSheet
+          open={chatOpen}
+          size={sheetSize}
+          onClose={() => setChatOpen(false)}
+          onExpand={() => setSheetSize('full')}
+          onCollapse={() => setSheetSize('half')}
+          contextLabel={contextChipLabel}
+          onQuickAction={handleQuickAction}
         >
-          <div
-            className="flex h-full min-h-0 max-h-[min(92dvh,100%)] w-full max-w-[420px] flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:max-h-[88%]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              className="flex items-start justify-between gap-3 border-b px-4 py-3"
-              style={{ borderColor: 'rgba(124, 58, 237, 0.18)' }}
-            >
-              <div className="min-w-0 flex-1">
-                <div className="text-[13px] font-bold text-[#1A2B45]">Clara – Digitale Assistentin</div>
-                <p className="mt-0.5 text-[10px] leading-snug text-neutral-500">
-                  KI-gestützt, neutral. Keine Wahlempfehlung. Antworten dienen der Veranschaulichung –
-                  bitte über amtliche Quellen verifizieren.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setChatOpen(false)}
-                className="rounded-full p-1.5 text-neutral-500 hover:bg-neutral-100"
-                aria-label="Clara schließen"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            {externalPrompt ? (
-              <div
-                className="flex items-center gap-2 border-b px-4 py-2"
-                style={{ borderColor: 'rgba(124, 58, 237, 0.12)', background: 'rgba(245,240,255,0.6)' }}
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-[#6D28D9]">
-                    Tiefenanalyse
-                  </div>
-                  <div className="truncate text-[11px] text-[#4C1D95]">{contextChipLabel}</div>
-                </div>
-              </div>
-            ) : useContext && initialPrompt ? (
-              <div
-                className="flex items-center gap-2 border-b px-4 py-2"
-                style={{
-                  borderColor: 'rgba(124, 58, 237, 0.12)',
-                  background: 'rgba(245,240,255,0.6)',
-                }}
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-[#6D28D9]">
-                    Kontext
-                  </div>
-                  <div className="truncate text-[11px] text-[#4C1D95]">{contextChipLabel}</div>
-                </div>
-                <div className="flex flex-shrink-0 items-center gap-1.5">
-                  {deepDivePromptForCurrentCard && !walkthroughActive ? (
-                    <button
-                      type="button"
-                      onClick={startDeepDive}
-                      className="rounded-full px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm transition hover:brightness-110"
-                      style={{
-                        background:
-                          'linear-gradient(135deg, #6D28D9 0%, #7C3AED 60%, #8B5CF6 100%)',
-                        boxShadow: '0 2px 8px rgba(124,58,237,0.35)',
-                      }}
-                      aria-label="Tiefenanalyse zur aktuellen Abstimmung starten"
-                    >
-                      Tiefenanalyse
-                    </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={() => setUseContext(false)}
-                    className="rounded-full border border-[#7C3AED]/25 px-2 py-0.5 text-[10px] font-semibold text-[#6D28D9] hover:bg-white"
-                  >
-                    Ohne Kontext
-                  </button>
-                </div>
-              </div>
-            ) : null}
-
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <ClaraChat
-                key={walkthroughActive && walkthroughStep ? `wt-${walkthroughStep.id}` : 'clara-dock'}
-                level="bund"
-                onPointsEarned={() => {}}
-                selectedWahl={null}
-                initialPrompt={externalPrompt ?? initialPrompt}
-                autoSendInitialPrompt={autoSend}
-                embedVariant={walkthroughActive ? 'dockSheet' : 'default'}
-                introWalkthrough={
-                  walkthroughActive && walkthroughStep
-                    ? { stepId: walkthroughStep.id, stepLabel: walkthroughStep.label }
-                    : null
-                }
-              />
-            </div>
+          <div className="clara-chat-dock">
+            <ClaraChat
+              key={walkthroughActive && walkthroughStep ? `wt-${walkthroughStep.id}` : 'clara-dock'}
+              level="bund"
+              onPointsEarned={() => {}}
+              selectedWahl={null}
+              initialPrompt={externalPrompt ?? initialPrompt}
+              autoSendInitialPrompt={autoSend}
+              embedVariant="dockSheet"
+              introWalkthrough={
+                walkthroughActive && walkthroughStep
+                  ? { stepId: walkthroughStep.id, stepLabel: walkthroughStep.label }
+                  : null
+              }
+            />
           </div>
-        </div>
-      )}
+        </ClaraBottomSheet>
+      ) : null}
 
       <ClaraVoiceInterface
         isOpen={voiceOpen}

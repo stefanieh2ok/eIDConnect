@@ -80,6 +80,7 @@ export default function RootLayout({
         <ScrollRestoration />
         <InAppBrowserBanner />
         {children}
+        <div id="clara-portal-root" />
       </body>
     </html>
   );

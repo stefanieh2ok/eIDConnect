@@ -12,8 +12,8 @@ export type MainNavItem = {
 
 export const MAIN_NAV_ITEMS: MainNavItem[] = [
   { section: 'fuermich', label: 'Wegweiser', iconKey: 'wegweiser' },
-  { section: 'meldungen', label: 'Meldungen', kommuneOnly: true, iconKey: 'meldungen', tourId: 'tour-melden-btn' },
-  { section: 'live', label: 'Abstimmen', iconKey: 'abstimmen', tourId: 'tour-voting-btn' },
+  { section: 'meldungen', label: 'Melden', kommuneOnly: true, iconKey: 'meldungen', tourId: 'tour-melden-btn' },
+  { section: 'live', label: 'Beteiligen', iconKey: 'abstimmen', tourId: 'tour-voting-btn' },
   { section: 'wahlen', label: 'Wahlen', iconKey: 'wahlen' },
 ];
 
