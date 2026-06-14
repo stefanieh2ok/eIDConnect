@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ success: true, redirectTo });
     response.cookies.set(DEMO_SESSION_COOKIE, rawSessionToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       expires: new Date(sessionExpiresAt),

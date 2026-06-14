@@ -80,9 +80,9 @@ export function DemoAppClient({
     if (typeof window === 'undefined') return;
     const flush = () => {
       resetViewportScroll();
-      const loginScroll = document.getElementById('login-main-scroll');
+      const loginScroll = document.getElementById('login-main-content');
       if (loginScroll) loginScroll.scrollTop = 0;
-      const mainScroll = document.getElementById('main-scroll');
+      const mainScroll = document.getElementById('main-content');
       if (mainScroll) mainScroll.scrollTop = 0;
     };
     flush();

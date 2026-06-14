@@ -42,17 +42,17 @@ export function ClaraStepPanel({
       className={
         'shrink-0 space-y-1.5 rounded-xl border p-2.5 sm:p-3 ' +
         (onLight
-          ? 'border-slate-200/90 bg-[#F0F6FF]'
+          ? 'border-violet-200/90 bg-[#F4F0FF]'
           : 'border-white/10 bg-white/[0.04]')
       }
     >
       <p
         className={
           'text-[9px] font-extrabold uppercase tracking-wider ' +
-          (onLight ? 'text-[#0055A4]' : 'text-sky-200/70')
+          (onLight ? 'text-[#5B2A86]' : 'text-sky-200/70')
         }
       >
-        Clara
+        Clara · KI-Agentin
       </p>
       {showTopicTitle ? (
         <h3

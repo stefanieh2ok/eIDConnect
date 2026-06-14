@@ -37,8 +37,8 @@ import { introEidLoginSpokenParts } from '@/lib/introSpokenTts';
 import { ListChecks, Settings } from 'lucide-react';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
-import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
-import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
+import { useIntroIsSpeaking, useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
+import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 
 const KIRKEL_STREET = 'Hauptstraße 1';
 const KIRKEL_PLZ = '66459';
@@ -90,8 +90,23 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   type OnboardingSpotlight = 'off' | 'eid' | 'weiter';
   const [onboardingSpotlight] = useState<OnboardingSpotlight>('off');
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const [scrollPct, setScrollPct] = useState(0);
-  const [scrollMaxPx, setScrollMaxPx] = useState(0);
+  const eidCardRef = useRef<HTMLDivElement | null>(null);
+  const walletCardRef = useRef<HTMLDivElement | null>(null);
+  const [accessHighlight, setAccessHighlight] = useState<'eid' | 'wallet' | null>(null);
+  type AccessGuidedSpot = 'tabs-eid' | 'tabs-wallet' | 'card-eid' | 'card-wallet' | 'card-trust';
+  const [accessGuidedSpot, setAccessGuidedSpot] = useState<AccessGuidedSpot | null>(null);
+  const [accessPreviewLocked, setAccessPreviewLocked] = useState(false);
+  const accessHighlightTimerRef = useRef<number | null>(null);
+  const accessGuidedTimersRef = useRef<number[]>([]);
+  const accessSkipGuidedRef = useRef(false);
+  const accessSpeechStartedRef = useRef(false);
+  const accessHeardSpeechRef = useRef(false);
+  const accessWasIntroSpeakingRef = useRef(false);
+  const accessProceedOnceRef = useRef(false);
+  const accessAutoAfterSpeechTimerRef = useRef<number | null>(null);
+  const isIntroSpeaking = useIntroIsSpeaking();
+  const trustCardRef = useRef<HTMLDivElement | null>(null);
+  const { tryResumePendingAudioFromUserGesture } = useClaraVoiceContext();
 
   const reopenProductIntro = useCallback(() => {
     try {
@@ -114,31 +129,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   }, [state.residenceLocation, persistDemoFields]);
 
   const introSpeak = useIntroSpeakApi();
-  useEffect(() => {
-    if (state.anrede == null || !introSpeak) return;
-    if (preLoginPhase !== 'ok') return;
-    if (!introSpeak.readAloud) {
-      introSpeak.stopIntroSpeech();
-      return;
-    }
-    if (typeof document !== 'undefined' && document.querySelector('[role="dialog"][aria-label="Anrede wählen"]')) {
-      return;
-    }
-    if (
-      typeof document !== 'undefined' &&
-      document.querySelector('[role="dialog"][aria-label="Einstieg Einführung"]')
-    ) {
-      return;
-    }
-    const parts = introEidLoginSpokenParts(du);
-    const t = window.setTimeout(() => {
-      introSpeak.speakIntroParts(parts, 'eid-demo-login');
-    }, 120);
-    return () => {
-      window.clearTimeout(t);
-      introSpeak.stopIntroSpeech();
-    };
-  }, [state.anrede, introSpeak, introSpeak?.readAloud, du, preLoginPhase]);
+  const introSpeakRef = useRef(introSpeak);
+  introSpeakRef.current = introSpeak;
 
   const cancelOnboardingSpotlight = useCallback(() => {}, []);
   const onOnboardingSpotlightAnimationEnd = useCallback(() => {}, []);
@@ -179,20 +171,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     dispatch({ type: 'SET_LOGGED_IN', payload: true });
   };
 
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const recompute = () => {
-      const max = Math.max(0, el.scrollHeight - el.clientHeight);
-      setScrollMaxPx(max);
-      const pct = max > 0 ? Math.round((el.scrollTop / max) * 100) : 0;
-      setScrollPct(Math.min(100, Math.max(0, pct)));
-    };
-    recompute();
-    window.addEventListener('resize', recompute, { passive: true });
-    return () => window.removeEventListener('resize', recompute as any);
-  }, []);
-
   const claraAccessLongPlain = useMemo(() => introEidLoginSpokenParts(du).join(' '), [du]);
   const claraAccessShortPlain = useMemo(() => {
     const main = du ? INTRO_ACCESS_CLARA_PANEL_SHORT_DU : INTRO_ACCESS_CLARA_PANEL_SHORT_SIE;
@@ -211,71 +189,270 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     setConfirmedAccessMethod('demo');
   };
 
+  const handleProceedToAppRef = useRef(handleProceedToApp);
+  handleProceedToAppRef.current = handleProceedToApp;
+
+  const finishAccessGuidedAndEnterApp = useCallback(() => {
+    if (accessProceedOnceRef.current) return;
+    accessProceedOnceRef.current = true;
+    setAccessPreviewLocked(false);
+    setAccessGuidedSpot(null);
+    introSpeakRef.current?.stopIntroSpeech();
+    handleProceedToAppRef.current();
+  }, []);
+
+  useEffect(() => {
+    if (preLoginPhase !== 'ok') {
+      accessProceedOnceRef.current = false;
+      setAccessPreviewLocked(false);
+      setAccessGuidedSpot(null);
+    }
+  }, [preLoginPhase]);
+
+  /** Fokus-Reihe, dann Clara (~1 s); stabile Refs verhindern Timer-Reset durch Context-Identität. */
+  useEffect(() => {
+    const clearGuidedTimers = () => {
+      for (const id of accessGuidedTimersRef.current) window.clearTimeout(id);
+      accessGuidedTimersRef.current = [];
+    };
+    clearGuidedTimers();
+    const api = introSpeakRef.current;
+    if (state.anrede == null || preLoginPhase !== 'ok') {
+      api?.stopIntroSpeech();
+      return;
+    }
+    if (!api?.readAloud) {
+      api?.stopIntroSpeech();
+      setAccessPreviewLocked(false);
+      setAccessGuidedSpot(null);
+      return;
+    }
+    if (typeof document !== 'undefined' && document.querySelector('[role="dialog"][aria-label="Anrede wählen"]')) {
+      setAccessPreviewLocked(false);
+      return;
+    }
+    if (
+      typeof document !== 'undefined' &&
+      document.querySelector('[role="dialog"][aria-label="Einstieg Einführung"]')
+    ) {
+      setAccessPreviewLocked(false);
+      return;
+    }
+
+    api.stopIntroSpeech();
+    accessSkipGuidedRef.current = false;
+    accessSpeechStartedRef.current = false;
+    accessHeardSpeechRef.current = false;
+    accessWasIntroSpeakingRef.current = false;
+    setAccessPreviewLocked(true);
+    setAccessGuidedSpot(null);
+
+    const push = (fn: () => void, ms: number) => {
+      accessGuidedTimersRef.current.push(window.setTimeout(fn, ms));
+    };
+
+    push(() => {
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      setAccessGuidedSpot('tabs-eid');
+    }, 800);
+    push(() => {
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      setAccessGuidedSpot('tabs-wallet');
+    }, 1200);
+    push(() => {
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      setAccessGuidedSpot('card-eid');
+    }, 1600);
+    push(() => {
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      setAccessGuidedSpot('card-wallet');
+    }, 2200);
+    push(() => {
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      setAccessGuidedSpot('card-trust');
+    }, 2800);
+
+    push(() => {
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      const cur = introSpeakRef.current;
+      if (!cur?.readAloud) return;
+      const parts = introEidLoginSpokenParts(du);
+      cur.stopIntroSpeech();
+      cur.speakIntroParts(parts, 'eid-demo-login');
+      accessSpeechStartedRef.current = true;
+    }, 1000);
+
+    const onSkipAll = () => {
+      accessSkipGuidedRef.current = true;
+      clearGuidedTimers();
+      introSpeakRef.current?.stopIntroSpeech();
+      setAccessGuidedSpot(null);
+      setAccessPreviewLocked(false);
+    };
+    window.addEventListener('eidconnect:skip-intro-all', onSkipAll);
+
+    return () => {
+      window.removeEventListener('eidconnect:skip-intro-all', onSkipAll);
+      clearGuidedTimers();
+      introSpeakRef.current?.stopIntroSpeech();
+      setAccessGuidedSpot(null);
+    };
+  }, [state.anrede, du, preLoginPhase, introSpeak?.readAloud]);
+
+  useEffect(() => {
+    if (preLoginPhase !== 'ok' || !introSpeak?.readAloud) {
+      if (accessAutoAfterSpeechTimerRef.current != null) {
+        window.clearTimeout(accessAutoAfterSpeechTimerRef.current);
+        accessAutoAfterSpeechTimerRef.current = null;
+      }
+      return;
+    }
+    const prev = accessWasIntroSpeakingRef.current;
+    accessWasIntroSpeakingRef.current = isIntroSpeaking;
+    if (accessSpeechStartedRef.current && isIntroSpeaking) {
+      accessHeardSpeechRef.current = true;
+    }
+    if (
+      !accessSpeechStartedRef.current ||
+      accessSkipGuidedRef.current ||
+      accessProceedOnceRef.current ||
+      !accessHeardSpeechRef.current ||
+      !prev ||
+      isIntroSpeaking
+    ) {
+      return;
+    }
+    accessHeardSpeechRef.current = false;
+    if (accessAutoAfterSpeechTimerRef.current != null) {
+      window.clearTimeout(accessAutoAfterSpeechTimerRef.current);
+    }
+    accessAutoAfterSpeechTimerRef.current = window.setTimeout(() => {
+      accessAutoAfterSpeechTimerRef.current = null;
+      if (accessSkipGuidedRef.current || accessProceedOnceRef.current) return;
+      finishAccessGuidedAndEnterApp();
+    }, 400);
+    return () => {
+      if (accessAutoAfterSpeechTimerRef.current != null) {
+        window.clearTimeout(accessAutoAfterSpeechTimerRef.current);
+        accessAutoAfterSpeechTimerRef.current = null;
+      }
+    };
+  }, [isIntroSpeaking, preLoginPhase, introSpeak?.readAloud, finishAccessGuidedAndEnterApp]);
+
+  useEffect(() => {
+    if (accessProceedOnceRef.current) return;
+    const scrollNearest = (el: HTMLElement | null) => {
+      if (!el) return;
+      try {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch {
+        /* noop */
+      }
+    };
+    if (accessGuidedSpot === 'card-eid') scrollNearest(eidCardRef.current);
+    if (accessGuidedSpot === 'card-wallet') scrollNearest(walletCardRef.current);
+    if (accessGuidedSpot === 'card-trust') scrollNearest(trustCardRef.current);
+  }, [accessGuidedSpot]);
+
+  const focusAccessSection = useCallback((target: 'eid' | 'wallet') => {
+    const el = target === 'eid' ? eidCardRef.current : walletCardRef.current;
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    try {
+      el.focus({ preventScroll: true });
+    } catch {
+      /* noop */
+    }
+    setAccessHighlight(target);
+    if (accessHighlightTimerRef.current != null) {
+      window.clearTimeout(accessHighlightTimerRef.current);
+    }
+    accessHighlightTimerRef.current = window.setTimeout(() => {
+      setAccessHighlight((prev) => (prev === target ? null : prev));
+      accessHighlightTimerRef.current = null;
+    }, 1400);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (accessHighlightTimerRef.current != null) {
+        window.clearTimeout(accessHighlightTimerRef.current);
+      }
+    };
+  }, []);
+
   const content = (
-    <div className="clara-prelogin-shell-pad--tight intro-device-chrome-shell intro-dark-body relative mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] p-[3px] sm:mx-2 sm:p-1">
+    <div
+      className="clara-prelogin-shell-pad--tight intro-device-chrome-shell intro-dark-body relative mx-1 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.85rem] p-[3px] sm:mx-2 sm:p-1"
+      onPointerDownCapture={() => {
+        tryResumePendingAudioFromUserGesture();
+      }}
+      onTouchStartCapture={() => {
+        tryResumePendingAudioFromUserGesture();
+      }}
+    >
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.65rem] border border-neutral-200/95 bg-white">
         <IntroMetaStrip
           surface="light"
           stepNumber={2}
           showClaraVoice
+          inlinePad="card"
           metaFramingLine={INTRO_EID_FRAMING_SHORT}
           onSkip={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
           onClose={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
         />
+        {accessPreviewLocked ? (
+          <p className="px-3 pb-1 pt-0 text-center text-[9px] font-medium leading-snug text-neutral-600 sm:px-5">
+            Demo · eID und EU-Wallet vollständig erkunden — Claras Erklärung läuft parallel, Sie steuern selbst mit.
+          </p>
+        ) : null}
 
-        <div className="flex-shrink-0 border-b border-neutral-100 px-4 pb-2 pt-2 sm:px-5 sm:pb-2.5 sm:pt-2.5">
-          <ProductIdentityHeader className="text-left" />
+        <div className="relative z-20 flex-shrink-0 border-b border-neutral-100 px-3 pb-2 pt-2 sm:px-5 sm:pb-2.5 sm:pt-2.5">
           <div
-            className="mt-2.5 flex items-stretch justify-center gap-0 rounded-lg border border-[#D6E0EE] bg-[#F8FAFD] px-1 py-1.5 sm:mt-3"
+            className="relative z-20 mt-2 flex items-stretch justify-center gap-0 rounded-lg border border-[#D6E0EE] bg-[#F8FAFD] px-1 py-1.5 sm:mt-2.5"
             aria-label="Zugangsperspektiven: eID und EU Digital Identity Wallet"
           >
-            <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-center">
+            <button
+              type="button"
+              onClick={() => focusAccessSection('eid')}
+              className={
+                'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 pb-1 pt-0.5 text-center transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8] ' +
+                (accessGuidedSpot === 'tabs-eid' ? 'intro-login-heartbeat bg-white/90 ring-2 ring-[#7AA4D8]/45' : '')
+              }
+              aria-label="eID-Bereich anzeigen"
+            >
               <span className="text-[11px] font-bold tracking-tight text-[#003366]">eID</span>
               <span className="text-[8px] font-medium leading-tight text-neutral-600">Online-Ausweis</span>
-            </div>
+              <span className="mt-1 line-clamp-2 min-h-[2.25rem] max-w-[11.5rem] text-[7.5px] leading-snug text-neutral-500 [text-wrap:balance]">
+                {INTRO_EID_FRAMING_SHORT}
+              </span>
+            </button>
             <div className="w-px shrink-0 self-stretch bg-[#D6E0EE]" aria-hidden />
-            <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-center">
+            <button
+              type="button"
+              onClick={() => focusAccessSection('wallet')}
+              className={
+                'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 pb-1 pt-0.5 text-center transition hover:bg-white/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#7AA4D8] ' +
+                (accessGuidedSpot === 'tabs-wallet' ? 'intro-login-heartbeat bg-white/90 ring-2 ring-[#7AA4D8]/45' : '')
+              }
+              aria-label="EU Wallet-Bereich anzeigen"
+            >
               <span className="text-[11px] font-bold tracking-tight text-[#003366]">EU Wallet</span>
               <span className="text-[8px] font-medium leading-tight text-neutral-600">Digitale Identität</span>
-            </div>
+              <span className="mt-1 line-clamp-2 min-h-[2.25rem] max-w-[11.5rem] text-[7.5px] leading-snug text-neutral-500 [text-wrap:balance]">
+                {INTRO_WALLET_BADGE}
+              </span>
+            </button>
           </div>
         </div>
 
         <div
           id="login-main-scroll"
           ref={scrollRef}
-          className="scrollbar-hide relative min-h-0 flex-1 overflow-y-auto px-4 pb-3 sm:px-5 sm:pb-4"
+          className="scrollbar-hide relative z-0 min-h-0 flex-1 overflow-y-auto px-3 pb-2 sm:px-5 sm:pb-4"
           style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
-          onScroll={() => {
-            const el = scrollRef.current;
-            if (!el) return;
-            const max = Math.max(0, el.scrollHeight - el.clientHeight);
-            setScrollMaxPx(max);
-            const pct = max > 0 ? Math.round((el.scrollTop / max) * 100) : 0;
-            setScrollPct(Math.min(100, Math.max(0, pct)));
-          }}
         >
-          {scrollMaxPx > 60 ? (
-            <div className="intro-login-scroll-rail pointer-events-none absolute right-1 top-3 z-[5] flex h-[calc(100%-0.75rem)] w-5 items-start justify-center">
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={scrollPct}
-                aria-label="Scroll"
-                className="intro-vertical-slider pointer-events-auto w-4"
-                onChange={(e) => {
-                  const pct = Number(e.target.value);
-                  setScrollPct(pct);
-                  const el = scrollRef.current;
-                  if (!el) return;
-                  const max = Math.max(0, el.scrollHeight - el.clientHeight);
-                  el.scrollTop = (pct / 100) * max;
-                }}
-              />
-            </div>
-          ) : null}
-          <div className="space-y-2.5 sm:space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <ClaraStepPanel
               surface="light"
               label="Sicherer Bürgerzugang"
@@ -284,7 +461,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               showTopicTitle
               hideShortWhenCollapsed
             />
-            <div className={`${accessPathCardClass} intro-login-heartbeat`}>
+            <div
+              ref={eidCardRef}
+              tabIndex={-1}
+              className={`${accessPathCardClass} intro-login-heartbeat transition-shadow duration-300 ${
+                accessGuidedSpot === 'card-eid' || (!accessPreviewLocked && accessHighlight === 'eid')
+                  ? 'ring-2 ring-[#7AA4D8] shadow-[0_0_0_3px_rgba(122,164,216,0.22)]'
+                  : ''
+              }`}
+            >
               <div className="flex items-start justify-between gap-2">
                 <span
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#003366] text-[10px] font-bold text-white"
@@ -307,13 +492,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                 type="button"
                 onClick={handleEidDemoClick}
                 onAnimationEnd={onOnboardingSpotlightAnimationEnd}
-                className="mt-2 inline-flex min-h-[34px] w-full items-center justify-center rounded-lg border border-[#CFE0F7] bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] transition hover:bg-[#F4F8FE] sm:mt-2.5"
+                className="mt-2 inline-flex min-h-[40px] w-full items-center justify-center rounded-lg border border-[#CFE0F7] bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] shadow-sm transition hover:bg-[#F4F8FE] hover:shadow active:scale-[0.99] sm:mt-2.5"
               >
                 Künftig per eID anmelden (Perspektive)
               </button>
             </div>
 
-            <div className={`${accessPathCardClass} intro-login-heartbeat`}>
+            <div
+              ref={walletCardRef}
+              tabIndex={-1}
+              className={`${accessPathCardClass} intro-login-heartbeat transition-shadow duration-300 ${
+                accessGuidedSpot === 'card-wallet' || (!accessPreviewLocked && accessHighlight === 'wallet')
+                  ? 'ring-2 ring-[#7AA4D8] shadow-[0_0_0_3px_rgba(122,164,216,0.22)]'
+                  : ''
+              }`}
+            >
               <div className="flex items-start justify-between gap-2">
                 <span
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[#003366]/40 bg-white text-[10px] font-bold text-[#003366]"
@@ -348,7 +541,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                   <button
                     type="button"
                     onClick={() => setWalletKonzeptOpen((o) => !o)}
-                    className="mt-1.5 w-full rounded-lg border border-slate-200/90 bg-white py-1.5 text-center text-[10px] font-semibold text-[#003366] transition hover:bg-slate-50"
+                    className="mt-1.5 w-full rounded-lg border border-slate-200/90 bg-white py-2 text-center text-[10px] font-semibold text-[#003366] shadow-sm transition hover:bg-slate-50 hover:shadow active:scale-[0.99]"
                     aria-expanded={walletKonzeptOpen}
                     aria-controls="login-eu-wallet-konzept-ablauf"
                   >
@@ -359,7 +552,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               <button
                 type="button"
                 onClick={() => setWalletInfoOpen((p) => !p)}
-                className="mt-2 inline-flex min-h-[34px] w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] transition hover:bg-slate-50 sm:mt-2.5"
+                className="mt-2 inline-flex min-h-[40px] w-full items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-semibold text-[#1F4F8A] shadow-sm transition hover:bg-slate-50 hover:shadow active:scale-[0.99] sm:mt-2.5"
                 aria-expanded={walletInfoOpen}
                 aria-controls="login-eu-wallet-info"
               >
@@ -401,7 +594,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
               ) : null}
             </div>
 
-            <div className={accessPathCardClass}>
+            <div
+              ref={trustCardRef}
+              className={`${accessPathCardClass} transition-shadow duration-300 ${
+                accessGuidedSpot === 'card-trust'
+                  ? 'intro-login-heartbeat ring-2 ring-[#7AA4D8] shadow-[0_0_0_3px_rgba(122,164,216,0.22)]'
+                  : ''
+              }`}
+            >
               <div className="flex items-start justify-between gap-2">
                 <span
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-neutral-300 bg-white text-[10px] font-bold text-neutral-600"
@@ -414,23 +614,44 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
                   <p className={accessPathBodyClass}>{INTRO_DEMO_MODE_BODY}</p>
                 </div>
               </div>
-              <div className="mt-2 flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => (onBackToEntry ? onBackToEntry() : reopenProductIntro())}
-                  className={loginNavBackClass}
-                >
-                  Zurück
-                </button>
+              <div className="mt-2 flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => (onBackToEntry ? onBackToEntry() : reopenProductIntro())}
+                    className={loginNavBackClass}
+                  >
+                    Zurück
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (accessAutoAfterSpeechTimerRef.current != null) {
+                        window.clearTimeout(accessAutoAfterSpeechTimerRef.current);
+                        accessAutoAfterSpeechTimerRef.current = null;
+                      }
+                      introSpeakRef.current?.stopIntroSpeech();
+                      finishAccessGuidedAndEnterApp();
+                    }}
+                    className="inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-xl bg-[#003D80] px-3 text-[12px] font-bold tracking-[0.01em] text-white shadow-[0_4px_14px_rgba(0,61,128,0.28)] transition hover:bg-[#00366f] active:scale-[0.99]"
+                  >
+                    Weiter in die Einführung
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={() => {
                     handleDemoModeClick();
-                    handleProceedToApp();
+                    if (accessAutoAfterSpeechTimerRef.current != null) {
+                      window.clearTimeout(accessAutoAfterSpeechTimerRef.current);
+                      accessAutoAfterSpeechTimerRef.current = null;
+                    }
+                    introSpeakRef.current?.stopIntroSpeech();
+                    finishAccessGuidedAndEnterApp();
                   }}
-                  className="inline-flex min-h-[44px] min-w-0 flex-1 items-center justify-center rounded-xl bg-[#003D80] px-3 text-[12px] font-bold tracking-[0.01em] text-white shadow-[0_4px_14px_rgba(0,61,128,0.28)] transition hover:bg-[#00366f] active:scale-[0.99]"
+                  className="w-full rounded-lg border border-dashed border-slate-300 bg-slate-50/90 py-2 text-center text-[10px] font-semibold leading-snug text-[#1A2B45] transition hover:bg-slate-100"
                 >
-                  Weiter
+                  {INTRO_DEMO_MODE_CTA} — {INTRO_DEMO_MODE_TITLE}
                 </button>
               </div>
             </div>

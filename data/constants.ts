@@ -18,8 +18,11 @@ export const THEME_NAMES: Record<string, string> = {
 /** Interner Demo-Zähler je Abstimmungskarte (für Statusableitungen, nicht als Anreizanzeige). */
 export const DEMO_POINTS_PER_ABSTIMMUNG = 250;
 
-/** Interner Demo-Zähler pro abgegebener Stimme bei Wahlen (RECORD_ELECTION_VOTE). */
-export const DEMO_POINTS_PER_WAHL = 200;
+/**
+ * @deprecated Sprint 1: Wahlvorschau vergibt keine Punkte (keine Kopplung Wahl ↔ Prämienpool).
+ * Konstante bleibt für Doku-Referenzen; RECORD_ELECTION_VOTE nutzt 0.
+ */
+export const DEMO_POINTS_PER_WAHL = 0;
 
 /** Interner Demo-Zähler pro erfolgreich gesendeter Meldung (RECORD_MELDUNG_SUBMITTED). */
 export const DEMO_POINTS_PER_MELDUNG = 75;
@@ -132,7 +135,7 @@ const bundCards: VotingCard[] = [
   ),
   card(
     'bund-7',
-    'Bürgerdialog kommunaler Haushalt (Bund Demo)',
+    'Bürgerdialog kommunaler Haushalt (Bund · Beispiel)',
     'Online-Anhörung zu Schwerpunkten Bildung, Klima und Sicherheit vor dem Haushaltsentwurf.',
     '12.12.2026', 58, 32, 890_000, 300, false,
     'Transparenz, frühzeitige Einbindung, sachliche Priorisierung.',
@@ -345,7 +348,7 @@ const kirkelCards: VotingCard[] = [
   ),
   card(
     'kirkel-12',
-    'Dialog Katastrophenschutz und Warnsysteme (Demo Kirkel)',
+    'Dialog Katastrophenschutz und Warnsysteme (Beispiel Kirkel)',
     'Bürgerdialog zu Warnketten, Katastrophenschutz und Kommunikation bei Ereignissen; keine operative Entscheidung.',
     '10.12.2026', 82, 11, 4_200, 110, false,
     'Transparenz zu Abläufen, bessere Orientierung, Feedback zu Kommunikationswegen.',
@@ -1043,7 +1046,7 @@ export const LEADERBOARD_DATA: LeaderboardItem[] = [
   { rank: 3, name: 'Hessen',            participation: 88, medal: 'bronze' },
   { rank: 4, name: 'Nordrhein-Westfalen', participation: 85 },
   { rank: 5, name: 'Saarland',          participation: 82 },
-  { rank: 6, name: 'Sie (Demo)',         participation: 78, isUser: true },
+  { rank: 6, name: 'Sie (Beispiel)',         participation: 78, isUser: true },
 ];
 
 export const NEWS_DATA: NewsItem[] = [

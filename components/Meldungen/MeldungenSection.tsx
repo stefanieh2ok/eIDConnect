@@ -1,10 +1,17 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Camera } from 'lucide-react';
+import { InfoHint } from '@/components/ui/InfoHint';
 import { useApp } from '@/context/AppContext';
-import { SectionLevelFilterIcon, selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
 import { activeLocationForLevel } from '@/lib/activeLocationForLevel';
 import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
+import {
+  meldungStatusLabel,
+  meldungStatusTone,
+  processStripItemClass,
+  type MeldungsProcessStatus,
+} from '@/lib/civicStatus';
 
 type MeldungKategorie =
   | 'strasse'
@@ -22,15 +29,59 @@ const KATEGORIEN: { id: MeldungKategorie; label: string; hint: string }[] = [
 ];
 
 type Step = 'kategorie' | 'details' | 'bestaetigt';
-type MeldungsStatus = 'offen' | 'in_bearbeitung' | 'erledigt';
-type StatusFilter = 'alle' | MeldungsStatus;
+type StatusFilter = 'alle' | MeldungsProcessStatus;
+
+const FLOW_STEPS: { key: Step; label: string }[] = [
+  { key: 'kategorie', label: 'Kategorie' },
+  { key: 'details', label: 'Details' },
+  { key: 'bestaetigt', label: 'Status' },
+];
+
+function MeldungFlowCompact({ step }: { step: Step }) {
+  const stepNum = step === 'kategorie' ? 1 : step === 'details' ? 2 : 3;
+  const label =
+    step === 'kategorie' ? 'Kategorie wählen' : step === 'details' ? 'Details eingeben' : 'Status';
+  return (
+    <p className="meldung-flow-compact" aria-label="Meldungsablauf">
+      Schritt <strong>{stepNum} von 3</strong> · {label}
+    </p>
+  );
+}
+
+function MeldungFlowStepper({ step }: { step: Step }) {
+  const currentIdx = step === 'kategorie' ? 0 : step === 'details' ? 1 : 2;
+  return (
+    <div className="civic-flow-stepper hidden sm:flex" aria-label="Meldungsablauf">
+      {FLOW_STEPS.map((flowStep, idx) => (
+        <React.Fragment key={flowStep.key}>
+          <div
+            className={`civic-flow-stepper__step${
+              idx === currentIdx ? ' civic-flow-stepper__step--active' : ''
+            }${idx < currentIdx ? ' civic-flow-stepper__step--done' : ''}`}
+          >
+            <span className="civic-flow-stepper__dot" aria-hidden>
+              {idx < currentIdx ? '✓' : idx + 1}
+            </span>
+            <span className="civic-flow-stepper__label">{flowStep.label}</span>
+          </div>
+          {idx < FLOW_STEPS.length - 1 ? <span className="civic-flow-stepper__line" aria-hidden /> : null}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+function meldungStatusDotClass(status: MeldungsProcessStatus): string {
+  return `meldung-status-dot meldung-status-dot--${status}`;
+}
+
+const PROCESS_STATUSES: MeldungsProcessStatus[] = ['offen', 'in_bearbeitung', 'erledigt'];
 
 function demoMeldungenForGemeinde(gemeinde: string) {
   return [
-    { id: 1, titel: 'Schlagloch Hauptstraße Ecke Bahnhofstr.', ort: gemeinde, datum: '20.03.2026', status: 'in_bearbeitung' as const },
-    { id: 2, titel: 'Defektes Spielgerät auf dem Spielplatz', ort: gemeinde, datum: '18.03.2026', status: 'offen' as const },
-    { id: 3, titel: 'Straßenlaterne ausgefallen Waldstr.', ort: gemeinde, datum: '15.03.2026', status: 'erledigt' as const },
-    { id: 4, titel: 'Überwucherter Gehweg am Gemeindezentrum', ort: gemeinde, datum: '10.03.2026', status: 'erledigt' as const },
+    { id: 1, titel: 'Schlagloch Hauptstraße', ort: gemeinde, datum: '20.03.2026', status: 'in_bearbeitung' as const },
+    { id: 2, titel: 'Defektes Spielgerät auf Spielplatz', ort: gemeinde, datum: '18.03.2026', status: 'offen' as const },
+    { id: 3, titel: 'Straßenlaterne ausgefallen', ort: gemeinde, datum: '15.03.2026', status: 'erledigt' as const },
   ];
 }
 
@@ -201,8 +252,17 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
     () => demoListe.filter((m) => statusFilter === 'alle' || m.status === statusFilter),
     [demoListe, statusFilter],
   );
-  const dringlichkeitLabel = dringlichkeit === 1 ? 'Niedrig' : dringlichkeit === 2 ? 'Mittel' : 'Hoch';
-  const shellClass = embeddedInWalkthrough ? 'card-section p-2.5' : 'card-section p-3';
+  const shellClass = embeddedInWalkthrough ? 'civic-module-shell civic-module-shell--compact' : 'civic-module-shell';
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (step === 'details' && !walkthroughDemo?.enabled) {
+      document.documentElement.setAttribute('data-meldungen-form-open', 'true');
+    } else {
+      document.documentElement.removeAttribute('data-meldungen-form-open');
+    }
+    return () => document.documentElement.removeAttribute('data-meldungen-form-open');
+  }, [step, walkthroughDemo?.enabled]);
   const showDemoUpload = Boolean(walkthroughDemo?.enabled) && step === 'details';
   const showDemoCaret = Boolean(walkthroughDemo?.enabled) && step === 'details' && demoTyping;
   const showDemoAddressCaret = Boolean(walkthroughDemo?.enabled) && step === 'details' && demoTypingAddress;
@@ -214,130 +274,94 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
         isWalkthroughFilmMode ? 'walkthrough-meldungen-film' : ''
       } ${shellClass}`}
     >
-      {!isWalkthroughFilmMode && !embeddedInWalkthrough ? (
-        <div className={`flex items-start justify-between ${embeddedInWalkthrough ? 'mb-2' : 'mb-3'}`}>
-          <div className="t-meta mt-0.5">
-            {selectionLabelForSection('meldungen', state.activeLocation, state.residenceLocation)}
-          </div>
-          <SectionLevelFilterIcon section="meldungen" />
-        </div>
-      ) : null}
-      {/* Intro-Info, bewusst ruhig statt herohaft */}
-      {!isWalkthroughFilmMode && !embeddedInWalkthrough ? (
-        <div className={embeddedInWalkthrough ? 'card-content mb-3 p-4' : 'card-content mb-4 p-4'}>
-          <div className="mb-2 inline-flex items-center rounded-full border border-[#CFE0F7] bg-[#F4F8FE] px-2.5 py-1 text-[10px] font-semibold text-[#1F4F8A]">
-            Kommunaler Service
-          </div>
-          <p className="t-body-sm">
-            {du
-              ? `Melde Probleme oder Anliegen direkt an die Gemeindeverwaltung ${gemeinde}.`
-              : `Hinweise und Anliegen können direkt an die Gemeindeverwaltung ${gemeinde} gesendet werden.`}
-          </p>
-        </div>
+      {!isWalkthroughFilmMode ? (
+        <>
+          <MeldungFlowCompact step={step} />
+          <MeldungFlowStepper step={step} />
+        </>
       ) : null}
 
       {/* Step: Kategorie wählen */}
       {step === 'kategorie' && (
-        <div className="card-content p-3 pb-24">
-          <p className="mb-2.5 text-sm font-semibold text-[#1A2B45]">
+        <div className="pb-20">
+          <p className="mb-2 text-[14px] font-semibold text-[#003366]">
             {du ? 'Was möchtest du melden?' : 'Was möchten Sie melden?'}
           </p>
-          <div className="space-y-2.5">
+          <div className="mt-2 border-t border-[#E8EEF5]">
             {KATEGORIEN.map((k) => (
-              <button
-                key={k.id}
-                onClick={() => { setKategorie(k.id); setStep('details'); }}
-                className="card-compact group min-h-[68px] w-full text-left transition-all hover:border-[#8EB1DE] hover:bg-[#FBFDFF] hover:shadow-md active:translate-y-[1px] active:border-[#78D9D0] active:bg-[#F3FCFB]"
-                style={{ borderColor: 'var(--gov-border, #D6E0EE)' }}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-[14px] font-semibold leading-snug text-[#1A2B45]">{k.label}</div>
-                    <div className="mt-0.5 text-xs text-gray-500">{k.hint}</div>
+              <div key={k.id} className="meldung-category-row group">
+                <button
+                  onClick={() => { setKategorie(k.id); setStep('details'); }}
+                  className="meldung-category-pill w-full text-left"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 text-[13px] font-semibold leading-snug text-[#1A2B45]">{k.label}</div>
+                    <span className="text-sm font-semibold text-[#94a3b8] group-hover:text-[#0055A4]" aria-hidden>
+                      &rsaquo;
+                    </span>
                   </div>
-                  <span className="text-sm font-semibold text-neutral-400 transition-colors group-hover:text-[#1F4F8A]" aria-hidden>
-                    &rsaquo;
-                  </span>
-                </div>
-              </button>
+                </button>
+                <InfoHint label={`Beispiele: ${k.label}`} className="meldung-category-row__hint">
+                  <p>{k.hint}</p>
+                </InfoHint>
+              </div>
             ))}
           </div>
 
-          {/* Letzte Meldungen (Demo) */}
-          <div className="mt-5 rounded-xl border border-neutral-200 bg-[#FBFCFF] p-2.5">
+          <div className="meldung-list-section">
             <div className="mb-2 flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                Aktuelle Meldungen in {gemeinde}
-              </p>
-              <div className="flex items-center gap-1 rounded-full border border-[#D6E0EE] bg-white p-1">
-                {[
-                  { id: 'alle', label: 'Alle' },
-                  { id: 'offen', label: 'Offen' },
-                  { id: 'in_bearbeitung', label: 'In Bearb.' },
-                  { id: 'erledigt', label: 'Erledigt' },
-                ].map((option) => {
-                  const active = statusFilter === option.id;
+              <p className="meldung-list-section__title">Aktuelle Meldungen · {gemeinde}</p>
+            </div>
+            <div className="meldung-process-header mb-2">
+              <button
+                type="button"
+                onClick={() => setStatusFilter('alle')}
+                className={`meldung-filter-neutral${statusFilter === 'alle' ? ' meldung-filter-neutral--active' : ''}`}
+              >
+                Alle
+              </button>
+              <div className="process-strip" role="group" aria-label="Bearbeitungsstatus">
+                {PROCESS_STATUSES.map((status) => {
+                  const tone = meldungStatusTone(status);
+                  const active = statusFilter === status;
                   return (
                     <button
-                      key={option.id}
+                      key={status}
                       type="button"
-                      onClick={() => setStatusFilter(option.id as StatusFilter)}
-                      className="rounded-full px-2 py-1 text-[10px] font-semibold transition-colors"
-                      style={
-                        active
-                          ? {
-                              color: '#0F766E',
-                              border: '1px solid #7ADFD4',
-                              backgroundColor: '#ECFEFC',
-                            }
-                          : undefined
-                      }
+                      onClick={() => setStatusFilter(status)}
+                      aria-pressed={active}
+                      className={processStripItemClass(tone, active)}
                     >
-                      {option.label}
+                      {meldungStatusLabel(status)}
                     </button>
                   );
                 })}
               </div>
             </div>
             {filteredDemoListe.length === 0 ? (
-              <p className="rounded-xl border border-[#D6E0EE] bg-white p-3 text-xs text-gray-500">
-                Für diesen Status liegen aktuell keine Demo-Meldungen vor.
+              <p className="rounded-lg border border-[#E8EEF5] bg-white p-3 text-xs text-gray-500">
+                Für diesen Status liegen aktuell keine Beispiel-Meldungen vor.
               </p>
             ) : null}
             {filteredDemoListe.map((m) => (
-              <div
-                key={m.id}
-                className="flex items-start gap-3 bg-white rounded-xl p-3 mb-2 border"
-                style={{ borderColor: 'var(--gov-border, #D6E0EE)' }}
-              >
-                <span
-                  className={`mt-0.5 text-xs font-bold px-2 py-0.5 rounded-full ${
-                    m.status === 'offen'
-                      ? 'bg-amber-100 text-amber-700'
-                      : m.status === 'in_bearbeitung'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'bg-green-100 text-green-700'
-                  }`}
-                >
-                  {m.status === 'offen'
-                    ? 'Offen'
-                    : m.status === 'in_bearbeitung'
-                    ? 'In Bearb.'
-                    : 'Erledigt'}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold text-gray-800 truncate">{m.titel}</div>
-                  <div className="text-[10px] text-gray-400 mt-0.5">{m.ort} · {m.datum}</div>
+                <div key={m.id} className="meldung-issue-card">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className={meldungStatusDotClass(m.status)} aria-hidden />
+                      <span className="text-[10px] font-semibold text-[#5f6b7a]">{meldungStatusLabel(m.status)}</span>
+                    </div>
+                    <div className="mt-0.5 text-xs font-semibold text-gray-800 truncate">{m.titel}</div>
+                    <div className="text-[10px] text-gray-400 mt-0.5">{m.ort} · {m.datum}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       )}
 
       {/* Step: Details eingeben */}
       {step === 'details' && selectedKat && (
-        <div className={`card-content ${isWalkthroughFilmMode ? 'p-1.5' : 'p-3'}`}>
+        <div className={isWalkthroughFilmMode ? 'p-1' : ''}>
           {!isWalkthroughFilmMode ? (
             <button
               onClick={() => setStep('kategorie')}
@@ -347,11 +371,11 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
             </button>
           ) : null}
 
-          <div className={`${isWalkthroughFilmMode ? 'mb-1.5 p-2' : 'mb-4 p-3.5'} rounded-xl border border-[#CFE0F7] bg-[#F6FAFF]`}>
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-[#4F6F96]">Ausgewählte Kategorie</div>
-            <div className={`${isWalkthroughFilmMode ? 'mt-0.5 text-[13px]' : 'mt-1 text-sm'} font-semibold text-[#1A2B45]`}>
+          <div className={`${isWalkthroughFilmMode ? 'mb-1.5' : 'mb-3'} flex items-center gap-1.5 border-b border-[#E8EEF5] pb-2`}>
+            <span className="text-[10px] font-semibold text-[#6B7A99]">Kategorie</span>
+            <span className={`${isWalkthroughFilmMode ? 'text-[13px]' : 'text-sm'} font-semibold text-[#1A2B45]`}>
               {selectedKat.label}
-            </div>
+            </span>
           </div>
 
           <div
@@ -361,29 +385,24 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
             }
           >
             {!walkthroughDemo?.enabled ? (
-              <div className="rounded-xl border border-[#CFE7E3] bg-[#F4FCFA] p-3">
-                <div className="mb-1.5 flex items-center justify-between gap-2">
-                  <label htmlFor="dringlichkeit-range" className="text-xs font-semibold text-[#1A2B45]">
-                    Priorität
-                  </label>
-                  <span className="rounded-full border border-[#7ADFD4] bg-[#ECFEFC] px-2 py-0.5 text-[10px] font-semibold text-[#0F766E]">
-                    {dringlichkeitLabel}
-                  </span>
-                </div>
-                <input
-                  id="dringlichkeit-range"
-                  type="range"
-                  min={1}
-                  max={3}
-                  step={1}
-                  value={dringlichkeit}
-                  onChange={(e) => setDringlichkeit(Number(e.target.value))}
-                  className="w-full accent-[#16B8AE]"
-                />
-                <div className="mt-1 flex justify-between text-[10px] text-gray-500">
-                  <span>Niedrig</span>
-                  <span>Mittel</span>
-                  <span>Hoch</span>
+              <div>
+                <p className="mb-1.5 text-xs font-semibold text-[#1A2B45]">Priorität</p>
+                <div className="flex gap-1.5">
+                  {(['Niedrig', 'Mittel', 'Hoch'] as const).map((label, idx) => {
+                    const level = idx + 1;
+                    const active = dringlichkeit === level;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setDringlichkeit(level)}
+                        aria-pressed={active}
+                        className={`priority-pill flex-1 ${active ? 'priority-pill--active' : ''}`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ) : null}
@@ -403,18 +422,18 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                       : 'Bitte beschreiben Sie das Problem so genau wie möglich...'
                   }
                   className={
-                    'form-textarea w-full resize-none ' +
+                    'form-textarea w-full resize-none [font-family:inherit] tracking-normal ' +
                     (showDemoCaret ? 'text-transparent caret-transparent' : '')
                   }
                 />
                 {showDemoCaret ? (
                   <div
-                    className="pointer-events-none absolute inset-0 whitespace-pre-wrap break-words text-[inherit] leading-[inherit] text-[#1A2B45]"
+                    className="pointer-events-none absolute inset-0 rounded-2xl whitespace-pre-wrap break-words text-[15px] leading-[22px] [font-family:inherit] tracking-normal text-[#1A2B45]"
                     aria-hidden
-                    style={{ padding: '0.75rem 0.875rem' }}
+                    style={{ padding: '14px' }}
                   >
                     {beschreibung}
-                    <span className="intro-typewriter-caret ml-px inline-block h-[1em] w-[2px] translate-y-[2px] bg-[#0055A4]" />
+                    <span className="intro-typewriter-caret ml-px inline-block h-[1em] w-[2px] bg-[#0055A4]" />
                   </div>
                 ) : null}
               </div>
@@ -425,24 +444,24 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                 {isWalkthroughFilmMode ? 'Standort / Adresse' : 'Standort / Adresse (optional)'}
               </label>
               <div className="flex gap-2">
-                <div className="relative flex-1">
+                <div className="relative min-h-0 flex-1">
                   <input
                     type="text"
                     value={adresse}
                     onChange={(e) => setAdresse(e.target.value)}
                     placeholder={`z. B. Hauptstraße 12, ${gemeinde}`}
                     className={
-                      'form-input w-full ' + (showDemoAddressCaret ? 'text-transparent caret-transparent' : '')
+                      'form-input w-full [font-family:inherit] tracking-normal ' +
+                      (showDemoAddressCaret ? 'text-transparent caret-transparent' : '')
                     }
                   />
                   {showDemoAddressCaret ? (
                     <div
-                      className="pointer-events-none absolute inset-0 truncate text-[inherit] leading-[inherit] text-[#1A2B45]"
+                      className="pointer-events-none absolute inset-0 flex min-h-[48px] items-center overflow-x-auto whitespace-nowrap rounded-[14px] px-[14px] text-[15px] leading-5 [font-family:inherit] tracking-normal text-[#1A2B45] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                       aria-hidden
-                      style={{ padding: '0.625rem 0.75rem' }}
                     >
                       {adresse}
-                      <span className="intro-typewriter-caret ml-px inline-block h-[1em] w-[2px] translate-y-[2px] bg-[#0055A4]" />
+                      <span className="intro-typewriter-caret ml-px inline-block h-[1em] w-[2px] shrink-0 bg-[#0055A4]" />
                     </div>
                   ) : null}
                 </div>
@@ -462,18 +481,17 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
             {/* Foto */}
             <div className={isWalkthroughFilmMode ? 'space-y-0.5' : 'space-y-1.5'}>
               <label
-                className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed bg-white text-sm font-medium transition-colors hover:border-[#7AA4D8] hover:text-[#1F4F8A] ${
-                  isWalkthroughFilmMode ? 'py-1.5' : 'py-2'
+                className={`civic-upload-zone ${photos.length > 0 ? 'civic-upload-zone--active' : ''} ${
+                  isWalkthroughFilmMode ? 'py-2' : ''
                 }`}
-                style={{ borderColor: 'var(--gov-border, #D6E0EE)', color: photos.length > 0 ? '#1F4F8A' : undefined }}
               >
-                {photos.length > 0
-                  ? du
-                    ? `${photos.length} Foto(s) ausgewählt`
-                    : `${photos.length} Foto(s) ausgewählt`
-                  : du
-                    ? 'Foto hinzufügen'
-                    : 'Foto hinzufügen'}
+                <Camera className="h-4 w-4 shrink-0 text-[#0055A4]" aria-hidden />
+                <span className="min-w-0 flex-1 text-left">
+                  <span className="block text-[12px] font-semibold text-[#003366]">
+                    {photos.length > 0 ? `${photos.length} Foto(s) ausgewählt` : 'Foto lokal hinzufügen'}
+                  </span>
+                  <span className="mt-0.5 block text-[10px] text-[#6B7A99]">In der Demo nur lokal sichtbar</span>
+                </span>
                 <input
                   type="file"
                   accept="image/*"
@@ -482,7 +500,6 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                   onChange={(e) => {
                     const next = Array.from(e.target.files ?? []);
                     if (next.length === 0) return;
-                    // max 5, mobile-first
                     setPhotos((prev) => [...prev, ...next].slice(0, 5));
                     e.currentTarget.value = '';
                   }}
@@ -505,16 +522,30 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
               ) : null}
 
               {showDemoUpload && demoUploaded ? (
-                <div className={isWalkthroughFilmMode ? 'space-y-1' : 'space-y-1.5'}>
+                <div className={isWalkthroughFilmMode ? 'space-y-1.5' : 'space-y-1.5'}>
                   {demoPhotoLabel ? (
                     <div className="text-[10px] font-semibold text-emerald-800">Foto hinzugefügt</div>
                   ) : null}
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <div className="intro-upload-pop relative overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                  <div
+                    className={
+                      isWalkthroughFilmMode
+                        ? 'flex justify-center pt-0.5'
+                        : 'grid grid-cols-3 gap-1.5'
+                    }
+                  >
+                    <div
+                      className={
+                        'intro-upload-pop relative overflow-hidden rounded-xl border border-neutral-200 bg-white ' +
+                        (isWalkthroughFilmMode ? 'w-full max-w-[280px] shadow-sm' : '')
+                      }
+                    >
                       <button
                         type="button"
                         onClick={() => setDemoImageZoom((z) => !z)}
-                        className={`relative block w-full overflow-hidden ${isWalkthroughFilmMode ? 'h-20' : 'h-20'}`}
+                        className={
+                          'relative block w-full overflow-hidden ' +
+                          (isWalkthroughFilmMode ? 'h-[200px]' : 'h-20')
+                        }
                         title="Bild vergrößern"
                       >
                         <img
@@ -529,7 +560,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                     </div>
                   </div>
                   {demoFinalReady ? (
-                    <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700">
+                    <div className="mt-0.5 inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-semibold text-slate-700">
                       Bereit zur Weiterleitung
                     </div>
                   ) : null}
@@ -537,14 +568,20 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
               ) : null}
 
               {photoPreviews.length > 0 && (
-                <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1.5">
                   {photoPreviews.map((p) => (
-                    <div key={p.url} className="relative overflow-hidden rounded-xl border border-neutral-200 bg-white">
-                      <img src={p.url} alt="Foto Vorschau" className="h-20 w-full object-cover" />
+                    <div key={p.url} className="civic-upload-file-row">
+                      <img src={p.url} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[11px] font-semibold text-[#1A2B45]">{p.file.name}</p>
+                        <p className="text-[10px] text-[#6B7A99]">
+                          {(p.file.size / 1024).toFixed(0)} KB · lokal
+                        </p>
+                      </div>
                       <button
                         type="button"
                         onClick={() => setPhotos((prev) => prev.filter((f) => f !== p.file))}
-                        className="absolute right-1 top-1 rounded-full bg-black/55 px-2 py-1 text-[10px] font-bold text-white"
+                        className="civic-upload-file-row__remove"
                         aria-label="Foto entfernen"
                       >
                         ×
@@ -555,7 +592,7 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
               )}
               {!isWalkthroughFilmMode ? (
                 <p className="text-[10px] text-gray-400">
-                  {du ? 'Max. 5 Fotos. In der Demo werden sie nur lokal angezeigt.' : 'Max. 5 Fotos. In der Demo werden sie nur lokal angezeigt.'}
+                  {du ? 'Max. 5 Fotos. In der Vorschau werden sie nur lokal angezeigt.' : 'Max. 5 Fotos. In der Vorschau werden sie nur lokal angezeigt.'}
                 </p>
               ) : null}
             </div>
@@ -568,13 +605,18 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                   disabled={!beschreibung.trim()}
                   className="btn-primary t-button w-full transition-opacity hover:opacity-95 disabled:bg-neutral-300 disabled:text-neutral-100 disabled:opacity-100"
                 >
-                  Meldung senden
+                  Meldung vorbereiten
                 </button>
 
-                <p className="text-[10px] text-gray-400 text-center">
-                  {du
-                    ? `Deine Meldung wird an die Gemeindeverwaltung ${gemeinde} weitergeleitet.`
-                    : `Ihre Meldung wird an die Gemeindeverwaltung ${gemeinde} weitergeleitet.`}
+                <p className="flex items-center justify-center gap-1 text-center text-[10px] text-[#6B7A99]">
+                  Vorschau
+                  <InfoHint label="Hinweis zur Meldung">
+                    <p>
+                      {du
+                        ? 'Keine echte Übermittlung an die Gemeinde — nur lokale Demo-Vorschau.'
+                        : 'Keine echte Übermittlung an die Gemeinde — nur lokale Demo-Vorschau.'}
+                    </p>
+                  </InfoHint>
                 </p>
               </>
             ) : null}
@@ -584,20 +626,20 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
 
       {/* Step: Bestätigung */}
       {step === 'bestaetigt' && (
-        <div className="card-content py-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4"
-            style={{ background: 'var(--gov-accent-light, #E6F7F1)' }}>
-            <span className="text-[#00A86B] text-sm font-bold">OK</span>
+        <div className="py-8 text-center">
+          <div
+            className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full"
+            style={{ background: 'var(--gov-accent-light, #E6F7F1)' }}
+          >
+            <span className="text-sm font-bold text-emerald-700">OK</span>
           </div>
-          <h3 className="text-lg font-bold text-[#1A2B45] mb-2">Meldung eingegangen!</h3>
-          <p className="text-sm text-gray-500 mb-1">
+          <h3 className="mb-2 text-lg font-bold text-[#003366]">Vorschau erstellt</h3>
+          <p className="mb-1 text-sm text-[#5f6b7a]">
             {du
-              ? `Deine Meldung wurde an die Gemeinde ${gemeinde} weitergeleitet.`
-              : `Ihre Meldung wurde an die Gemeinde ${gemeinde} weitergeleitet.`}
+              ? `Deine Meldung für ${gemeinde} ist lokal vorbereitet — keine echte Übermittlung.`
+              : `Ihre Meldung für ${gemeinde} ist lokal vorbereitet — keine echte Übermittlung.`}
           </p>
-          <p className="text-xs text-gray-400 mb-6">
-            Bearbeitungszeit: in der Regel 3–5 Werktage
-          </p>
+          <p className="mb-6 text-xs text-[#6B7A99]">Demo-Ansicht · keine Bearbeitungszusage</p>
           <button
             onClick={handleNeu}
             className="rounded-2xl bg-[#003D80] px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-95"

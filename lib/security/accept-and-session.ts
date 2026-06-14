@@ -17,6 +17,10 @@ import {
 } from '@/lib/security/session-create';
 import { insertAcceptanceLog } from '@/lib/security/acceptance';
 import { insertNdaAcceptanceLog } from '@/lib/security/nda-acceptance-log';
+import {
+  devLocalIncrementAcceptance,
+  isDevLocalTokenId,
+} from '@/lib/security/dev-local-access';
 
 export type AcceptAndSessionResult = {
   redirectTo: string;
@@ -56,6 +60,17 @@ export async function performAcceptAndCreateSession(
     email: tokenRecord.email,
     expiresAt: sessionExpiresAt,
   });
+
+  const devLocal = isDevLocalTokenId(tokenRecord.id);
+
+  if (devLocal) {
+    devLocalIncrementAcceptance(tokenRecord.id);
+    return {
+      redirectTo: `/demo/${tokenRecord.demo_id}`,
+      rawSessionToken,
+      sessionExpiresAt,
+    };
+  }
 
   await insertAcceptanceLog({
     tokenId: tokenRecord.id,

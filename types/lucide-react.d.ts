@@ -18,6 +18,7 @@ declare module 'lucide-react' {
   export const AlertCircle: FC<LucideIconProps>;
   export const Info: FC<LucideIconProps>;
   export const CheckCircle: FC<LucideIconProps>;
+  export const ShieldCheck: FC<LucideIconProps>;
   export const TrendingUp: FC<LucideIconProps>;
   export const Sparkles: FC<LucideIconProps>;
   export const ChevronRight: FC<LucideIconProps>;
@@ -29,6 +30,10 @@ declare module 'lucide-react' {
   export const MapPin: FC<LucideIconProps>;
   export const Check: FC<LucideIconProps>;
   export const ExternalLink: FC<LucideIconProps>;
+  export const Gift: FC<LucideIconProps>;
+  export const Baby: FC<LucideIconProps>;
+  export const CheckCircle2: FC<LucideIconProps>;
+  export const Sparkles: FC<LucideIconProps>;
   export const Trophy: FC<LucideIconProps>;
   export const Star: FC<LucideIconProps>;
   export const Target: FC<LucideIconProps>;
@@ -43,6 +48,8 @@ declare module 'lucide-react' {
   export const Building: FC<LucideIconProps>;
   export const Clipboard: FC<LucideIconProps>;
   export const Inbox: FC<LucideIconProps>;
+  export const Mail: FC<LucideIconProps>;
+  export const Menu: FC<LucideIconProps>;
   export const List: FC<LucideIconProps>;
   export const Scale: FC<LucideIconProps>;
   export const ListChecks: FC<LucideIconProps>;

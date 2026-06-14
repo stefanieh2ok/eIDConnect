@@ -2,11 +2,10 @@ import type { IntroOverlayStepId } from '@/data/introOverlayMarketing';
 
 /**
  * Pro Walkthrough-Screen: UI (short/long) und **Spoken** (`speakSegments*`) getrennt.
- * HookAI Civic Demo — GovTech-Ton, keine Gamification, kein Stimmungsbarometer.
+ * TTS nutzt nur `speakSegments*` — kurze Sätze, 2–3 pro Szene.
  */
 export type WalkthroughClaraBlock = {
   label: string;
-  /** 10s-Kicker, sichtbar oben, vor der Vorschau. */
   line10sDu: string;
   line10sSie: string;
   shortDu: string;
@@ -18,134 +17,219 @@ export type WalkthroughClaraBlock = {
 };
 
 export const INTRO_WALKTHROUGH_CLARA: Record<IntroOverlayStepId, WalkthroughClaraBlock> = {
-  abstimmen: {
-    label: 'Abstimmen',
-    line10sDu: 'Du siehst zuerst die Argumente.',
-    line10sSie: 'Sie sehen zuerst die Argumente.',
-    shortDu: 'Du siehst zuerst die Argumente.',
-    shortSie: 'Sie sehen zuerst die Argumente.',
+  intro: {
+    label: 'HookAI Civic',
+    line10sDu: 'Verwaltung verständlicher. Beteiligung einfacher. Kommunikation vertrauenswürdiger.',
+    line10sSie: 'Verwaltung verständlicher. Beteiligung einfacher. Kommunikation vertrauenswürdiger.',
+    shortDu:
+      'Willkommen bei HookAI Civic. Clara führt dich durch Orientierung, Meldungen, Beteiligung und mehr.',
+    shortSie:
+      'Willkommen bei HookAI Civic. Clara führt Sie durch Orientierung, Meldungen, Beteiligung und mehr.',
     longDu:
-      'Du siehst zuerst die Argumente.\n\n' +
-      'Und kannst dann entscheiden, was für dich passt.',
+      'Willkommen bei HookAI Civic. Ich bin Clara. Diese App hilft dir, Verwaltung besser zu verstehen — von Orientierung bis Beteiligung.',
     longSie:
-      'Sie sehen zuerst die Argumente.\n\n' +
-      'Und können dann entscheiden, was für Sie passt.',
+      'Willkommen bei HookAI Civic. Ich bin Clara. Diese App hilft Ihnen, Verwaltung besser zu verstehen — von Orientierung bis Beteiligung.',
     speakSegmentsDu: [
-      'Du siehst zuerst die Argumente.',
-      'Und kannst dann entscheiden, was für dich passt.',
+      'Willkommen bei HookAI Civic. Ich bin Clara.',
+      'Diese App hilft dir, Verwaltung besser zu verstehen — von Orientierung bis Beteiligung.',
     ],
     speakSegmentsSie: [
-      'Sie sehen zuerst die Argumente.',
-      'Und können dann entscheiden, was für Sie passt.',
+      'Willkommen bei HookAI Civic. Ich bin Clara.',
+      'Diese App hilft Ihnen, Verwaltung besser zu verstehen — von Orientierung bis Beteiligung.',
     ],
   },
-  wahlen: {
-    label: 'Wahlen',
-    line10sDu: 'Hier bekommst du eine Vorschau auf Wahlen.',
-    line10sSie: 'Hier bekommen Sie eine Vorschau auf Wahlen.',
-    shortDu: 'Hier bekommst du eine Vorschau auf Wahlen.',
-    shortSie: 'Hier bekommen Sie eine Vorschau auf Wahlen.',
+  wegweiser: {
+    label: 'Wegweiser',
+    line10sDu: 'Aus einer Lebenslage wird ein klarer nächster Schritt.',
+    line10sSie: 'Aus einer Lebenslage wird ein klarer nächster Schritt.',
+    shortDu: 'Nehmen wir ein echtes Beispiel: Du bekommst ein Baby.',
+    shortSie: 'Nehmen wir ein echtes Beispiel: Sie bekommen ein Baby.',
     longDu:
-      'Hier bekommst du eine Vorschau auf Wahlen.\n\n' +
-      'Mit Kandidierenden, Programmen und offiziellen Quellen.',
+      'Nehmen wir ein echtes Beispiel: Du bekommst ein Baby. Der Wegweiser zeigt dir, welche Behördenschritte jetzt wichtig werden könnten.',
     longSie:
-      'Hier bekommen Sie eine Vorschau auf Wahlen.\n\n' +
-      'Mit Kandidierenden, Programmen und offiziellen Quellen.',
+      'Nehmen wir ein echtes Beispiel: Sie bekommen ein Baby. Der Wegweiser zeigt Ihnen, welche Behördenschritte jetzt wichtig werden könnten.',
     speakSegmentsDu: [
-      'Hier bekommst du eine Vorschau auf Wahlen.',
-      'Mit Kandidierenden, Programmen und offiziellen Quellen.',
+      'Nehmen wir ein echtes Beispiel: Du bekommst ein Baby.',
+      'Der Wegweiser zeigt dir, welche Behördenschritte jetzt wichtig werden könnten.',
     ],
     speakSegmentsSie: [
-      'Hier bekommen Sie eine Vorschau auf Wahlen.',
-      'Mit Kandidierenden, Programmen und offiziellen Quellen.',
+      'Nehmen wir ein echtes Beispiel: Sie bekommen ein Baby.',
+      'Der Wegweiser zeigt Ihnen, welche Behördenschritte jetzt wichtig werden könnten.',
     ],
   },
-  kalender: {
-    label: 'Kalender',
-    line10sDu: 'Hier siehst du, was ansteht.',
-    line10sSie: 'Hier sehen Sie, was ansteht.',
-    shortDu: 'Hier siehst du, was ansteht.',
-    shortSie: 'Hier sehen Sie, was ansteht.',
+  profil: {
+    label: 'Profil',
+    line10sDu: 'Freiwillige Angaben. Keine Bewertung. Keine automatische Entscheidung.',
+    line10sSie: 'Freiwillige Angaben. Keine Bewertung. Keine automatische Entscheidung.',
+    shortDu: 'Freiwilliges Kurzprofil — nur zur besseren Sortierung.',
+    shortSie: 'Freiwilliges Kurzprofil — nur zur besseren Sortierung.',
     longDu:
-      'Hier siehst du, was ansteht.\n\n' +
-      'Und bis wann du dich beteiligen kannst.',
+      'Wenn du möchtest, kannst du freiwillig ein kurzes Profil ergänzen. Diese Angaben helfen nur beim Sortieren — daraus entsteht keine Bewertung.',
     longSie:
-      'Hier sehen Sie, was ansteht.\n\n' +
-      'Und bis wann Sie sich beteiligen können.',
+      'Wenn Sie möchten, können Sie freiwillig ein kurzes Profil ergänzen. Diese Angaben helfen nur beim Sortieren — daraus entsteht keine Bewertung.',
     speakSegmentsDu: [
-      'Hier siehst du, was ansteht.',
-      'Und bis wann du dich beteiligen kannst.',
+      'Wenn du möchtest, kannst du freiwillig ein kurzes Profil ergänzen.',
+      'Diese Angaben helfen nur beim Sortieren — daraus entsteht keine Bewertung.',
     ],
     speakSegmentsSie: [
-      'Hier sehen Sie, was ansteht.',
-      'Und bis wann Sie sich beteiligen können.',
+      'Wenn Sie möchten, können Sie freiwillig ein kurzes Profil ergänzen.',
+      'Diese Angaben helfen nur beim Sortieren — daraus entsteht keine Bewertung.',
+    ],
+  },
+  behoerdenweg: {
+    label: 'Behördenweg',
+    line10sDu: 'Welche Stelle? Welche Unterlagen? Welcher nächste Schritt?',
+    line10sSie: 'Welche Stelle? Welche Unterlagen? Welcher nächste Schritt?',
+    shortDu: 'Aus deiner Lebenslage entsteht eine einfache Checkliste.',
+    shortSie: 'Aus Ihrer Lebenslage entsteht eine einfache Checkliste.',
+    longDu:
+      'Aus deiner Lebenslage entsteht eine einfache Checkliste. Du siehst, welche Stelle zuständig sein könnte und welche Unterlagen häufig gebraucht werden.',
+    longSie:
+      'Aus Ihrer Lebenslage entsteht eine einfache Checkliste. Sie sehen, welche Stelle zuständig sein könnte und welche Unterlagen häufig gebraucht werden.',
+    speakSegmentsDu: [
+      'Aus deiner Lebenslage entsteht eine einfache Checkliste.',
+      'Du siehst, welche Stelle zuständig sein könnte und welche Unterlagen häufig gebraucht werden.',
+    ],
+    speakSegmentsSie: [
+      'Aus Ihrer Lebenslage entsteht eine einfache Checkliste.',
+      'Sie sehen, welche Stelle zuständig sein könnte und welche Unterlagen häufig gebraucht werden.',
     ],
   },
   meldungen: {
     label: 'Meldungen',
-    line10sDu: 'Du kannst hier direkt etwas melden.',
-    line10sSie: 'Sie können hier direkt etwas melden.',
-    shortDu: 'Du kannst hier direkt etwas melden.',
-    shortSie: 'Sie können hier direkt etwas melden.',
+    line10sDu: 'Aus einem Foto wird eine nachvollziehbare Meldung.',
+    line10sSie: 'Aus einem Foto wird eine nachvollziehbare Meldung.',
+    shortDu: 'Rattenplage auf dem Drachenspielplatz — mit Foto, Ort und Kategorie.',
+    shortSie: 'Rattenplage auf dem Drachenspielplatz — mit Foto, Ort und Kategorie.',
     longDu:
-      'Du kannst hier direkt etwas melden.\n\n' +
-      'Und nachvollziehen, was daraus wird.',
+      'Wenn vor Ort etwas nicht stimmt, kannst du es strukturiert melden. Zum Beispiel eine Rattenplage auf dem Drachenspielplatz — mit Foto, Ort und Kategorie.',
     longSie:
-      'Sie können hier direkt etwas melden.\n\n' +
-      'Und nachvollziehen, was daraus wird.',
+      'Wenn vor Ort etwas nicht stimmt, können Sie es strukturiert melden. Zum Beispiel eine Rattenplage auf dem Drachenspielplatz — mit Foto, Ort und Kategorie.',
     speakSegmentsDu: [
-      'Du kannst hier direkt etwas melden.',
-      'Und nachvollziehen, was daraus wird.',
+      'Wenn vor Ort etwas nicht stimmt, kannst du es strukturiert melden.',
+      'Zum Beispiel eine Rattenplage auf dem Drachenspielplatz — mit Foto, Ort und Kategorie.',
     ],
     speakSegmentsSie: [
-      'Sie können hier direkt etwas melden.',
-      'Und nachvollziehen, was daraus wird.',
+      'Wenn vor Ort etwas nicht stimmt, können Sie es strukturiert melden.',
+      'Zum Beispiel eine Rattenplage auf dem Drachenspielplatz — mit Foto, Ort und Kategorie.',
+    ],
+  },
+  abstimmen: {
+    label: 'Abstimmungen',
+    line10sDu: 'Punkte für Mitwirkung — nicht für eine bestimmte Meinung.',
+    line10sSie: 'Punkte für Mitwirkung — nicht für eine bestimmte Meinung.',
+    shortDu: 'Der Daumen zeigt nur: Deine Beteiligung wurde erfasst.',
+    shortSie: 'Der Daumen zeigt nur: Ihre Beteiligung wurde erfasst.',
+    longDu:
+      'Nach deiner Teilnahme erscheint eine kurze Bestätigung. Der Daumen zeigt nur: Deine Beteiligung wurde erfasst. Die Punkte stehen für Mitwirkung.',
+    longSie:
+      'Nach Ihrer Teilnahme erscheint eine kurze Bestätigung. Der Daumen zeigt nur: Ihre Beteiligung wurde erfasst. Die Punkte stehen für Mitwirkung.',
+    speakSegmentsDu: [
+      'Nach deiner Teilnahme erscheint eine kurze Bestätigung.',
+      'Der Daumen zeigt nur: Deine Beteiligung wurde erfasst.',
+      'Die Punkte stehen für Mitwirkung — nicht für eine Meinung.',
+    ],
+    speakSegmentsSie: [
+      'Nach Ihrer Teilnahme erscheint eine kurze Bestätigung.',
+      'Der Daumen zeigt nur: Ihre Beteiligung wurde erfasst.',
+      'Die Punkte stehen für Mitwirkung — nicht für eine Meinung.',
+    ],
+  },
+  wahlen: {
+    label: 'Wahlen',
+    line10sDu: 'Wahlvorschau — keine echte Stimmabgabe.',
+    line10sSie: 'Wahlvorschau — keine echte Stimmabgabe.',
+    shortDu: 'Stimmzettel verstehen. Informationen öffnen und Programme vergleichen.',
+    shortSie: 'Stimmzettel verstehen. Informationen öffnen und Programme vergleichen.',
+    longDu:
+      'Das ist keine echte Stimmabgabe. Du kannst sehen, wie ein Stimmzettel aufgebaut ist, Informationen öffnen und Programme vergleichen. Die Markierung ist nur ein neutrales Beispiel — keine Empfehlung.',
+    longSie:
+      'Das ist keine echte Stimmabgabe. Sie können sehen, wie ein Stimmzettel aufgebaut ist, Informationen öffnen und Programme vergleichen. Die Markierung ist nur ein neutrales Beispiel — keine Empfehlung.',
+    speakSegmentsDu: [
+      'Das ist keine echte Stimmabgabe.',
+      'Du kannst sehen, wie ein Stimmzettel aufgebaut ist, Informationen öffnen und Programme vergleichen.',
+      'Die Markierung ist nur ein neutrales Beispiel — keine Empfehlung.',
+    ],
+    speakSegmentsSie: [
+      'Das ist keine echte Stimmabgabe.',
+      'Sie können sehen, wie ein Stimmzettel aufgebaut ist, Informationen öffnen und Programme vergleichen.',
+      'Die Markierung ist nur ein neutrales Beispiel — keine Empfehlung.',
+    ],
+  },
+  kalender: {
+    label: 'Kalender',
+    line10sDu: 'Fristen und Beteiligungen an einem Ort.',
+    line10sSie: 'Fristen und Beteiligungen an einem Ort.',
+    shortDu: 'Fristen, Beteiligungen und Wahltermine — übersichtlich gebündelt.',
+    shortSie: 'Fristen, Beteiligungen und Wahltermine — übersichtlich gebündelt.',
+    longDu:
+      'Im Kalender laufen wichtige Termine zusammen. So siehst du Fristen, Beteiligungen und Wahltermine an einem Ort.',
+    longSie:
+      'Im Kalender laufen wichtige Termine zusammen. So sehen Sie Fristen, Beteiligungen und Wahltermine an einem Ort.',
+    speakSegmentsDu: [
+      'Im Kalender laufen wichtige Termine zusammen.',
+      'So siehst du Fristen, Beteiligungen und Wahltermine an einem Ort.',
+    ],
+    speakSegmentsSie: [
+      'Im Kalender laufen wichtige Termine zusammen.',
+      'So sehen Sie Fristen, Beteiligungen und Wahltermine an einem Ort.',
+    ],
+  },
+  postfach: {
+    label: 'Postfach',
+    line10sDu: 'Beispielhafte Vorschau — keine echte Zustellung oder Behördenanbindung.',
+    line10sSie: 'Beispielhafte Vorschau — keine echte Zustellung oder Behördenanbindung.',
+    shortDu: 'Verifizierte Hinweise, Rückfragen und Statusmeldungen an einem Ort.',
+    shortSie: 'Verifizierte Hinweise, Rückfragen und Statusmeldungen an einem Ort.',
+    longDu:
+      'Im Postfach siehst du beispielhaft, wie verifizierte Behördenkommunikation aussehen könnte. Rückmeldungen, Erinnerungen und Hinweise bleiben nachvollziehbar an einem Ort.',
+    longSie:
+      'Im Postfach sehen Sie beispielhaft, wie verifizierte Behördenkommunikation aussehen könnte. Rückmeldungen, Erinnerungen und Hinweise bleiben nachvollziehbar an einem Ort.',
+    speakSegmentsDu: [
+      'Im Postfach siehst du beispielhaft, wie verifizierte Behördenkommunikation aussehen könnte.',
+      'Rückmeldungen, Erinnerungen und Hinweise bleiben nachvollziehbar an einem Ort.',
+    ],
+    speakSegmentsSie: [
+      'Im Postfach sehen Sie beispielhaft, wie verifizierte Behördenkommunikation aussehen könnte.',
+      'Rückmeldungen, Erinnerungen und Hinweise bleiben nachvollziehbar an einem Ort.',
     ],
   },
   praemien: {
     label: 'Prämien',
-    line10sDu: 'Prämien sind optional.',
-    line10sSie: 'Prämien sind optional.',
-    shortDu: 'Prämien sind optional.',
-    shortSie: 'Prämien sind optional.',
+    line10sDu: 'Lokale Anerkennung fürs Mitmachen — unabhängig von deiner Entscheidung.',
+    line10sSie: 'Lokale Anerkennung fürs Mitmachen — unabhängig von Ihrer Entscheidung.',
+    shortDu: 'Gutschein fürs Naturfreibad in Kirkel — als QR-Code oder fürs Wallet.',
+    shortSie: 'Gutschein fürs Naturfreibad in Kirkel — als QR-Code oder fürs Wallet.',
     longDu:
-      'Prämien sind optional.\n\n' +
-      'Und unabhängig davon, wie du dich entscheidest.',
+      'Wenn eine Kommune Teilnahme anerkennen möchte, kann eine lokale Prämie erscheinen. Zum Beispiel ein Gutschein fürs Naturfreibad in Kirkel — als QR-Code oder fürs Wallet.',
     longSie:
-      'Prämien sind optional.\n\n' +
-      'Und unabhängig davon, wie Sie sich entscheiden.',
+      'Wenn eine Kommune Teilnahme anerkennen möchte, kann eine lokale Prämie erscheinen. Zum Beispiel ein Gutschein fürs Naturfreibad in Kirkel — als QR-Code oder fürs Wallet.',
     speakSegmentsDu: [
-      'Prämien sind optional.',
-      'Und unabhängig davon, wie du dich entscheidest.',
+      'Wenn eine Kommune Teilnahme anerkennen möchte, kann eine lokale Prämie erscheinen.',
+      'Zum Beispiel ein Gutschein fürs Naturfreibad in Kirkel — als QR-Code oder fürs Wallet.',
     ],
     speakSegmentsSie: [
-      'Prämien sind optional.',
-      'Und unabhängig davon, wie Sie sich entscheiden.',
+      'Wenn eine Kommune Teilnahme anerkennen möchte, kann eine lokale Prämie erscheinen.',
+      'Zum Beispiel ein Gutschein fürs Naturfreibad in Kirkel — als QR-Code oder fürs Wallet.',
     ],
   },
-  politikbarometer: {
-    label: 'Politikbarometer',
-    line10sDu: 'Hier markierst du Themen, die dir wichtig sind.',
-    line10sSie: 'Hier markieren Sie Themen, die Ihnen wichtig sind.',
-    shortDu: 'Hier markierst du Themen, die dir wichtig sind.',
-    shortSie: 'Hier markieren Sie Themen, die Ihnen wichtig sind.',
+  oekosystem: {
+    label: 'Ökosystem',
+    line10sDu: 'Ein Civic-Ökosystem für Orientierung, Beteiligung und Vertrauen.',
+    line10sSie: 'Ein Civic-Ökosystem für Orientierung, Beteiligung und Vertrauen.',
+    shortDu: 'Orientierung, Beteiligung, Meldungen, Kommunikation und lokale Anerkennung.',
+    shortSie: 'Orientierung, Beteiligung, Meldungen, Kommunikation und lokale Anerkennung.',
     longDu:
-      'Hier markierst du Themen, die dir wichtig sind.\n\n' +
-      'Damit du schneller findest, was relevant ist.',
+      'So entsteht ein Civic-Ökosystem: Orientierung, Beteiligung, Meldungen, sichere Kommunikation und lokale Anerkennung. Und ich bleibe unten am lila Symbol erreichbar.',
     longSie:
-      'Hier markieren Sie Themen, die Ihnen wichtig sind.\n\n' +
-      'Damit Sie schneller finden, was relevant ist.',
+      'So entsteht ein Civic-Ökosystem: Orientierung, Beteiligung, Meldungen, sichere Kommunikation und lokale Anerkennung. Und ich bleibe unten am lila Symbol erreichbar.',
     speakSegmentsDu: [
-      'Hier markierst du Themen, die dir wichtig sind.',
-      'Damit du schneller findest, was relevant ist.',
-      'Deine Teilnahme bleibt geschützt.',
-      'Und deine Entscheidung wird getrennt verarbeitet.',
+      'So entsteht ein Civic-Ökosystem: Orientierung, Beteiligung, Meldungen, sichere Kommunikation und lokale Anerkennung.',
+      'Und ich bleibe unten am lila Symbol erreichbar.',
     ],
     speakSegmentsSie: [
-      'Hier markieren Sie Themen, die Ihnen wichtig sind.',
-      'Damit Sie schneller finden, was relevant ist.',
-      'Ihre Teilnahme bleibt geschützt.',
-      'Und Ihre Entscheidung wird getrennt verarbeitet.',
+      'So entsteht ein Civic-Ökosystem: Orientierung, Beteiligung, Meldungen, sichere Kommunikation und lokale Anerkennung.',
+      'Und ich bleibe unten am lila Symbol erreichbar.',
     ],
   },
 };
@@ -170,7 +254,7 @@ export function claraBlockForStep(
     line10s,
     short: du ? b.shortDu : b.shortSie,
     long: body,
-    speak: [line10s, ...speakSegments].join(' '),
+    speak: speakSegments.join(' '),
     speakSegments,
   };
 }

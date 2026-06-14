@@ -23,7 +23,7 @@ function getReasonText(reason?: string) {
     case 'error':
       return 'Ein technischer Fehler ist aufgetreten. Bitte versuchen Sie es erneut oder kontaktieren Sie den Absender.';
     default:
-      return 'Der Zugriff auf diese Demo wurde verweigert.';
+      return 'Der Zugriff auf diese Vorschau wurde verweigert.';
   }
 }
 
@@ -34,13 +34,13 @@ export default async function AccessDeniedPage({
 
   return (
     <IphoneFrame>
-      <main className="flex h-full min-h-0 w-full items-center justify-center rounded-b-[1.75rem] px-3 py-6">
+      <main id="main-content" className="civic-gate-page flex h-full min-h-0 w-full items-center justify-center rounded-b-[1.75rem] px-3 py-6">
       <div className="w-full max-w-[360px] rounded-2xl border border-neutral-200 bg-white/70 p-6 text-neutral-900 shadow-lg backdrop-blur-xl">
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-600">
           Zugriff verweigert
         </p>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight text-neutral-900">
-          Kein Zugriff auf diese Demo
+          Kein Zugriff auf diese Vorschau
         </h1>
         <p className="mt-4 text-sm leading-6 text-neutral-800">
           {getReasonText(reason)}
@@ -48,7 +48,7 @@ export default async function AccessDeniedPage({
 
         <div className="mt-6 rounded-2xl border border-neutral-200 bg-white/55 p-4 text-sm text-neutral-800 backdrop-blur">
           Dieser Bereich ist ausschließlich für autorisierte Empfänger mit
-          gültigem personalisiertem Demo-Zugang bestimmt.
+          gültigem personalisiertem Vorschau-Zugang bestimmt.
         </div>
 
         {reason && (
@@ -59,7 +59,7 @@ export default async function AccessDeniedPage({
 
         <p className="mt-6 text-center">
           <Link href="/demo" className="text-sm text-blue-700 underline hover:text-blue-800">
-            Zum Demo-Einstieg
+            Zum Vorschau-Einstieg
           </Link>
         </p>
       </div>

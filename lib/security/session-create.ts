@@ -1,5 +1,11 @@
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sha256 } from '@/lib/security/hash';
+import {
+  devLocalCreateSession,
+  devLocalDeactivateSessionsForToken,
+  isDevLocalAccessEnabled,
+  isDevLocalTokenId,
+} from '@/lib/security/dev-local-access';
 
 export type CreateDemoSessionInput = {
   rawSessionToken: string;
@@ -16,6 +22,18 @@ export type CreateDemoSessionInput = {
  */
 export async function createDemoSession(input: CreateDemoSessionInput): Promise<{ id: string }> {
   const sessionTokenHash = sha256(input.rawSessionToken);
+
+  if (isDevLocalAccessEnabled() && isDevLocalTokenId(input.tokenId)) {
+    return devLocalCreateSession({
+      sessionTokenHash,
+      tokenId: input.tokenId,
+      demoId: input.demoId,
+      fullName: input.fullName,
+      company: input.company ?? null,
+      email: input.email ?? '',
+      expiresAt: input.expiresAt,
+    });
+  }
 
   const { data, error } = await supabaseAdmin
     .from('demo_sessions')
@@ -37,6 +55,17 @@ export async function createDemoSession(input: CreateDemoSessionInput): Promise<
 
   if (error) {
     console.error('Creating demo session failed:', error);
+    if (isDevLocalAccessEnabled() && isDevLocalTokenId(input.tokenId)) {
+      return devLocalCreateSession({
+        sessionTokenHash,
+        tokenId: input.tokenId,
+        demoId: input.demoId,
+        fullName: input.fullName,
+        company: input.company ?? null,
+        email: input.email ?? '',
+        expiresAt: input.expiresAt,
+      });
+    }
     throw new Error('Demo-Session konnte nicht erstellt werden.');
   }
 
@@ -45,6 +74,11 @@ export async function createDemoSession(input: CreateDemoSessionInput): Promise<
 
 /** Deaktiviert alle anderen aktiven Sessions für diesen Access-Token (max_devices). */
 export async function deactivateOtherSessionsForToken(tokenId: string): Promise<void> {
+  if (isDevLocalAccessEnabled() && isDevLocalTokenId(tokenId)) {
+    devLocalDeactivateSessionsForToken(tokenId);
+    return;
+  }
+
   const { error } = await supabaseAdmin
     .from('demo_sessions')
     .update({ is_active: false, is_live: false, ended_at: new Date().toISOString() })
@@ -53,5 +87,8 @@ export async function deactivateOtherSessionsForToken(tokenId: string): Promise<
 
   if (error) {
     console.error('Deactivating other sessions failed:', error);
+    if (isDevLocalAccessEnabled() && isDevLocalTokenId(tokenId)) {
+      devLocalDeactivateSessionsForToken(tokenId);
+    }
   }
 }

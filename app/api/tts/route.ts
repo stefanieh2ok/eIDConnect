@@ -1,24 +1,103 @@
+import { logClaraAiOutput } from '@/lib/ai/clara-ai-audit';
+import { CLARA_OPENAI_TTS_INSTRUCTIONS_DE } from '@/lib/claraTtsVoiceStyle';
+
 export async function POST(req: Request) {
-  const { text } = (await req.json()) as { text?: string };
+  try {
+    const key = process.env.OPENAI_API_KEY;
+    if (!key) {
+      return Response.json(
+        { error: 'TTS ist nicht konfiguriert (OPENAI_API_KEY fehlt auf dem Server).' },
+        { status: 503 },
+      );
+    }
 
-  const response = await fetch('https://api.openai.com/v1/audio/speech', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
+    let body: { text?: string; speed?: number };
+    try {
+      body = (await req.json()) as { text?: string; speed?: number };
+    } catch {
+      return Response.json({ error: 'Ungültige Anfrage.' }, { status: 400 });
+    }
+
+    const text = typeof body.text === 'string' ? body.text.trim() : '';
+    if (text.length < 1) {
+      return Response.json({ error: 'Text fehlt.' }, { status: 400 });
+    }
+    const speed = body.speed === 1 || body.speed === 1.15 ? body.speed : 1.05;
+
+    let response: Response;
+    try {
+      response = await fetch('https://api.openai.com/v1/audio/speech', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini-tts',
+          voice: 'nova',
+          input: text.slice(0, 4000),
+          speed,
+          instructions: CLARA_OPENAI_TTS_INSTRUCTIONS_DE,
+        }),
+      });
+    } catch {
+      return Response.json(
+        { error: 'Netzwerkfehler beim Aufruf der TTS-API (OpenAI nicht erreichbar).' },
+        { status: 502 },
+      );
+    }
+
+    if (!response.ok) {
+      let detail = `OpenAI TTS (${response.status})`;
+      let parsed: {
+        type?: string;
+        code?: string;
+        param?: string | null;
+        message?: string;
+      } | null = null;
+      try {
+        const errJson = (await response.json()) as {
+          error?: { message?: string; type?: string; code?: string; param?: string | null };
+        };
+        const e = errJson?.error;
+        if (e?.message) detail = e.message;
+        if (e && (e.message || e.type || e.code)) parsed = e;
+      } catch {
+        // ignore
+      }
+      // Server-only Diagnose (kein Key); Vercel: Functions-Logs. Client-Response unverändert nutzbar.
+      console.error(
+        '[api/tts] openai_upstream_error',
+        JSON.stringify({
+          openaiHttpStatus: response.status,
+          errorType: parsed?.type ?? null,
+          errorCode: parsed?.code ?? null,
+          errorParam: parsed?.param ?? null,
+          messagePreview:
+            typeof parsed?.message === 'string' ? parsed.message.slice(0, 320) : null,
+        }),
+      );
+      return Response.json({ error: detail }, { status: 502 });
+    }
+
+    const audioBuffer = await response.arrayBuffer();
+
+    await logClaraAiOutput({
+      request: req,
+      channel: 'tts',
       model: 'gpt-4o-mini-tts',
-      voice: 'alloy',
-      input: text,
-    }),
-  });
+      provider: 'openai',
+      inputText: text,
+      outputText: `[audio:${audioBuffer.byteLength}b]`,
+    }).catch(() => undefined);
 
-  const audioBuffer = await response.arrayBuffer();
-
-  return new Response(audioBuffer, {
-    headers: {
-      'Content-Type': 'audio/mpeg',
-    },
-  });
+    return new Response(audioBuffer, {
+      headers: {
+        'Content-Type': 'audio/mpeg',
+      },
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Unbekannter TTS-Serverfehler';
+    return Response.json({ error: msg }, { status: 500 });
+  }
 }

@@ -145,11 +145,11 @@ export function AcceptNdaButton({
       <div className="card-info">
         <p className="t-body-sm font-semibold text-[#003B71]">Nach der Unterzeichnung:</p>
         <p className="mt-1 text-blue-800">
-          Sie werden automatisch zurückgeleitet. <strong>Die Seite wechselt dann in die Demo</strong> – Sie können
+          Sie werden automatisch zurückgeleitet. <strong>Die Seite wechselt dann in die Vorschau</strong> – Sie können
           direkt starten.
         </p>
         <p className="mt-1 text-blue-800">
-          Zusätzlich erhalten Sie eine E-Mail mit einem <strong>direkten Link in die Demo</strong>. Falls die
+          Zusätzlich erhalten Sie eine E-Mail mit einem <strong>direkten Link in die Vorschau</strong>. Falls die
           Weiterleitung im Browser einmal nicht klappt, nutzen Sie den Link in der E-Mail.
         </p>
       </div>
@@ -158,11 +158,11 @@ export function AcceptNdaButton({
         <div className="rounded-lg border-2 border-green-300 bg-green-50 p-4 text-sm text-green-900">
           <p className="font-semibold text-base">{MSG_SUCCESS}</p>
           <p className="mt-2">
-            Wenn die Demo nicht automatisch geöffnet wurde, klicken Sie bitte <strong>erneut auf den Button unten</strong>{' '}
+            Wenn die Vorschau nicht automatisch geöffnet wurde, klicken Sie bitte <strong>erneut auf den Button unten</strong>{' '}
             – Sie werden dann weitergeleitet.
           </p>
           <p className="mt-1 text-green-800">
-            Zusätzlich erhalten Sie in Kürze eine E-Mail mit einem direkten Link zur Demo.
+            Zusätzlich erhalten Sie in Kürze eine E-Mail mit einem direkten Link zur Vorschau.
           </p>
         </div>
       )}
@@ -176,7 +176,7 @@ export function AcceptNdaButton({
         {signingLoading
           ? 'In Bearbeitung …'
           : showSignedInfo
-            ? 'Demo öffnen'
+            ? 'Vorschau öffnen'
             : 'Digital signieren'}
       </button>
 
@@ -198,7 +198,7 @@ export function AcceptNdaButton({
           {showReturnError && (returnCode === 'not_completed' || returnCode === 'return_no_envelope') ? (
             <p className="text-sm text-neutral-600">
               Falls die automatische Weiterleitung nicht funktioniert hat, öffnen Sie bitte den Zugangslink aus der
-              E-Mail erneut oder verwenden Sie den Link zur Demo in der Bestätigungs-E-Mail.
+              E-Mail erneut oder verwenden Sie den Link zur Vorschau in der Bestätigungs-E-Mail.
             </p>
           ) : null}
           {issuerSetupHint ? (

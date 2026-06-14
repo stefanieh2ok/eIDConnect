@@ -6,6 +6,12 @@ import {
   ADMIN_DEMO_COOKIE,
   verifyAdminDemoCookie,
 } from '@/lib/security/admin-demo';
+import {
+  devLocalFindSessionByHash,
+  devLocalInvalidateSession,
+  isDevLocalAccessEnabled,
+  isDevLocalTokenId,
+} from '@/lib/security/dev-local-access';
 
 export const DEMO_SESSION_COOKIE = 'demo_session';
 
@@ -58,12 +64,46 @@ export async function getActiveDemoSession(
 
     if (error) {
       console.log('[Session] DB lookup error:', error.message);
+      if (isDevLocalAccessEnabled()) {
+        const local = devLocalFindSessionByHash(sessionTokenHash);
+        if (local) {
+          const expiresAtMs = new Date(local.session_expires_at).getTime();
+          if (!Number.isNaN(expiresAtMs) && expiresAtMs > Date.now()) {
+            return {
+              sessionId: local.id,
+              tokenId: local.access_token_id,
+              demoId: local.demo_id,
+              fullName: local.full_name,
+              company: local.company ?? '',
+              email: local.email,
+              expiresAt: local.session_expires_at,
+            };
+          }
+        }
+      }
       return null;
     }
 
     const row = data as DemoSessionRecord | null;
     if (!row || !row.session_token_hash) {
       console.log('[Session] No active session row found for hash');
+      if (isDevLocalAccessEnabled()) {
+        const local = devLocalFindSessionByHash(sessionTokenHash);
+        if (local) {
+          const expiresAtMs = new Date(local.session_expires_at).getTime();
+          if (!Number.isNaN(expiresAtMs) && expiresAtMs > Date.now()) {
+            return {
+              sessionId: local.id,
+              tokenId: local.access_token_id,
+              demoId: local.demo_id,
+              fullName: local.full_name,
+              company: local.company ?? '',
+              email: local.email,
+              expiresAt: local.session_expires_at,
+            };
+          }
+        }
+      }
       return null;
     }
 
@@ -124,5 +164,8 @@ export async function invalidateDemoSession(sessionId: string): Promise<void> {
 
   if (error) {
     console.error('Failed to invalidate session:', error);
+    if (isDevLocalAccessEnabled() && sessionId.startsWith('devlocal-session-')) {
+      devLocalInvalidateSession(sessionId);
+    }
   }
 }

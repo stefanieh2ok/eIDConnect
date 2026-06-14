@@ -22,7 +22,26 @@ function usePrefersReducedMotion(): boolean {
   }, []);
 }
 
-const STATUS_LINES = ['Bürgerzugang bestätigt', 'Demo-Daten geladen'] as const;
+const STATUS_LINES = ['Bürgerzugang bestätigt', 'Vorschaudaten geladen'] as const;
+
+/** Kurzer, einmaliger Reveal-Burst nur im App-Übergang (nicht Walkthrough / nicht Zugangsscreen). */
+const DEMO_LAUNCH_CONFETTI_SPOKES = 20;
+
+const DEMO_LAUNCH_CONFETTI_DOTS: readonly {
+  left: string;
+  top: string;
+  delayMs: number;
+  dx: string;
+  dy: string;
+  background: string;
+}[] = [
+  { left: '44%', top: '32%', delayMs: 90, dx: '12px', dy: '-36px', background: 'rgba(224, 242, 254, 0.88)' },
+  { left: '53%', top: '34%', delayMs: 130, dx: '-16px', dy: '-40px', background: 'rgba(196, 181, 253, 0.55)' },
+  { left: '48%', top: '30%', delayMs: 160, dx: '8px', dy: '-48px', background: 'rgba(224, 242, 254, 0.72)' },
+  { left: '56%', top: '38%', delayMs: 110, dx: '-20px', dy: '-32px', background: 'rgba(165, 243, 252, 0.65)' },
+  { left: '42%', top: '40%', delayMs: 180, dx: '18px', dy: '-28px', background: 'rgba(237, 233, 254, 0.7)' },
+  { left: '50%', top: '42%', delayMs: 140, dx: '-10px', dy: '-44px', background: 'rgba(224, 242, 254, 0.78)' },
+];
 
 export function DemoLaunchEffect({
   open,
@@ -83,6 +102,44 @@ export function DemoLaunchEffect({
         animationDuration: `${timings.fadeIn}ms`,
       }}
     >
+      {!reduced ? (
+        <div className="demo-launch-confetti-layer" aria-hidden>
+          <div className="demo-launch-confetti-burst">
+            {Array.from({ length: DEMO_LAUNCH_CONFETTI_SPOKES }, (_, i) => {
+              const deg = (360 / DEMO_LAUNCH_CONFETTI_SPOKES) * i;
+              const violet = i % 5 === 0;
+              return (
+                <div
+                  key={`spoke-${i}`}
+                  className={`demo-launch-confetti-spoke${violet ? ' demo-launch-confetti-spoke--violet' : ''}`}
+                  style={{ transform: `rotate(${deg}deg)` }}
+                >
+                  <span
+                    className="demo-launch-confetti-ray"
+                    style={{ animationDelay: `${i * 38}ms` }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          {DEMO_LAUNCH_CONFETTI_DOTS.map((d, i) => (
+            <span
+              key={`dot-${i}`}
+              className="demo-launch-confetti-dot"
+              style={
+                {
+                  left: d.left,
+                  top: d.top,
+                  animationDelay: `${d.delayMs}ms`,
+                  background: d.background,
+                  '--dx': d.dx,
+                  '--dy': d.dy,
+                } as React.CSSProperties
+              }
+            />
+          ))}
+        </div>
+      ) : null}
       <button
         type="button"
         className="absolute right-3 top-3 rounded-lg px-2 py-1 text-[10px] font-medium text-white/55 hover:text-white/75"
@@ -92,7 +149,7 @@ export function DemoLaunchEffect({
       </button>
 
       <div className="pointer-events-none relative z-10 flex w-full max-w-[min(21.5rem,92vw)] flex-col items-center px-5 text-center">
-        <p className="text-[11px] font-semibold tracking-[0.12em] text-cyan-100/95">HookAI Civic Demo</p>
+        <p className="text-[11px] font-semibold tracking-[0.12em] text-cyan-100/95">HookAI Civic</p>
 
         {!reduced ? (
           <div
@@ -111,7 +168,7 @@ export function DemoLaunchEffect({
           </div>
         ) : null}
 
-        <p className="mt-5 text-[14px] font-semibold text-white/95">Demo wird geöffnet</p>
+        <p className="mt-5 text-[14px] font-semibold text-white/95">HookAI Civic wird geöffnet</p>
         <p className="mt-1.5 text-[10px] leading-relaxed text-slate-300/85">
           Keine produktive Abstimmung. Keine rechtswirksame Stimmabgabe.
         </p>

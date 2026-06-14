@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Mic, MicOff, MessageCircle, X } from 'lucide-react';
 import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { ClaraAI } from '@/services/claraAI';
@@ -10,6 +10,8 @@ import {
   introEntryVoiceUnrecognizedLine,
   matchAnredeFromSpeech,
   matchIntroEntryBranchFromSpeech,
+  normalizeVoiceTranscript,
+  parseClaraVoiceIntent,
 } from '@/lib/introVoiceIntents';
 import {
   ANREDE_VOICE_PROMPT,
@@ -47,6 +49,7 @@ interface ClaraVoiceInterfaceProps {
   backdropPosition?: 'fixed' | 'absolute';
   /** Intro/Walkthrough: strikt Voice-only, kein Text-Chat-Fallback. */
   voiceOnlyMode?: boolean;
+  walkthroughActive?: boolean;
 }
 
 function isSpeechRecognitionSupported() {
@@ -69,6 +72,7 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
   voiceOpenNonce = 0,
   openingSeedLine = null,
   voiceOnlyMode = false,
+  walkthroughActive = false,
 }) => {
   const { state } = useApp();
   const [conversation, setConversation] = useState<string[]>([]);
@@ -92,10 +96,29 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
     /not-allowed|denied|service-not-allowed/i.test(voiceState.error);
   const isAppVoiceGreeting = preLoginVoicePhase == null && !voiceOnlyMode;
   const userLinePrefix = addressMode === 'sie' ? 'Sie:' : 'Du:';
+  const fallbackShownRef = useRef(false);
+
+  const speakAndAppend = useCallback(
+    (line: string, spokenLine?: string) => {
+      setConversation((prev) => [...prev, `Clara: ${line}`]);
+      speak(spokenLine ?? line);
+    },
+    [speak],
+  );
+
+  const appendFallbackOnce = useCallback(
+    (line: string, spokenLine?: string) => {
+      if (fallbackShownRef.current) return;
+      fallbackShownRef.current = true;
+      speakAndAppend(line, spokenLine);
+    },
+    [speakAndAppend],
+  );
 
   useLayoutEffect(() => {
     if (isOpen) {
       setConversation([]);
+      fallbackShownRef.current = false;
     }
   }, [isOpen, preLoginVoicePhase]);
 
@@ -120,12 +143,15 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
 
   const handleVoiceInput = useCallback(
     async (transcript: string) => {
-      setConversation((prev) => [...prev, `${userLinePrefix} ${transcript}`]);
       setIsProcessing(true);
 
       if (preLoginVoicePhase === 'anrede') {
-        const pick = matchAnredeFromSpeech(transcript);
+        const normalizedText = normalizeVoiceTranscript(transcript);
+        console.log('Clara transcript:', normalizedText);
+        const pick = matchAnredeFromSpeech(normalizedText);
         if (pick && onAnredeVoiceChoice) {
+          fallbackShownRef.current = false;
+          setConversation((prev) => [...prev, `${userLinePrefix} ${transcript}`]);
           try {
             stopSpeaking();
           } catch {
@@ -134,23 +160,39 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
           onAnredeVoiceChoice(pick);
           const conf =
             pick === 'du'
-              ? 'Alles klar, ich nutze ab jetzt die Du-Form für dich.'
-              : 'Gern, ich formuliere in der Sie-Form.';
-          setConversation((prev) => [...prev, `Clara: ${conf}`]);
-          speak(conf);
+              ? 'Alles klar, ich bleibe beim Du.'
+              : 'Alles klar, ich bleibe bei der Sie-Form.';
+          speakAndAppend(conf);
           setIsProcessing(false);
           return;
         }
         const hint = anredeVoiceUnrecognizedLine();
-        setConversation((prev) => [...prev, `Clara: ${hint}`]);
-        speak(hint);
+        // Kein User-Bubble bei unklarer Anrede: nur Claras Rückfrage anzeigen.
+        appendFallbackOnce(hint);
         setIsProcessing(false);
         return;
       }
 
+      setConversation((prev) => [...prev, `${userLinePrefix} ${transcript}`]);
+
       if (preLoginVoicePhase === 'entry') {
+        const entryIntent = parseClaraVoiceIntent(transcript, { inAnredeGate: false, hasAddress: true });
+        if (entryIntent.type === 'STOP_SPEECH') {
+          fallbackShownRef.current = false;
+          stopSpeaking();
+          setConversation((prev) => [...prev, 'Clara: Okay, ich stoppe kurz.']);
+          setIsProcessing(false);
+          return;
+        }
+        if (entryIntent.type === 'HELP') {
+          fallbackShownRef.current = false;
+          speakAndAppend('Du kannst zum Beispiel sagen: weiter, zurück, nochmal, stopp oder zur App.');
+          setIsProcessing(false);
+          return;
+        }
         const pick = matchIntroEntryBranchFromSpeech(transcript);
         if (pick && onIntroEntryVoiceChoice) {
+          fallbackShownRef.current = false;
           try {
             stopSpeaking();
           } catch {
@@ -165,19 +207,42 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
               : addressMode === 'sie'
                 ? 'Alles klar, Sie wechseln direkt in die App.'
                 : 'Alles klar, du wechselst direkt in die App.';
-          setConversation((prev) => [...prev, `Clara: ${conf}`]);
-          speak(conf);
+          speakAndAppend(conf);
           setIsProcessing(false);
           return;
         }
         const hint = introEntryVoiceUnrecognizedLine(addressMode !== 'sie');
-        setConversation((prev) => [...prev, `Clara: ${hint}`]);
-        speak(hint);
+        appendFallbackOnce(hint);
         setIsProcessing(false);
         return;
       }
 
       if (preLoginVoicePhase === 'eid') {
+        const intent = parseClaraVoiceIntent(transcript, { inAnredeGate: false, hasAddress: true });
+        if (intent.type !== 'UNKNOWN') {
+          fallbackShownRef.current = false;
+          if (intent.type === 'SET_ADDRESS_DU' && onAnredeVoiceChoice) {
+            onAnredeVoiceChoice('du');
+            speakAndAppend('Alles klar, ich bleibe beim Du.');
+          } else if (intent.type === 'SET_ADDRESS_SIE' && onAnredeVoiceChoice) {
+            onAnredeVoiceChoice('sie');
+            speakAndAppend('Alles klar, ich bleibe bei der Sie-Form.');
+          } else if (intent.type === 'HELP') {
+            speakAndAppend('Du kannst zum Beispiel sagen: weiter, zurück, nochmal, stopp oder zur App.');
+          } else if (intent.type === 'STOP_SPEECH') {
+            stopSpeaking();
+            setConversation((prev) => [...prev, 'Clara: Okay, ich stoppe kurz.']);
+          }
+          try {
+            window.dispatchEvent(
+              new CustomEvent('eidconnect:intro-voice-intent', { detail: { intent: intent.type } }),
+            );
+          } catch {
+            // ignore
+          }
+          setIsProcessing(false);
+          return;
+        }
         let response = '';
         try {
           response = await claraAI.generateChatResponse(transcript, currentCard);
@@ -187,8 +252,41 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
               ? 'Entschuldigung, bitte versuchen Sie es erneut.'
               : 'Entschuldigung, bitte versuch es erneut.';
         }
-        setConversation((prev) => [...prev, `Clara: ${response}`]);
-        speak(response);
+        speakAndAppend(response);
+        fallbackShownRef.current = false;
+        setIsProcessing(false);
+        return;
+      }
+
+      if (walkthroughActive) {
+        const intent = parseClaraVoiceIntent(transcript, { inAnredeGate: false, hasAddress: true });
+        if (intent.type !== 'UNKNOWN') {
+          fallbackShownRef.current = false;
+          if (intent.type === 'SET_ADDRESS_DU' && onAnredeVoiceChoice) {
+            onAnredeVoiceChoice('du');
+            speakAndAppend('Alles klar, ich bleibe beim Du.');
+          } else if (intent.type === 'SET_ADDRESS_SIE' && onAnredeVoiceChoice) {
+            onAnredeVoiceChoice('sie');
+            speakAndAppend('Alles klar, ich bleibe bei der Sie-Form.');
+          } else if (intent.type === 'HELP') {
+            speakAndAppend('Du kannst zum Beispiel sagen: weiter, zurück, nochmal, stopp oder zur App.');
+          } else if (intent.type === 'STOP_SPEECH') {
+            stopSpeaking();
+            setConversation((prev) => [...prev, 'Clara: Okay, ich stoppe kurz.']);
+          }
+          try {
+            window.dispatchEvent(
+              new CustomEvent('eidconnect:intro-voice-intent', { detail: { intent: intent.type } }),
+            );
+          } catch {
+            // ignore
+          }
+          setIsProcessing(false);
+          return;
+        }
+        appendFallbackOnce(
+          'Das habe ich nicht ganz verstanden. Du kannst zum Beispiel sagen: weiter, nochmal, stopp oder zur App.',
+        );
         setIsProcessing(false);
         return;
       }
@@ -207,8 +305,8 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
             : 'Entschuldigung, da ist etwas schiefgelaufen. Bitte versuche es später erneut.';
       }
 
-      setConversation((prev) => [...prev, `Clara: ${response}`]);
-      speak(response);
+      speakAndAppend(response);
+      fallbackShownRef.current = false;
       setIsProcessing(false);
     },
     [
@@ -219,8 +317,10 @@ const ClaraVoiceInterface: React.FC<ClaraVoiceInterfaceProps> = ({
       addressMode,
       claraAI,
       currentCard,
-      speak,
+      speakAndAppend,
       stopSpeaking,
+      appendFallbackOnce,
+      walkthroughActive,
     ],
   );
 

@@ -1,0 +1,341 @@
+{
+  "generatedAt": "2026-06-13T08:29:28.707Z",
+  "report": [
+    {
+      "width": 375,
+      "screen": "wegweiser",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 375,
+      "screen": "wegweiser-expanded",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 375,
+      "screen": "behoerdenweg-results",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 375,
+      "screen": "detail-personalausweis",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 375,
+      "screen": "clara-pill",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 375,
+      "screen": "clara-half",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 375,
+      "screen": "clara-full",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 375,
+      "screen": "meldungen-kategorie",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 375,
+      "screen": "meldungen-status",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 375,
+      "screen": "abstimmen",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 375,
+      "screen": "wahlen-ergebnisse",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 375,
+      "screen": "stimmzettel-viewer",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 375,
+      "screen": "settings-trust",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 375,
+      "screen": "mitwirkung",
+      "scrollWidth": 375,
+      "clientWidth": 375,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "wegweiser",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "wegweiser-expanded",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "behoerdenweg-results",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "detail-personalausweis",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "clara-pill",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "clara-half",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "clara-full",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "meldungen-kategorie",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "meldungen-status",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "abstimmen",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "wahlen-ergebnisse",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "stimmzettel-viewer",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "settings-trust",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 390,
+      "screen": "mitwirkung",
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "wegweiser",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "wegweiser-expanded",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "behoerdenweg-results",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "detail-personalausweis",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "clara-pill",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "clara-half",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "clara-full",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "meldungen-kategorie",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "meldungen-status",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "abstimmen",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "wahlen-ergebnisse",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "stimmzettel-viewer",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "settings-trust",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    },
+    {
+      "width": 430,
+      "screen": "mitwirkung",
+      "scrollWidth": 430,
+      "clientWidth": 430,
+      "horizontalOverflow": false,
+      "hitOrClip": []
+    }
+  ]
+}

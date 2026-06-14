@@ -23,6 +23,8 @@ const SECTION_LEVELS: Record<Section, EbeneLevel[]> = {
   news: [],
   kalender: ['bund', 'land', 'kreis', 'kommune'],
   meldungen: ['kommune'],
+  postfach: ['bund', 'land', 'kreis', 'kommune'],
+  fuermich: [],
 };
 
 export function levelForLocation(loc: Location): EbeneLevel {

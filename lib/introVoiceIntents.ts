@@ -8,52 +8,128 @@ const normalize = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u03
 /**
  * Nur Kleinbuchstaben + Whitespace (kein diakritik-Stripping — „förmlich“ muss matchen).
  */
-const normalizeDeSoft = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+export const normalizeVoiceTranscript = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[.,!?;:()[\]{}"'`´]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const hasAny = (t: string, parts: string[]) => {
+  const padded = ` ${t} `;
+  return parts.some((part) => padded.includes(` ${part} `));
+};
+
+export type ClaraVoiceIntentType =
+  | 'SET_ADDRESS_DU'
+  | 'SET_ADDRESS_SIE'
+  | 'NEXT_STEP'
+  | 'PREVIOUS_STEP'
+  | 'START_INTRO'
+  | 'OPEN_APP'
+  | 'STOP_SPEECH'
+  | 'REPEAT_CURRENT'
+  | 'HELP'
+  | 'UNKNOWN';
+
+export type ClaraVoiceIntent = {
+  type: ClaraVoiceIntentType;
+};
+
+export type ClaraContext = {
+  /** Nur wenn Anrede gerade aktiv abgefragt wird. */
+  inAnredeGate: boolean;
+  /** Wurde Du/Sie bereits explizit gesetzt? */
+  hasAddress: boolean;
+};
+
+const NEUTRAL_ANREDE_DU_CHOICES = [
+  'ist egal',
+  'egal',
+  'mir egal',
+  'ist mir egal',
+  'such du aus',
+  'entscheide du',
+  'mach einfach',
+  'wie du willst',
+  'passt schon',
+  'okay',
+  'ja',
+  'weiter',
+];
+
+/**
+ * Robuste, regelbasierte Intent-Erkennung für Voice-Kommandos im Intro/Walkthrough.
+ * Kein LLM: deterministisch, schnell, gut testbar.
+ */
+export function parseClaraVoiceIntent(transcript: string, context: ClaraContext): ClaraVoiceIntent {
+  const t = normalizeVoiceTranscript(transcript);
+  if (!t) return { type: 'UNKNOWN' };
+
+  const isDu = hasAny(t, ['du', 'duzen', 'per du', 'bitte du', 'du bitte']);
+  const isSie = hasAny(t, ['sie', 'siezen', 'per sie', 'bitte sie', 'sie bitte', 'foermlich', 'förmlich']);
+  if (isDu && !isSie) return { type: 'SET_ADDRESS_DU' };
+  if (isSie && !isDu) return { type: 'SET_ADDRESS_SIE' };
+
+  if (context.inAnredeGate && !context.hasAddress && hasAny(t, NEUTRAL_ANREDE_DU_CHOICES)) {
+    return { type: 'SET_ADDRESS_DU' };
+  }
+
+  if (
+    hasAny(t, ['stopp', 'stop', 'clara stoppen', 'hoer auf', 'hör auf', 'pause'])
+  ) {
+    return { type: 'STOP_SPEECH' };
+  }
+  if (hasAny(t, ['hilfe', 'was kann ich sagen', 'was kann ich tun'])) return { type: 'HELP' };
+  if (hasAny(t, ['nochmal', 'wiederholen', 'bitte nochmal erklaeren', 'bitte nochmal erklären', 'was hast du gesagt'])) {
+    return { type: 'REPEAT_CURRENT' };
+  }
+  if (hasAny(t, ['zurueck', 'zurück', 'vorheriger schritt', 'eins zurueck', 'eins zurück'])) {
+    return { type: 'PREVIOUS_STEP' };
+  }
+  if (hasAny(t, ['weiter', 'naechster schritt', 'nächster schritt', 'fortfahren', 'mach weiter', 'weiter bitte', 'bitte weiter'])) {
+    return { type: 'NEXT_STEP' };
+  }
+  if (
+    hasAny(t, [
+      'zur app',
+      'app oeffnen',
+      'app öffnen',
+      'demo oeffnen',
+      'demo öffnen',
+      'zur demo',
+      'einfuehrung ueberspringen',
+      'einführung überspringen',
+    ]) ||
+    t === 'app'
+  ) {
+    return { type: 'OPEN_APP' };
+  }
+  if (
+    hasAny(t, ['start', 'bitte starten', 'starte die einfuehrung', 'starte die einführung', 'einfuehrung', 'einführung', 'erklaer mir die app', 'erklär mir die app', 'leg los'])
+  ) {
+    return { type: 'START_INTRO' };
+  }
+
+  return { type: 'UNKNOWN' };
+}
 
 /**
  * Wählt anhand freier Deutscher Sprachweise „Du“ oder „Sie“ (eID Anrede-Screen).
  * Heuristik absichtlich konservativ: bei widersprüchlichen Signalen `null` → Nutzer:innen wählt per Tippen.
  */
 export function matchAnredeFromSpeech(input: string): 'du' | 'sie' | null {
-  const t = normalizeDeSoft(input);
-  if (!t) return null;
-
-  let d = 0;
-  let s = 0;
-
-  if (/\b(duz|dutzen)\b/.test(t)) d += 4;
-  if (/\bper du\b/.test(t)) d += 4;
-  if (/\b(nicht förmlich|nicht formell|nicht foermlich|informell|persoenlich|persönlich)\b/.test(t)) d += 2;
-  if (/\b(du bitte|bitte du)\b/.test(t)) d += 3;
-  if (/\bich (will|moechte|möchte) (gern |lieber )?du\b/.test(t)) d += 3;
-  if (/\b(ich will|moechte|möchte) (gern |lieber )?nur (die )?du(-| )?form\b/.test(t)) d += 3;
-  if (/\bmit du (ansprech|reden|sprech|anreden)\b/.test(t)) d += 2;
-
-  if (/\b(siezen|förmlich|foermlich|formell)\b/.test(t)) s += 4;
-  if (/\bper sie\b/.test(t)) s += 3;
-  if (/\bich (will|moechte|möchte) (gern |lieber )?sie\b/.test(t)) s += 3;
-  if (/\bsie (bitte|bitteschön|bitteschoen|bitte schön|bitte schoen)\b/.test(t)) s += 2;
-  if (/\b(ich moechte|möchte) (gern |lieber )?die sie(-| )?form\b/.test(t)) s += 3;
-  if (/\b(foermlich|förmlich) (anreden|ansprechen|halten)\b/.test(t)) s += 2;
-
-  if (t === 'du' || t === 'duu') d += 3;
-  if (t === 'sie' || t === 'see' || t === 'zi') s += 2;
-
-  if (d > 0 && s > 0 && d === s) {
-    return null;
-  }
-  if (d > s) return 'du';
-  if (s > d) return 'sie';
-  if (d > 0) return 'du';
-  if (s > 0) return 'sie';
+  const intent = parseClaraVoiceIntent(input, { inAnredeGate: true, hasAddress: false });
+  if (intent.type === 'SET_ADDRESS_DU') return 'du';
+  if (intent.type === 'SET_ADDRESS_SIE') return 'sie';
   return null;
 }
 
 /** Spoken, kurz, segmentiert (TTS). */
 export function anredeVoiceUnrecognizedParts(): string[] {
   return [
-    'Das habe ich nicht eindeutig verstanden.',
-    'Sag ruhig „Du“ oder „Sie“. Oder wähl im Auswahlfeld und tippe „Weiter“.',
+    'Ich habe das nicht sicher verstanden.',
+    'Möchtest du per Du oder per Sie angesprochen werden?',
   ];
 }
 
@@ -67,7 +143,7 @@ export type IntroEntryVoiceChoice = 'start' | 'direct';
  * Einstiegs-Screen „Einführung starten“ vs „Direkt zur App“ (ohne LLM).
  */
 export function matchIntroEntryBranchFromSpeech(input: string): IntroEntryVoiceChoice | null {
-  const t = normalizeDeSoft(input);
+  const t = normalizeVoiceTranscript(input);
   if (!t) return null;
 
   const directHints =

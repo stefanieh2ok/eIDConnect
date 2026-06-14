@@ -3,8 +3,8 @@ import { APP_DISPLAY_NAME } from '@/lib/branding';
 import { AppStage } from '@/components/ui/AppStage';
 
 export const metadata: Metadata = {
-  title: `Demo – ${APP_DISPLAY_NAME}`,
-  description: 'Vertrauliche personalisierte Demo.',
+  title: `Vorschau – ${APP_DISPLAY_NAME}`,
+  description: 'Vertrauliche personalisierte Konzeptvorschau.',
   robots: { index: false, follow: false },
 };
 

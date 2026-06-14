@@ -4,11 +4,14 @@ import React, { useState, useLayoutEffect, useEffect, useCallback, useMemo } fro
 import { useApp } from '@/context/AppContext';
 import LoginScreen from '@/components/Login/LoginScreen';
 import AppHeader from '@/components/Header/AppHeader';
+import AppBottomNav from '@/components/Header/AppBottomNav';
 import LiveSection from '@/components/Live/LiveSection';
 import LeaderboardSection from '@/components/Leaderboard/LeaderboardSection';
 import ElectionsSection from '@/components/Elections/ElectionsSection';
 import CalendarSection from '@/components/Calendar/CalendarSection';
 import MeldungenSection from '@/components/Meldungen/MeldungenSection';
+import PostfachSection from '@/components/Postfach/PostfachSection';
+import FuerMichSection from '@/components/FuerMich/FuerMichSection';
 import StimmzettelModal from '@/components/Modals/StimmzettelModal';
 import IntroOverlay from '@/components/Intro/IntroOverlay';
 import DemoIntroWalkthrough from '@/components/Intro/DemoIntroWalkthrough';
@@ -22,6 +25,7 @@ import {
   writeWantsWalkthrough,
   clearIntroSessionKeys,
 } from '@/lib/introPreLoginPhase';
+import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
 import ClaraDock from '@/components/Clara/ClaraDock';
 import {
   CLARA_DOCK_EXTRA_BOTTOM_ANREDE_ENTRY,
@@ -41,12 +45,16 @@ import { playDemoLaunchAudio } from '@/lib/playDemoLaunchAudio';
 // Produkteinführung (4 Screens) vor Login/Onboarding — eigenes Flag, nicht mit eID/Anrede vermischen.
 const PRODUCT_INTRO_DONE_KEY = 'eidconnect_product_intro_done_v4';
 const REWARDS_OPTIN_PROMPT_SHOWN_KEY = 'eidconnect_rewards_optin_prompt_shown_v1';
+/** Demo-Standort wie im früheren LoginScreen — für geführten Walkthrough vor `SET_LOGGED_IN`. */
+const GUIDED_DEMO_STREET = 'Hauptstraße 1';
+const GUIDED_DEMO_PLZ = '66459';
+const GUIDED_DEMO_CITY = 'Kirkel';
 type BuergerAppProps = { variant?: 'fullscreen' | 'device' };
 
 export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) {
   const { state, dispatch } = useApp();
   /**
-   * Produkt-Intro: zuerst, danach erst eID-Onboarding (LoginScreen).
+   * Produkt-Intro / Post-Login-Walkthrough-Overlay.
    *
    * Start IMMER mit `true`, damit Server-HTML und Client-Hydration deckungsgleich sind
    * (sonst Hydration-Mismatch: Server rendert Intro, Client rendert LoginScreen, wenn
@@ -55,10 +63,10 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
    * Die korrekte Entscheidung treffen wir in einem `useLayoutEffect` weiter unten –
    * das läuft synchron vor dem Paint, also ohne sichtbares Aufflackern.
    */
-  // Einführungs-Flow (State Clarity): Anrede (Schritt 1) → eID/LoginScreen
-  // (Schritt 2) → Walkthrough (Schritte 3–8, inkl. Politikbarometer als
-  // letztem Schritt) → App. Der Walkthrough läuft jetzt ausschließlich POST-
-  // Login und zeigt dort die sechs Vorschau-Screens inkl. finaler Themenwahl.
+  // Einführungs-Flow: Anrede → Einstieg (Entry) → bei „Einführung starten“ direkt
+  // eingeloggter Walkthrough (Auth „Zugang & Demo“ zuerst). Die alte LoginScreen-
+  // Vollfläche (eID/EU-Wallet) entfällt für diesen Pfad — LoginScreen bleibt nur
+  // für Sonderfälle (z. B. Session „ok“ ohne Walkthrough-Wunsch).
   //
   // `postLoginIntroOpen` startet IMMER `true`, damit Server-HTML und Client-
   // Hydration deckungsgleich bleiben. Die eigentliche Entscheidung fällt in
@@ -80,7 +88,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     if (typeof window === 'undefined') return;
     resetViewportScroll();
     requestAnimationFrame(() => {
-      const el = document.getElementById('main-scroll');
+      const el = document.getElementById('main-content');
       if (!el) return;
       el.scrollTop = 0;
       try {
@@ -108,6 +116,8 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     news: [],
     kalender: ['bund', 'land', 'kreis', 'kommune'],
     meldungen: ['kommune'],
+    postfach: ['bund', 'land', 'kreis', 'kommune'],
+    fuermich: ['bund', 'land', 'kreis', 'kommune'],
   };
   const locationLineForLaunch = useMemo(() => {
     const kommune = activeLocationForLevel(state.residenceLocation, 'kommune');
@@ -143,13 +153,32 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     setPreLogin(readPreLoginPhase());
   }, []);
 
+  /**
+   * Reload: Session „preLogin ok + Walkthrough“ ohne Redux-Login → sofort
+   * Demo einloggen (wie früher „Weiter in die Einführung“), ohne alte LoginScreen-UI.
+   */
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (state.isLoggedIn) return;
+    if (state.anrede == null) return;
+    if (readPreLoginPhase() !== 'ok') return;
+    if (!readWantsWalkthrough()) return;
+    try {
+      persistAndSyncDemoAddress(dispatch as never, GUIDED_DEMO_STREET, GUIDED_DEMO_PLZ, GUIDED_DEMO_CITY);
+    } catch {
+      // ignore
+    }
+    dispatch({ type: 'SET_LOGIN_AUTH_METHOD', payload: 'eid' });
+    dispatch({ type: 'SET_LOGGED_IN', payload: true });
+  }, [dispatch, state.isLoggedIn, state.anrede]);
+
   /** NDA / Vor-Seite / Phasenwechsel: kein ererbter Fenster- oder Innen-Scroll → Layout-Sprung vermeiden. */
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return;
     if (state.isLoggedIn) return;
     const reset = () => {
       resetViewportScroll();
-      const inner = document.getElementById('login-main-scroll');
+      const inner = document.getElementById('login-main-content');
       if (inner) inner.scrollTop = 0;
     };
     reset();
@@ -265,21 +294,24 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
 
   const finishProductIntro = () => {
     tryStartDemoLaunchFromUserGesture('full');
+    if (state.activeSection === 'leaderboard') {
+      dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'live' });
+    }
     try {
       localStorage.setItem(PRODUCT_INTRO_DONE_KEY, 'true');
     } catch {}
     setPostLoginIntroOpen(false);
   };
 
-  /** Erster Walkthrough-Schritt: zurück zur eID-Demo (ohne Intro als „erledigt“ zu markieren). */
+  /** Erster Walkthrough-Schritt: zurück zum Einstieg (Entry), nicht zur alten LoginScreen-Fläche. */
   const backFromWalkthroughFirstStep = () => {
     try {
-      writePreLoginPhase('ok');
+      writePreLoginPhase('entry');
       writeWantsWalkthrough(true);
     } catch {
       // ignore
     }
-    setPreLogin('ok');
+    setPreLogin('entry');
     setPostLoginIntroOpen(true);
     dispatch({ type: 'SET_LOGGED_IN', payload: false });
   };
@@ -289,6 +321,20 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     postLoginIntroOpen &&
     state.anrede != null &&
     readWantsWalkthrough();
+
+  const showMainBottomNav = state.isLoggedIn && !walkthroughChrome && !postLoginIntroOpen;
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (showMainBottomNav) {
+      document.documentElement.setAttribute('data-shell-nav', 'bottom');
+    } else if (state.isLoggedIn) {
+      document.documentElement.setAttribute('data-shell-nav', 'legacy');
+    } else {
+      document.documentElement.removeAttribute('data-shell-nav');
+    }
+    return () => document.documentElement.removeAttribute('data-shell-nav');
+  }, [showMainBottomNav, state.isLoggedIn]);
 
   const participationActivityCount =
     state.participationVoteCount + state.participationElectionCount + state.participationByLevel.kommune;
@@ -346,6 +392,8 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
           />
         );
       case 'meldungen':   return <MeldungenSection />;
+      case 'postfach':    return <PostfachSection />;
+      case 'fuermich':    return <FuerMichSection />;
       default:            return <LiveSection />;
     }
   };
@@ -368,6 +416,13 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     } catch {
       // ignore
     }
+    try {
+      persistAndSyncDemoAddress(dispatch as never, GUIDED_DEMO_STREET, GUIDED_DEMO_PLZ, GUIDED_DEMO_CITY);
+    } catch {
+      // ignore
+    }
+    dispatch({ type: 'SET_LOGIN_AUTH_METHOD', payload: 'eid' });
+    dispatch({ type: 'SET_LOGGED_IN', payload: true });
     setPreLogin('ok');
   };
 
@@ -409,11 +464,20 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
               onDirectToApp={onEntryDirect}
               position={isDevice ? 'absolute' : 'fixed'}
             />
-            <LoginScreen
-              renderFrame={!isDevice}
-              preLoginPhase={preLogin}
-              onBackToEntry={() => setPreLogin('entry')}
-            />
+            {/*
+              Geführter Walkthrough: nach Entry → sofort Login (onEntryStart), daher
+              keine alte LoginScreen-Vollfläche. LoginScreen nur noch, wenn explizit
+              „ok“ ohne Walkthrough (Randfall) oder vorübergehende Client-Session.
+            */}
+            {!state.isLoggedIn &&
+            preLogin === 'ok' &&
+            !(readWantsWalkthrough() && state.anrede != null) ? (
+              <LoginScreen
+                renderFrame={!isDevice}
+                preLoginPhase={preLogin}
+                onBackToEntry={() => setPreLogin('entry')}
+              />
+            ) : null}
           </div>
         ) : (
           <>
@@ -421,7 +485,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                 sonst ändert sich beim Login das Wrapper-Verhältnis und der gescalte iPhone-Frame
                 „springt" sichtbar. Nur Farbe/app-body wird hinzugefügt. */}
             <div
-              className={`relative flex flex-col app-body bg-[#F7F9FC] h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
+              className={`civic-app-shell relative flex flex-col app-body bg-[#F7F9FC] h-full min-h-0 w-full min-w-0 flex-1 overflow-hidden ${
                 walkthroughChrome ? 'z-[650]' : ''
               } ${isDevice ? '' : 'min-h-[100dvh]'}`}
             >
@@ -431,7 +495,6 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                   <DemoIntroWalkthrough
                     du={state.anrede === 'du'}
                     residenceLocation={state.residenceLocation}
-                    startStepId="abstimmen"
                     fillDeviceFrame={isDevice}
                     onClose={finishProductIntro}
                     onFinish={finishProductIntro}
@@ -443,7 +506,8 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
               <AppHeader />
 
               <main
-                id="main-scroll"
+                id="main-content"
+                aria-label="Hauptinhalt"
                 tabIndex={-1}
                 className={
                   'scrollbar-hide flex-1 min-h-0 overflow-y-auto scroll-smooth outline-none ' +
@@ -451,12 +515,15 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                 }
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
-                <div className="px-3 pt-3 pb-clara-dock-safe">
+                <div className="app-main-content px-3 pb-app-shell-safe">
                   {renderSection()}
-                  <SecurityFaqFooter />
+                  {state.activeSection !== 'fuermich' && state.activeSection !== 'live' ? (
+                    <SecurityFaqFooter />
+                  ) : null}
                 </div>
               </main>
 
+              <AppBottomNav hidden={!showMainBottomNav} />
               <ScrollToTopButton />
               <StimmzettelModal />
               {demoLaunchOpen ? (
@@ -553,7 +620,7 @@ function ScrollToTopButton() {
   const [visible, setVisible] = useState(false);
 
   useLayoutEffect(() => {
-    const el = document.getElementById('main-scroll');
+    const el = document.getElementById('main-content');
     if (!el) return;
     const onScroll = () => setVisible(el.scrollTop > 220);
     el.addEventListener('scroll', onScroll, { passive: true });
@@ -564,7 +631,7 @@ function ScrollToTopButton() {
   return (
     <button
       onClick={() =>
-        document.getElementById('main-scroll')?.scrollTo({ top: 0, behavior: 'smooth' })
+        document.getElementById('main-content')?.scrollTo({ top: 0, behavior: 'smooth' })
       }
       className="absolute z-[45] w-9 h-9 rounded-full text-white shadow-lg flex items-center justify-center"
       style={{
@@ -591,7 +658,7 @@ function SecurityFaqFooter() {
     },
     {
       q: 'Was wird gespeichert und was nicht?',
-      a: 'Es werden nur notwendige Demo-/Sicherheitsdaten verarbeitet (z. B. Status, Zeitpunkte, technische Metadaten). Inhalte für KI-Training sind ausgeschlossen.',
+      a: 'Es werden nur notwendige Vorschau- und Sicherheitsdaten verarbeitet (z. B. Status, Zeitpunkte, technische Metadaten). Inhalte für KI-Training sind ausgeschlossen.',
     },
     {
       q: 'Kann ich meinen Wohnort in der App einfach ändern?',
@@ -599,7 +666,7 @@ function SecurityFaqFooter() {
     },
     {
       q: 'Ist für die Teilnahme ein digitaler Personalausweis nötig?',
-      a: 'Ja. Für die Teilnahme ist ein digitaler Personalausweis (eID) erforderlich, damit Berechtigung und Zuständigkeit sicher geprüft werden können.',
+      a: 'In dieser Demo ist die Teilnahme ohne produktiven eID-Anschluss möglich. Perspektivisch kann der Zugang über eID oder EU Digital Identity Wallet erfolgen — dann zur Prüfung von Berechtigung und Zuständigkeit.',
     },
   ];
 

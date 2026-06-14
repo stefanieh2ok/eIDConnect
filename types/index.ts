@@ -107,6 +107,11 @@ export interface Candidate {
    * Keine Bilder von LinkedIn, Xing, Partei-Webseiten ohne Freigabe.
    */
   image?: string;
+  /** Explizite Quellenprüfung — UI zeigt Bild nur bei true. */
+  image_verified?: boolean;
+  image_source?: string;
+  image_license?: string;
+  image_last_checked_at?: string;
   /** Bildquelle + Lizenz */
   quelle?: string;
   quelleUrl?: string;
@@ -224,7 +229,16 @@ export type Location =
   | 'berlin'
   | 'bayern'
   | 'muenchen';
-export type Section = 'live' | 'leaderboard' | 'wahlen' | 'news' | 'kalender' | 'meldungen';
+export type Section =
+  | 'live'
+  /** Interner Key — sichtbares UI-Label „Prämien“ (siehe lib/sectionProductLabels.ts). */
+  | 'leaderboard'
+  | 'wahlen'
+  | 'news'
+  | 'kalender'
+  | 'meldungen'
+  | 'postfach'
+  | 'fuermich';
 export type AbstimmungTab = 'aktuell' | 'ergebnisse';
 export type EbeneLevel = 'bund' | 'land' | 'kreis' | 'kommune';
 export type Anrede = 'sie' | 'du';
@@ -238,3 +252,11 @@ export type RegionResolution = {
   county?: string;
   locationHint: Location;
 };
+
+export type {
+  DemoMode,
+  ExternalAdapterStatus,
+  CivicModuleSourceType,
+  CivicModuleKey,
+  CivicModuleStatusEntry,
+} from '@/types/governance';

@@ -84,7 +84,7 @@ export function AcceptNdaButton({ token, children }: AcceptNdaButtonProps) {
       }
       setError('Keine Weiterleitung erhalten.');
     } catch {
-      setError('Technischer Fehler beim Freischalten der Demo.');
+      setError('Technischer Fehler beim Freischalten der Vorschau.');
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ export function AcceptNdaButton({ token, children }: AcceptNdaButtonProps) {
         disabled={loading}
         className="w-full rounded-xl bg-neutral-900 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
       >
-        {loading ? 'Freischaltung läuft …' : 'Ich akzeptiere die Vertraulichkeitsvereinbarung und öffne die Demo'}
+        {loading ? 'Freischaltung läuft …' : 'Ich akzeptiere die Vertraulichkeitsvereinbarung und öffne die Vorschau'}
       </button>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}

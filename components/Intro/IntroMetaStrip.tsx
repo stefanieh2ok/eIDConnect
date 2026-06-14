@@ -2,11 +2,15 @@
 
 import React from 'react';
 import { Mic } from 'lucide-react';
+import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { INTRO_GLOBAL_PILL_LABEL } from '@/data/introOverlayMarketing';
 import {
   IntroAudioStatusButton,
+  IntroSpeechSpeedToggle,
   INTRO_META_ICON_BUTTON_DARK_CLASS,
+  INTRO_META_ICON_BUTTON_DARK_COMPACT_CLASS,
   INTRO_META_ICON_BUTTON_LIGHT_CLASS,
+  INTRO_META_ICON_BUTTON_LIGHT_COMPACT_CLASS,
 } from '@/components/Intro/IntroOverlay';
 
 type Props = {
@@ -24,6 +28,10 @@ type Props = {
   showClaraVoice?: boolean;
   /** `light` für weiße Intro-Kachel (Kontrast wie Lautsprecher auf hell). */
   surface?: 'dark' | 'light';
+  /** Horizontale Innenabstände wie Karteninhalt (px-4 / sm:px-5). */
+  inlinePad?: 'none' | 'card';
+  /** Schmalere Icons und feste Grid-Zeile — verhindert Überlappung Chip / Lautsprecher (~375px). */
+  toolbarDensity?: 'default' | 'compact';
   /**
    * @deprecated Framing-Texte leben in den eigentlichen Intro-Inhalten, nicht
    * mehr im oberen weißen Streifen.
@@ -40,27 +48,52 @@ export default function IntroMetaStrip({
   closeAriaLabel,
   showClaraVoice = false,
   surface = 'dark',
+  inlinePad = 'none',
+  toolbarDensity = 'default',
 }: Props) {
+  const { tryResumePendingAudioFromUserGesture } = useClaraVoiceContext();
   const onExit = onClose ?? onSkip;
   const exitAria = closeAriaLabel ?? 'Einführung beenden';
   const onLight = surface === 'light';
+  const compact = toolbarDensity === 'compact';
+  const micBtn = onLight
+    ? compact
+      ? INTRO_META_ICON_BUTTON_LIGHT_COMPACT_CLASS
+      : INTRO_META_ICON_BUTTON_LIGHT_CLASS
+    : compact
+      ? INTRO_META_ICON_BUTTON_DARK_COMPACT_CLASS
+      : INTRO_META_ICON_BUTTON_DARK_CLASS;
+  const micIcon = compact ? 'h-4 w-4' : 'h-[18px] w-[18px]';
+  const closeBtn = micBtn;
 
   return (
     <div
       className={
         'intro-meta-strip flex-shrink-0 font-sans antialiased [font-synthesis:none]' +
-        (onLight ? ' intro-meta-strip--on-light' : '')
+        (onLight ? ' intro-meta-strip--on-light' : '') +
+        (inlinePad === 'card' ? ' intro-meta-strip--pad-card' : '') +
+        (compact ? ' intro-meta-strip--compact-toolbar' : '')
       }
+      onPointerDownCapture={() => {
+        tryResumePendingAudioFromUserGesture();
+      }}
     >
-      <div className="flex min-w-0 max-w-full items-center justify-between gap-2">
+      <div className="intro-meta-strip__row flex w-full min-w-0 max-w-full items-center justify-between gap-1.5 sm:gap-2">
         <span
-          className="inline-flex flex-shrink-0 items-center rounded-full px-2.5 py-[3px] text-[10px] font-bold uppercase tracking-[0.1em] text-white"
+          className={
+            'intro-meta-strip__pill inline-flex min-w-0 shrink items-center truncate rounded-full font-bold uppercase leading-none tracking-[0.1em] text-white ' +
+            (compact
+              ? 'h-7 max-w-[min(26vw,7rem)] px-1.5 text-[8px] sm:max-w-[8.5rem] sm:px-2 sm:text-[9px]'
+              : 'h-8 max-w-[min(38vw,9.25rem)] px-2 text-[9px] sm:max-w-[11rem] sm:px-2.5 sm:text-[10px]')
+          }
           style={{ background: 'var(--gov-primary, #003366)' }}
+          title={INTRO_GLOBAL_PILL_LABEL}
         >
           {INTRO_GLOBAL_PILL_LABEL}
         </span>
-        <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5">
-          <IntroAudioStatusButton theme={onLight ? 'light' : 'dark'} />
+        <div className="intro-meta-strip__actions flex shrink-0 items-center gap-1">
+          <IntroAudioStatusButton theme={onLight ? 'light' : 'dark'} density={toolbarDensity} />
+          <IntroSpeechSpeedToggle theme={onLight ? 'light' : 'dark'} density={toolbarDensity} />
           {showClaraVoice ? (
             <button
               type="button"
@@ -69,11 +102,11 @@ export default function IntroMetaStrip({
                   window.dispatchEvent(new Event('clara:open-voice'));
                 }
               }}
-              className={onLight ? INTRO_META_ICON_BUTTON_LIGHT_CLASS : INTRO_META_ICON_BUTTON_DARK_CLASS}
+              className={micBtn}
               aria-label="Mit Clara sprechen (Voice)"
               title="Mit Clara sprechen"
             >
-              <Mic className="h-[18px] w-[18px] shrink-0" strokeWidth={1.5} aria-hidden />
+              <Mic className={`${micIcon} shrink-0`} strokeWidth={1.5} aria-hidden />
             </button>
           ) : null}
           {onExit ? (
@@ -81,12 +114,7 @@ export default function IntroMetaStrip({
               type="button"
               onClick={onExit}
               aria-label={exitAria}
-              className={
-                'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border text-sm leading-none ' +
-                (onLight
-                  ? 'border-slate-300/90 bg-white text-slate-600 hover:bg-slate-50'
-                  : 'border-white/30 bg-white/10 text-white hover:bg-white/20')
-              }
+              className={closeBtn + ' text-[16px] leading-none'}
             >
               ×
             </button>

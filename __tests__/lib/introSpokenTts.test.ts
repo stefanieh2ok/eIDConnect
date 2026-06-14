@@ -1,29 +1,26 @@
-import { APP_DISPLAY_NAME } from '@/lib/branding';
 import { introAnredeGateSpoken, introEidLoginSpoken } from '@/lib/introSpokenTts';
 
 describe('introSpokenTts', () => {
-  it('Anrede: Clara (Spoken) — HookAI Civic Demo, gewählte Ansprache', () => {
+  it('Anrede: Clara (Spoken) — HookAI Civic, vor Wahl Sie, nach Du-Wechsel per Du', () => {
     const duT = introAnredeGateSpoken(true);
-    expect(duT).toContain('HookAI Civic Demo');
+    expect(duT).toContain('HookAI Civic');
     expect(duT).toContain('Clara');
-    expect(duT).toMatch(/Ich führe dich jetzt kurz durch die wichtigsten Bereiche/);
-    expect(duT).toMatch(/Ich führe dich/);
-    expect(duT).not.toMatch(/Ich führe Sie/);
-    expect(duT).not.toMatch(/\bIhnen\b/);
+    expect(duT).toMatch(/Wie darf ich Sie ansprechen/);
+    expect(duT).toMatch(/begleite Sie|Wie darf ich Sie/);
+    expect(duT).toMatch(/beim Du|Schritt für Schritt/);
+    expect(duT).not.toMatch(/deine KI-Agentin/);
     const sieT = introAnredeGateSpoken(false);
-    expect(sieT).toContain('HookAI Civic Demo');
+    expect(sieT).toContain('HookAI Civic');
     expect(sieT).toContain('Clara');
-    expect(sieT).toMatch(/Ich führe Sie jetzt kurz durch die wichtigsten Bereiche/);
-    expect(sieT).toMatch(/Ich führe Sie/);
-    expect(sieT).not.toMatch(/Ich führe dich/);
+    expect(sieT).toMatch(/Sie-Form/);
+    expect(sieT).toMatch(/Orientierung|Überblick/);
   });
 
-  it('eID-Login: Spoken — Zugang, eID, Kommune, Produktname aus Branding, ohne alte Floskeln', () => {
+  it('eID-Login: Spoken — Zugang, eID, Zuständigkeit/Berechtigung, ohne alte Floskeln', () => {
     const du = introEidLoginSpoken(true);
     expect(du).toMatch(/sicher|Bürgerzugang/);
     expect(du).toMatch(/eID/);
-    expect(du).toMatch(/Kommune/);
-    expect(du).toContain(APP_DISPLAY_NAME);
+    expect(du).toMatch(/Zuständigkeit|Berechtigung|berechtigt/);
     expect(du).not.toMatch(/passgenaue|Reibung|wo sie hingehören/);
     expect(du).not.toMatch(/Demo-eID/);
   });

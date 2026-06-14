@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { THEME_NAMES } from '@/data/constants';
 import type { UserPreferences } from '@/types';
@@ -10,6 +10,15 @@ const DEFAULT_LEAD_DU =
 
 const DEFAULT_LEAD_SIE =
   'Das Politikbarometer ist neutral und erstellt kein Meinungsprofil. Sie markieren Themen, die Ihnen wichtig sind; passende Termine werden im Kalender thematisch hervorgehoben.';
+
+const HERO_PREVIEW_INITIAL: UserPreferences = {
+  umwelt: 0,
+  finanzen: 0,
+  bildung: 0,
+  digital: 0,
+  soziales: 0,
+  sicherheit: 0,
+};
 
 /**
  * Politikbarometer (Themenkompass): selbst gewählte Interessenschwerpunkte für
@@ -35,6 +44,8 @@ type Props = {
   editableWithoutConsent?: boolean;
   /** Walkthrough: nur Schieberegler-Chips, kein Fließtext — eine Idee pro Karte. */
   heroPreview?: boolean;
+  /** Walkthrough: einmal nach Abschluss der lokalen Vorschau-Animation (letzter Regler sichtbar). */
+  onHeroPreviewVisualDone?: () => void;
 };
 
 export default function PolitikBarometerPanel({
@@ -48,9 +59,13 @@ export default function PolitikBarometerPanel({
   density = 'default',
   editableWithoutConsent = false,
   heroPreview = false,
+  onHeroPreviewVisualDone,
 }: Props) {
   const { state, dispatch } = useApp();
-  const heroNeutralApplied = useRef(false);
+  const [heroPreviewValues, setHeroPreviewValues] = useState<UserPreferences | null>(null);
+  const visualDoneFiredRef = useRef(false);
+  const onVisualDoneRef = useRef(onHeroPreviewVisualDone);
+  onVisualDoneRef.current = onHeroPreviewVisualDone;
   const compact = variant === 'compact';
   const tight = density === 'tight';
   const canEditPreferences = true;
@@ -65,30 +80,81 @@ export default function PolitikBarometerPanel({
   };
 
   const handlePreferenceChange = (key: keyof UserPreferences, value: number) => {
+    if (heroPreview) {
+      setHeroPreviewValues((prev) => ({ ...(prev ?? HERO_PREVIEW_INITIAL), [key]: value }));
+      return;
+    }
     ensureConsentForPreferenceUse();
     dispatch({ type: 'SET_PREFERENCES', payload: { [key]: value } });
   };
 
-  /** Walkthrough: alle Themen in der Mitte (50 %) — Regler wirken sofort „lebendig“. */
+  /** Walkthrough: lokale Vorschau — Regler nacheinander 0 → Ziel, mit Zwischenstufen; kein SET_PREFERENCES. */
   useEffect(() => {
     if (!heroPreview) {
-      heroNeutralApplied.current = false;
+      setHeroPreviewValues(null);
+      visualDoneFiredRef.current = false;
       return;
     }
-    if (heroNeutralApplied.current) return;
-    heroNeutralApplied.current = true;
-    dispatch({
-      type: 'SET_PREFERENCES',
-      payload: {
-        umwelt: 50,
-        finanzen: 50,
-        bildung: 50,
-        digital: 50,
-        soziales: 50,
-        sicherheit: 50,
-      },
+    visualDoneFiredRef.current = false;
+    const zeros: UserPreferences = { ...HERO_PREVIEW_INITIAL };
+    setHeroPreviewValues(zeros);
+
+    const SLIDE_MS = 420;
+    const PAUSE_MS = 150;
+    const STEPS = 10;
+    const INITIAL_DELAY_MS = 200;
+    const sequence: { key: keyof UserPreferences; target: number }[] = [
+      { key: 'digital', target: 90 },
+      { key: 'finanzen', target: 80 },
+      { key: 'bildung', target: 50 },
+      { key: 'umwelt', target: 50 },
+      { key: 'soziales', target: 50 },
+      { key: 'sicherheit', target: 50 },
+    ];
+
+    const timers: number[] = [];
+    const schedule = (fn: () => void, ms: number) => {
+      timers.push(window.setTimeout(fn, ms));
+    };
+
+    const buildState = (keyIndex: number, activeKey: keyof UserPreferences, activeValue: number): UserPreferences => {
+      const out: UserPreferences = { ...HERO_PREVIEW_INITIAL };
+      for (let i = 0; i < keyIndex; i++) {
+        const k = sequence[i]!.key;
+        out[k] = sequence[i]!.target;
+      }
+      out[activeKey] = activeValue;
+      return out;
+    };
+
+    let cursor = INITIAL_DELAY_MS;
+    let lastStepEndMs = cursor;
+
+    sequence.forEach((item, keyIndex) => {
+      const { key, target } = item;
+      for (let s = 1; s <= STEPS; s++) {
+        const ms = cursor + (s / STEPS) * SLIDE_MS;
+        const value = Math.round((target * s) / STEPS);
+        schedule(() => {
+          setHeroPreviewValues(buildState(keyIndex, key, value));
+        }, ms);
+      }
+      lastStepEndMs = cursor + SLIDE_MS;
+      cursor += SLIDE_MS + PAUSE_MS;
     });
-  }, [heroPreview, dispatch]);
+
+    schedule(() => {
+      if (visualDoneFiredRef.current) return;
+      visualDoneFiredRef.current = true;
+      onVisualDoneRef.current?.();
+    }, lastStepEndMs + 30);
+
+    return () => {
+      for (const id of timers) window.clearTimeout(id);
+    };
+  }, [heroPreview]);
+
+  const displayedPreferences = heroPreview && heroPreviewValues ? heroPreviewValues : state.preferences;
 
   const applyPreset = (preset: Partial<UserPreferences>) => {
     ensureConsentForPreferenceUse();
@@ -198,7 +264,7 @@ export default function PolitikBarometerPanel({
                 }
                 style={heroPreview ? undefined : { color: 'var(--gov-heading)' }}
               >
-                {state.preferences[key as keyof UserPreferences]}%
+                {displayedPreferences[key as keyof UserPreferences]}%
               </span>
             </div>
             <input
@@ -206,7 +272,7 @@ export default function PolitikBarometerPanel({
               min={0}
               max={100}
               step={5}
-              value={state.preferences[key as keyof UserPreferences]}
+              value={displayedPreferences[key as keyof UserPreferences]}
               onChange={(e) => handlePreferenceChange(key as keyof UserPreferences, Number(e.target.value))}
               disabled={!canEditPreferences}
               aria-label={`${name} · Interessenschwerpunkt`}
@@ -214,7 +280,8 @@ export default function PolitikBarometerPanel({
                 heroPreview ? 'h-3' : compact ? (tight ? 'h-2' : 'h-2.5') : 'h-3'
               }`}
               style={{
-                ...sliderTrackStyle(state.preferences[key as keyof UserPreferences]),
+                ...sliderTrackStyle(displayedPreferences[key as keyof UserPreferences]),
+                transition: heroPreview ? 'background 400ms ease-out' : undefined,
                 opacity: canEditPreferences ? 1 : 0.55,
                 cursor: canEditPreferences ? 'pointer' : 'not-allowed',
               }}

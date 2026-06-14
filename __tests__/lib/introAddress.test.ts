@@ -33,10 +33,16 @@ describe('adaptIntroAddress', () => {
     expect(out).toBe(INTRO_WALKTHROUGH_CLARA.meldungen.longDu);
   });
 
-  it('wandelt Politikbarometer-Intro in korrekte Du-Form um', () => {
-    const body = INTRO_OVERLAY_STEPS.find((s) => s.id === 'politikbarometer')?.body ?? '';
+  it('wandelt Postfach-Intro in korrekte Du-Form um', () => {
+    const body = INTRO_OVERLAY_STEPS.find((s) => s.id === 'postfach')?.body ?? '';
     const out = adaptIntroAddress(body, true);
-    expect(out).toBe(INTRO_WALKTHROUGH_CLARA.politikbarometer.longDu);
+    expect(out).toBe(INTRO_WALKTHROUGH_CLARA.postfach.longDu);
+  });
+
+  it('wandelt Wegweiser-Intro in korrekte Du-Form um', () => {
+    const body = INTRO_OVERLAY_STEPS.find((s) => s.id === 'wegweiser')?.body ?? '';
+    const out = adaptIntroAddress(body, true);
+    expect(out).toBe(INTRO_WALKTHROUGH_CLARA.wegweiser.longDu);
   });
 
   it('wandelt Prämien-Intro in korrekte Du-Form um', () => {

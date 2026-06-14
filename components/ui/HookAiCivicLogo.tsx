@@ -1,9 +1,8 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 
-type LogoVariant = 'light' | 'dark' | 'icon';
+type LogoVariant = 'light' | 'dark' | 'onBlue' | 'icon' | 'wordmarkLight' | 'wordmarkDark' | 'wordmarkOnBlue';
 
 type HookAiCivicLogoProps = {
   variant?: LogoVariant;
@@ -14,13 +13,22 @@ type HookAiCivicLogoProps = {
 const SRC_BY_VARIANT: Record<LogoVariant, string> = {
   light: '/brand/logo-light.svg?v=20260428c',
   dark: '/brand/logo-dark.svg?v=20260428c',
+  onBlue: '/brand/logo-on-blue.svg?v=20260430',
   icon: '/brand/icon-only.svg?v=20260428c',
+  wordmarkLight: '/brand/wordmark-light.svg?v=20260613',
+  wordmarkDark: '/brand/wordmark-dark.svg?v=20260613',
+  wordmarkOnBlue: '/brand/wordmark-on-blue.svg?v=20260613',
 };
 
+/** Intrinsisches Seitenverhältnis für Layout/CLS; Darstellung steuert CSS (`className` Höhe/Breite). */
 const DIMENSIONS_BY_VARIANT: Record<LogoVariant, { width: number; height: number }> = {
   light: { width: 980, height: 220 },
   dark: { width: 600, height: 140 },
+  onBlue: { width: 980, height: 220 },
   icon: { width: 512, height: 512 },
+  wordmarkLight: { width: 300, height: 68 },
+  wordmarkDark: { width: 300, height: 68 },
+  wordmarkOnBlue: { width: 300, height: 68 },
 };
 
 export default function HookAiCivicLogo({
@@ -30,14 +38,14 @@ export default function HookAiCivicLogo({
 }: HookAiCivicLogoProps) {
   const dimensions = DIMENSIONS_BY_VARIANT[variant];
   return (
-    <Image
+    <img
       src={SRC_BY_VARIANT[variant]}
       alt={alt}
       width={dimensions.width}
       height={dimensions.height}
-      className={`block h-auto w-auto object-contain ${className}`}
-      priority
-      unoptimized
+      decoding="async"
+      fetchPriority="high"
+      className={`block h-auto max-h-none w-auto object-contain ${className}`}
     />
   );
 }

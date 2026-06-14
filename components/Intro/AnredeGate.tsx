@@ -3,26 +3,17 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import {
-  INTRO_ANREDE_SHORT_DU,
-  INTRO_ANREDE_SHORT_SIE,
   INTRO_ANREDE_UI_TITLE_DU,
   INTRO_ANREDE_UI_TITLE_SIE,
+  introClaraWelcomeLong,
+  introClaraWelcomeShort,
 } from '@/data/introOverlayMarketing';
 import { introAnredeGateSpokenParts } from '@/lib/introSpokenTts';
 import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
-import { useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
-import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
+import { useIntroIsSpeaking, useIntroSpeakApi } from '@/components/Intro/IntroOverlay';
 import type { Anrede } from '@/types';
-
-function isFinePointerDevice(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(hover: hover) and (pointer: fine)').matches
-  );
-}
 
 type Props = {
   /** Steuert Sichtbarkeit; kommt von der zentralen Pre-Login-Phase. */
@@ -38,12 +29,33 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
   const [pending, setPending] = useState<Anrede | null>(null);
   /** Stabile Referenz — nicht `useOptionalIntroOverlay()` (merged Objekt wechselt bei jedem TTS-Tick). */
   const speakApi = useIntroSpeakApi();
-  const { speakParts, stopSpeaking } = useClaraVoiceContext();
+  const speakApiRef = useRef(speakApi);
+  speakApiRef.current = speakApi;
+  const { speakParts, stopSpeaking, tryResumePendingAudioFromUserGesture, unlockAudioFromUserGesture } =
+    useClaraVoiceContext();
   const hasUnlockedSpeechRef = useRef(false);
-  const hasSpokenIntroRef = useRef(false);
+  /** Neutraler Elevator: erst „gestartet“, wenn TTS wirklich läuft — sonst blockieren frühe Fehlversuche alle Retries. */
+  const neutralPitchAudioStartedRef = useRef(false);
   const hasSelectedSalutationRef = useRef(false);
   const lastSpokenSalutationRef = useRef<Anrede | null>(null);
   const lastReadAloud = useRef<boolean | null>(null);
+  const isIntroSpeaking = useIntroIsSpeaking();
+  const isIntroSpeakingRef = useRef(isIntroSpeaking);
+  isIntroSpeakingRef.current = isIntroSpeaking;
+  const wasIntroSpeakingRef = useRef(false);
+  const pendingAutoWeiterRef = useRef(false);
+  const salutationSpeechHeardRef = useRef(false);
+  const autoWeiterTimersRef = useRef<number[]>([]);
+  const [weiterPulse, setWeiterPulse] = useState(false);
+  const pendingRef = useRef<Anrede | null>(null);
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+  pendingRef.current = pending;
+
+  const clearAutoWeiterTimers = useCallback(() => {
+    for (const id of autoWeiterTimersRef.current) window.clearTimeout(id);
+    autoWeiterTimersRef.current = [];
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -53,17 +65,22 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
 
   useEffect(() => {
     if (!isOpen) {
-      hasSpokenIntroRef.current = false;
+      neutralPitchAudioStartedRef.current = false;
       hasSelectedSalutationRef.current = false;
       hasUnlockedSpeechRef.current = false;
       lastSpokenSalutationRef.current = null;
+      pendingAutoWeiterRef.current = false;
+      salutationSpeechHeardRef.current = false;
+      wasIntroSpeakingRef.current = false;
+      setWeiterPulse(false);
+      clearAutoWeiterTimers();
     }
-  }, [isOpen]);
+  }, [isOpen, clearAutoWeiterTimers]);
 
   useEffect(() => {
     if (!isOpen) return;
     if (!speakApi?.readAloud) {
-      stopSpeaking();
+      stopSpeaking('anrede:readAloud-off');
     }
   }, [isOpen, speakApi?.readAloud, stopSpeaking]);
 
@@ -83,31 +100,32 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
 
   const speakGateFromUserGesture = useCallback(
     (choice: 'du' | 'sie' | null) => {
-      if (!speakApi?.readAloud) return;
+      if (!speakApiRef.current?.readAloud) return;
+      unlockAudioFromUserGesture();
       unlockSpeechOnGesture();
-      stopSpeaking();
+      stopSpeaking('anrede:gate-gesture');
       speakParts(introAnredeGateSpokenParts(choice));
-      hasSpokenIntroRef.current = true;
       if (choice === 'du' || choice === 'sie') {
         hasSelectedSalutationRef.current = true;
+        neutralPitchAudioStartedRef.current = true;
       }
     },
-    [speakApi?.readAloud, speakParts, stopSpeaking, unlockSpeechOnGesture],
+    [speakParts, stopSpeaking, unlockAudioFromUserGesture, unlockSpeechOnGesture],
   );
 
   const maybeStartNeutralIntroFromGesture = useCallback(() => {
-    if (!speakApi?.readAloud) return;
+    if (!speakApiRef.current?.readAloud) return;
     if (hasSelectedSalutationRef.current) return;
-    if (hasSpokenIntroRef.current) return;
+    if (neutralPitchAudioStartedRef.current) return;
     speakGateFromUserGesture(null);
-  }, [speakApi?.readAloud, speakGateFromUserGesture]);
+  }, [speakGateFromUserGesture]);
 
   const speakSalutationPickFromGesture = useCallback(
     (a: Anrede) => {
-      hasSelectedSalutationRef.current = true;
-      if (lastSpokenSalutationRef.current === a && hasSelectedSalutationRef.current) {
+      if (lastSpokenSalutationRef.current === a) {
         return;
       }
+      hasSelectedSalutationRef.current = true;
       speakGateFromUserGesture(a);
       lastSpokenSalutationRef.current = a;
     },
@@ -116,18 +134,20 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
 
   const pick = useCallback(
     (a: Anrede) => {
-      hasSelectedSalutationRef.current = true;
-      stopSpeaking();
       setPending(a);
       if (state.anrede !== a) dispatch({ type: 'SET_ANREDE', payload: a });
     },
-    [dispatch, state.anrede, stopSpeaking],
+    [dispatch, state.anrede],
   );
 
   const confirm = useCallback(() => {
     if (pending == null) return;
+    pendingAutoWeiterRef.current = false;
+    salutationSpeechHeardRef.current = false;
+    setWeiterPulse(false);
+    clearAutoWeiterTimers();
     onComplete();
-  }, [pending, onComplete]);
+  }, [pending, onComplete, clearAutoWeiterTimers]);
 
   const duMode = pending === 'du';
 
@@ -137,59 +157,77 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
       return;
     }
     if (lastReadAloud.current === false && speakApi?.readAloud) {
-      hasSpokenIntroRef.current = false;
+      neutralPitchAudioStartedRef.current = false;
       hasSelectedSalutationRef.current = false;
       lastSpokenSalutationRef.current = null;
     }
     lastReadAloud.current = Boolean(speakApi?.readAloud);
   }, [isOpen, speakApi?.readAloud]);
 
+  /** Sobald Claras TTS für den neutralen Pitch wirklich läuft, keine weiteren Auto-Retries nötig. */
+  useEffect(() => {
+    if (!isOpen || !speakApi?.readAloud) return;
+    if (hasSelectedSalutationRef.current) return;
+    if (isIntroSpeaking) {
+      neutralPitchAudioStartedRef.current = true;
+    }
+  }, [isOpen, isIntroSpeaking, speakApi?.readAloud]);
+
   /**
-   * Desktop: kurzer verzögerter Start ohne Tap.
-   * Touch (iOS): kein Timer — blockiertes Autoplay würde `hasSpokenIntroRef` setzen und Folge-Taps blockieren.
+   * Desktop/Mobile: neutralen Intro-Pitch zuverlässig kurz nach Öffnen starten.
+   * Sofortiger erster Versuch + gestaffelte Retries, falls der erste Start blockiert war.
    */
   useEffect(() => {
     if (!isOpen || !speakApi?.readAloud) return;
-    if (!isFinePointerDevice()) return;
-    if (hasSpokenIntroRef.current || hasSelectedSalutationRef.current) return;
+    if (neutralPitchAudioStartedRef.current || hasSelectedSalutationRef.current) return;
 
-    const id = window.setTimeout(() => {
-      if (!speakApi?.readAloud) return;
-      if (hasSpokenIntroRef.current || hasSelectedSalutationRef.current) return;
-      speakGateFromUserGesture(null);
-    }, 100);
-
-    return () => window.clearTimeout(id);
-  }, [isOpen, speakApi?.readAloud, speakGateFromUserGesture]);
-
-  /**
-   * Fallback: erster echter Input startet Claras Vorstellung (iOS: `touchstart` + Capture).
-   */
-  useEffect(() => {
-    if (!isOpen || !speakApi?.readAloud) return;
-    if (hasSpokenIntroRef.current || hasSelectedSalutationRef.current) return;
-
-    const startOnFirstInput = (ev: Event) => {
-      const el = ev.target as HTMLElement | null;
-      if (el?.closest?.('.intro-meta-strip')) return;
-      if (!speakApi?.readAloud) return;
-      if (hasSpokenIntroRef.current || hasSelectedSalutationRef.current) return;
+    const timers: number[] = [];
+    const tryStart = () => {
+      if (!speakApiRef.current?.readAloud) return;
+      if (neutralPitchAudioStartedRef.current || hasSelectedSalutationRef.current) return;
+      if (isIntroSpeakingRef.current) return;
       speakGateFromUserGesture(null);
     };
 
-    const cap = { passive: true, once: true, capture: true } as const;
-    window.addEventListener('pointerdown', startOnFirstInput, cap);
-    window.addEventListener('touchstart', startOnFirstInput, cap);
-    window.addEventListener('keydown', startOnFirstInput, { once: true });
-    window.addEventListener('mousemove', startOnFirstInput, { passive: true, once: true });
+    timers.push(window.setTimeout(tryStart, 0));
+    timers.push(window.setTimeout(tryStart, 1200));
+    timers.push(window.setTimeout(tryStart, 2800));
 
     return () => {
-      window.removeEventListener('pointerdown', startOnFirstInput, cap);
-      window.removeEventListener('touchstart', startOnFirstInput, cap);
-      window.removeEventListener('keydown', startOnFirstInput);
-      window.removeEventListener('mousemove', startOnFirstInput);
+      for (const id of timers) window.clearTimeout(id);
     };
   }, [isOpen, speakApi?.readAloud, speakGateFromUserGesture]);
+
+  /** Nach Du/Sie: Claras Bestätigung endet → kurzer Weiter-Puls, nach ~400 ms dasselbe wie „Weiter“. */
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = wasIntroSpeakingRef.current;
+    wasIntroSpeakingRef.current = isIntroSpeaking;
+    if (pendingAutoWeiterRef.current && isIntroSpeaking) {
+      salutationSpeechHeardRef.current = true;
+    }
+    if (
+      !pendingAutoWeiterRef.current ||
+      !salutationSpeechHeardRef.current ||
+      !prev ||
+      isIntroSpeaking ||
+      !speakApiRef.current?.readAloud
+    ) {
+      return;
+    }
+    salutationSpeechHeardRef.current = false;
+    pendingAutoWeiterRef.current = false;
+    clearAutoWeiterTimers();
+    setWeiterPulse(true);
+    autoWeiterTimersRef.current.push(
+      window.setTimeout(() => {
+        setWeiterPulse(false);
+        if (pendingRef.current != null) {
+          onCompleteRef.current();
+        }
+      }, 400),
+    );
+  }, [isIntroSpeaking, isOpen, speakApi?.readAloud, clearAutoWeiterTimers]);
 
   const dialogRef = useRef<HTMLDivElement | null>(null);
   useLayoutEffect(() => {
@@ -251,8 +289,8 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
 
   const titleAnrede =
     pending == null ? INTRO_ANREDE_UI_TITLE_SIE : duMode ? INTRO_ANREDE_UI_TITLE_DU : INTRO_ANREDE_UI_TITLE_SIE;
-  const shortAnrede =
-    pending == null ? INTRO_ANREDE_SHORT_SIE : duMode ? INTRO_ANREDE_SHORT_DU : INTRO_ANREDE_SHORT_SIE;
+  const shortAnrede = introClaraWelcomeShort(pending == null ? false : duMode);
+  const longAnrede = introClaraWelcomeLong(pending == null ? false : duMode);
 
   const anredePickBtnClass = (selected: boolean) =>
     'min-h-[48px] rounded-xl border-2 px-2.5 text-center text-[12px] font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500/50 ' +
@@ -285,10 +323,12 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
           className="hide-scrollbar flex max-h-full min-h-0 flex-col overflow-y-auto overscroll-contain rounded-[1.65rem] border border-neutral-200/95 bg-white"
           style={{ WebkitOverflowScrolling: 'touch' }}
           onPointerDownCapture={(e) => {
+            tryResumePendingAudioFromUserGesture();
             unlockSpeechOnGesture();
             handleGestureTarget(e.target as HTMLElement);
           }}
           onTouchStartCapture={(e) => {
+            tryResumePendingAudioFromUserGesture();
             unlockSpeechOnGesture();
             handleGestureTarget(e.target as HTMLElement);
           }}
@@ -297,12 +337,13 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
             surface="light"
             stepNumber={null}
             showClaraVoice
+            inlinePad="card"
+            toolbarDensity="compact"
             onSkip={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
             onClose={() => window.dispatchEvent(new Event('eidconnect:skip-intro-all'))}
           />
 
-          <div className="border-b border-neutral-200 px-4 pb-3 pt-3 sm:px-5 sm:pt-4 sm:pb-4">
-            <ProductIdentityHeader className="mb-2" />
+          <div className="border-b border-neutral-200 px-4 pb-3 pt-3 sm:px-5 sm:pb-4 sm:pt-4">
             <div
               onPointerDown={(e) => {
                 if (e.button !== 0) return;
@@ -320,7 +361,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
                 surface="light"
                 label={titleAnrede}
                 short={shortAnrede}
-                long=""
+                long={longAnrede}
                 showTopicTitle
               />
             </div>
@@ -345,6 +386,22 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
                   onClick={() => {
                     speakSalutationPickFromGesture('sie');
                     pick('sie');
+                    if (speakApi?.readAloud) {
+                      pendingAutoWeiterRef.current = true;
+                      salutationSpeechHeardRef.current = false;
+                      clearAutoWeiterTimers();
+                      setWeiterPulse(false);
+                      /** iOS: TTS oft ohne Audiostream — Weiter trotzdem nach kurzer Frist (parallel zum Puls). */
+                      autoWeiterTimersRef.current.push(
+                        window.setTimeout(() => {
+                          if (!pendingAutoWeiterRef.current || pendingRef.current == null) return;
+                          pendingAutoWeiterRef.current = false;
+                          salutationSpeechHeardRef.current = false;
+                          setWeiterPulse(false);
+                          onCompleteRef.current();
+                        }, 3400),
+                      );
+                    }
                   }}
                   className={anredePickBtnClass(pending === 'sie')}
                 >
@@ -360,6 +417,21 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
                   onClick={() => {
                     speakSalutationPickFromGesture('du');
                     pick('du');
+                    if (speakApi?.readAloud) {
+                      pendingAutoWeiterRef.current = true;
+                      salutationSpeechHeardRef.current = false;
+                      clearAutoWeiterTimers();
+                      setWeiterPulse(false);
+                      autoWeiterTimersRef.current.push(
+                        window.setTimeout(() => {
+                          if (!pendingAutoWeiterRef.current || pendingRef.current == null) return;
+                          pendingAutoWeiterRef.current = false;
+                          salutationSpeechHeardRef.current = false;
+                          setWeiterPulse(false);
+                          onCompleteRef.current();
+                        }, 3400),
+                      );
+                    }
                   }}
                   className={anredePickBtnClass(pending === 'du')}
                 >
@@ -373,7 +445,10 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
               type="button"
               disabled={pending == null}
               onClick={confirm}
-              className="btn-gov-primary mt-3 w-full disabled:cursor-not-allowed disabled:opacity-50"
+              className={
+                'btn-gov-primary mt-3 w-full disabled:cursor-not-allowed disabled:opacity-50 ' +
+                (weiterPulse ? 'footer-heartbeat' : '')
+              }
             >
               Weiter
             </button>

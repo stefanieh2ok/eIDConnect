@@ -2,6 +2,29 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { ClaraVoiceState } from '@/types/clara';
+import {
+  categorizeClaraTtsFailure,
+  claraAudioDebugEnabled,
+  claraAudioDevLog,
+  claraAudioPreview,
+} from '@/lib/claraAudioDevLog';
+
+type PendingTtsPlayback = {
+  objectUrl: string;
+  requestId: number;
+  playbackRate: number;
+};
+
+const CLARA_TTS_FAILED_EVENT = 'eidconnect:clara-tts-failed';
+
+function emitClaraTtsFailed(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.dispatchEvent(new CustomEvent(CLARA_TTS_FAILED_EVENT));
+  } catch {
+    /* ignore */
+  }
+}
 
 export const useClaraVoice = () => {
   const [voiceState, setVoiceState] = useState<ClaraVoiceState>({
@@ -14,7 +37,25 @@ export const useClaraVoice = () => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
+  /** TTS fertig geladen, aber `play()` wegen Autoplay-Policy blockiert (v. a. iOS Safari) — Start nach Nutzer-Geste. */
+  const pendingTtsRef = useRef<PendingTtsPlayback | null>(null);
   const playRequestIdRef = useRef(0);
+  /** Einmal pro Sitzung: kurzer Silent-Play im User-Gesture (iOS Safari Autoplay-Gate). */
+  const iosAudioUnlockedRef = useRef(false);
+  const [speechRate, setSpeechRateState] = useState<number>(() => {
+    if (typeof window === 'undefined') return 1.05;
+    try {
+      const raw = window.sessionStorage.getItem('clara_speech_rate_v1');
+      if (raw === '1' || raw === '1.15') return Number(raw);
+    } catch {
+      // ignore
+    }
+    return 1.05;
+  });
+
+  useEffect(() => {
+    claraAudioDevLog('ClaraVoice engine mounted (TTS via /api/tts)');
+  }, []);
 
   useEffect(() => {
     // Initialize speech recognition (iOS 14.5+ oft `SpeechRecognition`, Desktop meist `webkitSpeechRecognition`)
@@ -75,8 +116,19 @@ export const useClaraVoice = () => {
     }
   }, [voiceState.isListening]);
 
-  const stopSpeaking = useCallback(() => {
+  const clearPendingTts = useCallback(() => {
+    const p = pendingTtsRef.current;
+    if (p) {
+      URL.revokeObjectURL(p.objectUrl);
+      pendingTtsRef.current = null;
+    }
+  }, []);
+
+  const stopSpeaking = useCallback((reason?: string) => {
+    const prev = playRequestIdRef.current;
     playRequestIdRef.current += 1;
+    claraAudioDevLog('stopSpeaking called', 'reason=', reason ?? 'none', 'requestId', prev, '→', playRequestIdRef.current);
+    clearPendingTts();
     const currentAudio = audioRef.current;
     if (currentAudio) {
       try {
@@ -92,49 +144,262 @@ export const useClaraVoice = () => {
       audioUrlRef.current = null;
     }
     setVoiceState((prev) => ({ ...prev, isSpeaking: false }));
+  }, [clearPendingTts]);
+
+  /** Hörbare Wiedergabe: `playing` auf dem Audio-Element (+ optional Timing-Event bei Debug). */
+  const attachClaraAudibleDevLog = useCallback((audio: HTMLAudioElement, requestId: number) => {
+    audio.addEventListener(
+      'playing',
+      () => {
+        if (requestId !== playRequestIdRef.current) return;
+        claraAudioDevLog('audio playing event fired');
+        if (!claraAudioDebugEnabled()) return;
+        const at = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        try {
+          window.dispatchEvent(new CustomEvent('eidconnect:clara-audible-start', { detail: { at } }));
+        } catch {
+          /* ignore */
+        }
+      },
+      { once: true },
+    );
   }, []);
+
+  /**
+   * iOS/Safari: einmaliger „Media-Gate“-Unlock im echten User-Gesture (Tap).
+   * Ohne das schlägt später `audio.play()` aus async/TTS oft mit NotAllowed fehl.
+   */
+  const unlockAudioFromUserGesture = useCallback(() => {
+    if (typeof window === 'undefined' || iosAudioUnlockedRef.current) {
+      if (iosAudioUnlockedRef.current) claraAudioDevLog('user gesture received (unlock already done)');
+      return;
+    }
+    claraAudioDevLog('user gesture received');
+    claraAudioDevLog('audio unlock attempted');
+    /**
+     * Sofort markieren: TTS-`fetch` endet oft *nach* dem Tap-Stack — ohne dieses Flag
+     * wäre `iosAudioUnlockedRef` erst im `.then()` des Silent-Wavs true und `audio.play()`
+     * läuft noch mit „nicht freigeschaltet“ (iOS/Safari, teils striktes Desktop-Chrome).
+     */
+    iosAudioUnlockedRef.current = true;
+    claraAudioDevLog('audio unlock success (optimistic in user gesture)');
+    const silent =
+      'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAE=';
+    const a = new window.Audio(silent);
+    a.volume = 0.0001;
+    void a
+      .play()
+      .then(() => {
+        claraAudioDevLog('audio unlock confirmed (silent buffer played)');
+        try {
+          a.pause();
+        } catch {
+          /* ignore */
+        }
+      })
+      .catch((err: unknown) => {
+        const name =
+          err instanceof DOMException
+            ? err.name
+            : err instanceof Error
+              ? err.name
+              : 'Error';
+        const message = err instanceof Error ? err.message : String(err);
+        claraAudioDevLog('audio unlock failed:', `${name} ${message}`);
+        try {
+          const Ctx =
+            window.AudioContext ||
+            (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+          if (Ctx) {
+            const ctx = new Ctx();
+            void ctx.resume().then(() => {
+              const buf = ctx.createBuffer(1, 1, 22050);
+              const src = ctx.createBufferSource();
+              src.buffer = buf;
+              src.connect(ctx.destination);
+              src.start(0);
+              claraAudioDevLog('audio unlock success (WebAudio fallback)');
+              void ctx.close?.().catch(() => {});
+            });
+          }
+        } catch (e2) {
+          claraAudioDevLog('audio unlock WebAudio fallback failed:', e2 instanceof Error ? e2.message : e2);
+        }
+      });
+  }, []);
+
+  const tryResumePendingAudioFromUserGesture = useCallback(() => {
+    unlockAudioFromUserGesture();
+    const p = pendingTtsRef.current;
+    if (!p) {
+      claraAudioDevLog('tryResume: no pending TTS');
+      return false;
+    }
+    if (p.requestId !== playRequestIdRef.current) {
+      claraAudioDevLog(
+        'stale request ignored',
+        'requestId=',
+        p.requestId,
+        'current=',
+        playRequestIdRef.current,
+      );
+      URL.revokeObjectURL(p.objectUrl);
+      pendingTtsRef.current = null;
+      return false;
+    }
+    const { objectUrl, requestId, playbackRate } = p;
+    pendingTtsRef.current = null;
+    const audio = new Audio(objectUrl);
+    audio.playbackRate = playbackRate;
+    audioUrlRef.current = objectUrl;
+    audioRef.current = audio;
+
+    audio.onended = () => {
+      if (requestId !== playRequestIdRef.current) return;
+      setVoiceState((prev) => ({ ...prev, isSpeaking: false }));
+    };
+    audio.onerror = () => {
+      if (requestId !== playRequestIdRef.current) return;
+      setVoiceState((prev) => ({
+        ...prev,
+        isSpeaking: false,
+        error: 'Audio konnte nicht abgespielt werden.',
+      }));
+    };
+
+    setVoiceState((prev) => ({ ...prev, isSpeaking: true, error: null }));
+    attachClaraAudibleDevLog(audio, requestId);
+    claraAudioDevLog('audio.play called (tryResume pending TTS)');
+    void audio.play().catch((err: unknown) => {
+      if (requestId !== playRequestIdRef.current) return;
+      const name =
+        err instanceof DOMException ? err.name : err instanceof Error ? err.name : 'Error';
+      const message = err instanceof Error ? err.message : String(err);
+      claraAudioDevLog('audio play failed', 'name=', name, 'message=', message);
+      pendingTtsRef.current = { objectUrl, requestId, playbackRate };
+      audioRef.current = null;
+      setVoiceState((prev) => ({ ...prev, isSpeaking: false, error: null }));
+    });
+    return true;
+  }, [attachClaraAudibleDevLog, unlockAudioFromUserGesture]);
 
   const playTts = useCallback(
     async (rawText: string) => {
       const text = rawText.trim();
-      if (!text) return;
+      if (!text) {
+        claraAudioDevLog('playTts skipped: empty text');
+        return;
+      }
 
-      stopSpeaking();
+      claraAudioDevLog('playTts called', 'textLength=', text.length);
+      stopSpeaking('playTts:cancel-prior');
       const requestId = ++playRequestIdRef.current;
+      claraAudioDevLog('playTts new requestId=', requestId);
       setVoiceState((prev) => ({ ...prev, isSpeaking: true, error: null }));
 
+      const finishTtsUnavailable = (httpStatus: number, rawDetail: string, logPreview: boolean) => {
+        if (requestId !== playRequestIdRef.current) return;
+        const safeReason = categorizeClaraTtsFailure(httpStatus, rawDetail);
+        claraAudioDevLog(`tts unavailable status=${httpStatus} reason=${safeReason}`);
+        if (logPreview) claraAudioDevLog('tts upstream preview (dev)=', claraAudioPreview(rawDetail, 100));
+        claraAudioDevLog('falling back to text-only mode');
+        claraAudioDevLog('TTS nicht verfügbar – Textmodus aktiv');
+        emitClaraTtsFailed();
+        setVoiceState((prev) => ({
+          ...prev,
+          isSpeaking: false,
+          error: process.env.NODE_ENV === 'production' ? null : `TTS: ${safeReason}`,
+        }));
+        claraAudioDevLog('isIntroSpeaking reset after tts error');
+      };
+
       try {
+        claraAudioDevLog('tts request started', 'POST /api/tts');
         const res = await fetch('/api/tts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text, speed: speechRate }),
         });
 
+        const contentType = (res.headers.get('content-type') ?? '').split(';')[0]?.trim() ?? '';
+        claraAudioDevLog('tts response status=', res.status, 'contentType=', contentType);
+
         if (!res.ok) {
-          let message = `TTS Fehler (${res.status})`;
+          let rawDetail = `http_${res.status}`;
           try {
-            const json = await res.json();
-            if (json?.error) message = json.error;
+            const text = await res.text();
+            if (text.trim()) {
+              try {
+                const json = JSON.parse(text) as { error?: string };
+                if (typeof json?.error === 'string' && json.error.trim()) rawDetail = json.error.trim();
+                else rawDetail = text.trim().slice(0, 500);
+              } catch {
+                rawDetail = text.trim().slice(0, 500);
+              }
+            }
           } catch {
-            // ignore
+            /* ignore */
           }
-          throw new Error(message);
+          finishTtsUnavailable(res.status, rawDetail, true);
+          return;
+        }
+
+        /**
+         * Produktregel: Nur bei 200 + audio/mpeg weiterarbeiten — sonst kein Blob/Audio/play
+         * (Fehler zuerst an /api/tts beheben, nicht am Client „herumoptimieren“).
+         */
+        if (res.status !== 200) {
+          let rawDetail = `unexpected_status_${res.status}`;
+          try {
+            const t = (await res.text()).trim();
+            if (t) rawDetail = t.slice(0, 500);
+          } catch {
+            /* ignore */
+          }
+          finishTtsUnavailable(res.status, rawDetail, true);
+          return;
+        }
+        const ctLower = contentType.toLowerCase();
+        const isAudioMpeg = ctLower === 'audio/mpeg' || ctLower === 'audio/mp3';
+        if (!isAudioMpeg) {
+          let rawDetail = `expected_audio_mpeg_got:${contentType || '(empty)'}`;
+          try {
+            const t = (await res.text()).trim();
+            if (t) rawDetail = t.slice(0, 320);
+          } catch {
+            /* ignore */
+          }
+          finishTtsUnavailable(res.status, rawDetail, true);
+          return;
         }
 
         const blob = await res.blob();
-        if (requestId !== playRequestIdRef.current) return;
+        if (requestId !== playRequestIdRef.current) {
+          claraAudioDevLog('stale request ignored after blob', 'requestId=', requestId, 'current=', playRequestIdRef.current);
+          return;
+        }
+        if (blob.size < 1) {
+          claraAudioDevLog('tts response empty body — aborting playback');
+          finishTtsUnavailable(0, 'TTS-Antwort leer', false);
+          return;
+        }
+        claraAudioDevLog('audio blob size=', blob.size, 'bytes');
 
         const objectUrl = URL.createObjectURL(blob);
+        claraAudioDevLog('audio objectUrl created');
         audioUrlRef.current = objectUrl;
         const audio = new Audio(objectUrl);
+        audio.playbackRate = speechRate;
         audioRef.current = audio;
 
         audio.onended = () => {
           if (requestId !== playRequestIdRef.current) return;
+          claraAudioDevLog('audio ended');
           setVoiceState((prev) => ({ ...prev, isSpeaking: false }));
         };
         audio.onerror = () => {
           if (requestId !== playRequestIdRef.current) return;
+          emitClaraTtsFailed();
           setVoiceState((prev) => ({
             ...prev,
             isSpeaking: false,
@@ -142,17 +407,48 @@ export const useClaraVoice = () => {
           }));
         };
 
-        await audio.play();
+        attachClaraAudibleDevLog(audio, requestId);
+        try {
+          claraAudioDevLog('audio.play called', 'muted=', audio.muted, 'volume=', audio.volume);
+          await audio.play();
+          claraAudioDevLog('audio.play promise resolved (may still buffer)');
+        } catch (playErr: unknown) {
+          if (requestId !== playRequestIdRef.current) return;
+          const name =
+            playErr instanceof DOMException
+              ? playErr.name
+              : typeof playErr === 'object' &&
+                  playErr !== null &&
+                  'name' in playErr &&
+                  typeof (playErr as { name: unknown }).name === 'string'
+                ? (playErr as { name: string }).name
+                : '';
+          const msg = playErr instanceof Error ? playErr.message : String(playErr);
+          claraAudioDevLog('audio play failed', 'name=', name, 'message=', msg);
+          if (name === 'NotAllowedError') {
+            try {
+              audio.pause();
+            } catch {
+              // ignore
+            }
+            audio.src = '';
+            audioRef.current = null;
+            audioUrlRef.current = null;
+            pendingTtsRef.current = { objectUrl, requestId, playbackRate: speechRate };
+            claraAudioDevLog('NotAllowedError — pending TTS stored for gesture resume');
+            setVoiceState((prev) => ({ ...prev, isSpeaking: false, error: null }));
+            return;
+          }
+          throw playErr;
+        }
       } catch (e) {
         if (requestId !== playRequestIdRef.current) return;
-        setVoiceState((prev) => ({
-          ...prev,
-          isSpeaking: false,
-          error: e instanceof Error ? e.message : 'TTS nicht verfügbar',
-        }));
+        const raw = e instanceof Error ? e.message : String(e);
+        claraAudioDevLog('playTts catch:', e instanceof Error ? `${e.name} ${e.message}` : e);
+        finishTtsUnavailable(0, raw, true);
       }
     },
-    [stopSpeaking],
+    [stopSpeaking, speechRate, attachClaraAudibleDevLog],
   );
 
   const speak = useCallback((text: string) => {
@@ -167,13 +463,25 @@ export const useClaraVoice = () => {
     const cleaned = parts
       .map((p) => p.replace(/\s+/g, ' ').replace(/[*#_`]/g, '').trim())
       .filter((p) => p.length >= 2);
-    if (!cleaned.length) return;
+    if (!cleaned.length) {
+      claraAudioDevLog('speakParts skipped: all segments empty after filter', 'incoming=', parts.length);
+      return;
+    }
     void playTts(cleaned.join('\n\n'));
   }, [playTts]);
 
   /** Nach Verarbeitung leeren, damit `useEffect` bei gleichem Text erneut feuern kann und keine Doppel-Läufe entstehen. */
   const clearTranscript = useCallback(() => {
     setVoiceState((prev) => ({ ...prev, transcript: '' }));
+  }, []);
+
+  const setSpeechRate = useCallback((rate: 1 | 1.15) => {
+    setSpeechRateState(rate);
+    try {
+      window.sessionStorage.setItem('clara_speech_rate_v1', String(rate));
+    } catch {
+      // ignore
+    }
   }, []);
 
   return {
@@ -183,6 +491,10 @@ export const useClaraVoice = () => {
     speak,
     speakParts,
     stopSpeaking,
+    tryResumePendingAudioFromUserGesture,
+    unlockAudioFromUserGesture,
     clearTranscript,
+    speechRate,
+    setSpeechRate,
   };
 };

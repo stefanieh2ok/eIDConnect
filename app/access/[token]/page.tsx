@@ -8,7 +8,7 @@ import { IphoneFrame } from '@/components/ui/IphoneFrame';
 import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
 
 export const metadata = {
-  title: `Vertraulicher Demo-Zugang – ${APP_DISPLAY_NAME}`,
+  title: `Vertraulicher Vorschau-Zugang – ${APP_DISPLAY_NAME}`,
 };
 
 type AccessPageProps = {
@@ -26,7 +26,7 @@ export default async function AccessPage({ params }: AccessPageProps) {
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-600">
               Was fehlt auf Supabase?
             </p>
-            <h1 className="mt-2 text-xl font-semibold">Demo-Zugang derzeit nicht verfügbar</h1>
+            <h1 className="mt-2 text-xl font-semibold">Vorschau-Zugang derzeit nicht verfügbar</h1>
             <p className="mt-3 text-sm leading-relaxed text-neutral-700">
               Die Konfiguration fehlt. Bitte in der Projektdatei{' '}
               <code className="rounded bg-neutral-100 px-1 py-0.5 text-neutral-900">.env.local</code> setzen:
@@ -79,22 +79,23 @@ export default async function AccessPage({ params }: AccessPageProps) {
   return (
     <IphoneFrame>
       <div
-        className="flex h-full min-h-0 flex-col overflow-y-auto rounded-b-[1.75rem] px-2 pb-[88px] pt-1"
+        id="main-content"
+        className="civic-gate-page flex h-full min-h-0 flex-col overflow-x-hidden overflow-y-auto rounded-b-[1.75rem] px-2 pb-[88px] pt-1"
         style={{
           background: 'transparent',
         }}
       >
-        <div className="mx-auto w-full max-w-[360px] space-y-4 pb-6 text-neutral-950">
-          <div className="card-section">
-            <ProductIdentityHeader />
-            <h1 className="t-h1 mt-2">{ndaConfig.header || 'Vertraulicher Demo-Zugang'}</h1>
+        <div className="mx-auto w-full max-w-[360px] min-w-0 space-y-4 pb-6 text-neutral-950">
+          <div className="card-section min-w-0 overflow-x-hidden">
+            <ProductIdentityHeader className="max-w-full shrink-0 -ml-5" />
+            <h1 className="t-h1 mt-2">{ndaConfig.header || 'Vertraulicher Vorschau-Zugang'}</h1>
             <p className="t-body mt-3">
               Dieser personalisierte Zugang ist ausschließlich für die benannte Person bestimmt.
               Für Tester erfolgt die Freigabe über die bestätigte NDA-Zustimmung im nächsten Schritt.
             </p>
 
             <div className="card-content mt-4">
-              <p className="t-card-title">Personalisierter Demo-Zugang</p>
+              <p className="t-card-title">Personalisierter Vorschau-Zugang</p>
               <div className="mt-2 space-y-1">
                 <p>
                   <span className="t-meta font-semibold text-neutral-900">Empfänger:</span>{' '}

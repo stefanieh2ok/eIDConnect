@@ -1,5 +1,5 @@
 /**
- * Einheitlicher Produktname in der Demo-UI (Header, Metadaten, zitierte Texte).
+ * Einheitlicher Produktname in der App-Oberfläche (Header, Metadaten, zitierte Texte).
  *
  * Bewusst **nicht** aus `NEXT_PUBLIC_APP_NAME` abgeleitet: auf älteren Deployments oder in
  * `.env` steht dort oft noch eine Legacy-eID-Marke — dann würde die eingeloggte App
@@ -7,7 +7,7 @@
  *
  * `normalizeAppDisplayName` bleibt für Tests und ggf. Migrationen/Docs nutzbar.
  */
-const DEMO_APP_NAME = 'HookAI Civic Demo';
+const DEMO_APP_NAME = 'HookAI Civic';
 
 /** Kurzzeile unter dem Produktnamen (Header, Zugang, Marketing). */
 export const APP_TAGLINE = 'Informieren. Verstehen. Mitwirken.' as const;
@@ -47,11 +47,11 @@ export function normalizeAppDisplayName(raw: string | undefined): string {
   return t;
 }
 
-/** Immer die vollständige Demo-Marke — siehe Kommentar zu `DEMO_APP_NAME`. */
+/** Immer die vollständige Produktmarke — siehe Kommentar zu `DEMO_APP_NAME`. */
 export const APP_DISPLAY_NAME = DEMO_APP_NAME;
 
 /** Dateiname für NDA-Downloads (ASCII, Bindestriche) */
-export const NDA_PDF_FILENAME = 'HookAI-Civic-Demo-NDA.pdf';
+export const NDA_PDF_FILENAME = 'HookAI-Civic-Konzeptvorschau-NDA.pdf';
 
 /**
  * Query auf `manifest.start_url`: bei geänderter Marke/PWA erhöhen, damit Browser

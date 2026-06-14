@@ -81,7 +81,7 @@ const ClaraFloatingButton: React.FC<ClaraFloatingButtonProps> = ({ onOpenClara, 
           >
             <p className="text-sm font-semibold mb-1">Clara</p>
             <p className="text-xs opacity-95 mb-3">
-              Digitale Assistentin für demokratische Orientierung. Neutral, quellenbasiert, nachvollziehbar.
+              Digitale Assistentin für demokratische Orientierung. Neutral, quellenbasiert, verständlich.
             </p>
             <div className="flex gap-2">
               <button
