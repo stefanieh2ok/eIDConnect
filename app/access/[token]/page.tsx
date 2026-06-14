@@ -79,7 +79,8 @@ export default async function AccessPage({ params }: AccessPageProps) {
   return (
     <IphoneFrame>
       <div
-        className="flex h-full min-h-0 flex-col overflow-x-hidden overflow-y-auto rounded-b-[1.75rem] px-2 pb-[88px] pt-1"
+        id="main-content"
+        className="civic-gate-page flex h-full min-h-0 flex-col overflow-x-hidden overflow-y-auto rounded-b-[1.75rem] px-2 pb-[88px] pt-1"
         style={{
           background: 'transparent',
         }}

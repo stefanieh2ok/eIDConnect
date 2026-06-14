@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-type LogoVariant = 'light' | 'dark' | 'onBlue' | 'icon';
+type LogoVariant = 'light' | 'dark' | 'onBlue' | 'icon' | 'wordmarkLight' | 'wordmarkDark' | 'wordmarkOnBlue';
 
 type HookAiCivicLogoProps = {
   variant?: LogoVariant;
@@ -15,6 +15,9 @@ const SRC_BY_VARIANT: Record<LogoVariant, string> = {
   dark: '/brand/logo-dark.svg?v=20260428c',
   onBlue: '/brand/logo-on-blue.svg?v=20260430',
   icon: '/brand/icon-only.svg?v=20260428c',
+  wordmarkLight: '/brand/wordmark-light.svg?v=20260613',
+  wordmarkDark: '/brand/wordmark-dark.svg?v=20260613',
+  wordmarkOnBlue: '/brand/wordmark-on-blue.svg?v=20260613',
 };
 
 /** Intrinsisches Seitenverhältnis für Layout/CLS; Darstellung steuert CSS (`className` Höhe/Breite). */
@@ -23,6 +26,9 @@ const DIMENSIONS_BY_VARIANT: Record<LogoVariant, { width: number; height: number
   dark: { width: 600, height: 140 },
   onBlue: { width: 980, height: 220 },
   icon: { width: 512, height: 512 },
+  wordmarkLight: { width: 300, height: 68 },
+  wordmarkDark: { width: 300, height: 68 },
+  wordmarkOnBlue: { width: 300, height: 68 },
 };
 
 export default function HookAiCivicLogo({

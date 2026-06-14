@@ -34,7 +34,7 @@ export default async function AccessDeniedPage({
 
   return (
     <IphoneFrame>
-      <main className="flex h-full min-h-0 w-full items-center justify-center rounded-b-[1.75rem] px-3 py-6">
+      <main id="main-content" className="civic-gate-page flex h-full min-h-0 w-full items-center justify-center rounded-b-[1.75rem] px-3 py-6">
       <div className="w-full max-w-[360px] rounded-2xl border border-neutral-200 bg-white/70 p-6 text-neutral-900 shadow-lg backdrop-blur-xl">
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-neutral-600">
           Zugriff verweigert

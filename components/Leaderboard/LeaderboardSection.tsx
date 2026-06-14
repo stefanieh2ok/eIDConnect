@@ -420,6 +420,16 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
         (cinemaActive ? ' intro-wt-praemien-root--active' : '')
       }
     >
+      {!compact ? (
+        <div className="card-content py-1.5">
+          <h2 className="app-shell-page-heading">Prämien</h2>
+          <p className="mt-0.5 text-[11px] leading-snug text-neutral-600">
+            {du
+              ? 'Lokale Anerkennung fürs Mitmachen — unabhängig von deiner Entscheidung.'
+              : 'Lokale Anerkennung fürs Mitmachen — unabhängig von Ihrer Entscheidung.'}
+          </p>
+        </div>
+      ) : null}
       <div className={compact ? '' : 'card-content py-1.5'}>
         <div
           className={`rounded-xl border border-neutral-100 bg-white ${compact ? 'px-2 py-1.5' : 'px-2.5 py-2'}`}

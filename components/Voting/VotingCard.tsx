@@ -84,13 +84,36 @@ const VotingCard: React.FC<VotingCardProps> = memo(
 
         <div className={`px-4 ${introCompact ? 'pb-1' : 'pb-2'}`}>
           <div className="civic-vote-bar" title="Ablehnen · Enthalten · Zustimmen" aria-label="Abstimmungsverlauf">
-            <div className="civic-vote-bar__seg civic-vote-bar__seg--reject" style={{ width: `${card.no}%` }} />
-            <div className="civic-vote-bar__seg civic-vote-bar__seg--abstain" style={{ width: `${card.abstain}%` }} />
-            <div className="civic-vote-bar__seg civic-vote-bar__seg--accept" style={{ width: `${card.yes}%` }} />
+            <div
+              className="civic-vote-bar__seg civic-vote-bar__seg--reject"
+              style={{ width: `${card.no}%` }}
+              aria-hidden
+            />
+            <div
+              className="civic-vote-bar__seg civic-vote-bar__seg--abstain"
+              style={{ width: `${card.abstain}%` }}
+              aria-hidden
+            />
+            <div
+              className="civic-vote-bar__seg civic-vote-bar__seg--accept"
+              style={{ width: `${card.yes}%` }}
+              aria-hidden
+            />
+          </div>
+          <div className="civic-vote-bar-legend" aria-hidden={introBarIcons}>
+            <span className="civic-vote-bar-legend__item civic-vote-bar-legend__item--reject">
+              Ablehnen {card.no}%
+            </span>
+            <span className="civic-vote-bar-legend__item civic-vote-bar-legend__item--abstain">
+              Enthalten {card.abstain}%
+            </span>
+            <span className="civic-vote-bar-legend__item civic-vote-bar-legend__item--accept">
+              Zustimmen {card.yes}%
+            </span>
           </div>
           <div className="mt-1.5 flex justify-between text-[12px] text-[var(--color-text-secondary)]">
             <span>
-              {card.no}% · {card.abstain}% · {card.yes}% — {card.votes.toLocaleString('de-DE')} Stimmen
+              {card.votes.toLocaleString('de-DE')} Stimmen gesamt
             </span>
             <button type="button" className="underline decoration-dotted underline-offset-2">
               Quellen

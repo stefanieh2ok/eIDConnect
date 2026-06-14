@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useApp } from '@/context/AppContext';
 import { EbeneLevel, Location, Section } from '@/types';
-import { CalendarDays, ChevronLeft, ListChecks, Settings, X } from 'lucide-react';
+import { CalendarDays, ChevronLeft, Gift, Mail, Settings, X } from 'lucide-react';
 import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
 import { normalizePlz, parseLegacyDemoAddress, suggestCityFromPlz } from '@/data/plzDemoLookup';
 import {
@@ -41,6 +41,7 @@ const SECTION_LEVELS: Record<Section, EbeneLevel[]> = {
   kalender:    ['bund', 'land', 'kreis', 'kommune'],
   // Regel: Meldungen nur Kommune
   meldungen:   ['kommune'],
+  postfach:    ['bund', 'land', 'kreis', 'kommune'],
   fuermich:    ['bund', 'land', 'kreis', 'kommune'],
 };
 
@@ -112,6 +113,10 @@ const AppHeader: React.FC = () => {
   // Section bleibt im Hintergrund erhalten, daher kein erzwungenes SET_ACTIVE_SECTION.
   const closeSettingsToApp = () => {
     setShowSettings(false);
+  };
+
+  const openPostfach = () => {
+    dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'postfach' });
   };
 
   const profile = state.buergerProfil;
@@ -836,49 +841,57 @@ const AppHeader: React.FC = () => {
     <header
       id="tour-footer"
       className="app-shell-header"
-      style={{
-        paddingTop: 'max(0.55rem, env(safe-area-inset-top, 0.55rem))',
-      }}
     >
-      {/* ── Row 1: Brand + Aktionen ── */}
-      <div className="flex items-center justify-between gap-2 px-2 pb-1.5 pt-0.5 sm:px-3">
-        <div className="min-w-0 flex-1 pr-1 sm:pr-2">
-          <ProductIdentityHeader className="max-w-full shrink-0" />
+      <div className="app-shell-header__bar">
+        <div className="app-shell-header__brand">
+          <ProductIdentityHeader className="max-w-full" presentation="wordmark" />
         </div>
-        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+        <div className="app-shell-header__actions" role="group" aria-label="Schnellzugriff">
+          <button
+            type="button"
+            onClick={openPostfach}
+            className={`app-shell-utility-btn app-shell-utility-btn--icon-only ${
+              state.activeSection === 'postfach' ? 'app-shell-utility-btn--active' : ''
+            }`}
+            aria-label="Postfach öffnen"
+            aria-current={state.activeSection === 'postfach' ? 'page' : undefined}
+            title="Postfach · Verifizierte Behördenkommunikation"
+          >
+            <Mail className="app-shell-utility-btn__icon" strokeWidth={1.75} aria-hidden />
+          </button>
           <button
             type="button"
             onClick={() => dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'kalender' })}
-            className={`app-shell-utility-btn ${
+            className={`app-shell-utility-btn app-shell-utility-btn--icon-only ${
               state.activeSection === 'kalender' ? 'app-shell-utility-btn--active' : ''
             }`}
             aria-label="Termine öffnen"
             aria-current={state.activeSection === 'kalender' ? 'page' : undefined}
             title="Termine"
           >
-            <CalendarDays size={22} aria-hidden />
-            <span className="app-shell-utility-btn__label">Termine</span>
+            <CalendarDays className="app-shell-utility-btn__icon" strokeWidth={1.75} aria-hidden />
           </button>
           <button
             type="button"
             id="tour-rewards-btn"
             onClick={() => dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'leaderboard' })}
-            className={`app-shell-utility-btn px-2 ${
+            className={`app-shell-utility-btn app-shell-utility-btn--icon-only ${
               state.activeSection === 'leaderboard' ? 'app-shell-utility-btn--active' : ''
             }`}
-            aria-label="Mitwirkung öffnen"
+            aria-label="Prämien"
             aria-current={state.activeSection === 'leaderboard' ? 'page' : undefined}
+            title="Prämien"
           >
-            <ListChecks className="h-[18px] w-[18px] shrink-0" aria-hidden />
-            <span className="app-shell-utility-btn__label">Mitwirkung</span>
+            <Gift className="app-shell-utility-btn__icon" strokeWidth={1.75} aria-hidden />
           </button>
           <button
             type="button"
             onClick={() => setShowSettings(true)}
-            className="app-shell-utility-btn"
+            className="app-shell-utility-btn app-shell-utility-btn--icon-only"
             aria-label="Trust Center öffnen"
+            title="Trust Center"
           >
-            <Settings size={22} aria-hidden />
+            <Settings className="app-shell-utility-btn__icon" strokeWidth={1.75} aria-hidden />
           </button>
         </div>
       </div>

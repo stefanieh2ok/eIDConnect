@@ -15,6 +15,7 @@ import { FUER_MICH_LIFE_EVENT_CLUSTERS } from '@/data/fuerMichLifeEventClusters'
 import type { ResolverResult } from '@/lib/kirkelServiceResolver';
 
 import type { LifeEventId } from '@/types/fuerMich';
+import { EMPTY_FUER_MICH_PROFILE } from '@/types/fuerMich';
 
 
 
@@ -132,6 +133,8 @@ function PickerHarness() {
     <FuerMichLifeEventPicker
 
       du
+
+      profile={EMPTY_FUER_MICH_PROFILE}
 
       selectedId={selectedId}
 

@@ -10,6 +10,7 @@ import LeaderboardSection from '@/components/Leaderboard/LeaderboardSection';
 import ElectionsSection from '@/components/Elections/ElectionsSection';
 import CalendarSection from '@/components/Calendar/CalendarSection';
 import MeldungenSection from '@/components/Meldungen/MeldungenSection';
+import PostfachSection from '@/components/Postfach/PostfachSection';
 import FuerMichSection from '@/components/FuerMich/FuerMichSection';
 import StimmzettelModal from '@/components/Modals/StimmzettelModal';
 import IntroOverlay from '@/components/Intro/IntroOverlay';
@@ -115,6 +116,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     news: [],
     kalender: ['bund', 'land', 'kreis', 'kommune'],
     meldungen: ['kommune'],
+    postfach: ['bund', 'land', 'kreis', 'kommune'],
     fuermich: ['bund', 'land', 'kreis', 'kommune'],
   };
   const locationLineForLaunch = useMemo(() => {
@@ -390,6 +392,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
           />
         );
       case 'meldungen':   return <MeldungenSection />;
+      case 'postfach':    return <PostfachSection />;
       case 'fuermich':    return <FuerMichSection />;
       default:            return <LiveSection />;
     }
@@ -512,7 +515,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                 }
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
-                <div className="px-3 pt-2 pb-app-shell-safe">
+                <div className="app-main-content px-3 pb-app-shell-safe">
                   {renderSection()}
                   {state.activeSection !== 'fuermich' && state.activeSection !== 'live' ? (
                     <SecurityFaqFooter />
@@ -663,7 +666,7 @@ function SecurityFaqFooter() {
     },
     {
       q: 'Ist für die Teilnahme ein digitaler Personalausweis nötig?',
-      a: 'Ja. Für die Teilnahme ist ein digitaler Personalausweis (eID) erforderlich, damit Berechtigung und Zuständigkeit sicher geprüft werden können.',
+      a: 'In dieser Demo ist die Teilnahme ohne produktiven eID-Anschluss möglich. Perspektivisch kann der Zugang über eID oder EU Digital Identity Wallet erfolgen — dann zur Prüfung von Berechtigung und Zuständigkeit.',
     },
   ];
 

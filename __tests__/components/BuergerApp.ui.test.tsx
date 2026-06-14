@@ -53,7 +53,7 @@ describe('BuergerApp UI (Footer, Tour, Consent)', () => {
       { timeout: 3000 }
     );
     expect(document.getElementById('tour-voting-btn')).toHaveTextContent(/Beteiligen/i);
-    expect(document.getElementById('tour-rewards-btn')).toHaveTextContent(/Mitwirkung/i);
+    expect(document.getElementById('tour-rewards-btn')).toHaveAttribute('aria-label', 'Prämien');
     // Meldungen-Tab erscheint nur bei Kommune-Ebene; bei Bund/Land/Kreis standardmäßig nicht
     const meldenBtn = document.getElementById('tour-melden-btn');
     if (meldenBtn) expect(meldenBtn).toHaveTextContent(/Melden/i);

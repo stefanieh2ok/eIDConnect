@@ -24,10 +24,7 @@ export default function AppBottomNav({ hidden = false }: AppBottomNavProps) {
 
   return (
     <nav className="app-bottom-nav" aria-label="Hauptnavigation">
-      <div
-        className="app-bottom-nav__grid"
-        style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}
-      >
+      <div className="app-bottom-nav__grid">
         {items.map((item) => {
           const isActive = state.activeSection === item.section;
           const Icon = NAV_ICONS[item.iconKey];

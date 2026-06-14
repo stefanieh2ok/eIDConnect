@@ -124,7 +124,7 @@ export default function HomeContent({ showSetupLink }: HomeContentProps) {
 
   return (
     <IphoneFrame>
-      <main className="scrollbar-hide flex h-full min-h-0 w-full flex-col overflow-y-auto rounded-b-[1.75rem] px-3 py-3 text-neutral-900">
+      <main id="main-content" className="civic-gate-page scrollbar-hide flex h-full min-h-0 w-full flex-col overflow-y-auto rounded-b-[1.75rem] px-3 py-3 text-neutral-900">
       <div className="mx-auto w-full max-w-[360px] flex flex-col items-center gap-6 rounded-2xl border border-white/25 bg-white/12 p-4 shadow-lg backdrop-blur-xl">
         {/* Marke */}
         <div className="w-full flex flex-col items-start gap-2 text-left">

@@ -3,10 +3,10 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import {
-  INTRO_ANREDE_SHORT_DU,
-  INTRO_ANREDE_SHORT_SIE,
   INTRO_ANREDE_UI_TITLE_DU,
   INTRO_ANREDE_UI_TITLE_SIE,
+  introClaraWelcomeLong,
+  introClaraWelcomeShort,
 } from '@/data/introOverlayMarketing';
 import { introAnredeGateSpokenParts } from '@/lib/introSpokenTts';
 import { useClaraVoiceContext } from '@/components/Clara/ClaraVoiceContext';
@@ -289,8 +289,8 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
 
   const titleAnrede =
     pending == null ? INTRO_ANREDE_UI_TITLE_SIE : duMode ? INTRO_ANREDE_UI_TITLE_DU : INTRO_ANREDE_UI_TITLE_SIE;
-  const shortAnrede =
-    pending == null ? INTRO_ANREDE_SHORT_SIE : duMode ? INTRO_ANREDE_SHORT_DU : INTRO_ANREDE_SHORT_SIE;
+  const shortAnrede = introClaraWelcomeShort(pending == null ? false : duMode);
+  const longAnrede = introClaraWelcomeLong(pending == null ? false : duMode);
 
   const anredePickBtnClass = (selected: boolean) =>
     'min-h-[48px] rounded-xl border-2 px-2.5 text-center text-[12px] font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500/50 ' +
@@ -361,7 +361,7 @@ export function AnredeGate({ isOpen, onComplete, variant = 'overlay', position =
                 surface="light"
                 label={titleAnrede}
                 short={shortAnrede}
-                long=""
+                long={longAnrede}
                 showTopicTitle
               />
             </div>

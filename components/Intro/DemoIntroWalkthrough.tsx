@@ -20,6 +20,7 @@ import {
   machineNarrationPlain,
   machineShort,
   machineSpeakParts,
+  machineSceneDurationMs,
   machineStepId,
   machineTitle,
   overlayIndexForMachineIndex,
@@ -29,33 +30,61 @@ import { claraAudioDebugEnabled, claraAudioDevLog, claraAudioPreview } from '@/l
 import type { ClaraVoiceIntentType } from '@/lib/introVoiceIntents';
 import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
-import PolitikBarometerPanel from '@/components/Intro/PolitikBarometerPanel';
+import {
+  WalkthroughBehoerdenwegChecklist,
+  WalkthroughIntroElevator,
+  WalkthroughOekosystemFinale,
+  WalkthroughProfilPreview,
+  WalkthroughWegweiserBaby,
+} from '@/components/Intro/WalkthroughSceneEmbeds';
 import LiveSection from '@/components/Live/LiveSection';
 import LeaderboardSection from '@/components/Leaderboard/LeaderboardSection';
 import ElectionsSection from '@/components/Elections/ElectionsSection';
 import CalendarSection from '@/components/Calendar/CalendarSection';
 import MeldungenSection from '@/components/Meldungen/MeldungenSection';
+import PostfachSection from '@/components/Postfach/PostfachSection';
 import type { Location, Section, UserPreferences, VoteType } from '@/types';
-import { DEMO_POINTS_PER_ABSTIMMUNG, VOTING_DATA, WAHLEN_DATA } from '@/data/constants';
+import { DEMO_POINTS_PER_ABSTIMMUNG, VOTING_DATA } from '@/data/constants';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
 
 const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = {
-  abstimmen: 'Echte Abstimmungs-Ansicht wie in der App',
-  wahlen: 'Wahlen · gleiche Daten wie unter „Wahlen“',
-  meldungen: 'Meldungen · gleicher Ablauf wie in der App',
-  praemien: 'Prämien · Kurz-Demo: Karte → Gutschein → QR → Wallet',
-  politikbarometer: 'Politikbarometer · Regler wie in der App (Beispielwert 50 %)',
+  intro: 'HookAI Civic · Orientierung bis Beteiligung',
+  wegweiser: 'Wegweiser · Baby-Beispiel Kirkel',
+  profil: 'Freiwilliges Kurzprofil',
+  behoerdenweg: 'Behördenweg · Checkliste Baby kommt',
+  abstimmen: 'Abstimmungen · Teilnahme mit Feedback',
+  wahlen: 'Wahlen · Musterstimmzettel (Demo-Beispiel)',
+  meldungen: 'Meldungen · Rattenplage Drachenspielplatz',
+  postfach: 'Postfach · beispielhafte verifizierte Kommunikation',
+  praemien: 'Prämien · Karte → Gutschein → QR → Wallet',
+  oekosystem: 'Civic-Ökosystem · alles im Zusammenspiel',
 };
 
 const WALKTHROUGH_STEP_SUBTITLE: Partial<Record<IntroOverlayStepId, string>> = {
-  // UX/Legal positioning: makes it unmistakable this is a preview, not “I’m voting here”.
-  wahlen: 'Wahlvorschau: Kandidierende, Programme und verifizierte Quellen.',
-  praemien: 'Freiwillig · nur mit Einwilligung · lokaler Partnervorteil als Beispiel.',
+  wahlen: 'Wahlvorschau: Demo-Beispiel — keine echte Stimmabgabe, keine Empfehlung.',
+  praemien: 'Lokale Anerkennung fürs Mitmachen — unabhängig von deiner Entscheidung.',
+  postfach: 'Beispielhafte Vorschau — keine echte Zustellung oder Behördenanbindung.',
 };
+
+const WALKTHROUGH_EMBED_GATED_STEPS: IntroOverlayStepId[] = [
+  'abstimmen',
+  'meldungen',
+  'wahlen',
+  'praemien',
+  'wegweiser',
+  'behoerdenweg',
+  'intro',
+  'oekosystem',
+];
 
 function walkthroughSectionForStep(stepId: string): Section {
   switch (stepId) {
+    case 'intro':
+    case 'wegweiser':
+    case 'profil':
+    case 'behoerdenweg':
+      return 'fuermich';
     case 'abstimmen':
       return 'live';
     case 'wahlen':
@@ -64,12 +93,14 @@ function walkthroughSectionForStep(stepId: string): Section {
       return 'kalender';
     case 'meldungen':
       return 'meldungen';
+    case 'postfach':
+      return 'postfach';
     case 'praemien':
       return 'leaderboard';
-    case 'politikbarometer':
-      return 'live';
+    case 'oekosystem':
+      return 'fuermich';
     default:
-      return 'live';
+      return 'fuermich';
   }
 }
 
@@ -283,24 +314,31 @@ function IntroAbstimmenWalkthroughDemo({
   );
 }
 
-function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
-  const btw = useMemo(() => WAHLEN_DATA.find((w) => w.id === 'btw25'), []);
-  const cdu = useMemo(
-    () => btw?.parteien?.find((p) => /CDU/i.test(p.name)) ?? btw?.parteien?.[0],
-    [btw],
-  );
-  const erst = useMemo(() => btw?.kandidaten?.slice(0, 5) ?? [], [btw]);
-  const zweit = useMemo(() => btw?.parteien?.slice(0, 6) ?? [], [btw]);
+/** Neutraler Musterstimmzettel für Walkthrough — keine realen Personen/Parteien (Sprint 1). */
+const WT_NEUTRAL_BALLOT = {
+  title: 'Wahlvorschau · Demo-Beispiel',
+  wahlName: 'Bundestagswahl — Musterstimmzettel',
+  datum: 'Musterwahl',
+  wahlkreis: 'Wahlkreis 000',
+  candidates: [
+    { liste: 'Liste A', name: 'Musterkandidat:in A' },
+    { liste: 'Liste B', name: 'Musterkandidat:in B' },
+    { liste: 'Liste C', name: 'Musterkandidat:in C' },
+  ],
+  parties: ['Partei A', 'Partei B', 'Partei C', 'Partei D'],
+  programExcerpt:
+    'Beispielauszug eines Musterprogramms — nur zur Erklärung des Aufbaus. Keine Empfehlung, keine echte Stimmabgabe.',
+} as const;
 
+/** Index des fiktiven Demo-Marks (neutral, keine reale Person). */
+const WT_DEMO_MARK_INDEX = 0;
+
+function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<'idle' | 'focus' | 'tick' | 'program' | 'source'>('idle');
   const doneRef = useRef(false);
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
-  const sourcePrimaryUrl = 'https://www.cdu.de/wahlprogramm-von-cdu-und-csu/';
-  const sourcePdfUrl =
-    'https://www.cdu.de/app/uploads/2025/01/km_btw_2025_wahlprogramm_langfassung_ansicht.pdf';
 
-  /** Cross-Zeichnung 480 ms, danach Pause, dann Programm, dann Quellen-Hervorhebung, dann visual-ready. */
   const CROSS_ANIM_MS = 480;
   const PAUSE_AFTER_CROSS_MS = 200;
   const PAUSE_BEFORE_SOURCE_MS = 420;
@@ -328,46 +366,45 @@ function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
     };
   }, []);
 
-  if (!btw) {
-    return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-900">
-        Bundestagswahl 2025 (btw25) nicht gefunden.
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto w-full max-w-full min-w-0">
       <div className="rounded-xl border border-[#D6E0EE] bg-white shadow-sm sm:rounded-2xl">
         <div className="border-b border-[#E6EDF7] px-3 pb-1.5 pt-2 sm:px-3.5 sm:pt-2.5">
           <div className="text-[12px] font-bold tracking-tight text-[#003366]">Wahlen</div>
-          <div className="mt-0.5 text-[13px] font-bold leading-snug text-[#1A2B45] sm:text-[14px]">{btw.name}</div>
-          <div className="mt-0.5 text-[11px] font-medium leading-snug text-neutral-600">
-            Vorschau · {btw.datum} · {btw.wahlkreis}
+          <div className="mt-0.5 text-[13px] font-bold leading-snug text-[#1A2B45] sm:text-[14px]">
+            {WT_NEUTRAL_BALLOT.title}
           </div>
+          <div className="mt-0.5 text-[11px] font-medium leading-snug text-neutral-600">
+            {WT_NEUTRAL_BALLOT.datum} · {WT_NEUTRAL_BALLOT.wahlkreis}
+          </div>
+          <p className="mt-1 text-[10px] font-semibold text-amber-800">
+            Demo-Beispiel · Keine echte Stimmabgabe · Keine Empfehlung
+          </p>
         </div>
 
         <div className="px-2.5 pb-2 pt-2 sm:px-3 sm:pb-2.5 sm:pt-2.5">
           <div className="rounded-lg border border-neutral-800/45 bg-[#FFF4A8] px-2 py-2 shadow-sm sm:px-2.5 sm:py-2.5">
             <p className="text-[9px] font-bold tracking-[0.1em] text-neutral-900 sm:text-[10px]">STIMMZETTEL</p>
-            <p className="mt-0.5 text-[11px] font-bold leading-tight text-neutral-900 sm:text-[12px]">{btw.name}</p>
+            <p className="mt-0.5 text-[11px] font-bold leading-tight text-neutral-900 sm:text-[12px]">
+              {WT_NEUTRAL_BALLOT.wahlName}
+            </p>
             <p className="text-[9px] font-semibold leading-snug text-neutral-800 sm:text-[10px]">
-              {btw.datum} · {btw.wahlkreis}
+              {WT_NEUTRAL_BALLOT.datum} · {WT_NEUTRAL_BALLOT.wahlkreis}
             </p>
             <div className="mt-2 border-t border-black/25 pt-1.5">
               <p className="text-[9px] font-bold uppercase tracking-wide text-neutral-800 sm:text-[10px]">
-                Erststimme · Bewerber
+                Erststimme · Bewerber (Muster)
               </p>
               <div className="mt-1.5 space-y-1">
-                {erst.map((k) => {
-                  const isMerz = /Friedrich\s+Merz/i.test(k.name);
-                  const showMerzMark = isMerz && (phase === 'tick' || phase === 'program' || phase === 'source');
+                {WT_NEUTRAL_BALLOT.candidates.map((k, idx) => {
+                  const isDemoMark = idx === WT_DEMO_MARK_INDEX;
+                  const showMark = isDemoMark && (phase === 'tick' || phase === 'program' || phase === 'source');
                   return (
                     <div
-                      key={`${k.partei}-${k.name}`}
+                      key={`${k.liste}-${k.name}`}
                       className={
                         'relative flex min-h-[30px] items-center gap-2 rounded border border-black/35 bg-[#FFEB8A] px-1.5 py-1 sm:min-h-[32px] ' +
-                        (isMerz && (phase === 'focus' || phase === 'tick')
+                        (isDemoMark && (phase === 'focus' || phase === 'tick')
                           ? 'ring-2 ring-[#003366]/30 intro-login-heartbeat'
                           : '')
                       }
@@ -375,13 +412,13 @@ function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
                       <span
                         className={
                           'flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-sm border-2 bg-white sm:h-5 sm:w-5 ' +
-                          (isMerz ? 'border-neutral-900' : 'border-neutral-900/70')
+                          (isDemoMark ? 'border-neutral-900' : 'border-neutral-900/70')
                         }
                         aria-hidden
                       >
-                        {showMerzMark ? (
+                        {showMark ? (
                           <span
-                            key="merz-stimme-mark"
+                            key="demo-stimme-mark"
                             className="intro-wahlen-mark-draw text-[13px] font-black leading-none text-[#003366] sm:text-[14px]"
                           >
                             ✗
@@ -389,7 +426,7 @@ function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
                         ) : null}
                       </span>
                       <div className="min-w-0 flex-1 leading-snug">
-                        <span className="text-[10px] font-bold text-neutral-900 sm:text-[11px]">{k.partei}</span>
+                        <span className="text-[10px] font-bold text-neutral-900 sm:text-[11px]">{k.liste}</span>
                         <span className="text-[9.5px] font-semibold text-neutral-800 sm:text-[10.5px]"> — {k.name}</span>
                       </div>
                     </div>
@@ -399,30 +436,26 @@ function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
             </div>
             <div className="mt-2 border-t border-black/20 pt-1.5">
               <p className="text-[9px] font-bold uppercase tracking-wide text-neutral-800 sm:text-[10px]">
-                Zweitstimme · Partei (Auszug)
+                Zweitstimme · Partei (Muster)
               </p>
               <div className="mt-1.5 space-y-1">
-                {zweit.map((p) => (
+                {WT_NEUTRAL_BALLOT.parties.map((p) => (
                   <div
-                    key={p.name}
+                    key={p}
                     className="flex min-h-[28px] items-center gap-2 rounded border border-black/28 bg-[#FFEB8A] px-1.5 py-1 sm:min-h-[30px]"
                   >
                     <span
                       className="flex h-[16px] w-[16px] shrink-0 rounded-sm border-2 border-neutral-900/70 bg-white sm:h-[18px] sm:w-[18px]"
                       aria-hidden
                     />
-                    <span className="text-[9.5px] font-semibold leading-snug text-neutral-900 sm:text-[10.5px]">{p.name}</span>
+                    <span className="text-[9.5px] font-semibold leading-snug text-neutral-900 sm:text-[10.5px]">{p}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          <a
-            href={sourcePrimaryUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            tabIndex={-1}
+          <div
             className={
               'pointer-events-none mt-2.5 block overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition-[max-height,opacity,transform] duration-500 ease-out sm:mt-3 ' +
               (phase === 'program' || phase === 'source'
@@ -432,13 +465,13 @@ function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
           >
             <div className="px-2.5 py-2 sm:px-3 sm:py-2.5">
               <div className="text-[11px] font-bold uppercase tracking-wide text-slate-600 sm:text-[12px]">
-                Programmauszug · {cdu?.name ?? 'CDU/CSU'}
+                Programmauszug · Musterliste A
               </div>
-              <div className="mt-1.5 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-                Verifizierte Quelle · CDU/CSU
+              <div className="mt-1.5 inline-flex items-center rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                Demo-Quelle · nur zur Orientierung
               </div>
               <div className="mt-1.5 text-[12px] leading-snug text-slate-800 [text-wrap:pretty] sm:text-[13px]">
-                {(cdu as any)?.programm ?? 'Programmauszug ist in der Vorschau hinterlegt.'}
+                {WT_NEUTRAL_BALLOT.programExcerpt}
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 <span
@@ -449,14 +482,17 @@ function IntroWahlenWalkthroughDemo({ onDone }: { onDone: () => void }) {
                       : 'border-slate-200 bg-white')
                   }
                 >
-                  Offizielle Quelle öffnen
+                  Kandidat ansehen
                 </span>
                 <span className="inline-flex items-center rounded-md border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-medium text-slate-600 sm:text-[11px]">
-                  PDF (Langfassung)
+                  Wahlprogramm öffnen
+                </span>
+                <span className="inline-flex items-center rounded-md border border-slate-200 bg-white px-2 py-1.5 text-[10px] font-medium text-slate-600 sm:text-[11px]">
+                  Stimmzettel verstehen
                 </span>
               </div>
             </div>
-          </a>
+          </div>
         </div>
       </div>
     </div>
@@ -649,17 +685,27 @@ function WalkthroughRealSectionEmbed({
   du,
   calendarPriorities,
   onAbstimmenDone,
-  onPolitikbarometerVisualDone,
+  onEmbedVisualDone,
   onPraemienCinematicComplete,
 }: {
   stepId: IntroOverlayStepId;
   du: boolean;
   calendarPriorities: UserPreferences | undefined;
   onAbstimmenDone: () => void;
-  onPolitikbarometerVisualDone: () => void;
+  onEmbedVisualDone: () => void;
   onPraemienCinematicComplete: () => void;
 }) {
   switch (stepId) {
+    case 'intro':
+      return <WalkthroughIntroElevator du={du} onVisualDone={onEmbedVisualDone} />;
+    case 'wegweiser':
+      return <WalkthroughWegweiserBaby du={du} onVisualDone={onEmbedVisualDone} />;
+    case 'profil':
+      return <WalkthroughProfilPreview du={du} onVisualDone={onEmbedVisualDone} />;
+    case 'behoerdenweg':
+      return <WalkthroughBehoerdenwegChecklist du={du} onVisualDone={onEmbedVisualDone} />;
+    case 'oekosystem':
+      return <WalkthroughOekosystemFinale du={du} onVisualDone={onEmbedVisualDone} />;
     case 'abstimmen':
       return <IntroAbstimmenWalkthroughDemo du={du} onDone={onAbstimmenDone} />;
     case 'wahlen':
@@ -679,23 +725,13 @@ function WalkthroughRealSectionEmbed({
           }}
         />
       );
+    case 'postfach':
+      return <PostfachSection embeddedInWalkthrough />;
     case 'praemien':
       return (
         <LeaderboardSection
           embeddedInWalkthrough
           onWalkthroughCinematicComplete={onPraemienCinematicComplete}
-        />
-      );
-    case 'politikbarometer':
-      return (
-        <PolitikBarometerPanel
-          du={du}
-          variant="compact"
-          density="tight"
-          leadDu=""
-          leadSie=""
-          heroPreview
-          onHeroPreviewVisualDone={onPolitikbarometerVisualDone}
         />
       );
     default:
@@ -746,7 +782,7 @@ export default function DemoIntroWalkthrough({
   const speakApi = useIntroSpeakApi();
   const { tryResumePendingAudioFromUserGesture } = useClaraVoiceContext();
   const isIntroSpeaking = useIntroIsSpeaking();
-  const onPolitikbarometerVisualDone = useCallback(() => {
+  const onEmbedVisualDone = useCallback(() => {
     setNextPulse(true);
   }, []);
 
@@ -762,13 +798,13 @@ export default function DemoIntroWalkthrough({
    */
   const advanceWalkthrough = useCallback(() => {
     speechCancelledRef.current = true;
+    speakApi?.stopIntroSpeech();
     setContinuePulse(false);
     if (pulseTimerRef.current != null) {
       window.clearTimeout(pulseTimerRef.current);
       pulseTimerRef.current = null;
     }
     if (isLast) {
-      speakApi?.stopIntroSpeech();
       onFinish();
     } else {
       setMachineIndex((p) => Math.min(machineCount - 1, p + 1));
@@ -785,9 +821,6 @@ export default function DemoIntroWalkthrough({
 
   const preview = useMemo(() => {
     const mid = machineStepId(machineIndex);
-    if (mid === 'auth') {
-      return <WalkthroughAuthContent du={du} />;
-    }
     if (mid === 'outro') {
       return (
         <div className="mx-auto w-full max-w-md px-1 pb-0 pt-0">
@@ -837,7 +870,7 @@ export default function DemoIntroWalkthrough({
             du={du}
             calendarPriorities={calendarPriorities}
             onAbstimmenDone={() => setNextPulse(true)}
-            onPolitikbarometerVisualDone={onPolitikbarometerVisualDone}
+            onEmbedVisualDone={onEmbedVisualDone}
             onPraemienCinematicComplete={onPraemienCinematicComplete}
           />
         </div>
@@ -850,7 +883,7 @@ export default function DemoIntroWalkthrough({
     overlayStepId,
     state.consentClaraPersonalization,
     state.preferences,
-    onPolitikbarometerVisualDone,
+    onEmbedVisualDone,
     onPraemienCinematicComplete,
   ]);
 
@@ -919,10 +952,10 @@ export default function DemoIntroWalkthrough({
       autoAdvanceTimerRef.current = null;
     }
     if (
-      machineId === 'auth' ||
       machineId === 'outro' ||
-      machineId === 'politikBarometer' ||
-      overlayStepId === 'kalender'
+      overlayStepId === 'kalender' ||
+      overlayStepId === 'postfach' ||
+      overlayStepId === 'profil'
     ) {
       setNextPulse(true);
     }
@@ -933,19 +966,19 @@ export default function DemoIntroWalkthrough({
     }
     autoAdvanceFallbackRef.current = window.setTimeout(() => {
       setAutoAdvanceTick((n) => n + 1);
-    }, 4600);
+    }, machineSceneDurationMs(machineIndex) + 800);
     return () => {
       if (autoAdvanceFallbackRef.current != null) {
         window.clearTimeout(autoAdvanceFallbackRef.current);
         autoAdvanceFallbackRef.current = null;
       }
     };
-  }, [machineId, overlayStepId, clearAdvanceTimers]);
+  }, [machineId, overlayStepId, machineIndex, clearAdvanceTimers]);
 
   useEffect(() => {
     const gated: IntroOverlayStepId[] = ['abstimmen', 'meldungen', 'wahlen'];
     if (!overlayStepId || !gated.includes(overlayStepId)) return;
-    const t = window.setTimeout(() => setNextPulse(true), 4500);
+    const t = window.setTimeout(() => setNextPulse(true), machineSceneDurationMs(machineIndex));
     return () => window.clearTimeout(t);
   }, [overlayStepId, machineIndex]);
 
@@ -1111,7 +1144,7 @@ export default function DemoIntroWalkthrough({
     if (speechCancelledRef.current) return;
     const needsEmbedPulse =
       !!overlayStepId &&
-      (['abstimmen', 'meldungen', 'wahlen'] as string[]).includes(overlayStepId);
+      (WALKTHROUGH_EMBED_GATED_STEPS as string[]).includes(overlayStepId);
     if (needsEmbedPulse && !nextPulse) return;
     if (machineId === 'praemien' && !praemienCinematicDone) return;
     if (voicePausedRef.current) return;
@@ -1223,8 +1256,7 @@ export default function DemoIntroWalkthrough({
   }, [clearAdvanceTimers, dispatch, isLast, machineCount, machineIndex, onFinish, speakApi, speakParts]);
 
   const needsEmbedPulse =
-    !!overlayStepId &&
-    (['abstimmen', 'meldungen', 'wahlen', 'politikbarometer'] as string[]).includes(overlayStepId);
+    !!overlayStepId && (WALKTHROUGH_EMBED_GATED_STEPS as string[]).includes(overlayStepId);
   const weiterDisabled =
     !claraReadyToContinue ||
     (needsEmbedPulse && !nextPulse) ||
@@ -1288,7 +1320,7 @@ export default function DemoIntroWalkthrough({
             toolbarDensity="compact"
             onSkip={skipIntroOrBackToEid}
             onClose={exitIntroOrBackToEid}
-            closeAriaLabel={machineIndex === 0 ? 'Zurück zur eID-Vorschau' : undefined}
+            closeAriaLabel={machineIndex === 0 ? 'Zur Einstiegsauswahl' : undefined}
           />
 
           <div
@@ -1321,7 +1353,7 @@ export default function DemoIntroWalkthrough({
                   >
                     {machineTitle(machineIndex)}
                   </h2>
-                  {machineId !== 'auth' && machineId !== 'outro' ? (
+                  {machineId !== 'outro' ? (
                     <p
                       className={
                         'font-medium leading-snug text-neutral-600 sm:text-[13px] ' +
@@ -1341,7 +1373,7 @@ export default function DemoIntroWalkthrough({
                       : 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 pb-2 pt-2 sm:px-4'
                   }
                 >
-                  {machineId !== 'auth' && machineId !== 'outro' ? (
+                  {machineId !== 'outro' ? (
                     <div className="mb-2 shrink-0">
                       <WalkthroughInfoDetails
                         surface="light"
@@ -1371,6 +1403,7 @@ export default function DemoIntroWalkthrough({
             <button
               type="button"
               onClick={() => {
+                speakApi?.stopIntroSpeech();
                 speechCancelledRef.current = true;
                 setContinuePulse(false);
                 if (pulseTimerRef.current != null) {
@@ -1382,7 +1415,6 @@ export default function DemoIntroWalkthrough({
                   autoAdvanceTimerRef.current = null;
                 }
                 if (machineIndex === 0) {
-                  speakApi?.stopIntroSpeech();
                   if (onBackFromFirstStep) onBackFromFirstStep();
                   return;
                 }

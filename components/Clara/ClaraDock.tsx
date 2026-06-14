@@ -34,6 +34,7 @@ const SECTION_LABEL: Record<string, string> = {
   wahlen: 'Wahlen',
   kalender: 'Kalender',
   meldungen: 'Meldungen',
+  postfach: 'Postfach',
   news: 'Meldungen',
 };
 

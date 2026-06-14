@@ -639,7 +639,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
 
       {filterSheetOpen && (
         <div
-          className="fixed inset-0 z-[90] flex flex-col justify-end"
+          className="absolute inset-0 z-[90] flex flex-col justify-end"
           role="dialog"
           aria-modal="true"
           aria-label="Filter"

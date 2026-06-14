@@ -1,19 +1,25 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import FuerMichInlineBehördenweg from '@/components/FuerMich/FuerMichInlineBehördenweg';
 import { InfoHint } from '@/components/ui/InfoHint';
 import { FUER_MICH_LIFE_EVENTS } from '@/data/fuerMichLifeEvents';
 import {
   FUER_MICH_LIFE_EVENT_CLUSTERS,
+  type LifeEventCluster,
   type LifeEventClusterId,
 } from '@/data/fuerMichLifeEventClusters';
-import type { ResolverResult } from '@/lib/kirkelServiceResolver';
-import type { LifeEventId } from '@/types/fuerMich';
+import { resolveServicesForSituation, type ResolverResult } from '@/lib/kirkelServiceResolver';
+import { hasCivicBundle } from '@/lib/civicRegistryIndex';
+import type { FuerMichProfileState, LifeEventId } from '@/types/fuerMich';
+
+const CLUSTER_EMPTY_MESSAGE =
+  'Für diese Kategorie sind noch keine Demo-Behördenpakete hinterlegt.';
 
 type FuerMichLifeEventPickerProps = {
   du: boolean;
+  profile: FuerMichProfileState;
   selectedId: LifeEventId | null;
   resolved: ResolverResult | null;
   onSelect: (id: LifeEventId) => void;
@@ -21,8 +27,43 @@ type FuerMichLifeEventPickerProps = {
   onShowFullResults: () => void;
 };
 
+function clusterHasCatalogContent(
+  cluster: LifeEventCluster,
+  profile: FuerMichProfileState,
+): boolean {
+  return cluster.eventIds.some((eventId) => {
+    const result = resolveServicesForSituation({
+      selectedLifeEvents: [eventId],
+      profile: {
+        bundesland: profile.bundesland,
+        plz: profile.plz,
+        wohnort: profile.wohnort,
+      },
+    });
+    return result.matchedServices.length > 0;
+  });
+}
+
+function clusterHasCivicDemoPackets(
+  cluster: LifeEventCluster,
+  profile: FuerMichProfileState,
+): boolean {
+  return cluster.eventIds.some((eventId) => {
+    const result = resolveServicesForSituation({
+      selectedLifeEvents: [eventId],
+      profile: {
+        bundesland: profile.bundesland,
+        plz: profile.plz,
+        wohnort: profile.wohnort,
+      },
+    });
+    return result.matchedServices.some((service) => hasCivicBundle(service.leistung_key));
+  });
+}
+
 export default function FuerMichLifeEventPicker({
   du,
+  profile,
   selectedId,
   resolved,
   onSelect,
@@ -36,14 +77,39 @@ export default function FuerMichLifeEventPicker({
 
   const [openClusterId, setOpenClusterId] = useState<LifeEventClusterId | null>(null);
 
+  const clusterMeta = useMemo(
+    () =>
+      new Map(
+        FUER_MICH_LIFE_EVENT_CLUSTERS.map((cluster) => [
+          cluster.id,
+          {
+            hasCatalog: clusterHasCatalogContent(cluster, profile),
+            hasCivicDemo: clusterHasCivicDemoPackets(cluster, profile),
+          },
+        ]),
+      ),
+    [profile],
+  );
+
   useEffect(() => {
     if (!selectedId) return;
     const cluster = FUER_MICH_LIFE_EVENT_CLUSTERS.find((c) => c.eventIds.includes(selectedId));
     if (cluster) setOpenClusterId(cluster.id);
   }, [selectedId]);
 
+  const preserveMainScroll = useCallback(() => {
+    const scrollEl = document.getElementById('main-content');
+    if (!scrollEl) return;
+    const top = scrollEl.scrollTop;
+    requestAnimationFrame(() => {
+      scrollEl.scrollTop = top;
+    });
+  }, []);
+
   const toggleCluster = (clusterId: LifeEventClusterId) => {
+    preserveMainScroll();
     setOpenClusterId((prev) => (prev === clusterId ? null : clusterId));
+    requestAnimationFrame(preserveMainScroll);
   };
 
   return (
@@ -51,6 +117,12 @@ export default function FuerMichLifeEventPicker({
       {FUER_MICH_LIFE_EVENT_CLUSTERS.map((cluster) => {
         const isOpen = openClusterId === cluster.id;
         const clusterHasSelection = cluster.eventIds.some((id) => id === selectedId);
+        const meta = clusterMeta.get(cluster.id);
+        const hasCatalog = meta?.hasCatalog ?? true;
+        const hasCivicDemo = meta?.hasCivicDemo ?? false;
+        const visibleEvents = cluster.eventIds
+          .map((eventId) => eventsById.get(eventId))
+          .filter((event): event is NonNullable<typeof event> => Boolean(event));
 
         return (
           <div
@@ -78,9 +150,18 @@ export default function FuerMichLifeEventPicker({
 
             {isOpen ? (
               <div className="lebenslagen-board__situations">
-                {cluster.eventIds.map((eventId) => {
-                  const event = eventsById.get(eventId);
-                  if (!event) return null;
+                {!hasCatalog || visibleEvents.length === 0 ? (
+                  <p className="lebenslagen-board__empty" role="status">
+                    {CLUSTER_EMPTY_MESSAGE}
+                  </p>
+                ) : (
+                  <>
+                    {!hasCivicDemo ? (
+                      <p className="lebenslagen-board__empty lebenslagen-board__empty--banner" role="status">
+                        {CLUSTER_EMPTY_MESSAGE}
+                      </p>
+                    ) : null}
+                    {visibleEvents.map((event) => {
                   const isSelected = selectedId === event.id;
                   const isSensitive = event.sensitive === true;
                   const label = du ? event.labelDu : event.labelSie;
@@ -139,6 +220,8 @@ export default function FuerMichLifeEventPicker({
                     </React.Fragment>
                   );
                 })}
+                  </>
+                )}
               </div>
             ) : null}
           </div>

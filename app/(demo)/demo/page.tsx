@@ -19,7 +19,7 @@ export default async function DemoEntryPage({ searchParams }: PageProps) {
 
   return (
     <IphoneFrame>
-      <div className="flex h-full min-h-0 w-full flex-col items-center justify-center rounded-b-[1.75rem] px-4 pb-8 text-center">
+      <div id="main-content" className="flex h-full min-h-0 w-full flex-col items-center justify-center rounded-b-[1.75rem] px-4 pb-8 text-center civic-gate-page">
         <div className="w-full max-w-[360px] rounded-2xl border border-neutral-200 bg-white/75 p-6 text-neutral-900 shadow-lg backdrop-blur-xl">
           <h1 className="text-xl font-semibold text-neutral-900">{APP_DISPLAY_NAME}</h1>
           <p className="mt-2 text-sm text-neutral-800">

@@ -7,13 +7,13 @@ describe('introSpokenTts', () => {
     expect(duT).toContain('Clara');
     expect(duT).toMatch(/Wie darf ich Sie ansprechen/);
     expect(duT).toMatch(/begleite Sie|Wie darf ich Sie/);
-    expect(duT).toMatch(/beim Du|führe dich/);
+    expect(duT).toMatch(/beim Du|Schritt für Schritt/);
     expect(duT).not.toMatch(/deine KI-Agentin/);
     const sieT = introAnredeGateSpoken(false);
     expect(sieT).toContain('HookAI Civic');
     expect(sieT).toContain('Clara');
     expect(sieT).toMatch(/Sie-Form/);
-    expect(sieT).toMatch(/führe Sie/);
+    expect(sieT).toMatch(/Orientierung|Überblick/);
   });
 
   it('eID-Login: Spoken — Zugang, eID, Zuständigkeit/Berechtigung, ohne alte Floskeln', () => {

@@ -18,6 +18,7 @@ import { FUER_MICH_LIFE_EVENTS } from '@/data/fuerMichLifeEvents';
 
 import { resolveServicesForSituation } from '@/lib/kirkelServiceResolver';
 
+import { scrollIntoViewNearest } from '@/lib/motionPreference';
 import type { LifeEventId } from '@/types/fuerMich';
 
 
@@ -121,15 +122,10 @@ export default function FuerMichSection() {
 
 
   const handleShowFullResults = () => {
-
     setShowFullResults(true);
-
     requestAnimationFrame(() => {
-
-      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
+      scrollIntoViewNearest(resultsRef.current);
     });
-
   };
 
 
@@ -168,7 +164,7 @@ export default function FuerMichSection() {
 
       <header className="wegweiser-launcher-header">
 
-        <h2 id="fuer-mich-life-event-heading" className="text-[18px] font-bold tracking-tight text-[#003366]">
+        <h2 id="fuer-mich-life-event-heading" className="app-shell-page-heading">
 
           {headline}
 
@@ -191,6 +187,8 @@ export default function FuerMichSection() {
       <FuerMichLifeEventPicker
 
         du={du}
+
+        profile={profile}
 
         selectedId={selectedLifeEvent}
 
