@@ -4280,6 +4280,71 @@ html[data-overlay-detail-open='true'] div:has(> [role='toolbar'][aria-label^='Cl
   animation: intro-wt-wallet-reveal 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Walkthrough: Coachmarks & Nav-Highlights (cinematic tutorial) */
+@keyframes wt-coachmark-pulse {
+  0%,
+  100% {
+    box-shadow: 0 8px 24px rgba(0, 51, 102, 0.12);
+  }
+  50% {
+    box-shadow: 0 8px 28px rgba(14, 165, 233, 0.28);
+  }
+}
+.wt-coachmark--pulse {
+  animation: wt-coachmark-pulse 1.6s ease-in-out infinite;
+}
+@keyframes wt-nav-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.12);
+  }
+}
+.wt-nav-icon--pulse {
+  animation: wt-nav-pulse 1.4s ease-in-out infinite;
+}
+.wt-nav-zone--active {
+  outline: 1px solid rgba(14, 165, 233, 0.25);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+@keyframes wt-tap-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.08);
+  }
+}
+.wt-tap-target--pulse {
+  animation: wt-tap-pulse 1.2s ease-in-out infinite;
+}
+@keyframes wt-tap-ripple {
+  0% {
+    transform: translateY(-50%) scale(0.6);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-50%) scale(1.4);
+    opacity: 0;
+  }
+}
+.wt-tap-ripple {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.35) 0%, transparent 70%);
+  animation: wt-tap-ripple 1.1s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wt-coachmark--pulse,
+  .wt-nav-icon--pulse,
+  .wt-tap-target--pulse,
+  .wt-tap-ripple {
+    animation: none;
+  }
+}
+
 /* Intro: einmaliger, dezenter Leuchtrand wenn Claras TTS startet (Audio-Status-Button) */
 @keyframes intro-audio-glow {
   0% {

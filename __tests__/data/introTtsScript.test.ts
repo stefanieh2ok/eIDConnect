@@ -11,7 +11,7 @@ describe('introOverlayFramingLine', () => {
 });
 
 describe('buildIntroTtsManifest', () => {
-  it('liefert Anrede + 11 Walkthrough-Szenen', () => {
+  it('liefert Anrede + 12 Walkthrough-Szenen', () => {
     const du = buildIntroTtsManifest(true);
     expect(du).toHaveLength(1 + INTRO_OVERLAY_STEPS.length);
     expect(du[0].step).toBe(1);
@@ -22,11 +22,11 @@ describe('buildIntroTtsManifest', () => {
     expect(du[du.length - 1].id).toBe('oekosystem');
   });
 
-  it('Walkthrough: erster TTS-Block (Du) = Clara Elevator ohne Schritt-Präfix', () => {
+  it('Walkthrough: erster TTS-Block (Du) = Navigation-Intro ohne Schritt-Präfix', () => {
     const du = buildIntroTtsManifest(true);
     expect(du[1].tts).not.toMatch(/^Schritt \d+ von/);
     expect(du[1].tts).toMatch(/Willkommen bei HookAI Civic/);
-    expect(du[1].tts).toMatch(/von Orientierung bis Beteiligung/);
+    expect(du[1].tts).toMatch(/Wegweiser, Melden, Beteiligen und Wählen/);
   });
 
   it('letzter TTS-Block (Du) enthält Ökosystem- und Abschlusstext', () => {

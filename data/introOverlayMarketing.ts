@@ -4,7 +4,7 @@ import { INTRO_WALKTHROUGH_CLARA } from '@/data/introWalkthroughClara';
  * Texte für die Einführung (HookAI Civic).
  *
  * Framing-Prinzipien (State Clarity):
- * - Die gesamte Einführung: Anrede + 11 Walkthrough-Szenen (Intro … Ökosystem).
+ * - Die gesamte Einführung: Anrede + 12 Walkthrough-Szenen (Intro … Ökosystem).
  * - Ein globaler „EINFÜHRUNG"-Pill steht auf allen Screens als Meta-Ebene.
  * - Pro Schritt genau eine Framing-Zeile (Meta), NIE im Screen-Inhalt selbst.
  * - Wording: „So …" statt „Jetzt …" – signalisiert Vorschau statt Live-Aktion.
@@ -358,6 +358,7 @@ export type IntroOverlayStepId =
   | 'kalender'
   | 'postfach'
   | 'praemien'
+  | 'praemien_wallet'
   | 'oekosystem';
 
 export type IntroOverlayStepCopy = {
@@ -465,7 +466,17 @@ export const INTRO_OVERLAY_STEPS: IntroOverlayStepCopy[] = [
     bullets: [
       { n: 1, title: 'Freiwillig', text: 'Lokale Anerkennung fürs Mitmachen.' },
       { n: 2, title: 'Unabhängig', text: 'Nicht von der Abstimmungsentscheidung.' },
-      { n: 3, title: 'Beispiel', text: 'Naturfreibad Kirkel als QR oder Wallet.' },
+      { n: 3, title: 'Beispiel', text: 'Naturfreibad Kirkel — Gutschein anzeigen.' },
+    ],
+  },
+  {
+    id: 'praemien_wallet',
+    title: 'Prämien',
+    body: INTRO_WALKTHROUGH_CLARA.praemien_wallet.longSie,
+    bullets: [
+      { n: 1, title: 'QR-Code', text: 'Gutschein als Vorschau.' },
+      { n: 2, title: 'Wallet', text: 'Pass vorbereitet — Demo.' },
+      { n: 3, title: 'Datenschutz', text: 'Lokal, freiwillig, datenschutzbewusst.' },
     ],
   },
   {
@@ -499,6 +510,7 @@ export const INTRO_OVERLAY_FRAMING_LINES_SIE: Record<IntroOverlayStepId, string>
   kalender: 'Fristen und Beteiligungen an einem Ort.',
   postfach: 'Verifizierte Hinweise, Rückfragen und Statusmeldungen an einem Ort.',
   praemien: 'Lokale Anerkennung fürs Mitmachen — unabhängig von Ihrer Entscheidung.',
+  praemien_wallet: 'QR-Code und Wallet-Pass — Vorschau, keine produktive Integration.',
   oekosystem: 'Ein Civic-Ökosystem für Orientierung, Beteiligung und Vertrauen.',
 };
 
@@ -513,6 +525,7 @@ export const INTRO_OVERLAY_FRAMING_LINES_DU: Record<IntroOverlayStepId, string> 
   kalender: 'Fristen und Beteiligungen an einem Ort.',
   postfach: 'Verifizierte Hinweise, Rückfragen und Statusmeldungen an einem Ort.',
   praemien: 'Lokale Anerkennung fürs Mitmachen — unabhängig von deiner Entscheidung.',
+  praemien_wallet: 'QR-Code und Wallet-Pass — Vorschau, keine produktive Integration.',
   oekosystem: 'Ein Civic-Ökosystem für Orientierung, Beteiligung und Vertrauen.',
 };
 

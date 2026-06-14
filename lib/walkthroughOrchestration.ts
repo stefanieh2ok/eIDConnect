@@ -16,6 +16,7 @@ export const WALKTHROUGH_MACHINE_STEPS = [
   'kalender',
   'postfach',
   'praemien',
+  'praemien_wallet',
   'oekosystem',
   'outro',
 ] as const;
@@ -34,6 +35,7 @@ export const WALKTHROUGH_SCENE_DURATION_MS: Record<WalkthroughMachineStep, numbe
   kalender: 7000,
   postfach: 9000,
   praemien: 10000,
+  praemien_wallet: 9000,
   oekosystem: 8000,
   outro: 0,
 };
@@ -106,8 +108,13 @@ const STEP_META: Record<WalkthroughMachineStep, StepMeta> = {
   },
   praemien: {
     title: 'Prämien',
-    shortDu: 'Lokale Anerkennung fürs Mitmachen — unabhängig von deiner Entscheidung.',
-    shortSie: 'Lokale Anerkennung fürs Mitmachen — unabhängig von Ihrer Entscheidung.',
+    shortDu: 'Naturfreibad Kirkel — Gutschein anzeigen.',
+    shortSie: 'Naturfreibad Kirkel — Gutschein anzeigen.',
+  },
+  praemien_wallet: {
+    title: 'Prämien',
+    shortDu: 'QR-Code und Wallet-Pass — Vorschau.',
+    shortSie: 'QR-Code und Wallet-Pass — Vorschau.',
   },
   oekosystem: {
     title: 'Ökosystem',
