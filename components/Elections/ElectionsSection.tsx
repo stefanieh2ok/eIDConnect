@@ -574,7 +574,10 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
           <div className="flex min-w-0 items-center gap-1">
             <span className="election-meta-bar__selection">{selectionLine}</span>
             <InfoHint label="Wahlvorschau Hinweise">
-              <p>Wahlvorschau: Kandidierende, Programme und verifizierte Quellen.</p>
+              <p>
+                Wahlvorschau: Kandidierende, Programme und verifizierte Quellen — keine echte
+                Stimmabgabe, keine Empfehlung.
+              </p>
               {showArchiv && currentLocation === 'saarland' ? (
                 <p className="mt-1">Letzte Landtagswahl Saarland: 27.03.2022</p>
               ) : null}
@@ -1073,8 +1076,8 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
                     <InfoHint label="Informationsansicht">
                       <p>
                         {du
-                          ? 'Stimmzettel, Kandidierende und Programme einsehen — keine Stimmabgabe in der Vorschau.'
-                          : 'Stimmzettel, Kandidierende und Programme einsehen — keine Stimmabgabe in der Vorschau.'}
+                          ? 'Stimmzettel, Kandidierende und Programme einsehen — keine echte Stimmabgabe, keine Empfehlung.'
+                          : 'Stimmzettel, Kandidierende und Programme einsehen — keine echte Stimmabgabe, keine Empfehlung.'}
                       </p>
                       <p className="mt-1">
                         Perspektive eVoting: sichere Identitätsprüfung, Trennung von Identität und Stimme,

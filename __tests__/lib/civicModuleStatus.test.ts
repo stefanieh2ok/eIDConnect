@@ -1,4 +1,4 @@
-import { CIVIC_MODULE_STATUS, civicModuleStatus } from '@/lib/civicModuleStatus';
+import { CIVIC_MODULE_STATUS, civicModuleStatus, CIVIC_MODULE_KEYS, CIVIC_MODULE_UI_LABELS } from '@/lib/civicModuleStatus';
 import { SECTION_PRODUCT_LABELS } from '@/lib/sectionProductLabels';
 
 describe('civicModuleStatus', () => {
@@ -30,6 +30,12 @@ describe('civicModuleStatus', () => {
 
   it('kennzeichnet Wahlen ohne echte Stimmabgabe', () => {
     expect(CIVIC_MODULE_STATUS.wahlen.disclaimer).toMatch(/keine echte Stimmabgabe/i);
+  });
+
+  it('definiert UI-Labels für alle Module', () => {
+    expect(CIVIC_MODULE_KEYS).toHaveLength(9);
+    expect(CIVIC_MODULE_UI_LABELS.praemien).toBe('Prämien');
+    expect(CIVIC_MODULE_UI_LABELS.eid_wallet).toMatch(/eID/i);
   });
 });
 

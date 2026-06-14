@@ -75,3 +75,18 @@ export const CIVIC_MODULE_STATUS: Record<CivicModuleKey, CivicModuleStatusEntry>
 export function civicModuleStatus(key: CivicModuleKey): CivicModuleStatusEntry {
   return CIVIC_MODULE_STATUS[key];
 }
+
+/** Sichtbare Modulnamen im Trust Center (read-only). */
+export const CIVIC_MODULE_UI_LABELS: Record<CivicModuleKey, string> = {
+  wegweiser: 'Wegweiser',
+  meldungen: 'Meldungen',
+  abstimmungen: 'Beteiligen',
+  wahlen: 'Wahlen',
+  kalender: 'Kalender',
+  postfach: 'Postfach',
+  praemien: 'Prämien',
+  clara: 'Clara',
+  eid_wallet: 'eID / Wallet',
+};
+
+export const CIVIC_MODULE_KEYS = Object.keys(CIVIC_MODULE_STATUS) as CivicModuleKey[];

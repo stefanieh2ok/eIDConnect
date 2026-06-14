@@ -24,6 +24,7 @@ import {
   CIVIC_DEMO_STAMMDATEN_LABEL,
   CIVIC_DEMO_STAMMDATEN_PERSON,
 } from '@/lib/civicCompliance';
+import { CivicDemoStatusPanel } from '@/components/shell/CivicDemoStatusPanel';
 
 const LEVEL_CONFIG: Record<EbeneLevel, { label: string; sublabel: string; location: Location }> = {
   bund:    { label: 'Bund',    sublabel: 'Deutschland', location: 'bundesweit' },
@@ -366,6 +367,9 @@ const AppHeader: React.FC = () => {
                     />
                   </label>
                 </section>
+
+                {/* 4b. Demo- & Modulstatus (Sprint 2) */}
+                <CivicDemoStatusPanel />
 
                 {/* 5. Sprache */}
                 <section id="settings-stammdaten" className="settings-shell-section" style={{ scrollMarginTop: '8px' }}>

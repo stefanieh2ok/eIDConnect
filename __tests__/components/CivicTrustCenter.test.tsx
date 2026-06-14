@@ -43,6 +43,15 @@ describe('Trust Center — Demo-Stammdaten', () => {
     const toggle = screen.getByLabelText('Demo-Stammdaten verwenden') as HTMLInputElement;
     expect(toggle.checked).toBe(true);
   });
+
+  it('zeigt Demo-Modulstatus und Audit-Hinweis', () => {
+    setupHeader();
+    fireEvent.click(screen.getByLabelText('Trust Center öffnen'));
+    expect(screen.getByText('Demo- & Modulstatus')).toBeInTheDocument();
+    expect(screen.getByText(/keine echten Behördenintegrationen/i)).toBeInTheDocument();
+    expect(screen.getByText(/Wahlvorschau — keine echte Stimmabgabe/i)).toBeInTheDocument();
+    expect(screen.getByText(/nicht persistent/i)).toBeInTheDocument();
+  });
 });
 
 describe('useDemoStammdaten — Session-Default', () => {
