@@ -25,7 +25,7 @@ import {
   locationForAdministrativeScope,
 } from '@/lib/resolveRegionFromAddress';
 import { ClaraVoiceProvider } from '@/components/Clara/ClaraVoiceContext';
-import { DEMO_POINTS_PER_MELDUNG, DEMO_POINTS_PER_WAHL } from '@/data/constants';
+import { DEMO_POINTS_PER_MELDUNG } from '@/data/constants';
 import { EMPTY_FUER_MICH_PROFILE, type FuerMichProfileState } from '@/types/fuerMich';
 import type { PrivateCalendarReminder } from '@/lib/fuerMichTermin';
 import { isDemoSession } from '@/lib/civicProfileResolver';
@@ -362,11 +362,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
       if (!id || state.votedElectionIds.includes(id)) return state;
       const next = [...state.votedElectionIds, id];
       saveVotedElectionIds(next);
-      const elPts = state.canVote ? DEMO_POINTS_PER_WAHL : 0;
+      // Wahlvorschau: keine Punkte — Entkopplung von Prämien/Mitwirkungspool (Sprint 1 Governance).
       return {
         ...state,
         votedElectionIds: next,
-        participationPoints: state.participationPoints + elPts,
+        participationPoints: state.participationPoints,
         participationElectionCount: state.participationElectionCount + (state.canVote ? 1 : 0),
       };
     }

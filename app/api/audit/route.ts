@@ -23,7 +23,8 @@ type AuditPayload = {
 
 /**
  * POST /api/audit
- * Erfordert aktive Demo-Session (Cookie). Schreibt in audit_logs.
+ * Erfordert aktive Demo-Session (Cookie).
+ * Schreibt in audit_logs wenn Supabase konfiguriert; sonst Demo-Fallback (success, nicht persistent).
  */
 export async function POST(request: NextRequest) {
   try {
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
     const userAgent = getUserAgent(request);
     const deviceFingerprint = buildDeviceFingerprint(ipAddress, userAgent);
 
-    await insertAuditLog({
+    const result = await insertAuditLog({
       demo_id: session.demoId,
       token_id: session.tokenId,
       session_id: session.sessionId,
@@ -67,7 +68,11 @@ export async function POST(request: NextRequest) {
       device_fingerprint: deviceFingerprint,
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      persisted: result.persisted,
+      ...(result.reason ? { auditFallback: result.reason } : {}),
+    });
   } catch (error) {
     console.error('Audit route failed:', error);
     return NextResponse.json(

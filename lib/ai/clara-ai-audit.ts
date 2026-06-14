@@ -28,7 +28,7 @@ function requestMeta(request: Request) {
   };
 }
 
-/** Persistiert KI-Output-Metadaten ohne Klartext (Hashes nur). */
+/** Persistiert KI-Output-Metadaten ohne Klartext (Hashes nur). Ohne Supabase: Demo-Fallback, nicht persistent. */
 export async function logClaraAiOutput(params: ClaraAiAuditParams): Promise<void> {
   const inputHash = hashForAudit(params.inputText);
   const outputHash = hashForAudit(params.outputText);

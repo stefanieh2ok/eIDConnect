@@ -18,8 +18,11 @@ export const THEME_NAMES: Record<string, string> = {
 /** Interner Demo-Zähler je Abstimmungskarte (für Statusableitungen, nicht als Anreizanzeige). */
 export const DEMO_POINTS_PER_ABSTIMMUNG = 250;
 
-/** Interner Demo-Zähler pro abgegebener Stimme bei Wahlen (RECORD_ELECTION_VOTE). */
-export const DEMO_POINTS_PER_WAHL = 200;
+/**
+ * @deprecated Sprint 1: Wahlvorschau vergibt keine Punkte (keine Kopplung Wahl ↔ Prämienpool).
+ * Konstante bleibt für Doku-Referenzen; RECORD_ELECTION_VOTE nutzt 0.
+ */
+export const DEMO_POINTS_PER_WAHL = 0;
 
 /** Interner Demo-Zähler pro erfolgreich gesendeter Meldung (RECORD_MELDUNG_SUBMITTED). */
 export const DEMO_POINTS_PER_MELDUNG = 75;

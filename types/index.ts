@@ -231,11 +231,13 @@ export type Location =
   | 'muenchen';
 export type Section =
   | 'live'
+  /** Interner Key — sichtbares UI-Label „Prämien“ (siehe lib/sectionProductLabels.ts). */
   | 'leaderboard'
   | 'wahlen'
   | 'news'
   | 'kalender'
   | 'meldungen'
+  | 'postfach'
   | 'fuermich';
 export type AbstimmungTab = 'aktuell' | 'ergebnisse';
 export type EbeneLevel = 'bund' | 'land' | 'kreis' | 'kommune';
@@ -250,3 +252,11 @@ export type RegionResolution = {
   county?: string;
   locationHint: Location;
 };
+
+export type {
+  DemoMode,
+  ExternalAdapterStatus,
+  CivicModuleSourceType,
+  CivicModuleKey,
+  CivicModuleStatusEntry,
+} from '@/types/governance';

@@ -8,6 +8,9 @@ import type { AgeGroup, LifeEventId } from '@/types/fuerMich';
  * Region Kirkel/Saarland. KEINE echte API-Anbindung, KEINE Anspruchsprüfung,
  * KEINE Berechnung, KEINE Rechtsberatung, KEINE externen Requests.
  *
+ * GovTech-Abgleich: docs/CONNECTOR-READINESS-MATRIX.md — FIM/LeiKa/PVOG = Offen;
+ * dieser Resolver = Demo/Mapping-Ersatz (ExternalAdapterStatus: mock_ready / not_started).
+ *
  * Der Resolver verhindert tote Links: Ein externes Ziel gilt nur dann als
  * öffenbar, wenn `source_status === 'verified'` UND eine URL hinterlegt ist.
  * Andernfalls wird die zuständige Stelle samt Fallback-Hinweis angezeigt.
