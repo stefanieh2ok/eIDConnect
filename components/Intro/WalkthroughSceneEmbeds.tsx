@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Baby,
   CalendarDays,
@@ -9,10 +9,13 @@ import {
   ListChecks,
   Mail,
   MessageCircle,
+  Settings,
+  ShieldCheck,
   Sparkles,
   ThumbsUp,
   Vote,
 } from 'lucide-react';
+import { WalkthroughCoachmark } from '@/components/Intro/WalkthroughCoachmark';
 
 type EmbedProps = {
   du: boolean;
@@ -30,91 +33,175 @@ const WEGWEISER_OPTIONS_DU = [
 const BEHOERDENWEG_STEPS_DU = [
   'Geburt beim Standesamt anmelden',
   'Geburtsurkunde vorbereiten',
-  'Informationen zu Elterngeld und Kindergeld prüfen',
+  'Elterngeld/Kindergeld-Information prüfen',
   'Unterlagen sammeln',
   'Frist im Kalender merken',
-  'Rückfragen im Postfach verfolgen',
+  'Rückfrage im Postfach verfolgen',
 ] as const;
 
 const BEHOERDENWEG_STEPS_SIE = [
   'Geburt beim Standesamt anmelden',
   'Geburtsurkunde vorbereiten',
-  'Informationen zu Elterngeld und Kindergeld prüfen',
+  'Elterngeld/Kindergeld-Information prüfen',
   'Unterlagen sammeln',
   'Frist im Kalender merken',
-  'Rückfragen im Postfach verfolgen',
+  'Rückfrage im Postfach verfolgen',
 ] as const;
 
 const OEKOSYSTEM_AREAS = [
   { id: 'wegweiser', label: 'Wegweiser', Icon: ListChecks },
-  { id: 'meldungen', label: 'Meldungen', Icon: MessageCircle },
-  { id: 'abstimmen', label: 'Abstimmungen', Icon: ThumbsUp },
-  { id: 'wahlen', label: 'Wahlen', Icon: Vote },
+  { id: 'meldungen', label: 'Melden', Icon: MessageCircle },
+  { id: 'abstimmen', label: 'Beteiligen', Icon: ThumbsUp },
+  { id: 'wahlen', label: 'Wählen', Icon: Vote },
   { id: 'kalender', label: 'Kalender', Icon: CalendarDays },
   { id: 'postfach', label: 'Postfach', Icon: Mail },
   { id: 'praemien', label: 'Prämien', Icon: Gift },
   { id: 'clara', label: 'Clara', Icon: Sparkles },
+  { id: 'trust', label: 'Trust', Icon: ShieldCheck },
 ] as const;
 
-/** Szene 1 — Elevator Pitch mit App-Vorschau. */
+type NavHighlight = 'bottom' | 'header' | 'clara' | null;
+
+/** Szene 1 — App-Navigation mit sequentiellen Highlights. */
 export function WalkthroughIntroElevator({ du, onVisualDone }: EmbedProps) {
+  const [highlight, setHighlight] = useState<NavHighlight>('bottom');
+
   useEffect(() => {
-    const id = window.setTimeout(() => onVisualDone?.(), 1200);
-    return () => window.clearTimeout(id);
+    const t1 = window.setTimeout(() => setHighlight('header'), 2600);
+    const t2 = window.setTimeout(() => setHighlight('clara'), 5200);
+    const t3 = window.setTimeout(() => {
+      setHighlight(null);
+      onVisualDone?.();
+    }, 7600);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.clearTimeout(t3);
+    };
   }, [onVisualDone]);
 
+  const coachText =
+    highlight === 'bottom'
+      ? du
+        ? 'Unten: deine Hauptwege'
+        : 'Unten: Ihre Hauptwege'
+      : highlight === 'header'
+        ? du
+          ? 'Oben: Postfach, Kalender, Prämien, Einstellungen'
+          : 'Oben: Postfach, Kalender, Prämien, Einstellungen'
+        : highlight === 'clara'
+          ? 'Clara hilft jederzeit'
+          : '';
+
+  const bottomItems = [
+    { label: 'Wegweiser', Icon: ListChecks, active: true },
+    { label: 'Melden', Icon: MessageCircle, active: false },
+    { label: 'Beteiligen', Icon: ThumbsUp, active: false },
+    { label: 'Wählen', Icon: Vote, active: false },
+  ] as const;
+
+  const headerItems = [
+    { label: 'Postfach', Icon: Mail },
+    { label: 'Kalender', Icon: CalendarDays },
+    { label: 'Prämien', Icon: Gift },
+    { label: 'Einstellungen', Icon: Settings },
+  ] as const;
+
   return (
-    <div className="wt-scene-intro space-y-3 px-1 pb-2">
-      <p className="rounded-lg border border-slate-200 bg-slate-50/90 px-3 py-2 text-center text-[11px] font-semibold leading-snug text-[#003366]">
-        {du
-          ? 'Verwaltung verständlicher. Beteiligung einfacher. Kommunikation vertrauenswürdiger.'
-          : 'Verwaltung verständlicher. Beteiligung einfacher. Kommunikation vertrauenswürdiger.'}
-      </p>
+    <div className="wt-scene-intro relative space-y-2 px-0.5 pb-1">
+      {coachText ? <WalkthroughCoachmark text={coachText} position="top" pulse /> : null}
       <div className="rounded-xl border border-slate-200/90 bg-white p-2 shadow-sm">
-        <div className="mb-2 flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-          <div className="h-5 w-24 rounded bg-[#003366]/10" aria-hidden />
-          <div className="flex gap-1" aria-hidden>
-            <span className="h-4 w-4 rounded bg-slate-100" />
-            <span className="h-4 w-4 rounded bg-slate-100" />
-            <span className="h-4 w-4 rounded bg-slate-100" />
+        <div
+          className={
+            'mb-2 flex items-center justify-between gap-2 border-b border-slate-100 pb-2 transition ' +
+            (highlight === 'header' ? 'wt-nav-zone--active' : '')
+          }
+        >
+          <span className="text-[10px] font-bold tracking-tight text-[#003366]">HookAI Civic</span>
+          <div className="flex items-center gap-1.5" aria-label="Header-Werkzeuge">
+            {headerItems.map(({ label, Icon }) => (
+              <span
+                key={label}
+                title={label}
+                className={
+                  'flex h-6 w-6 items-center justify-center rounded-md border transition ' +
+                  (highlight === 'header'
+                    ? 'wt-nav-icon--pulse border-sky-200 bg-sky-50 text-[#003366]'
+                    : 'border-slate-100 bg-slate-50 text-slate-500')
+                }
+              >
+                <Icon className="h-3.5 w-3.5" aria-hidden />
+              </span>
+            ))}
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-1 border-t border-slate-100 pt-2">
-          {[
-            { label: 'Wegweiser', active: true },
-            { label: 'Melden', active: false },
-            { label: 'Beteiligen', active: false },
-            { label: 'Wahlen', active: false },
-          ].map((item) => (
+
+        <div className="min-h-[5.5rem] rounded-lg border border-dashed border-slate-100 bg-slate-50/60 px-2 py-3 text-center text-[9px] text-slate-400">
+          {du ? 'Inhalt der gewählten Sektion' : 'Inhalt der gewählten Sektion'}
+        </div>
+
+        <div
+          className={
+            'mt-2 grid grid-cols-4 gap-1 border-t border-slate-100 pt-2 transition ' +
+            (highlight === 'bottom' ? 'wt-nav-zone--active' : '')
+          }
+        >
+          {bottomItems.map(({ label, Icon, active }) => (
             <div
-              key={item.label}
+              key={label}
               className={
-                'flex flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-[8px] font-semibold ' +
-                (item.active ? 'bg-emerald-50 text-[#003366]' : 'text-slate-500')
+                'flex flex-col items-center gap-0.5 rounded-lg px-1 py-1.5 text-[8px] font-semibold transition ' +
+                (active
+                  ? 'bg-emerald-50 text-[#003366] wt-nav-icon--pulse'
+                  : highlight === 'bottom'
+                    ? 'bg-sky-50/80 text-[#003366]'
+                    : 'text-slate-500')
               }
             >
-              <ListChecks className="h-3.5 w-3.5" aria-hidden />
-              <span>{item.label}</span>
+              <Icon className="h-3.5 w-3.5" aria-hidden />
+              <span>{label}</span>
             </div>
           ))}
+        </div>
+
+        <div
+          className={
+            'mx-auto mt-2 flex max-w-[10rem] items-center justify-center gap-1 rounded-full border px-2 py-1 text-[8px] font-semibold transition ' +
+            (highlight === 'clara'
+              ? 'wt-nav-icon--pulse border-violet-200 bg-violet-50 text-violet-800'
+              : 'border-violet-100 bg-violet-50/70 text-violet-700')
+          }
+        >
+          <Sparkles className="h-3 w-3" aria-hidden />
+          <span>Clara</span>
         </div>
       </div>
     </div>
   );
 }
 
-/** Szene 2 — Wegweiser Hero mit Baby-Beispiel. */
+/** Szene 2 — Wegweiser Hero mit Baby-Beispiel und Tap-Puls. */
 export function WalkthroughWegweiserBaby({ du, onVisualDone }: EmbedProps) {
   const options = WEGWEISER_OPTIONS_DU;
   const selected = options[0];
+  const [pulseBaby, setPulseBaby] = useState(true);
 
   useEffect(() => {
-    const id = window.setTimeout(() => onVisualDone?.(), 2200);
-    return () => window.clearTimeout(id);
+    const t1 = window.setTimeout(() => setPulseBaby(false), 1400);
+    const t2 = window.setTimeout(() => onVisualDone?.(), 2800);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
   }, [onVisualDone]);
 
   return (
-    <div className="wt-scene-wegweiser space-y-2.5 px-0.5 pb-1">
+    <div className="wt-scene-wegweiser relative space-y-2.5 px-0.5 pb-1">
+      <WalkthroughCoachmark
+        text={du ? 'Tippe auf eine Lebenslage.' : 'Tippen Sie auf eine Lebenslage.'}
+        position="top"
+        pulse={pulseBaby}
+      />
       <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
         <h3 className="text-[13px] font-bold text-[#003366]">
           {du ? 'Was steht bei dir an?' : 'Was steht bei Ihnen an?'}
@@ -126,14 +213,18 @@ export function WalkthroughWegweiserBaby({ du, onVisualDone }: EmbedProps) {
               <div
                 key={opt}
                 className={
-                  'flex items-center gap-2 rounded-lg border px-2.5 py-2 text-[11px] font-medium ' +
+                  'relative flex items-center gap-2 rounded-lg border px-2.5 py-2 text-[11px] font-medium transition ' +
                   (isSelected
-                    ? 'border-emerald-300 bg-emerald-50/80 text-[#003366]'
+                    ? 'border-emerald-300 bg-emerald-50/80 text-[#003366] ' +
+                      (pulseBaby ? 'wt-tap-target--pulse' : '')
                     : 'border-slate-200 bg-slate-50/50 text-slate-600')
                 }
               >
                 {isSelected ? <Baby className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden /> : null}
                 <span>{opt}</span>
+                {isSelected && pulseBaby ? (
+                  <span className="wt-tap-ripple absolute right-2 top-1/2 h-5 w-5 -translate-y-1/2 rounded-full" aria-hidden />
+                ) : null}
               </div>
             );
           })}
@@ -157,24 +248,19 @@ export function WalkthroughProfilPreview({ du, onVisualDone }: EmbedProps) {
     onVisualDone?.();
   }, [onVisualDone]);
 
-  const rows = du
-    ? [
-        ['Wohnort', 'Kirkel'],
-        ['Lebenslage', 'Baby kommt'],
-        ['Haushalt', 'Familie'],
-        ['Erinnerung', 'Fristen im Kalender'],
-        ['Kommunikationsweg', 'Postfach'],
-      ]
-    : [
-        ['Wohnort', 'Kirkel'],
-        ['Lebenslage', 'Baby kommt'],
-        ['Haushalt', 'Familie'],
-        ['Erinnerung', 'Fristen im Kalender'],
-        ['Kommunikationsweg', 'Postfach'],
-      ];
+  const rows = [
+    ['Wohnort', 'Kirkel'],
+    ['Lebenslage', 'Baby kommt'],
+    ['Erinnerung', 'Fristen im Kalender'],
+    ['Kommunikationsweg', 'Postfach'],
+  ];
 
   return (
-    <div className="wt-scene-profil space-y-2 px-0.5 pb-1">
+    <div className="wt-scene-profil relative space-y-2 px-0.5 pb-1">
+      <WalkthroughCoachmark
+        text={du ? 'Freiwillig. Änderbar. Keine Bewertung.' : 'Freiwillig. Änderbar. Keine Bewertung.'}
+        position="top"
+      />
       <div className="flex flex-wrap gap-1.5">
         {['Freiwillige Angaben', 'Keine automatische Entscheidung', 'Jederzeit änderbar'].map((tag) => (
           <span
@@ -186,9 +272,7 @@ export function WalkthroughProfilPreview({ du, onVisualDone }: EmbedProps) {
         ))}
       </div>
       <div className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm">
-        <p className="text-[11px] font-bold text-[#003366]">
-          {du ? 'Freiwilliges Kurzprofil' : 'Freiwilliges Kurzprofil'}
-        </p>
+        <p className="text-[11px] font-bold text-[#003366]">Freiwilliges Kurzprofil</p>
         <dl className="mt-2 space-y-1.5">
           {rows.map(([label, value]) => (
             <div key={label} className="flex justify-between gap-2 text-[10.5px]">
@@ -212,7 +296,8 @@ export function WalkthroughBehoerdenwegChecklist({ du, onVisualDone }: EmbedProp
   }, [onVisualDone]);
 
   return (
-    <div className="wt-scene-behoerdenweg space-y-2 px-0.5 pb-1">
+    <div className="wt-scene-behoerdenweg relative space-y-2 px-0.5 pb-1">
+      <WalkthroughCoachmark text="Checkliste öffnen" position="top" />
       <h3 className="text-[12px] font-bold text-[#003366]">
         {du ? 'Dein Behördenweg: Baby kommt' : 'Ihr Behördenweg: Baby kommt'}
       </h3>
@@ -230,17 +315,84 @@ export function WalkthroughBehoerdenwegChecklist({ du, onVisualDone }: EmbedProp
         ))}
       </ol>
       <p className="rounded-lg border border-amber-100 bg-amber-50/80 px-2.5 py-2 text-[9.5px] leading-snug text-amber-900/90">
-        Beispielhafte Orientierung. Angaben können je nach Kommune und Lebenslage abweichen.
+        Beispielhafte Orientierung — keine Anspruchsprüfung.
       </p>
     </div>
   );
 }
 
-/** Szene 11 — Ökosystem-Zoom-out. */
-export function WalkthroughOekosystemFinale({ du, onVisualDone }: EmbedProps) {
+/** Szene 8 — Kalender Juni 2026 mit Frist-Highlight. */
+export function WalkthroughKalenderJune({ du, onVisualDone }: EmbedProps) {
   useEffect(() => {
-    const id = window.setTimeout(() => onVisualDone?.(), 1400);
+    const id = window.setTimeout(() => onVisualDone?.(), 1200);
     return () => window.clearTimeout(id);
+  }, [onVisualDone]);
+
+  const days = Array.from({ length: 30 }, (_, i) => i + 1);
+  const startOffset = 0;
+
+  return (
+    <div className="wt-scene-kalender relative space-y-2 px-0.5 pb-1">
+      <WalkthroughCoachmark text={du ? 'Frist merken' : 'Frist merken'} position="top" pulse />
+      <div className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm">
+        <div className="flex items-center justify-between">
+          <p className="text-[12px] font-bold text-[#003366]">Juni 2026</p>
+          <span className="text-[9px] font-semibold text-slate-500">Kirkel</span>
+        </div>
+        <div className="mt-2 grid grid-cols-7 gap-0.5 text-center text-[8px] font-semibold text-slate-400">
+          {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((d) => (
+            <span key={d}>{d}</span>
+          ))}
+        </div>
+        <div className="mt-1 grid grid-cols-7 gap-0.5">
+          {Array.from({ length: startOffset }).map((_, i) => (
+            <span key={`pad-${i}`} />
+          ))}
+          {days.map((day) => {
+            const isFocus = day === 30;
+            return (
+              <span
+                key={day}
+                className={
+                  'flex aspect-square items-center justify-center rounded-md text-[9px] font-semibold ' +
+                  (isFocus
+                    ? 'wt-tap-target--pulse bg-sky-100 text-[#003366] ring-2 ring-sky-300'
+                    : day === 15 || day === 22
+                      ? 'bg-emerald-50 text-emerald-800'
+                      : 'text-slate-600')
+                }
+              >
+                {day}
+              </span>
+            );
+          })}
+        </div>
+        <ul className="mt-2 space-y-0.5 text-[8.5px] text-slate-600">
+          <li>● Frist aus Wegweiser</li>
+          <li>● Beteiligung</li>
+          <li>● Wahltermin</li>
+          <li>● Rückfrage/Postfach</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+/** Szene 12 — Ökosystem-Zoom-out. */
+export function WalkthroughOekosystemFinale({ du, onVisualDone }: EmbedProps) {
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  useEffect(() => {
+    const timers: number[] = [];
+    for (let i = 1; i < OEKOSYSTEM_AREAS.length; i++) {
+      timers.push(window.setTimeout(() => setActiveIdx(i), i * 420));
+    }
+    timers.push(
+      window.setTimeout(() => {
+        onVisualDone?.();
+      }, OEKOSYSTEM_AREAS.length * 420 + 400),
+    );
+    return () => timers.forEach((t) => window.clearTimeout(t));
   }, [onVisualDone]);
 
   return (
@@ -250,11 +402,16 @@ export function WalkthroughOekosystemFinale({ du, onVisualDone }: EmbedProps) {
           ? 'Ein Civic-Ökosystem für Orientierung, Beteiligung und Vertrauen.'
           : 'Ein Civic-Ökosystem für Orientierung, Beteiligung und Vertrauen.'}
       </p>
-      <div className="grid grid-cols-4 gap-1.5">
-        {OEKOSYSTEM_AREAS.map(({ id, label, Icon }) => (
+      <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-3">
+        {OEKOSYSTEM_AREAS.map(({ id, label, Icon }, idx) => (
           <div
             key={id}
-            className="flex flex-col items-center gap-1 rounded-xl border border-slate-200 bg-white px-1.5 py-2 text-center shadow-sm"
+            className={
+              'flex flex-col items-center gap-1 rounded-xl border px-1.5 py-2 text-center shadow-sm transition ' +
+              (idx === activeIdx
+                ? 'wt-nav-icon--pulse border-sky-200 bg-sky-50'
+                : 'border-slate-200 bg-white')
+            }
           >
             <Icon className="h-4 w-4 text-[#003366]" aria-hidden />
             <span className="text-[8.5px] font-semibold leading-tight text-slate-700">{label}</span>

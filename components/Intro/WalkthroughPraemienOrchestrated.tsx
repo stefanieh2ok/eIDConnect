@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 type Phase = 'card' | 'qr' | 'closing';
 
 type Props = {
   du: boolean;
+  /** card = Szene 10 (Gutschein), wallet = Szene 11 (QR/Wallet) */
+  sceneMode?: 'card' | 'wallet';
   /** Nach Abschluss der interaktiven Sequenz (inkl. Kurz-Hinweis). */
   onFlowComplete: () => void;
 };
@@ -54,14 +56,28 @@ function WalkthroughQrMini({ seed }: { seed: string }) {
 }
 
 /**
- * Geführte Prämien-Demo: Karte → Auswahl → QR/Wallet – ohne Leaderboard-Auto-Timer.
+ * Geführte Prämien-Demo: Karte (Szene 10) oder QR/Wallet (Szene 11).
  */
-export default function WalkthroughPraemienOrchestrated({ du, onFlowComplete }: Props) {
-  const [phase, setPhase] = useState<Phase>('card');
+export default function WalkthroughPraemienOrchestrated({ du, sceneMode = 'card', onFlowComplete }: Props) {
+  const [phase, setPhase] = useState<Phase>(sceneMode === 'wallet' ? 'qr' : 'card');
+  const [walletAdded, setWalletAdded] = useState(false);
 
   const finish = useCallback(() => {
     onFlowComplete();
   }, [onFlowComplete]);
+
+  useEffect(() => {
+    if (sceneMode === 'card') {
+      const id = window.setTimeout(() => finish(), 3200);
+      return () => window.clearTimeout(id);
+    }
+    const t1 = window.setTimeout(() => setWalletAdded(true), 1800);
+    const t2 = window.setTimeout(() => finish(), 4200);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
+  }, [sceneMode, finish]);
 
   if (phase === 'card') {
     return (
@@ -78,16 +94,14 @@ export default function WalkthroughPraemienOrchestrated({ du, onFlowComplete }: 
           <h3 className="mt-2.5 text-center text-[15px] font-bold leading-snug text-[#0f172a]">Naturfreibad Kirkel</h3>
           <p className="mt-1 text-center text-[10px] font-semibold text-slate-600">Lokaler Vorteil · freiwillig · nur mit Einwilligung</p>
           <p className="mt-2 text-center text-[11px] leading-snug text-neutral-700">
-            {du
-              ? 'Einmaliger Eintritt als Beispielprämie für aktive Beteiligung.'
-              : 'Einmaliger Eintritt als Beispielprämie für aktive Beteiligung.'}
+            Einmaliger Eintritt als Beispielprämie für aktive Beteiligung — unabhängig von deiner Entscheidung.
           </p>
           <button
             type="button"
             onClick={() => setPhase('qr')}
-            className="btn-primary t-button mt-3 w-full min-h-[44px] rounded-xl px-3 text-[13px] font-bold shadow-[0_4px_14px_rgba(0,61,128,0.22)] transition active:scale-[0.99]"
+            className="btn-primary t-button intro-wt-cta-autotap mt-3 w-full min-h-[44px] rounded-xl px-3 text-[13px] font-bold shadow-[0_4px_14px_rgba(0,61,128,0.22)] transition active:scale-[0.99]"
           >
-            Prämie auswählen
+            Gutschein anzeigen
           </button>
         </div>
       </div>
@@ -97,13 +111,20 @@ export default function WalkthroughPraemienOrchestrated({ du, onFlowComplete }: 
   if (phase === 'qr') {
     return (
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 z-[0] opacity-90" aria-hidden>
+          <div className="intro-wt-showcase-hero mx-auto mt-4 w-full max-w-[min(100%,22rem)] rounded-2xl border border-slate-200/70 bg-white/80 p-2 blur-[1px]">
+            <p className="text-center text-[11px] font-bold text-slate-500">Naturfreibad Kirkel</p>
+          </div>
+        </div>
         <div
-          className="intro-wt-sheet-backdrop absolute inset-0 z-[1] bg-black/45 backdrop-blur-[2px]"
+          className="intro-wt-sheet-backdrop absolute inset-0 z-[1] bg-black/18 backdrop-blur-[1px]"
           aria-hidden
         />
         <div className="relative z-[2] flex min-h-0 flex-1 flex-col items-center justify-end pb-1 pt-4 sm:justify-center sm:pb-4">
           <div className="intro-wt-sheet-panel--cinema w-full max-w-[min(100%,22rem)] rounded-2xl border border-neutral-200 bg-white px-3 pb-3 pt-3 shadow-2xl sm:max-h-[min(78dvh,32rem)] sm:overflow-y-auto">
-            <p className="text-center text-[15px] font-bold text-[#0f172a]">Dein QR-Code ist bereit</p>
+            <p className="text-center text-[15px] font-bold text-[#0f172a]">
+              {du ? 'Dein QR-Code ist bereit' : 'Ihr QR-Code ist bereit'}
+            </p>
             <p className="mt-1 text-center text-[11px] leading-snug text-neutral-600">
               {du
                 ? 'Du kannst ihn beim Partner vorzeigen oder als Wallet-Pass speichern.'
@@ -113,20 +134,18 @@ export default function WalkthroughPraemienOrchestrated({ du, onFlowComplete }: 
               <WalkthroughQrMini seed="naturfreibad-kirkel-walkthrough" />
             </div>
             <p className="mt-2 text-center font-mono text-[11px] font-semibold text-neutral-800">HC-KIRKEL-2026-4821</p>
+            {walletAdded ? (
+              <p className="intro-wt-wallet-reveal mt-2 text-center text-[11px] font-semibold text-emerald-700">
+                Zum Wallet hinzugefügt (Vorschau)
+              </p>
+            ) : null}
             <div className="mt-3 flex flex-col gap-2">
               <button
                 type="button"
                 onClick={() => setPhase('closing')}
                 className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl bg-[#003D80] px-3 text-[13px] font-bold text-white shadow-md transition hover:bg-[#00366f] active:scale-[0.99]"
               >
-                Zum Wallet hinzufügen
-              </button>
-              <button
-                type="button"
-                onClick={() => setPhase('closing')}
-                className="inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-[12px] font-semibold text-neutral-800 transition hover:bg-neutral-50 active:scale-[0.99]"
-              >
-                Später ansehen
+                Schließen
               </button>
             </div>
           </div>
@@ -138,9 +157,7 @@ export default function WalkthroughPraemienOrchestrated({ du, onFlowComplete }: 
   return (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-3 py-4">
       <p className="max-w-[22rem] text-center text-[12px] leading-relaxed text-neutral-700">
-        {du
-          ? 'Das ist nur ein Beispiel. In einer echten Umsetzung würden Prämien lokal, freiwillig und datenschutzkonform angebunden.'
-          : 'Das ist nur ein Beispiel. In einer echten Umsetzung würden Prämien lokal, freiwillig und datenschutzkonform angebunden.'}
+        Das ist nur ein Beispiel. In einer echten Umsetzung würden Prämien lokal, freiwillig und datenschutzkonform angebunden.
       </p>
       <button
         type="button"

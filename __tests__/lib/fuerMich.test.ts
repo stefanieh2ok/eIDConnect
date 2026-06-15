@@ -15,6 +15,11 @@ import {
   isFuerMichSensitiveContext,
   isSensitiveLifeEvent,
 } from '@/lib/fuerMichClaraPrompt';
+import {
+  CLARA_FORBIDDEN_PHRASES,
+  CLARA_OFFICIAL_SOURCE_NOTICE,
+  CLARA_DEMO_DATA_NOTICE,
+} from '@/lib/claraCaseGuidance';
 import { EMPTY_FUER_MICH_PROFILE } from '@/types/fuerMich';
 
 describe('matchLeistungen', () => {
@@ -72,7 +77,7 @@ describe('buildFuerMichClaraPrompt', () => {
       ergebnisse,
     });
     // Verbot ist als Anweisung vorhanden (Schutzregel sichtbar im Prompt).
-    expect(prompt).toContain('Verboten sind Formulierungen');
+    expect(prompt).toContain('Verboten:');
     expect(prompt).toContain('Sie haben Anspruch auf');
     // Aber Freitext-PII (PLZ/Wohnort) wird NICHT übergeben.
     expect(prompt).not.toContain('66459');
@@ -100,26 +105,26 @@ describe('buildFuerMichClaraPrompt', () => {
     expect(prompt).toContain(FUER_MICH_CLARA_CLOSING_DU);
   });
 
-  it('listet alle verbotenen Anspruchsformulierungen (Du und Sie) als Schutzregel', () => {
+  it('listet alle verbotenen Anspruchsformulierungen als Schutzregel', () => {
     const prompt = buildFuerMichClaraPrompt({
       lifeEvents: ['moving'],
       profile: EMPTY_FUER_MICH_PROFILE,
       ergebnisse,
     });
-    for (const phrase of [
-      'Sie haben Anspruch auf',
-      'Ihnen steht',
-      'Dir steht',
-      'Sie erfüllen die Voraussetzungen',
-      'Du erfüllst die Voraussetzungen',
-      'Ihr Antrag wird bewilligt',
-      'Dein Antrag wird bewilligt',
-      'Sie bekommen',
-      'Du bekommst',
-      'Die Wahrscheinlichkeit ist',
-    ]) {
+    for (const phrase of CLARA_FORBIDDEN_PHRASES) {
       expect(prompt).toContain(phrase);
     }
+  });
+
+  it('enthält Pflicht-Hinweise für Orientierung, offizielle Wege und Demo-Daten', () => {
+    const prompt = buildFuerMichClaraPrompt({
+      lifeEvents: ['moving'],
+      profile: EMPTY_FUER_MICH_PROFILE,
+      ergebnisse,
+    });
+    expect(prompt).toContain(CLARA_OFFICIAL_SOURCE_NOTICE);
+    expect(prompt).toContain(CLARA_DEMO_DATA_NOTICE);
+    expect(prompt).toContain('Cross-Agency-Orchestrierung');
   });
 
   it('bindet keine nicht enthaltene Leistung ein (NO-INFO + Allow-List-Bindung)', () => {

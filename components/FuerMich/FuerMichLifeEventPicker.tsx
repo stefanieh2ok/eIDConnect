@@ -1,8 +1,16 @@
+/**
+ * Legacy life-event picker — secondary Wegweiser path (Kirkel demo catalog).
+ *
+ * TODO(civic-merge): Unify with ClaraWegweiser via planCivicCaseFromLifeEvent()
+ * in lib/ai/lifeEventCasePlanBridge.ts — same CivicCasePlanResult shape.
+ * Keep Kirkel inline Behördenweg until GovService ↔ Kirkel catalog mapping is complete.
+ */
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import FuerMichInlineBehördenweg from '@/components/FuerMich/FuerMichInlineBehördenweg';
+import { DemoDataBanner } from '@/components/civic/DemoDataBanner';
 import { InfoHint } from '@/components/ui/InfoHint';
 import { FUER_MICH_LIFE_EVENTS } from '@/data/fuerMichLifeEvents';
 import {
@@ -114,6 +122,7 @@ export default function FuerMichLifeEventPicker({
 
   return (
     <section className="lebenslagen-board" aria-labelledby="fuer-mich-life-event-heading">
+      <DemoDataBanner className="mb-3" />
       {FUER_MICH_LIFE_EVENT_CLUSTERS.map((cluster) => {
         const isOpen = openClusterId === cluster.id;
         const clusterHasSelection = cluster.eventIds.some((id) => id === selectedId);

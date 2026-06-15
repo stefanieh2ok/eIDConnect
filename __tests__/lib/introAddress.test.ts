@@ -50,4 +50,10 @@ describe('adaptIntroAddress', () => {
     const out = adaptIntroAddress(body, true);
     expect(out).toBe(INTRO_WALKTHROUGH_CLARA.praemien.longDu);
   });
+
+  it('wandelt Prämien-Wallet-Intro in korrekte Du-Form um', () => {
+    const body = INTRO_OVERLAY_STEPS.find((s) => s.id === 'praemien_wallet')?.body ?? '';
+    const out = adaptIntroAddress(body, true);
+    expect(out).toBe(INTRO_WALKTHROUGH_CLARA.praemien_wallet.longDu);
+  });
 });

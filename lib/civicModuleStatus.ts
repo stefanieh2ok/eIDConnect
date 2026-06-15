@@ -11,7 +11,8 @@ export const CIVIC_MODULE_STATUS: Record<CivicModuleKey, CivicModuleStatusEntry>
   wegweiser: {
     mode: 'demo',
     sourceType: 'demo',
-    disclaimer: 'Orientierung und Checklisten — keine Anspruchsprüfung, keine Behördenübermittlung.',
+    disclaimer:
+      'Vorbereitungscockpit — Clara strukturiert Fälle vor offiziellen Anträgen. Keine Anspruchsprüfung, keine Behördenübermittlung, keine zweite Verwaltung.',
     adapterStatus: 'mock_ready',
     sectionKey: 'fuermich',
   },

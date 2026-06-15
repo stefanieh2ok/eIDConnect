@@ -33,14 +33,16 @@ import { ClaraStepPanel } from '@/components/Intro/ClaraStepPanel';
 import {
   WalkthroughBehoerdenwegChecklist,
   WalkthroughIntroElevator,
+  WalkthroughKalenderJune,
   WalkthroughOekosystemFinale,
   WalkthroughProfilPreview,
   WalkthroughWegweiserBaby,
 } from '@/components/Intro/WalkthroughSceneEmbeds';
+import WalkthroughPraemienOrchestrated from '@/components/Intro/WalkthroughPraemienOrchestrated';
+import { WalkthroughCoachmark } from '@/components/Intro/WalkthroughCoachmark';
+import { sceneManifestFor } from '@/data/walkthroughSceneManifest';
 import LiveSection from '@/components/Live/LiveSection';
-import LeaderboardSection from '@/components/Leaderboard/LeaderboardSection';
 import ElectionsSection from '@/components/Elections/ElectionsSection';
-import CalendarSection from '@/components/Calendar/CalendarSection';
 import MeldungenSection from '@/components/Meldungen/MeldungenSection';
 import PostfachSection from '@/components/Postfach/PostfachSection';
 import type { Location, Section, UserPreferences, VoteType } from '@/types';
@@ -49,7 +51,7 @@ import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
 
 const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = {
-  intro: 'HookAI Civic · Orientierung bis Beteiligung',
+  intro: 'HookAI Civic · Navigation & Hauptwege',
   wegweiser: 'Wegweiser · Baby-Beispiel Kirkel',
   profil: 'Freiwilliges Kurzprofil',
   behoerdenweg: 'Behördenweg · Checkliste Baby kommt',
@@ -57,25 +59,42 @@ const WALKTHROUGH_FOCUS_CAPTIONS: Partial<Record<IntroOverlayStepId, string>> = 
   wahlen: 'Wahlen · Musterstimmzettel (Demo-Beispiel)',
   meldungen: 'Meldungen · Rattenplage Drachenspielplatz',
   postfach: 'Postfach · beispielhafte verifizierte Kommunikation',
-  praemien: 'Prämien · Karte → Gutschein → QR → Wallet',
+  praemien: 'Prämien · Naturfreibad Kirkel',
+  praemien_wallet: 'Prämien · QR & Wallet (Vorschau)',
   oekosystem: 'Civic-Ökosystem · alles im Zusammenspiel',
 };
 
 const WALKTHROUGH_STEP_SUBTITLE: Partial<Record<IntroOverlayStepId, string>> = {
   wahlen: 'Wahlvorschau: Demo-Beispiel — keine echte Stimmabgabe, keine Empfehlung.',
   praemien: 'Lokale Anerkennung fürs Mitmachen — unabhängig von deiner Entscheidung.',
+  praemien_wallet: 'Vorschau — kein echter Wallet-Provider.',
   postfach: 'Beispielhafte Vorschau — keine echte Zustellung oder Behördenanbindung.',
 };
+
+const WALKTHROUGH_OVERLAY_COACHMARK_STEPS = [
+  'meldungen',
+  'abstimmen',
+  'wahlen',
+  'postfach',
+  'praemien',
+  'praemien_wallet',
+] as const satisfies readonly IntroOverlayStepId[];
+
+function showsOverlayCoachmark(id: IntroOverlayStepId): id is (typeof WALKTHROUGH_OVERLAY_COACHMARK_STEPS)[number] {
+  return (WALKTHROUGH_OVERLAY_COACHMARK_STEPS as readonly string[]).includes(id);
+}
 
 const WALKTHROUGH_EMBED_GATED_STEPS: IntroOverlayStepId[] = [
   'abstimmen',
   'meldungen',
   'wahlen',
   'praemien',
+  'praemien_wallet',
   'wegweiser',
   'behoerdenweg',
   'intro',
   'oekosystem',
+  'kalender',
 ];
 
 function walkthroughSectionForStep(stepId: string): Section {
@@ -96,6 +115,7 @@ function walkthroughSectionForStep(stepId: string): Section {
     case 'postfach':
       return 'postfach';
     case 'praemien':
+    case 'praemien_wallet':
       return 'leaderboard';
     case 'oekosystem':
       return 'fuermich';
@@ -711,15 +731,15 @@ function WalkthroughRealSectionEmbed({
     case 'wahlen':
       return <IntroWahlenWalkthroughDemo onDone={onAbstimmenDone} />;
     case 'kalender':
-      return <CalendarSection priorities={calendarPriorities} />;
+      return <WalkthroughKalenderJune du={du} onVisualDone={onEmbedVisualDone} />;
     case 'meldungen':
       return (
         <MeldungenSection
           embeddedInWalkthrough
           walkthroughDemo={{
             enabled: true,
-            descriptionText: 'Auf dem Spielplatz gibt es Ratten.',
-            addressText: 'Am Marktplatz 3. 66459 Kirkel',
+            descriptionText: 'Auf dem Drachenspielplatz wurden Ratten gesehen.',
+            addressText: 'Drachenspielplatz Kirkel',
             imageUrl: '/demo-rat-playground.jpg',
             onSequenceDone: onAbstimmenDone,
           }}
@@ -729,9 +749,18 @@ function WalkthroughRealSectionEmbed({
       return <PostfachSection embeddedInWalkthrough />;
     case 'praemien':
       return (
-        <LeaderboardSection
-          embeddedInWalkthrough
-          onWalkthroughCinematicComplete={onPraemienCinematicComplete}
+        <WalkthroughPraemienOrchestrated
+          du={du}
+          sceneMode="card"
+          onFlowComplete={onPraemienCinematicComplete}
+        />
+      );
+    case 'praemien_wallet':
+      return (
+        <WalkthroughPraemienOrchestrated
+          du={du}
+          sceneMode="wallet"
+          onFlowComplete={onPraemienCinematicComplete}
         />
       );
     default:
@@ -815,7 +844,8 @@ export default function DemoIntroWalkthrough({
   useEffect(() => {
     if (prevMachineRef.current !== machineIndex) {
       prevMachineRef.current = machineIndex;
-      if (machineStepId(machineIndex) === 'praemien') setPraemienCinematicDone(false);
+      const mid = machineStepId(machineIndex);
+      if (mid === 'praemien' || mid === 'praemien_wallet') setPraemienCinematicDone(false);
     }
   }, [machineIndex]);
 
@@ -865,14 +895,23 @@ export default function DemoIntroWalkthrough({
               </div>
             </div>
           ) : null}
-          <WalkthroughRealSectionEmbed
-            stepId={overlayStepId}
-            du={du}
-            calendarPriorities={calendarPriorities}
-            onAbstimmenDone={() => setNextPulse(true)}
-            onEmbedVisualDone={onEmbedVisualDone}
-            onPraemienCinematicComplete={onPraemienCinematicComplete}
-          />
+          <div className="relative min-h-0 flex-1">
+            {overlayStepId && showsOverlayCoachmark(overlayStepId) ? (
+              <WalkthroughCoachmark
+                text={du ? sceneManifestFor(overlayStepId).coachmarkTextDu : sceneManifestFor(overlayStepId).coachmarkTextSie}
+                position="bottom"
+                pulse={!nextPulse && overlayStepId !== 'postfach'}
+              />
+            ) : null}
+            <WalkthroughRealSectionEmbed
+              stepId={overlayStepId}
+              du={du}
+              calendarPriorities={calendarPriorities}
+              onAbstimmenDone={() => setNextPulse(true)}
+              onEmbedVisualDone={onEmbedVisualDone}
+              onPraemienCinematicComplete={onPraemienCinematicComplete}
+            />
+          </div>
         </div>
       </div>
     );
@@ -1146,7 +1185,7 @@ export default function DemoIntroWalkthrough({
       !!overlayStepId &&
       (WALKTHROUGH_EMBED_GATED_STEPS as string[]).includes(overlayStepId);
     if (needsEmbedPulse && !nextPulse) return;
-    if (machineId === 'praemien' && !praemienCinematicDone) return;
+    if ((machineId === 'praemien' || machineId === 'praemien_wallet') && !praemienCinematicDone) return;
     if (voicePausedRef.current) return;
 
     pulseTimerRef.current = window.setTimeout(() => {
@@ -1260,7 +1299,7 @@ export default function DemoIntroWalkthrough({
   const weiterDisabled =
     !claraReadyToContinue ||
     (needsEmbedPulse && !nextPulse) ||
-    (machineId === 'praemien' && !praemienCinematicDone);
+    ((machineId === 'praemien' || machineId === 'praemien_wallet') && !praemienCinematicDone);
 
   const liveAnnouncement =
     `Bereich ${machineTitle(machineIndex)}. ${machineShort(machineIndex, du)} ${framingLine}`.trim();
