@@ -1,42 +1,47 @@
 'use client';
 
 import React from 'react';
-import { Building, CheckCircle, MessageCircle, ChevronRight } from 'lucide-react';
+import { CheckCircle, ListChecks, MessageCircle } from 'lucide-react';
 
 type Props = {
   du?: boolean;
 };
 
-const METRICS = [
-  { icon: MessageCircle, label: 'weniger Rückfragen', hint: 'kann reduzieren' },
-  { icon: CheckCircle, label: 'weniger unvollständige Anträge', hint: 'unterstützt' },
-  { icon: ChevronRight, label: 'bessere Weiterleitung in offizielle Systeme', hint: 'zielt darauf ab' },
-  { icon: Building, label: 'niedrigere Beratungslast', hint: 'macht messbar' },
+const BENEFITS = [
+  {
+    icon: MessageCircle,
+    title: 'Weniger Rückfragen',
+    hint: 'Klarere Ausgangslage vor dem Antrag',
+  },
+  {
+    icon: ListChecks,
+    title: 'Bessere Unterlagen',
+    hint: 'Checkliste und Readiness vor der Stelle',
+  },
+  {
+    icon: CheckCircle,
+    title: 'Klarere Übergabe',
+    hint: 'Externe offizielle Wege statt Einreichung durch Clara',
+  },
 ] as const;
 
 export function InstitutionalReliefPanel({ du = true }: Props) {
   return (
-    <section
-      className="rounded-xl border border-slate-200/90 bg-gradient-to-b from-slate-50/90 to-white p-3"
-      aria-labelledby="institutional-relief-heading"
-    >
-      <h3 id="institutional-relief-heading" className="text-[12px] font-bold text-[#003366]">
-        {du ? 'Warum das Behörden entlastet' : 'Warum das Behörden entlastet'}
+    <section className="institutional-relief" aria-labelledby="institutional-relief-heading">
+      <h3 id="institutional-relief-heading" className="institutional-relief__title">
+        Warum das Behörden entlastet
       </h3>
-      <p className="mt-1 text-[10.5px] leading-relaxed text-[#5f6b7a]">
+      <p className="institutional-relief__copy">
         {du
-          ? 'Clara hilft Bürgern und Unternehmen vor dem offiziellen Antrag. Für Behörden bedeutet das: besser vorbereitete Fälle, weniger Rückfragen und weniger unvollständige Unterlagen.'
-          : 'Clara hilft Bürgern und Unternehmen vor dem offiziellen Antrag. Für Behörden bedeutet das: besser vorbereitete Fälle, weniger Rückfragen und weniger unvollständige Unterlagen.'}
+          ? 'Clara hilft Menschen, ihre Lage und Unterlagen vor dem offiziellen Antrag zu sortieren. Das kann Rückfragen reduzieren, Termine vorbereiten und unvollständige Anträge vermeiden.'
+          : 'Clara hilft Menschen, ihre Lage und Unterlagen vor dem offiziellen Antrag zu sortieren. Das kann Rückfragen reduzieren, Termine vorbereiten und unvollständige Anträge vermeiden.'}
       </p>
-      <ul className="mt-2.5 grid grid-cols-2 gap-2">
-        {METRICS.map(({ icon: Icon, label, hint }) => (
-          <li
-            key={label}
-            className="flex flex-col gap-1 rounded-lg border border-slate-100 bg-white px-2 py-2"
-          >
-            <Icon className="h-3.5 w-3.5 text-[#0055A4]" aria-hidden />
-            <span className="text-[10px] font-semibold leading-tight text-[#1A2B45]">{label}</span>
-            <span className="text-[8.5px] font-medium text-slate-500">{hint}</span>
+      <ul className="institutional-relief__grid">
+        {BENEFITS.map(({ icon: Icon, title, hint }) => (
+          <li key={title} className="institutional-relief__card">
+            <Icon className="institutional-relief__icon" aria-hidden />
+            <span className="institutional-relief__card-title">{title}</span>
+            <span className="institutional-relief__card-hint">{hint}</span>
           </li>
         ))}
       </ul>

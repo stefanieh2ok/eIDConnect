@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useId, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { ChevronRight, Sparkles } from 'lucide-react';
 import { planCivicCase, getExampleCases } from '@/lib/ai/claraCasePlanner';
 import type { CivicCasePlanResult } from '@/lib/govdata/serviceTypes';
 import { CivicCasePlan } from '@/components/civic/CivicCasePlan';
@@ -15,6 +15,54 @@ type Props = {
   wohnort?: string;
   onPlanReady?: (plan: CivicCasePlanResult) => void;
 };
+
+const MODE_OPTIONS: {
+  id: ClaraWegweiserMode;
+  label: string;
+  hint: string;
+}[] = [
+  { id: 'private', label: 'Privat', hint: 'Familie, Wohnen, Arbeit, Pflege' },
+  { id: 'business', label: 'Geschäftlich', hint: 'Gewerbe, Gründung, Mitarbeitende' },
+  { id: 'unsure', label: 'Ich bin unsicher', hint: 'Clara sortiert den Kontext' },
+];
+
+/** UI display metadata for example case cards (planner ids unchanged). */
+const EXAMPLE_CARD_META: Record<
+  string,
+  { title: string; situation: string; modeTag: 'Privat' | 'Geschäftlich' }
+> = {
+  'move-kids': {
+    title: 'Umzug mit Kindern',
+    situation: 'Umzug, niedriges Einkommen, Schulwechsel, Unterstützung',
+    modeTag: 'Privat',
+  },
+  'pflege-parent': {
+    title: 'Pflegefall in der Familie',
+    situation: 'Pflegebedürftigkeit, Leistungen und zuständige Stellen',
+    modeTag: 'Privat',
+  },
+  'gewerbe-start': {
+    title: 'Gewerbe anmelden',
+    situation: 'Gewerbeanmeldung, Finanzamt, IHK, Gewerbeamt',
+    modeTag: 'Geschäftlich',
+  },
+  'first-employee': {
+    title: 'Erste Mitarbeitende einstellen',
+    situation: 'Pflichten, Meldungen, Sozialversicherung',
+    modeTag: 'Geschäftlich',
+  },
+};
+
+const PLACEHOLDER =
+  'Ich ziehe mit zwei Kindern um und brauche Unterstützung. Oder: Ich möchte ein Gewerbe anmelden und weiß nicht, welche Stellen ich informieren muss.';
+
+const FLOW_STEPS = [
+  'Situation beschreiben',
+  'Clara strukturiert',
+  'Behördenfahrplan',
+  'Extern beantragen',
+  'Behörden entlastet',
+] as const;
 
 export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanReady }: Props) {
   const textareaId = useId();
@@ -48,15 +96,17 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
     [plz, bundesland, wohnort, du, onPlanReady],
   );
 
-  const handleAnalyze = () => runAnalysis(text, mode);
-
-  const handleExample = (exampleId: string) => {
+  const loadExample = (exampleId: string, autoRun = false) => {
     const ex = examples.find((e) => e.id === exampleId);
     if (!ex) return;
     setText(ex.text);
     setMode(ex.mode);
-    runAnalysis(ex.text, ex.mode);
+    if (autoRun) {
+      runAnalysis(ex.text, ex.mode);
+    }
   };
+
+  const handleAnalyze = () => runAnalysis(text, mode);
 
   const handleClear = () => {
     setPlan(null);
@@ -65,122 +115,156 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
 
   return (
     <div className="clara-wegweiser">
-      <div className="clara-wegweiser__hero rounded-2xl border border-slate-200/95 bg-gradient-to-b from-white via-sky-50/30 to-white p-3.5 shadow-[0_8px_32px_rgba(0,51,102,0.06)] sm:p-4">
-        <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-100 text-violet-700">
-            <Sparkles className="h-4 w-4" aria-hidden />
-          </span>
-          <div>
-            <h2 className="text-[15px] font-bold tracking-tight text-[#003366] sm:text-base">
-              {du ? 'Was ist deine Situation?' : 'Was ist Ihre Situation?'}
-            </h2>
-            <p className="text-[10.5px] leading-snug text-[#5f6b7a] sm:text-[11px]">
-              {du
-                ? 'Beschreibe kurz, worum es geht. Clara erstellt daraus einen verständlichen Behördenfahrplan — mit Themenübersicht, Unterlagencheck, Reihenfolge und offiziellen Antragswegen.'
-                : 'Beschreiben Sie kurz, worum es geht. Clara erstellt daraus einen verständlichen Behördenfahrplan — mit Themenübersicht, Unterlagencheck, Reihenfolge und offiziellen Antragswegen.'}
-            </p>
+      <section
+        className="clara-wegweiser__cockpit"
+        aria-labelledby="clara-wegweiser-heading"
+      >
+        <div className="clara-wegweiser__cockpit-inner">
+          <p className="clara-wegweiser__micro-label">Clara Wegweiser</p>
+
+          <div className="clara-wegweiser__title-row">
+            <span className="clara-wegweiser__icon" aria-hidden>
+              <Sparkles className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 id="clara-wegweiser-heading" className="clara-wegweiser__headline">
+                Von der Lebenslage zum Behördenfahrplan.
+              </h2>
+              <p className="clara-wegweiser__subheadline">
+                {du
+                  ? 'Beschreibe kurz, worum es geht. Clara sortiert deine Situation, zeigt mögliche Behördenwege und bereitet dich auf den offiziellen Antrag vor.'
+                  : 'Beschreiben Sie kurz, worum es geht. Clara sortiert Ihre Situation, zeigt mögliche Behördenwege und bereitet Sie auf den offiziellen Antrag vor.'}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <label htmlFor={textareaId} className="sr-only">
-          {du ? 'Situation beschreiben' : 'Situation beschreiben'}
-        </label>
-        <textarea
-          id={textareaId}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          rows={4}
-          placeholder={
-            du
-              ? 'Zum Beispiel: Ich ziehe mit zwei Kindern um und brauche Unterstützung. Oder: Ich möchte ein Gewerbe anmelden und weiß nicht, welche Stellen ich informieren muss.'
-              : 'Zum Beispiel: Ich ziehe mit zwei Kindern um und brauche Unterstützung. Oder: Ich möchte ein Gewerbe anmelden und weiß nicht, welche Stellen ich informieren muss.'
-          }
-          className="mt-3 w-full resize-y rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-[13px] leading-relaxed text-[#1A2B45] shadow-inner placeholder:text-slate-400 focus:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-200/60"
-        />
-
-        <fieldset className="mt-3">
-          <legend className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-            {du ? 'Kontext' : 'Kontext'}
-          </legend>
-          <div className="mt-1.5 flex flex-wrap gap-2">
-            {(
-              [
-                { id: 'private' as const, label: du ? 'Privat' : 'Privat' },
-                { id: 'business' as const, label: du ? 'Geschäftlich' : 'Geschäftlich' },
-                { id: 'unsure' as const, label: du ? 'Ich bin unsicher' : 'Ich bin unsicher' },
-              ] as const
-            ).map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => setMode(m.id)}
-                className={
-                  'min-h-[36px] rounded-full border px-3 text-[11px] font-semibold transition ' +
-                  (mode === m.id
-                    ? 'border-[#003366] bg-[#003366] text-white'
-                    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300')
-                }
-                aria-pressed={mode === m.id}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-          <button
-            type="button"
-            onClick={handleAnalyze}
-            disabled={!text.trim() || analyzing}
-            className="btn-primary t-button min-h-[44px] flex-1 rounded-xl text-[13px] font-bold disabled:opacity-50"
-          >
-            {analyzing ? (du ? 'Analysiere…' : 'Analysiere…') : du ? 'Fall analysieren' : 'Fall analysieren'}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleExample('move-kids')}
-            className="btn-ghost t-button min-h-[44px] flex-1 rounded-xl border border-slate-200 text-[12px] font-semibold"
-          >
-            {du ? 'Beispiel ansehen' : 'Beispiel ansehen'}
-          </button>
-        </div>
-      </div>
-
-      {/* Example cases */}
-      {!plan ? (
-        <div className="mt-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-            {du ? 'Beispielfälle' : 'Beispielfälle'}
+          <p className="clara-wegweiser__compliance">
+            Keine Rechtsberatung. Keine Antragstellung. Maßgeblich sind die Angaben der zuständigen Stelle.
           </p>
-          <ul className="mt-1.5 grid gap-1.5 sm:grid-cols-2">
-            {examples.map((ex) => (
-              <li key={ex.id}>
-                <button
-                  type="button"
-                  onClick={() => handleExample(ex.id)}
-                  className="w-full rounded-xl border border-slate-200/90 bg-white px-2.5 py-2 text-left text-[10.5px] font-medium leading-snug text-[#003366] transition hover:border-sky-200 hover:bg-sky-50/40"
-                >
-                  {ex.label}
-                </button>
+
+          <ol className="clara-wegweiser__flow" aria-label={du ? 'Ablauf' : 'Ablauf'}>
+            {FLOW_STEPS.map((step, i) => (
+              <li key={step} className="clara-wegweiser__flow-step">
+                <span className="clara-wegweiser__flow-num" aria-hidden>
+                  {i + 1}
+                </span>
+                <span>{step}</span>
               </li>
             ))}
-          </ul>
-        </div>
-      ) : null}
+          </ol>
 
-      {/* In-place result — no scroll jump */}
-      {plan ? (
-        <div className="clara-wegweiser__result mt-4 rounded-2xl border border-sky-200/70 bg-white p-3 shadow-sm sm:p-4">
-          <div className="mb-3 flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-            <h3 className="text-[14px] font-bold text-[#003366]">
-              {du ? 'Dein Behördenfahrplan' : 'Ihr Behördenfahrplan'}
-            </h3>
+          <div className="clara-wegweiser__input-block">
+            <label htmlFor={textareaId} className="clara-wegweiser__textarea-label">
+              {du ? 'Deine Situation' : 'Ihre Situation'}
+            </label>
+            <textarea
+              id={textareaId}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              rows={5}
+              placeholder={PLACEHOLDER}
+              className="clara-wegweiser__textarea"
+            />
+          </div>
+
+          <fieldset className="clara-wegweiser__mode-fieldset">
+            <legend className="clara-wegweiser__mode-legend">
+              {du ? 'Kontext wählen' : 'Kontext wählen'}
+            </legend>
+            <div className="clara-wegweiser__mode-grid" role="group">
+              {MODE_OPTIONS.map((m) => {
+                const selected = mode === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setMode(m.id)}
+                    className={
+                      'clara-wegweiser__mode-card' +
+                      (selected ? ' clara-wegweiser__mode-card--selected' : '')
+                    }
+                    aria-pressed={selected}
+                  >
+                    <span className="clara-wegweiser__mode-card-title">{m.label}</span>
+                    <span className="clara-wegweiser__mode-card-hint">{m.hint}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          <div className="clara-wegweiser__cta-row">
             <button
               type="button"
-              onClick={handleClear}
-              className="shrink-0 text-[10px] font-semibold text-slate-500 underline-offset-2 hover:text-[#003366] hover:underline"
+              onClick={handleAnalyze}
+              disabled={!text.trim() || analyzing}
+              className="clara-wegweiser__cta-primary btn-primary t-button"
             >
+              {analyzing ? 'Erstelle Behördenfahrplan…' : 'Behördenfahrplan erstellen'}
+            </button>
+            <button
+              type="button"
+              onClick={() => loadExample('move-kids', false)}
+              className="clara-wegweiser__cta-secondary btn-ghost t-button"
+            >
+              Beispielfall laden
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {!plan ? (
+        <section className="clara-wegweiser__examples" aria-labelledby="clara-examples-heading">
+          <h3 id="clara-examples-heading" className="clara-wegweiser__examples-title">
+            Beispielfälle
+          </h3>
+          <ul className="clara-wegweiser__examples-grid">
+            {examples.map((ex) => {
+              const meta = EXAMPLE_CARD_META[ex.id];
+              return (
+                <li key={ex.id}>
+                  <button
+                    type="button"
+                    onClick={() => loadExample(ex.id, false)}
+                    className="clara-wegweiser__example-card"
+                  >
+                    <span className="clara-wegweiser__example-card-top">
+                      <span className="clara-wegweiser__example-card-title">
+                        {meta?.title ?? ex.label}
+                      </span>
+                      <span
+                        className={
+                          'clara-wegweiser__example-tag' +
+                          (meta?.modeTag === 'Geschäftlich'
+                            ? ' clara-wegweiser__example-tag--business'
+                            : '')
+                        }
+                      >
+                        {meta?.modeTag ?? (ex.mode === 'business' ? 'Geschäftlich' : 'Privat')}
+                      </span>
+                    </span>
+                    <span className="clara-wegweiser__example-situation">
+                      {meta?.situation ?? ex.label}
+                    </span>
+                    <span className="clara-wegweiser__example-action">
+                      In Situation übernehmen
+                      <ChevronRight className="h-3.5 w-3.5" aria-hidden />
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
+
+      {plan ? (
+        <div className="clara-wegweiser__result">
+          <div className="clara-wegweiser__result-header">
+            <h3 className="clara-wegweiser__result-title">
+              {du ? 'Dein Behördenfahrplan' : 'Ihr Behördenfahrplan'}
+            </h3>
+            <button type="button" onClick={handleClear} className="clara-wegweiser__result-reset">
               {du ? 'Neuer Fall' : 'Neuer Fall'}
             </button>
           </div>

@@ -9,6 +9,7 @@ export type ExternalLinkStatus = 'verified_official' | 'demo_unverified' | 'miss
 export const DEMO_LINK_LABEL = 'Demo-Link — noch nicht live verifiziert';
 export const VERIFIED_OFFICIAL_LABEL = 'Offizielle Quelle';
 export const EXTERNAL_HANDOVER_NOTICE = 'Antrag erfolgt extern — HookAI Civic reicht nichts ein.';
+export const EXTERNAL_HANDOVER_MICROCOPY = 'Externer offizieller Weg — Clara bereitet nur vor.';
 
 export function resolveExternalLinkStatus(
   service: Pick<GovService, 'sourceSystem' | 'officialSourceUrl' | 'onlineServiceUrl' | 'formUrl'>,
@@ -52,14 +53,19 @@ export function externalLinkBadgeLabel(status: ExternalLinkStatus): string {
   }
 }
 
-export function externalLinkButtonLabel(status: ExternalLinkStatus, _du = true): string {
+export function externalLinkButtonLabel(
+  status: ExternalLinkStatus,
+  _du = true,
+  kind: 'source' | 'online' | 'handover' = 'source',
+): string {
   switch (status) {
     case 'verified_official':
-      return 'Offizielle Quelle öffnen';
+      if (kind === 'online' || kind === 'handover') return 'Antrag extern starten';
+      return 'Offizielle Informationen ansehen';
     case 'demo_unverified':
       return 'Demo-Link öffnen (nicht live verifiziert)';
     case 'missing':
-      return 'Link fehlt — bei der Stelle prüfen';
+      return 'Offizielle Stelle öffnen';
     default:
       return 'Extern prüfen';
   }

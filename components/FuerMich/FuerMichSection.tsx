@@ -2,7 +2,6 @@
 
 import React, { useMemo, useRef, useState } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
-import { InfoHint } from '@/components/ui/InfoHint';
 import { CivicTrustBar } from '@/components/shell/CivicTrustBar';
 import { useApp } from '@/context/AppContext';
 import { ClaraWegweiser } from '@/components/civic/ClaraWegweiser';
@@ -11,8 +10,6 @@ import FuerMichLifeEventPicker from '@/components/FuerMich/FuerMichLifeEventPick
 import FuerMichResults from '@/components/FuerMich/FuerMichResults';
 import { FUER_MICH_LIFE_EVENTS } from '@/data/fuerMichLifeEvents';
 import { resolveServicesForSituation } from '@/lib/kirkelServiceResolver';
-import { CLARA_OFFICIAL_SOURCE_NOTICE } from '@/lib/claraCaseGuidance';
-import { DemoDataBanner } from '@/components/civic/DemoDataBanner';
 import type { LifeEventId } from '@/types/fuerMich';
 
 export default function FuerMichSection() {
@@ -78,38 +75,8 @@ export default function FuerMichSection() {
     handleClearSelection();
   };
 
-  const headline = du ? 'Von der Lebenslage zum Behördenfahrplan.' : 'Von der Lebenslage zum Behördenfahrplan.';
-  const subline = du
-    ? 'Clara verbindet offizielle Verwaltungsinformationen mit deiner konkreten Situation — verständlich, strukturiert und mit sicherer Übergabe an die zuständige Stelle.'
-    : 'Clara verbindet offizielle Verwaltungsinformationen mit Ihrer konkreten Situation — verständlich, strukturiert und mit sicherer Übergabe an die zuständige Stelle.';
-  const positioning = du
-    ? 'HookAI Civic baut keine zweite Verwaltung. Clara macht dich antragsfähig, bevor du offizielle digitale Verwaltungsdienste nutzt.'
-    : 'HookAI Civic baut keine zweite Verwaltung. Clara macht Sie antragsfähig, bevor Sie offizielle digitale Verwaltungsdienste nutzt.';
-
   return (
     <div className="wegweiser-shell">
-      <header className="wegweiser-launcher-header">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#0055A4]">
-          Clara Wegweiser · Vorbereitungscockpit
-        </p>
-        <h2 id="fuer-mich-life-event-heading" className="app-shell-page-heading mt-1">
-          {headline}
-        </h2>
-        <p className="mt-1 text-[12px] leading-snug text-[#5f6b7a]">{subline}</p>
-        <p className="mt-2 text-[11px] leading-relaxed text-[#1A2B45]">{positioning}</p>
-        <p className="mt-1.5 text-[10px] font-medium text-slate-600">{CLARA_OFFICIAL_SOURCE_NOTICE}</p>
-        <div className="mt-2">
-          <DemoDataBanner />
-        </div>
-        <div className="wegweiser-guidance mt-2">
-          <span>{du ? 'Orientierung · Unterlagen · offizielle Übergabe' : 'Orientierung · Unterlagen · offizielle Übergabe'}</span>
-          <InfoHint label="Hinweise zur Vorschau">
-            <p>Demo-Daten (ManualDemo) · keine Live-PVOG-Anbindung · keine Anspruchsprüfung.</p>
-            <p className="mt-1">Clara ersetzt keine Rechtsberatung und keine behördliche Entscheidung.</p>
-          </InfoHint>
-        </div>
-      </header>
-
       <ClaraWegweiser
         du={du}
         plz={profile.plz}
@@ -119,30 +86,22 @@ export default function FuerMichSection() {
       />
 
       {!hasCasePlan ? (
-        <>
-          <section className="mt-4 rounded-xl border border-slate-200/80 bg-slate-50/50 px-3 py-2.5" aria-labelledby="how-it-works">
-            <h3 id="how-it-works" className="text-[12px] font-bold text-[#003366]">
-              {du ? 'So funktioniert es' : 'So funktioniert es'}
-            </h3>
-            <ol className="mt-2 list-decimal space-y-1 pl-4 text-[10.5px] leading-relaxed text-[#5f6b7a]">
-              <li>{du ? 'Situation in eigenen Worten beschreiben' : 'Situation in eigenen Worten beschreiben'}</li>
-              <li>{du ? 'Clara erstellt einen Behördenfahrplan mit Themen und Unterlagen' : 'Clara erstellt einen Behördenfahrplan mit Themen und Unterlagen'}</li>
-              <li>{du ? 'Offizielle Stellen und Antragswege öffnen — extern' : 'Offizielle Stellen und Antragswege öffnen — extern'}</li>
-            </ol>
-          </section>
-          <div className="mt-3">
-            <InstitutionalReliefPanel du={du} />
-          </div>
-        </>
+        <div className="mt-4">
+          <InstitutionalReliefPanel du={du} />
+        </div>
       ) : null}
 
-      <div className="my-4 flex items-center gap-3">
+      <div className="my-4 flex items-center gap-3 wegweiser-secondary-divider">
         <div className="h-px flex-1 bg-slate-200" aria-hidden />
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+        <span className="wegweiser-secondary-divider__label">
           {du ? 'Oder Lebenslage wählen' : 'Oder Lebenslage wählen'}
         </span>
         <div className="h-px flex-1 bg-slate-200" aria-hidden />
       </div>
+
+      <h2 id="fuer-mich-life-event-heading" className="sr-only">
+        Lebenslage wählen
+      </h2>
 
       <FuerMichLifeEventPicker
         du={du}
