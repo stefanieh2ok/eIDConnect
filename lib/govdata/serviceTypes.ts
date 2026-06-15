@@ -47,12 +47,15 @@ export type CasePlanRisk = {
   text: string;
 };
 
+import type { ExternalLinkStatus } from '@/lib/govdata/externalLinkGate';
+
 export type OfficialHandoverLink = {
   id: string;
   title: string;
   url?: string;
-  label: 'Offizielle Quelle' | 'Antrag über zuständige Stelle' | 'Externes offizielles System';
+  label: string;
   authority?: string;
+  linkStatus?: ExternalLinkStatus;
 };
 
 export type CivicCasePlanResult = {

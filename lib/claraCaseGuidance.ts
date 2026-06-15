@@ -12,6 +12,10 @@ export const CLARA_OFFICIAL_SOURCE_NOTICE =
 export const CLARA_DEMO_DATA_NOTICE =
   'Demo-Daten: Diese Beispielinformationen dienen der Produktdemonstration und sind noch nicht live mit PVOG/XZuFi verifiziert.';
 
+/** Shorter banner for visible UI surfaces */
+export const CLARA_DEMO_VISIBILITY_BANNER =
+  'Demo-Daten: noch nicht live mit PVOG/XZuFi verifiziert.';
+
 export const CLARA_PRODUCT_FRAMING =
   'HookAI Civic baut keine zweite Verwaltung. Clara macht Bürger, Unternehmen und Beratungsstellen antragsfähig, bevor sie offizielle digitale Verwaltungsdienste nutzen.';
 

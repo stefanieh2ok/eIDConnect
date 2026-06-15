@@ -2,6 +2,7 @@ import { ClaraAnalysis, ClaraPreferences } from '@/types/clara';
 import { VotingCard } from '@/types';
 import type { AddressMode } from '@/lib/clara-system-prompt';
 import { ensureStructuredClaraResponse } from '@/lib/clara-response-format';
+import { sanitizeClaraOutput } from '@/lib/ai/claraOutputSanitizer';
 
 /**
  * Clara KI-Service (Client-seitig)
@@ -253,7 +254,11 @@ export class ClaraAI {
         safeModeUsed: true,
       };
     }
-    return { text: t, safeModeUsed: false };
+    const sanitized = sanitizeClaraOutput(t);
+    if (!sanitized.isSafe) {
+      return { text: sanitized.safeText, safeModeUsed: true };
+    }
+    return { text: sanitized.safeText, safeModeUsed: false };
   }
 
   private safeNoVerifiedSource(): string {

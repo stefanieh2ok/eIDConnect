@@ -12,6 +12,7 @@ import FuerMichResults from '@/components/FuerMich/FuerMichResults';
 import { FUER_MICH_LIFE_EVENTS } from '@/data/fuerMichLifeEvents';
 import { resolveServicesForSituation } from '@/lib/kirkelServiceResolver';
 import { CLARA_OFFICIAL_SOURCE_NOTICE } from '@/lib/claraCaseGuidance';
+import { DemoDataBanner } from '@/components/civic/DemoDataBanner';
 import type { LifeEventId } from '@/types/fuerMich';
 
 export default function FuerMichSection() {
@@ -97,6 +98,9 @@ export default function FuerMichSection() {
         <p className="mt-1 text-[12px] leading-snug text-[#5f6b7a]">{subline}</p>
         <p className="mt-2 text-[11px] leading-relaxed text-[#1A2B45]">{positioning}</p>
         <p className="mt-1.5 text-[10px] font-medium text-slate-600">{CLARA_OFFICIAL_SOURCE_NOTICE}</p>
+        <div className="mt-2">
+          <DemoDataBanner />
+        </div>
         <div className="wegweiser-guidance mt-2">
           <span>{du ? 'Orientierung · Unterlagen · offizielle Übergabe' : 'Orientierung · Unterlagen · offizielle Übergabe'}</span>
           <InfoHint label="Hinweise zur Vorschau">

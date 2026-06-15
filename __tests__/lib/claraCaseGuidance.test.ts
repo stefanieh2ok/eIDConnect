@@ -2,6 +2,7 @@ import {
   CLARA_CASE_DISCLAIMER,
   CLARA_CONFIDENCE_LABELS,
   CLARA_DEMO_DATA_NOTICE,
+  CLARA_DEMO_VISIBILITY_BANNER,
   CLARA_FORBIDDEN_PHRASES,
   CLARA_OFFICIAL_SOURCE_NOTICE,
   CLARA_MULTI_AUTHORITY_EXAMPLES,
@@ -16,6 +17,7 @@ describe('claraCaseGuidance', () => {
     expect(CLARA_OFFICIAL_SOURCE_NOTICE).toContain('ausschließlich über die zuständige Stelle');
     expect(CLARA_DEMO_DATA_NOTICE).toContain('Demo-Daten');
     expect(CLARA_DEMO_DATA_NOTICE).toContain('PVOG/XZuFi');
+    expect(CLARA_DEMO_VISIBILITY_BANNER).toContain('noch nicht live mit PVOG/XZuFi verifiziert');
   });
 
   it('defines the three confidence labels', () => {

@@ -1,18 +1,23 @@
 'use client';
 
 import React from 'react';
-import { Info } from 'lucide-react';
+import { Info, ExternalLink } from 'lucide-react';
 import type { CivicCasePlanResult } from '@/lib/govdata/serviceTypes';
 import {
   CLARA_CASE_DISCLAIMER,
   CLARA_DEMO_DATA_NOTICE,
   CLARA_OFFICIAL_SOURCE_NOTICE,
 } from '@/lib/claraCaseGuidance';
+import { DemoDataBanner } from '@/components/civic/DemoDataBanner';
 import { OfficialServiceCard } from '@/components/civic/OfficialServiceCard';
 import { RequiredDocumentsChecklist } from '@/components/civic/RequiredDocumentsChecklist';
 import { CaseTimeline } from '@/components/civic/CaseTimeline';
 import { RiskNotes } from '@/components/civic/RiskNotes';
-import { ExternalLink } from 'lucide-react';
+import {
+  EXTERNAL_HANDOVER_NOTICE,
+  externalLinkButtonLabel,
+  isVerifiedOfficialLink,
+} from '@/lib/govdata/externalLinkGate';
 
 type Props = {
   plan: CivicCasePlanResult;
@@ -37,6 +42,8 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
 
   return (
     <div className="civic-case-plan space-y-4" role="region" aria-label={du ? 'Behördenfahrplan' : 'Behördenfahrplan'}>
+      {plan.isDemoData ? <DemoDataBanner /> : null}
+
       {/* 1. Situation Summary */}
       <section className="rounded-xl border border-sky-200/80 bg-gradient-to-br from-sky-50/80 to-white p-3">
         <h3 className="text-[13px] font-bold text-[#003366]">
@@ -44,9 +51,7 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
         </h3>
         <p className="mt-1.5 text-[11px] leading-relaxed text-[#1A2B45]">{plan.situationSummary}</p>
         {plan.isDemoData ? (
-          <p className="mt-2 text-[9px] font-semibold leading-snug text-amber-800">
-            {CLARA_DEMO_DATA_NOTICE}
-          </p>
+          <p className="mt-2 text-[10px] leading-snug text-amber-900/90">{CLARA_DEMO_DATA_NOTICE}</p>
         ) : null}
       </section>
 
@@ -138,20 +143,34 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
           <h3 className="text-[12px] font-bold text-[#003366]">
             {du ? 'Übergabe an offizielle Systeme' : 'Übergabe an offizielle Systeme'}
           </h3>
-          <p className="mt-0.5 text-[10px] font-medium text-slate-600">{CLARA_OFFICIAL_SOURCE_NOTICE}</p>
+          <p className="mt-0.5 text-[10px] font-medium text-slate-600">
+            {CLARA_OFFICIAL_SOURCE_NOTICE} {EXTERNAL_HANDOVER_NOTICE}
+          </p>
           <ul className="mt-2 space-y-1.5">
-            {plan.handoverLinks.map((link) => (
+            {plan.handoverLinks.map((link) => {
+              const verified = link.linkStatus ? isVerifiedOfficialLink(link.linkStatus) : false;
+              return (
               <li key={link.id}>
                 {link.url ? (
                   <a
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-[36px] w-full items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-[10px] font-semibold text-[#003366] hover:bg-sky-50"
+                    className={
+                      'inline-flex min-h-[36px] w-full items-center justify-between gap-2 rounded-lg border px-2.5 py-2 text-[10px] font-semibold ' +
+                      (verified
+                        ? 'border-slate-200 bg-white text-[#003366] hover:bg-sky-50'
+                        : 'border-amber-200 bg-amber-50/70 text-amber-950 hover:bg-amber-50')
+                    }
                   >
                     <span>
                       {link.title}
                       <span className="mt-0.5 block font-normal text-slate-500">{link.label}</span>
+                      {link.linkStatus && !verified ? (
+                        <span className="mt-0.5 block text-[9px] font-semibold text-amber-800">
+                          {externalLinkButtonLabel(link.linkStatus, du)}
+                        </span>
+                      ) : null}
                     </span>
                     <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   </a>
@@ -162,7 +181,8 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
                   </div>
                 )}
               </li>
-            ))}
+            );
+            })}
           </ul>
         </section>
       ) : null}

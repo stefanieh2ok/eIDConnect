@@ -24,7 +24,7 @@ describe('buildClaraSystemPrompt v7', () => {
     expect(prompt).toContain('CASE PREPARATION MODE');
     expect(prompt).toContain(CLARA_PRODUCT_FRAMING);
     expect(prompt).toContain('keine zweite Verwaltung');
-    expect(prompt).toMatch(/keine.*Antraege ein/i);
+    expect(prompt).toMatch(/keine.*Anträge ein/i);
   });
 
   it('includes mandatory notices and forbidden wording guardrails', () => {
@@ -35,6 +35,15 @@ describe('buildClaraSystemPrompt v7', () => {
     for (const phrase of CLARA_FORBIDDEN_PHRASES.slice(0, 4)) {
       expect(prompt).toContain(phrase);
     }
+  });
+
+  it('uses proper German umlauts in case-preparation sections', () => {
+    const prompt = buildClaraSystemPrompt(baseOpts);
+    expect(prompt).toContain('Bürger');
+    expect(prompt).toContain('behördliche');
+    expect(prompt).toContain('Anträge');
+    expect(prompt).toContain('zuständige');
+    expect(prompt).not.toMatch(/Buergerzugang|behoerdliche|Antraege ein/);
   });
 
   it('preserves analyze prompt extension and lists forbidden submission phrases', () => {

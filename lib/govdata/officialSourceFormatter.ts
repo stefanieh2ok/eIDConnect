@@ -2,6 +2,11 @@
  * Official source labels for service cards and handover links.
  */
 import { CLARA_CONFIDENCE_LABELS } from '@/lib/claraCaseGuidance';
+import {
+  EXTERNAL_HANDOVER_NOTICE,
+  handoverLinkLabel,
+  resolveExternalLinkStatus,
+} from '@/lib/govdata/externalLinkGate';
 import type { GovService, GovServiceSourceSystem, OfficialHandoverLink } from '@/lib/govdata/serviceTypes';
 
 export function sourceSystemLabel(source: GovServiceSourceSystem): string {
@@ -35,14 +40,16 @@ export function confidenceLabel(confidence: GovService['confidence']): string {
 }
 
 export function formatOfficialHandover(service: GovService): OfficialHandoverLink[] {
+  const linkStatus = resolveExternalLinkStatus(service);
   const links: OfficialHandoverLink[] = [];
   if (service.officialSourceUrl) {
     links.push({
       id: `${service.serviceId}-source`,
       title: service.title,
       url: service.officialSourceUrl,
-      label: 'Offizielle Quelle',
+      label: handoverLinkLabel(linkStatus, 'source'),
       authority: service.responsibleAuthority,
+      linkStatus,
     });
   }
   if (service.onlineServiceUrl) {
@@ -50,8 +57,9 @@ export function formatOfficialHandover(service: GovService): OfficialHandoverLin
       id: `${service.serviceId}-online`,
       title: 'Online-Dienst',
       url: service.onlineServiceUrl,
-      label: 'Antrag über zuständige Stelle',
+      label: handoverLinkLabel(linkStatus, 'online'),
       authority: service.responsibleAuthority,
+      linkStatus,
     });
   }
   if (service.formUrl) {
@@ -59,19 +67,21 @@ export function formatOfficialHandover(service: GovService): OfficialHandoverLin
       id: `${service.serviceId}-form`,
       title: 'Offizielles Formular',
       url: service.formUrl,
-      label: 'Externes offizielles System',
+      label: handoverLinkLabel(linkStatus, 'form'),
       authority: service.responsibleAuthority,
+      linkStatus,
     });
   }
   if (links.length === 0 && service.responsibleAuthority) {
     links.push({
       id: `${service.serviceId}-authority`,
       title: service.responsibleAuthority,
-      label: 'Antrag über zuständige Stelle',
+      label: handoverLinkLabel(linkStatus, 'authority'),
       authority: service.responsibleAuthority,
+      linkStatus,
     });
   }
   return links;
 }
 
-export const EXTERNAL_LINK_NOTICE = 'Antrag erfolgt extern — HookAI Civic reicht nichts ein.';
+export { EXTERNAL_HANDOVER_NOTICE };
