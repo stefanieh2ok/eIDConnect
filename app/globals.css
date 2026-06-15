@@ -3071,6 +3071,36 @@ html[data-shell-nav='legacy'] {
   padding: 0.25rem 0 0.75rem;
 }
 
+/* Clara Wegweiser — case preparation cockpit (stable in-place results) */
+.clara-wegweiser__hero {
+  scroll-margin-top: 0;
+}
+.clara-wegweiser__result {
+  scroll-margin-top: 0;
+  animation: clara-plan-in 0.32s ease-out both;
+}
+@keyframes clara-plan-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.civic-service-card {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.civic-service-card:hover {
+  border-color: rgba(14, 165, 233, 0.35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .clara-wegweiser__result {
+    animation: none;
+  }
+}
+
 .wegweiser-launcher-header {
   margin-bottom: 0.35rem;
   padding-top: 0.15rem;

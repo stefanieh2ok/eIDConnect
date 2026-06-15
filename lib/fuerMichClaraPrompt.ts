@@ -1,4 +1,12 @@
 import type { AddressMode } from '@/lib/clara-system-prompt';
+import {
+  CLARA_CASE_DISCLAIMER,
+  CLARA_DEMO_DATA_NOTICE,
+  CLARA_OFFICIAL_SOURCE_NOTICE,
+  CLARA_PRODUCT_FRAMING,
+  claraForbiddenPhrasesPromptBlock,
+  claraRequiredWordingPromptBlock,
+} from '@/lib/claraCaseGuidance';
 import type { AgeGroup, FuerMichProfileState, LifeEventId } from '@/types/fuerMich';
 import type { LeistungEintrag } from '@/lib/fuerMichMatch';
 import { FUER_MICH_LIFE_EVENTS } from '@/data/fuerMichLifeEvents';
@@ -14,15 +22,13 @@ import {
 
 /** Pflicht-Einstieg jeder Clara-Light-Antwort im Wegweiser (Sie / Du). */
 export const FUER_MICH_CLARA_OPENING =
-  'Für Ihre Situation könnten folgende Themen relevant sein …';
+  'Clara unterstützt bei Orientierung und Vorbereitung. Für Ihre Situation könnten folgende Behördenwege relevant sein …';
 export const FUER_MICH_CLARA_OPENING_DU =
-  'Für deine Situation könnten folgende Themen relevant sein …';
+  'Clara unterstützt bei Orientierung und Vorbereitung. Für deine Situation könnten folgende Behördenwege relevant sein …';
 
 /** Pflicht-Abschluss jeder Clara-Light-Antwort im Wegweiser (Sie / Du). */
-export const FUER_MICH_CLARA_CLOSING =
-  'Diese Übersicht informiert über mögliche Themen. Sie ist keine Prüfung Ihres individuellen Anspruchs. Verbindlich entscheidet die zuständige Stelle.';
-export const FUER_MICH_CLARA_CLOSING_DU =
-  'Diese Übersicht informiert über mögliche Themen. Sie ist keine Prüfung deines individuellen Anspruchs. Verbindlich entscheidet die zuständige Stelle.';
+export const FUER_MICH_CLARA_CLOSING = CLARA_CASE_DISCLAIMER;
+export const FUER_MICH_CLARA_CLOSING_DU = CLARA_CASE_DISCLAIMER;
 
 /** Antwort, wenn etwas nicht im Demo-Resolver/-Katalog steht (Sie / Du). */
 export const FUER_MICH_CLARA_NO_INFO =
@@ -181,18 +187,21 @@ export function buildFuerMichClaraPrompt({
     .join('\n');
 
   const lines: string[] = [
-    'Aufgabe: Orientierungsanfrage im Demo-Wegweiser von HookAI Civic (Wegweiser-Modus).',
+    'Aufgabe: Case-Preparation im Demo-Wegweiser von HookAI Civic — Buergerseitiges Vorbereitungscockpit.',
+    CLARA_PRODUCT_FRAMING,
     `Regionaler Demo-Kontext (nur UI/Demo, KEINE personenbezogene Angabe): ${FUER_MICH_REGION_DEMO}.`,
+    CLARA_DEMO_DATA_NOTICE,
     '',
     'Strikte Vorgaben:',
     `- Beginne deine Antwort GENAU mit diesem Satz: "${fuerMichClaraOpening(mode)}"`,
     '- Nenne ausschließlich Leistungen aus der unten stehenden Liste „Verfügbare Demo-Themen“.',
+    '- Wenn mehrere Stellen betroffen sind: Cross-Agency-Orchestrierung — alle zuständigen Stellen benennen und Reihenfolge vorschlagen.',
     `- Wenn nach etwas gefragt wird, das NICHT in dieser Liste steht, antworte ausschließlich mit: "${fuerMichClaraNoInfo(mode)}"`,
-    '- Keine Anspruchsprüfung, keine Altersprüfung, keine Berechtigungsprüfung, keine Bewertung individueller Voraussetzungen, keine Empfehlung, keine Bewilligungsaussage.',
-    '- Verboten sind Formulierungen wie „Sie haben Anspruch auf“, „Ihnen steht … zu“, „Dir steht … zu“, „Sie erfüllen die Voraussetzungen“, „Du erfüllst die Voraussetzungen“, „Ihr Antrag wird bewilligt“, „Dein Antrag wird bewilligt“, „Sie bekommen“, „Du bekommst“, „Die Wahrscheinlichkeit ist …“.',
+    '- Keine Anspruchsprüfung, keine Berechtigungsprüfung, keine Bewilligungsaussage, keine Einreichung durch HookAI Civic.',
+    `- Verboten: ${claraForbiddenPhrasesPromptBlock()}.`,
+    `- Bevorzugt: ${claraRequiredWordingPromptBlock()}.`,
     '- Erfinde keine Quellen, keine Behörden, keine Formulare und keine Links. Nutze nur die unten angegebenen Demo-Angaben und den Quellenstatus.',
-    '- Wenn zu einem Thema kein geprüfter Online-Link vorliegt, nenne die zuständige Stelle und weise neutral auf den Demo-/Quellenstatus hin.',
-    '- Dies ist eine Konzeptvorschau mit Demo-Daten, keine verbindliche behördliche Auskunft.',
+    `- Pflicht-Hinweis einbinden: "${CLARA_OFFICIAL_SOURCE_NOTICE}"`,
     `- Beende deine Antwort GENAU mit diesem Satz: "${fuerMichClaraClosing(mode)}"`,
   ];
 

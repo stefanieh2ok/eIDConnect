@@ -1,7 +1,7 @@
 import { hashForAudit } from '@/lib/ai/hash-content';
 import { insertAuditLog } from '@/lib/security/audit-server';
 
-export const CLARA_SOURCE_LOCK_VERSION = 'clara-system-prompt-v6';
+export const CLARA_SOURCE_LOCK_VERSION = 'clara-system-prompt-v7';
 
 export type ClaraAiChannel = 'chat' | 'analyze' | 'tts';
 
