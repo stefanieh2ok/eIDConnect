@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Info, ExternalLink } from 'lucide-react';
 import type { CivicCasePlanResult } from '@/lib/govdata/serviceTypes';
 import {
@@ -14,6 +14,12 @@ import { OfficialServiceCard } from '@/components/civic/OfficialServiceCard';
 import { RequiredDocumentsChecklist } from '@/components/civic/RequiredDocumentsChecklist';
 import { CaseTimeline } from '@/components/civic/CaseTimeline';
 import { RiskNotes } from '@/components/civic/RiskNotes';
+import { CaseDocumentPacketSection } from '@/components/civic/CaseDocumentPacketSection';
+import {
+  resolveDocumentPacket,
+  type DocumentPacketCard,
+} from '@/lib/documents/documentPacketResolver';
+import { downloadCasePlanTextExport } from '@/lib/documents/casePlanTextExport';
 import {
   DEMO_LINK_LABEL,
   EXTERNAL_HANDOVER_MICROCOPY,
@@ -47,29 +53,64 @@ function SectionHead({
   );
 }
 
+function scrollToSection(id: string) {
+  if (typeof document === 'undefined') return;
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
-  const handleExport = () => {
+  const documentCards = useMemo(() => resolveDocumentPacket(plan, { du }), [plan, du]);
+
+  const handleExport = useCallback(() => {
     if (onExportPdf) {
       onExportPdf();
       return;
     }
-    if (typeof window !== 'undefined') {
-      window.alert(
-        'PDF-Export ist in dieser Demo noch nicht angebunden. Der Behördenfahrplan bleibt in der App sichtbar.',
-      );
-    }
-  };
+    downloadCasePlanTextExport(plan, du);
+  }, [du, onExportPdf, plan]);
+
+  const handleDocumentCardAction = useCallback(
+    (card: DocumentPacketCard) => {
+      if (card.action === 'export_plan_text') {
+        handleExport();
+        return;
+      }
+      if (card.action === 'open_nda' && card.actionUrl) {
+        window.open(card.actionUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      if (card.action === 'scroll_documents') {
+        scrollToSection('plan-documents');
+        return;
+      }
+      if (card.action === 'scroll_handover') {
+        scrollToSection('plan-handover');
+        return;
+      }
+      if (card.action === 'scroll_checklist') {
+        scrollToSection('plan-documents');
+      }
+    },
+    [handleExport],
+  );
 
   return (
-    <div className="civic-case-plan" role="region" aria-label={du ? 'Behördenfahrplan' : 'Behördenfahrplan'}>
+    <div
+      className="civic-case-plan civic-case-plan--with-dock"
+      role="region"
+      aria-label={du ? 'Behördenfahrplan' : 'Behördenfahrplan'}
+    >
       {plan.isDemoData ? <DemoDataBanner className="civic-case-plan__demo-banner" /> : null}
 
-      {/* A. Lage verstanden */}
       <section className="civic-case-plan__section civic-case-plan__section--summary" aria-labelledby="plan-summary">
         <SectionHead
           id="plan-summary"
           title={du ? 'Lage verstanden' : 'Lage verstanden'}
-          lead={du ? 'Kurzfassung deiner Situation — ohne Anspruchsprüfung.' : 'Kurzfassung Ihrer Situation — ohne Anspruchsprüfung.'}
+          lead={
+            du
+              ? 'Kurzfassung deiner Situation — ohne Anspruchsprüfung.'
+              : 'Kurzfassung Ihrer Situation — ohne Anspruchsprüfung.'
+          }
         />
         <p className="civic-case-plan__summary-text">{plan.situationSummary}</p>
         {plan.isDemoData ? (
@@ -77,7 +118,6 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
         ) : null}
       </section>
 
-      {/* B. Betroffene Themen */}
       {plan.topics.length > 0 ? (
         <section className="civic-case-plan__section" aria-labelledby="plan-topics">
           <SectionHead id="plan-topics" title="Betroffene Themen" />
@@ -91,12 +131,13 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
         </section>
       ) : null}
 
-      {/* C. Beteiligte Stellen */}
       <AuthoritiesOverview authorities={plan.touchedAuthorities} du={du} />
 
-      {/* Follow-up questions */}
       {plan.followUpQuestions.length > 0 ? (
-        <section className="civic-case-plan__section civic-case-plan__section--followup" aria-labelledby="plan-followup">
+        <section
+          className="civic-case-plan__section civic-case-plan__section--followup"
+          aria-labelledby="plan-followup"
+        >
           <SectionHead
             id="plan-followup"
             title={du ? 'Clara würde noch kurz nachfragen' : 'Clara würde noch kurz nachfragen'}
@@ -109,7 +150,6 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
         </section>
       ) : null}
 
-      {/* D. Mögliche offizielle Leistungen */}
       <section className="civic-case-plan__section" aria-labelledby="plan-services">
         <SectionHead
           id="plan-services"
@@ -123,27 +163,32 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
         </div>
       </section>
 
-      {/* E. Unterlagen-Check */}
       <section className="civic-case-plan__section" aria-labelledby="plan-documents">
         <SectionHead id="plan-documents" title="Unterlagen-Check" />
         <RequiredDocumentsChecklist items={plan.documents} du={du} />
       </section>
 
-      {/* F. Sinnvolle Reihenfolge */}
+      <CaseDocumentPacketSection
+        cards={documentCards}
+        du={du}
+        onCardAction={handleDocumentCardAction}
+      />
+
       <section className="civic-case-plan__section" aria-labelledby="plan-sequence">
         <SectionHead id="plan-sequence" title="Sinnvolle Reihenfolge" />
         <CaseTimeline steps={plan.sequenceSteps} />
       </section>
 
-      {/* G. Risiken */}
       <section className="civic-case-plan__section" aria-labelledby="plan-risks">
         <SectionHead id="plan-risks" title="Risiken & typische Fehler" />
         <RiskNotes risks={plan.risks} du={du} />
       </section>
 
-      {/* H. Offizielle Übergabe */}
       {plan.handoverLinks.length > 0 ? (
-        <section className="civic-case-plan__section civic-case-plan__section--handover" aria-labelledby="plan-handover">
+        <section
+          className="civic-case-plan__section civic-case-plan__section--handover"
+          aria-labelledby="plan-handover"
+        >
           <SectionHead
             id="plan-handover"
             title="Offizielle Übergabe"
@@ -191,7 +236,6 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
         </section>
       ) : null}
 
-      {/* I. Hinweise / Disclaimer */}
       <section
         className="civic-case-plan__section civic-case-plan__section--disclaimer"
         aria-labelledby="plan-disclaimer"
@@ -203,9 +247,16 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
         </div>
       </section>
 
-      <button type="button" onClick={handleExport} className="civic-case-plan__export-btn">
-        {du ? 'Behördenfahrplan als PDF exportieren' : 'Behördenfahrplan als PDF exportieren'}
-      </button>
+      <div className="civic-case-plan__export-wrap">
+        <button type="button" onClick={handleExport} className="civic-case-plan__export-btn">
+          {du ? 'Vorbereitung herunterladen (Demo-Text)' : 'Vorbereitung herunterladen (Demo-Text)'}
+        </button>
+        <p className="civic-case-plan__export-note">
+          {du
+            ? 'Noch kein amtliches PDF — nur eine lokale Vorbereitungsdatei.'
+            : 'Noch kein amtliches PDF — nur eine lokale Vorbereitungsdatei.'}
+        </p>
+      </div>
     </div>
   );
 }

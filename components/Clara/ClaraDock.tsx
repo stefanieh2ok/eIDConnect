@@ -19,13 +19,12 @@ import {
   civicClaraContextChipLabel,
   type CivicClaraContextPayload,
 } from '@/lib/civicClaraContext';
+import { useClaraCaseInputBridge } from '@/context/ClaraCaseInputContext';
 
 /**
- * Globaler "Clara-Dock": schlanke, glasige Pille am unteren Rand der App.
- * - Immer erreichbar, kein FAB, verdeckt keine Inhalte dauerhaft (Pille ist dezent).
- * - Zwei Eintrittspunkte: Text-Chat (primär) + Voice (sekundär).
- * - Übergibt an Clara den aktuellen Kontext (Bereich + ggf. aktuelle Abstimmungskarte)
- *   als leicht weg­klickbaren Chip – keine erzwungene Personalisierung, kein Tracking.
+ * Globaler "Clara-Dock": schlanke Pille am unteren Rand der App.
+ * Wegweiser-Tab: Fokus auf Case-Input (ClaraCaseInputBridge), kein separater Fake-Chat.
+ * Andere Tabs: Text-Chat (primär) + Voice (sekundär).
  */
 
 const SECTION_LABEL: Record<string, string> = {
@@ -98,6 +97,8 @@ export default function ClaraDock({
   suppressCompactMic = false,
 }: ClaraDockProps) {
   const { state } = useApp();
+  const caseInputBridge = useClaraCaseInputBridge();
+  const wegweiserDockMode = state.isLoggedIn && state.activeSection === 'fuermich' && caseInputBridge.isActive;
   const { speak: speakVoice } = useClaraVoiceContext();
   const [chatOpen, setChatOpen] = useState(false);
   const [sheetSize, setSheetSize] = useState<ClaraSheetSize>('half');
@@ -310,40 +311,70 @@ export default function ClaraDock({
     [contextChipLabel],
   );
 
-  /** Kompakte Pille (~halbe visuelle Größe), schmale max-Breite; Anrede-„Weiter“ per extraBottomOffset frei. */
+  /** Kompakte Pille — HookAI Civic Navy/Mint, kein Lavender. */
   const pillToolbar = (
-    <div
-      className="clara-dock-pill pointer-events-auto flex w-auto max-w-[min(9rem,62vw)] shrink-0 items-center gap-0.5 rounded-full border bg-white/95 px-1 py-0.5 shadow-[0_2px_8px_rgba(76,29,149,0.12)] backdrop-blur-md"
-      style={{
-        borderColor: 'rgba(124, 58, 237, 0.25)',
-        background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(248,245,255,0.92) 100%)',
-      }}
-      role="toolbar"
-      aria-label="Clara – KI-Assistentin (neutral, keine Wahlempfehlung)"
-    >
+    <div className="clara-dock-pill clara-dock-pill--civic" role="toolbar" aria-label="Clara – KI-Assistentin (neutral, keine Wahlempfehlung)">
       <button
         type="button"
         onClick={() => {
+          if (wegweiserDockMode) {
+            caseInputBridge.focusInput();
+            return;
+          }
           setSheetSize('half');
           setChatOpen(true);
         }}
         className="clara-dock-pill__btn"
-        aria-label="Frag Clara – Chat öffnen"
-        title="Frag Clara"
+        aria-label={
+          wegweiserDockMode
+            ? 'Clara — Situation eingeben'
+            : 'Frag Clara – Chat öffnen'
+        }
+        title={wegweiserDockMode ? 'Situation eingeben' : 'Frag Clara'}
       >
         <MessageCircle size={14} strokeWidth={2.2} aria-hidden="true" />
         <span className="max-w-[4rem] truncate sm:max-w-none">Clara</span>
       </button>
-      <span className="h-3.5 w-px shrink-0 bg-[#7C3AED]/25" aria-hidden="true" />
-      <button
-        type="button"
-        onClick={() => openVoiceSession()}
-        className="clara-dock-pill__btn clara-dock-pill__btn--icon"
-        aria-label="Mit Clara sprechen (Voice)"
-        title="Mit Clara sprechen"
-      >
-        <Mic size={14} strokeWidth={2.2} aria-hidden="true" />
-      </button>
+      {wegweiserDockMode ? (
+        caseInputBridge.speechSupported ? (
+          <>
+            <span className="clara-dock-pill__divider" aria-hidden="true" />
+            <button
+              type="button"
+              onClick={() => caseInputBridge.startSpeechInput()}
+              className={
+                'clara-dock-pill__btn clara-dock-pill__btn--icon' +
+                (caseInputBridge.speechListening ? ' clara-dock-pill__btn--listening' : '')
+              }
+              aria-label={
+                caseInputBridge.speechListening
+                  ? 'Spracheingabe stoppen'
+                  : 'Spracheingabe starten'
+              }
+              title={
+                caseInputBridge.speechListening
+                  ? 'Spracheingabe stoppen'
+                  : 'Spracheingabe starten'
+              }
+            >
+              <Mic size={14} strokeWidth={2.2} aria-hidden="true" />
+            </button>
+          </>
+        ) : null
+      ) : (
+        <>
+          <span className="clara-dock-pill__divider" aria-hidden="true" />
+          <button
+            type="button"
+            onClick={() => openVoiceSession()}
+            className="clara-dock-pill__btn clara-dock-pill__btn--icon"
+            aria-label="Mit Clara sprechen (Voice)"
+            title="Mit Clara sprechen"
+          >
+            <Mic size={14} strokeWidth={2.2} aria-hidden="true" />
+          </button>
+        </>
+      )}
     </div>
   );
 
@@ -361,28 +392,28 @@ export default function ClaraDock({
         <button
           type="button"
           onClick={() => openVoiceSession()}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full border bg-white/95 shadow-[0_4px_14px_rgba(76,29,149,0.22)] backdrop-blur-xl transition hover:brightness-[1.03] active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C3AED]"
-          style={{
-            borderColor: 'rgba(124, 58, 237, 0.4)',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(245,240,255,0.94) 100%)',
-          }}
+          className="clara-dock-pill__btn clara-dock-pill__btn--icon clara-dock-pill__btn--compact-mic"
           aria-label="Clara Voice — Mikrofon"
           title="Mit Clara sprechen"
         >
-          <Mic className="text-[#4C1D95]" size={16} strokeWidth={2.2} aria-hidden="true" />
+          <Mic size={16} strokeWidth={2.2} aria-hidden="true" />
         </button>
       </div>
     ) : null;
 
-  /** Normale App (ohne Walkthrough, nach Login-Flow): volle Pille unten. */
   const pillFloating = !showCompactMicOnly ? (
       <div
-        className={`pointer-events-none absolute inset-x-0 flex justify-center ${toolbarZClassName}`}
+        className={`pointer-events-none absolute inset-x-0 flex flex-col items-center gap-1 ${toolbarZClassName}`}
         style={{
           bottom: `calc(var(--clara-dock-pill-bottom, 1rem) + ${extraBottomOffset})`,
         }}
         aria-hidden={chatOpen || voiceOpen}
       >
+        {wegweiserDockMode && caseInputBridge.speechMessage ? (
+          <p className="clara-dock-pill__speech-hint pointer-events-none" role="status">
+            {caseInputBridge.speechMessage}
+          </p>
+        ) : null}
         {pillToolbar}
       </div>
     ) : null;

@@ -27,6 +27,7 @@ import {
 } from '@/lib/introPreLoginPhase';
 import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
 import ClaraDock from '@/components/Clara/ClaraDock';
+import { ClaraCaseInputProvider } from '@/context/ClaraCaseInputContext';
 import {
   CLARA_DOCK_EXTRA_BOTTOM_ANREDE_ENTRY,
   CLARA_DOCK_EXTRA_BOTTOM_EID,
@@ -445,6 +446,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
 
   return (
     <IntroOverlay>
+      <ClaraCaseInputProvider>
       <div className="relative flex h-full min-h-0 w-full min-w-0 flex-1 flex-col">
         {!state.isLoggedIn ? (
           <div
@@ -612,6 +614,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
           onIntroEntryVoiceChoice={(c) => (c === 'start' ? onEntryStart() : onEntryDirect())}
         />
       </div>
+      </ClaraCaseInputProvider>
     </IntroOverlay>
   );
 }
