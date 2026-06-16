@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+// TODO(civic-merge): Secondary LLM chat — keep connected to same case context as ClaraWegweiser
+// via ClaraCaseInputBridge / civicContext payloads; do not fork case-preparation logic here.
 import { useApp } from '@/context/AppContext';
 import ClaraVoiceInterface from './ClaraVoiceInterface';
 import { ClaraAI } from '@/services/claraAI';
