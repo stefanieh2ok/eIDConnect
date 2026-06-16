@@ -3,11 +3,13 @@
  */
 import type { GovService, GovServiceSourceSystem } from '@/lib/govdata/serviceTypes';
 import { pvogLiveAccessAvailable } from '@/lib/govdata/pvogClient';
+import { DEMO_SERVICE_SOURCE_LABEL } from '@/lib/govdata/sourceStatus';
 
 export type ExternalLinkStatus = 'verified_official' | 'demo_unverified' | 'missing' | 'unknown';
 
 export const DEMO_LINK_LABEL = 'Demo-Link — noch nicht live verifiziert';
 export const VERIFIED_OFFICIAL_LABEL = 'Offizielle Quelle';
+export const DEMO_SOURCE_PENDING_LABEL = 'Offizieller Link folgt';
 export const EXTERNAL_HANDOVER_NOTICE = 'Antrag erfolgt extern — HookAI Civic reicht nichts ein.';
 export const EXTERNAL_HANDOVER_MICROCOPY = 'Externer offizieller Weg — Clara bereitet nur vor.';
 
@@ -40,12 +42,16 @@ export function isVerifiedOfficialLink(status: ExternalLinkStatus): boolean {
   return status === 'verified_official';
 }
 
+export function shouldRenderExternalLink(status: ExternalLinkStatus): boolean {
+  return status === 'verified_official';
+}
+
 export function externalLinkBadgeLabel(status: ExternalLinkStatus): string {
   switch (status) {
     case 'verified_official':
       return VERIFIED_OFFICIAL_LABEL;
     case 'demo_unverified':
-      return DEMO_LINK_LABEL;
+      return DEMO_SERVICE_SOURCE_LABEL;
     case 'missing':
       return 'Kein verifizierter Link';
     default:
@@ -61,9 +67,9 @@ export function externalLinkButtonLabel(
   switch (status) {
     case 'verified_official':
       if (kind === 'online' || kind === 'handover') return 'Antrag extern starten';
-      return 'Offizielle Informationen ansehen';
+      return 'Offizielle Informationen öffnen';
     case 'demo_unverified':
-      return 'Demo-Link öffnen (nicht live verifiziert)';
+      return DEMO_SOURCE_PENDING_LABEL;
     case 'missing':
       return 'Offizielle Stelle öffnen';
     default:
@@ -76,7 +82,7 @@ export function handoverLinkLabel(
   kind: 'source' | 'online' | 'form' | 'authority',
 ): string {
   if (status === 'demo_unverified') {
-    return DEMO_LINK_LABEL;
+    return DEMO_SERVICE_SOURCE_LABEL;
   }
   if (status !== 'verified_official') {
     return kind === 'authority' ? 'Antrag über zuständige Stelle' : externalLinkBadgeLabel(status);
@@ -85,7 +91,7 @@ export function handoverLinkLabel(
     case 'source':
       return VERIFIED_OFFICIAL_LABEL;
     case 'online':
-      return 'Antrag über zuständige Stelle';
+      return 'Antrag extern starten';
     case 'form':
       return 'Externes offizielles System';
     case 'authority':

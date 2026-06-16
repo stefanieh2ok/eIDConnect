@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { ChevronRight, Sparkles } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronRight } from 'lucide-react';
 import {
   useClaraCaseInputBridgeRegistration,
   type ClaraCaseInputBridge,
@@ -23,51 +23,63 @@ type Props = {
 const MODE_OPTIONS: {
   id: ClaraWegweiserMode;
   label: string;
-  hint: string;
 }[] = [
-  { id: 'private', label: 'Privat', hint: 'Familie, Wohnen, Arbeit, Pflege' },
-  { id: 'business', label: 'Geschäftlich', hint: 'Gewerbe, Gründung, Mitarbeitende' },
-  { id: 'unsure', label: 'Ich bin unsicher', hint: 'Clara sortiert den Kontext' },
+  { id: 'private', label: 'Privat' },
+  { id: 'business', label: 'Geschäftlich' },
+  { id: 'unsure', label: 'Ich bin unsicher' },
 ];
 
-/** UI display metadata for example case cards (planner ids unchanged). */
-const EXAMPLE_CARD_META: Record<
-  string,
-  { title: string; situation: string; modeTag: 'Privat' | 'Geschäftlich' }
-> = {
-  'move-kids': {
-    title: 'Umzug mit Kindern',
-    situation: 'Umzug, niedriges Einkommen, Schulwechsel, Unterstützung',
-    modeTag: 'Privat',
-  },
-  'pflege-parent': {
-    title: 'Pflegefall in der Familie',
-    situation: 'Pflegebedürftigkeit, Leistungen und zuständige Stellen',
-    modeTag: 'Privat',
-  },
-  'gewerbe-start': {
-    title: 'Gewerbe anmelden',
-    situation: 'Gewerbeanmeldung, Finanzamt, IHK, Gewerbeamt',
-    modeTag: 'Geschäftlich',
-  },
-  'first-employee': {
-    title: 'Erste Mitarbeitende einstellen',
-    situation: 'Pflichten, Meldungen, Sozialversicherung',
-    modeTag: 'Geschäftlich',
-  },
-};
-
 const PLACEHOLDER =
-  'Ich ziehe mit zwei Kindern um und brauche Unterstützung. Oder: Ich möchte ein Gewerbe anmelden und weiß nicht, welche Stellen ich informieren muss.';
+  'Ich bekomme ein Kind und möchte wissen, welche Unterlagen ich brauche — z. B. Elterngeld, Kindergeld, Kita oder Krankenversicherung.';
 
-const FLOW_STEPS = [
-  'Situation beschreiben',
-  'Behördenfahrplan erhalten',
-  'Offizielle Wege nutzen',
-] as const;
+const GEBURT_KITA_PRESET =
+  'Ich bekomme ein Kind und möchte wissen, welche Unterlagen ich brauche — z. B. Elterngeld, Kindergeld, Kita-Anmeldung und Krankenversicherung.';
+
+const EXAMPLE_ROWS: {
+  key: string;
+  title: string;
+  exampleId?: string;
+  presetText?: string;
+  mode?: ClaraWegweiserMode;
+}[] = [
+  { key: 'geburt-kita', title: 'Geburt & Kita', presetText: GEBURT_KITA_PRESET, mode: 'private' },
+  { key: 'move-kids', title: 'Umzug mit Kindern', exampleId: 'move-kids' },
+  { key: 'pflege-parent', title: 'Pflegefall', exampleId: 'pflege-parent' },
+  { key: 'gewerbe-start', title: 'Gewerbe anmelden', exampleId: 'gewerbe-start' },
+];
 
 export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanReady }: Props) {
   const caseInput = useClaraCaseInput({ du, plz, bundesland, wohnort, onPlanReady });
+  const dockVisibilityGuardRef = useRef<HTMLDivElement | null>(null);
+  const resultRef = useRef<HTMLDivElement | null>(null);
+  const [inputGuardScrolledPast, setInputGuardScrolledPast] = useState(false);
+
+  /** Dock only after textarea/CTA/examples block has left the viewport — not on typed input or plan alone. */
+  const showFloatingDock = inputGuardScrolledPast;
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const root = document.getElementById('main-content');
+    const target = dockVisibilityGuardRef.current;
+    if (!root || !target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setInputGuardScrolledPast(!entry.isIntersecting);
+      },
+      { root, threshold: 0, rootMargin: '0px 0px 0px 0px' },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [caseInput.plan]);
+
+  useEffect(() => {
+    if (!caseInput.plan || !resultRef.current) return;
+    requestAnimationFrame(() => {
+      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [caseInput.plan]);
 
   const bridge = useMemo<ClaraCaseInputBridge>(
     () => ({
@@ -80,6 +92,7 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
       startSpeechInput: caseInput.startSpeechInput,
       speechListening: caseInput.speechListening,
       speechMessage: caseInput.speechMessage,
+      showFloatingDock,
     }),
     [
       caseInput.focusInput,
@@ -90,105 +103,93 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
       caseInput.startSpeechInput,
       caseInput.speechListening,
       caseInput.speechMessage,
+      showFloatingDock,
     ],
   );
 
   useClaraCaseInputBridgeRegistration(bridge);
 
+  const loadExampleRow = (row: (typeof EXAMPLE_ROWS)[number]) => {
+    if (row.exampleId) {
+      caseInput.loadExample(row.exampleId, false);
+      return;
+    }
+    if (row.presetText) {
+      caseInput.setText(row.presetText);
+      if (row.mode) caseInput.setMode(row.mode);
+      caseInput.textareaRef.current?.focus();
+    }
+  };
+
   return (
-    <div className="clara-wegweiser">
-      <section
-        className="clara-wegweiser__cockpit"
-        aria-labelledby="clara-wegweiser-heading"
-      >
-        <div className="clara-wegweiser__cockpit-inner">
+    <div className="clara-wegweiser clara-wegweiser--workflow">
+      <div className="clara-wegweiser__workflow">
+        <header className="clara-wegweiser__workflow-header">
           <p className="clara-wegweiser__micro-label">Clara Wegweiser</p>
-
-          <div className="clara-wegweiser__title-row">
-            <span className="clara-wegweiser__icon" aria-hidden>
-              <Sparkles className="h-5 w-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <h2 id="clara-wegweiser-heading" className="clara-wegweiser__headline">
-                Von der Lebenslage zum Behördenfahrplan.
-              </h2>
-              <p className="clara-wegweiser__subheadline">
-                {du
-                  ? 'Beschreibe deine Situation in Alltagssprache. Clara sortiert mögliche Behördenwege, Unterlagen und nächste Schritte — bevor du den offiziellen Antrag extern stellst.'
-                  : 'Beschreiben Sie Ihre Situation in Alltagssprache. Clara sortiert mögliche Behördenwege, Unterlagen und nächste Schritte — bevor Sie den offiziellen Antrag extern stellen.'}
-              </p>
-            </div>
-          </div>
-
-          <p className="clara-wegweiser__compliance">
-            Keine Rechtsberatung. Keine Antragstellung durch Clara. Maßgeblich bleiben die Angaben
-            der zuständigen Stelle.
+          <h2 id="clara-wegweiser-heading" className="clara-wegweiser__headline">
+            Von der Lebenslage zum Behördenfahrplan.
+          </h2>
+          <p className="clara-wegweiser__subheadline">
+            {du
+              ? 'Beschreibe deine Situation. Clara sortiert mögliche Behördenwege, Unterlagen und nächste Schritte.'
+              : 'Beschreiben Sie Ihre Situation. Clara sortiert mögliche Behördenwege, Unterlagen und nächste Schritte.'}
           </p>
+          <p className="clara-wegweiser__compliance clara-wegweiser__compliance--inline">
+            Keine Rechtsberatung. Keine Antragstellung durch Clara.
+          </p>
+        </header>
 
-          <ol className="clara-wegweiser__flow" aria-label={du ? 'Ablauf' : 'Ablauf'}>
-            {FLOW_STEPS.map((step, i) => (
-              <li key={step} className="clara-wegweiser__flow-step">
-                <span className="clara-wegweiser__flow-num" aria-hidden>
-                  {i + 1}
-                </span>
-                <span>{step}</span>
-              </li>
-            ))}
-          </ol>
+        <div ref={dockVisibilityGuardRef} className="clara-wegweiser__dock-guard">
+        <div className="clara-wegweiser__input-block">
+          <label htmlFor={caseInput.textareaId} className="clara-wegweiser__textarea-label">
+            {du ? 'Deine Situation' : 'Ihre Situation'}
+          </label>
+          <textarea
+            id={caseInput.textareaId}
+            ref={caseInput.textareaRef}
+            value={caseInput.text}
+            onChange={(e) => caseInput.setText(e.target.value)}
+            rows={3}
+            placeholder={PLACEHOLDER}
+            className="clara-wegweiser__textarea"
+          />
+        </div>
 
-          <div className="clara-wegweiser__input-block">
-            <label htmlFor={caseInput.textareaId} className="clara-wegweiser__textarea-label">
-              {du ? 'Deine Situation' : 'Ihre Situation'}
-            </label>
-            <textarea
-              id={caseInput.textareaId}
-              ref={caseInput.textareaRef}
-              value={caseInput.text}
-              onChange={(e) => caseInput.setText(e.target.value)}
-              rows={5}
-              placeholder={PLACEHOLDER}
-              className="clara-wegweiser__textarea"
-              aria-describedby="clara-wegweiser-dock-hint"
-            />
-            <p id="clara-wegweiser-dock-hint" className="clara-wegweiser__dock-hint">
-              {du
-                ? 'Tipp: „Clara“ unten fokussiert dieses Feld. Mit dem Mikrofon kannst du sprechen — falls dein Browser das unterstützt.'
-                : 'Tipp: „Clara“ unten fokussiert dieses Feld. Mit dem Mikrofon können Sie sprechen — falls Ihr Browser das unterstützt.'}
-            </p>
+        <fieldset className="clara-wegweiser__mode-fieldset">
+          <legend className="clara-wegweiser__mode-legend sr-only">
+            {du ? 'Kontext wählen' : 'Kontext wählen'}
+          </legend>
+          <div className="clara-wegweiser__mode-segment" role="group" aria-label={du ? 'Kontext wählen' : 'Kontext wählen'}>
+            {MODE_OPTIONS.map((m) => {
+              const selected = caseInput.mode === m.id;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => caseInput.setMode(m.id)}
+                  className={
+                    'clara-wegweiser__mode-segment-btn' +
+                    (selected ? ' clara-wegweiser__mode-segment-btn--selected' : '')
+                  }
+                  aria-pressed={selected}
+                >
+                  {m.label}
+                </button>
+              );
+            })}
           </div>
+        </fieldset>
 
-          <fieldset className="clara-wegweiser__mode-fieldset">
-            <legend className="clara-wegweiser__mode-legend">
-              {du ? 'Kontext wählen' : 'Kontext wählen'}
-            </legend>
-            <div className="clara-wegweiser__mode-grid" role="group">
-              {MODE_OPTIONS.map((m) => {
-                const selected = caseInput.mode === m.id;
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => caseInput.setMode(m.id)}
-                    className={
-                      'clara-wegweiser__mode-card' +
-                      (selected ? ' clara-wegweiser__mode-card--selected' : '')
-                    }
-                    aria-pressed={selected}
-                  >
-                    <span className="clara-wegweiser__mode-card-title">{m.label}</span>
-                    <span className="clara-wegweiser__mode-card-hint">{m.hint}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
-
+        <div className="clara-wegweiser__submit-block">
           <div className="clara-wegweiser__cta-row">
             <button
               type="button"
               onClick={caseInput.handleAnalyze}
-              disabled={!caseInput.text.trim() || caseInput.analyzing}
-              className="clara-wegweiser__cta-primary btn-primary t-button"
+              disabled={!caseInput.canSubmit}
+              className={
+                'clara-wegweiser__cta-primary btn-primary t-button' +
+                (caseInput.canSubmit ? ' clara-wegweiser__cta-primary--ready' : '')
+              }
             >
               {caseInput.analyzing ? 'Erstelle Behördenfahrplan…' : 'Behördenfahrplan erstellen'}
             </button>
@@ -200,56 +201,46 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
               Beispielfall laden
             </button>
           </div>
+          <p
+            className="clara-wegweiser__submit-hint"
+            aria-live="polite"
+          >
+            {caseInput.canSubmit
+              ? du
+                ? 'Bereit — Clara erstellt deinen Behördenfahrplan aus deiner Situation.'
+                : 'Bereit — Clara erstellt Ihren Behördenfahrplan aus Ihrer Situation.'
+              : du
+                ? 'Beschreibe kurz deine Situation, dann erstellt Clara deinen Behördenfahrplan.'
+                : 'Beschreiben Sie kurz Ihre Situation, dann erstellt Clara Ihren Behördenfahrplan.'}
+          </p>
         </div>
-      </section>
 
-      {!caseInput.plan ? (
-        <section className="clara-wegweiser__examples" aria-labelledby="clara-examples-heading">
-          <h3 id="clara-examples-heading" className="clara-wegweiser__examples-title">
-            Beispielfälle
-          </h3>
-          <ul className="clara-wegweiser__examples-grid">
-            {caseInput.examples.map((ex) => {
-              const meta = EXAMPLE_CARD_META[ex.id];
-              return (
-                <li key={ex.id}>
+        {!caseInput.plan ? (
+          <section className="clara-wegweiser__examples" aria-labelledby="clara-examples-heading">
+            <h3 id="clara-examples-heading" className="clara-wegweiser__examples-title">
+              Beispielfälle
+            </h3>
+            <ul className="clara-wegweiser__example-rows">
+              {EXAMPLE_ROWS.map((row) => (
+                <li key={row.key}>
                   <button
                     type="button"
-                    onClick={() => caseInput.loadExample(ex.id, false)}
-                    className="clara-wegweiser__example-card"
+                    onClick={() => loadExampleRow(row)}
+                    className="clara-wegweiser__example-row"
                   >
-                    <span className="clara-wegweiser__example-card-top">
-                      <span className="clara-wegweiser__example-card-title">
-                        {meta?.title ?? ex.label}
-                      </span>
-                      <span
-                        className={
-                          'clara-wegweiser__example-tag' +
-                          (meta?.modeTag === 'Geschäftlich'
-                            ? ' clara-wegweiser__example-tag--business'
-                            : '')
-                        }
-                      >
-                        {meta?.modeTag ?? (ex.mode === 'business' ? 'Geschäftlich' : 'Privat')}
-                      </span>
-                    </span>
-                    <span className="clara-wegweiser__example-situation">
-                      {meta?.situation ?? ex.label}
-                    </span>
-                    <span className="clara-wegweiser__example-action">
-                      In Situation übernehmen
-                      <ChevronRight className="h-3.5 w-3.5" aria-hidden />
-                    </span>
+                    <span>{row.title}</span>
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
                   </button>
                 </li>
-              );
-            })}
-          </ul>
-        </section>
-      ) : null}
+              ))}
+            </ul>
+          </section>
+        ) : null}
+        </div>
+      </div>
 
       {caseInput.plan ? (
-        <div className="clara-wegweiser__result">
+        <div ref={resultRef} className="clara-wegweiser__result">
           <div className="clara-wegweiser__result-header">
             <h3 className="clara-wegweiser__result-title">
               {du ? 'Dein Behördenfahrplan' : 'Ihr Behördenfahrplan'}

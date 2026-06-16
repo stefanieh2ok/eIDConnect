@@ -99,6 +99,7 @@ export default function ClaraDock({
   const { state } = useApp();
   const caseInputBridge = useClaraCaseInputBridge();
   const wegweiserDockMode = state.isLoggedIn && state.activeSection === 'fuermich' && caseInputBridge.isActive;
+  const hideWegweiserFloatingDock = wegweiserDockMode && !caseInputBridge.showFloatingDock;
   const { speak: speakVoice } = useClaraVoiceContext();
   const [chatOpen, setChatOpen] = useState(false);
   const [sheetSize, setSheetSize] = useState<ClaraSheetSize>('half');
@@ -311,9 +312,9 @@ export default function ClaraDock({
     [contextChipLabel],
   );
 
-  /** Kompakte Pille — HookAI Civic Navy/Mint, kein Lavender. */
+  /** Kompakte Pille — Clara Lavendel-Identität (premium, erkennbar). */
   const pillToolbar = (
-    <div className="clara-dock-pill clara-dock-pill--civic" role="toolbar" aria-label="Clara – KI-Assistentin (neutral, keine Wahlempfehlung)">
+    <div className="clara-dock-pill clara-dock-pill--lavender" role="toolbar" aria-label="Clara – KI-Assistentin (neutral, keine Wahlempfehlung)">
       <button
         type="button"
         onClick={() => {
@@ -401,7 +402,7 @@ export default function ClaraDock({
       </div>
     ) : null;
 
-  const pillFloating = !showCompactMicOnly ? (
+  const pillFloating = !showCompactMicOnly && !hideWegweiserFloatingDock ? (
       <div
         className={`pointer-events-none absolute inset-x-0 flex flex-col items-center gap-1 ${toolbarZClassName}`}
         style={{

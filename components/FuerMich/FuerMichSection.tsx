@@ -76,7 +76,7 @@ export default function FuerMichSection() {
   };
 
   return (
-    <div className="wegweiser-shell">
+    <div className="wegweiser-shell civic-module-shell">
       <ClaraWegweiser
         du={du}
         plz={profile.plz}

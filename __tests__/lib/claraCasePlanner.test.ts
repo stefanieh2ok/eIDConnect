@@ -20,6 +20,7 @@ describe('claraCasePlanner', () => {
     expect(plan.services.length).toBeGreaterThan(0);
     expect(plan.sequenceSteps.length).toBeGreaterThanOrEqual(4);
     expect(plan.isDemoData).toBe(true);
+    expect(plan.sourceNotice).toMatch(/Offizielle Datenquelle/);
     expect(plan.followUpQuestions.length).toBeLessThanOrEqual(3);
   });
 
@@ -76,6 +77,23 @@ describe('claraCasePlanner', () => {
     expect(CLARA_CASE_DISCLAIMER).toContain('Clara unterstützt bei Orientierung und Vorbereitung');
     expect(CLARA_DEMO_DATA_NOTICE).toContain('Demo-Daten');
     expect(plan.followUpQuestions.length).toBeLessThanOrEqual(3);
+  });
+
+  it('supports live resolution metadata without demo notice', () => {
+    const services = matchGovServices({ text: 'Wohngeld und Ummeldung', mode: 'private' });
+    const plan = planCivicCase(
+      { text: 'Wohngeld und Ummeldung', mode: 'private' },
+      true,
+      {
+        services,
+        isDemoData: false,
+        sourceNotice: null,
+        mode: 'pvog_search',
+      },
+    );
+    expect(plan.isDemoData).toBe(false);
+    expect(plan.sourceNotice).toBeNull();
+    expect(plan.sourceMode).toBe('pvog_search');
   });
 
   it('exposes four example cases', () => {

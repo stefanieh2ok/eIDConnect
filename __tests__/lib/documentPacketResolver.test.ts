@@ -44,6 +44,13 @@ describe('resolveDocumentPacket', () => {
     expect(handover?.action).toBe('scroll_handover');
   });
 
+  it('does not expose legacy Demo-Link wording in card descriptions', () => {
+    const cards = resolveDocumentPacket(basePlan);
+    const joined = cards.map((c) => c.description).join(' ');
+    expect(joined).not.toMatch(/Demo-Link/i);
+    expect(joined).toMatch(/Quellenverifizierung/i);
+  });
+
   it('marks prep notes as coming soon', () => {
     const cards = resolveDocumentPacket(basePlan);
     const notes = cards.find((c) => c.id === 'prep-notes');

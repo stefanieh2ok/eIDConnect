@@ -999,7 +999,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
           };
           const canParticipate = status === 'offen';
           return (
-            <div key={wahl.id} className={`${sectionCardClass} mb-4 sm:p-5`}>
+            <div key={wahl.id} className={`${sectionCardClass} mb-4`}>
               <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <h3 className="t-body-lg font-semibold leading-tight break-normal hyphens-none" style={{ color: 'var(--gov-heading)' }}>
