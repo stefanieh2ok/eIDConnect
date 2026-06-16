@@ -7,6 +7,7 @@ import {
   handoverLinkLabel,
   resolveExternalLinkStatus,
 } from '@/lib/govdata/externalLinkGate';
+import { DEMO_SERVICE_SOURCE_LABEL } from '@/lib/govdata/sourceStatus';
 import type { GovService, GovServiceSourceSystem, OfficialHandoverLink } from '@/lib/govdata/serviceTypes';
 
 export function sourceSystemLabel(source: GovServiceSourceSystem): string {
@@ -16,7 +17,7 @@ export function sourceSystemLabel(source: GovServiceSourceSystem): string {
     case 'Bundesportal':
       return 'Bundesportal';
     case 'ManualDemo':
-      return 'Demo-Daten (ManualDemo)';
+      return DEMO_SERVICE_SOURCE_LABEL;
     case 'Unknown':
     default:
       return 'Quelle unbekannt';

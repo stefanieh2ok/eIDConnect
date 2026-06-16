@@ -12,6 +12,7 @@ import type {
   DocumentReadinessItem,
 } from '@/lib/govdata/serviceTypes';
 import { CLARA_CASE_DISCLAIMER } from '@/lib/claraCaseGuidance';
+import { SOURCE_NOTICE_DEMO, type GovDataResolution } from '@/lib/govdata/sourceStatus';
 
 export type CasePlannerInput = {
   text: string;
@@ -139,14 +140,20 @@ function buildRisks(input: CasePlannerInput, mode: CasePlannerInput['mode']): Ca
   return risks.slice(0, 5);
 }
 
-export function planCivicCase(input: CasePlannerInput, du = true): CivicCasePlanResult {
-  const services = matchGovServices({
-    text: input.text,
-    mode: input.mode,
-    plz: input.plz,
-    bundesland: input.bundesland,
-    wohnort: input.wohnort,
-  });
+export function planCivicCase(
+  input: CasePlannerInput,
+  du = true,
+  resolution?: Pick<GovDataResolution, 'services' | 'isDemoData' | 'sourceNotice' | 'mode'>,
+): CivicCasePlanResult {
+  const services =
+    resolution?.services ??
+    matchGovServices({
+      text: input.text,
+      mode: input.mode,
+      plz: input.plz,
+      bundesland: input.bundesland,
+      wohnort: input.wohnort,
+    });
 
   const topics = detectTopics(input.text, services);
   const hasRegion = Boolean(input.wohnort || input.plz || input.bundesland);
@@ -167,7 +174,9 @@ export function planCivicCase(input: CasePlannerInput, du = true): CivicCasePlan
     risks: buildRisks(input, input.mode),
     handoverLinks,
     mode: input.mode,
-    isDemoData: true,
+    isDemoData: resolution?.isDemoData ?? true,
+    sourceNotice: resolution ? (resolution.sourceNotice ?? null) : SOURCE_NOTICE_DEMO,
+    sourceMode: resolution?.mode ?? 'demo',
   };
 }
 

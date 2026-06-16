@@ -5,16 +5,15 @@ import type { GovService } from '@/lib/govdata/serviceTypes';
 import {
   confidenceLabel,
   EXTERNAL_HANDOVER_NOTICE,
-  isDemoSource,
   sourceSystemLabel,
 } from '@/lib/govdata/officialSourceFormatter';
 import {
-  DEMO_LINK_LABEL,
-  EXTERNAL_HANDOVER_MICROCOPY,
+  DEMO_SOURCE_PENDING_LABEL,
   externalLinkBadgeLabel,
   externalLinkButtonLabel,
   isVerifiedOfficialLink,
   resolveExternalLinkStatus,
+  shouldRenderExternalLink,
 } from '@/lib/govdata/externalLinkGate';
 import { ExternalLink } from 'lucide-react';
 
@@ -25,10 +24,10 @@ type Props = {
 
 export function OfficialServiceCard({ service, du = true }: Props) {
   const relevance = confidenceLabel(service.confidence);
-  const isDemo = isDemoSource(service.sourceSystem);
   const linkStatus = resolveExternalLinkStatus(service);
   const linkBadge = externalLinkBadgeLabel(linkStatus);
   const verified = isVerifiedOfficialLink(linkStatus);
+  const primaryUrl = service.onlineServiceUrl || service.officialSourceUrl || service.formUrl;
 
   return (
     <article className="civic-service-card">
@@ -67,43 +66,38 @@ export function OfficialServiceCard({ service, du = true }: Props) {
         <span
           className={
             'civic-service-card__badge' +
-            (isDemo || !verified ? ' civic-service-card__badge--demo' : ' civic-service-card__badge--source')
+            (verified ? ' civic-service-card__badge--source' : ' civic-service-card__badge--muted')
           }
         >
           {sourceSystemLabel(service.sourceSystem)}
         </span>
-        <span
-          className={
-            'civic-service-card__badge' +
-            (verified ? ' civic-service-card__badge--source' : ' civic-service-card__badge--demo')
-          }
-        >
-          {linkBadge}
-        </span>
+        {verified ? (
+          <span className="civic-service-card__badge civic-service-card__badge--source">{linkBadge}</span>
+        ) : null}
       </div>
 
-      <p className="civic-service-card__handover-note">
-        {EXTERNAL_HANDOVER_MICROCOPY} {EXTERNAL_HANDOVER_NOTICE}
-      </p>
-
-      {service.officialSourceUrl ? (
+      {verified && primaryUrl && shouldRenderExternalLink(linkStatus) ? (
         <a
-          href={service.officialSourceUrl}
+          href={primaryUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className={
-            'civic-service-card__link' + (verified ? '' : ' civic-service-card__link--demo')
-          }
+          className="civic-service-card__link"
         >
           <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-          {externalLinkButtonLabel(linkStatus, du, 'source')}
+          {externalLinkButtonLabel(linkStatus, du, service.onlineServiceUrl ? 'online' : 'source')}
         </a>
+      ) : !verified ? (
+        <p className="civic-service-card__pending-link">
+          <span className="civic-service-card__pending-link-label">{DEMO_SOURCE_PENDING_LABEL}</span>
+          <span className="civic-service-card__pending-link-source">{linkBadge}</span>
+        </p>
       ) : (
         <p className="civic-service-card__no-link">
           Kein verifizierter Link — bitte bei der zuständigen Stelle final prüfen.
-          {!verified ? ` ${DEMO_LINK_LABEL}` : ''}
         </p>
       )}
+
+      <p className="civic-service-card__handover-note">{EXTERNAL_HANDOVER_NOTICE}</p>
     </article>
   );
 }

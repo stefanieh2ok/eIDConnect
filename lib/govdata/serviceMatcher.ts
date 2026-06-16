@@ -48,6 +48,11 @@ export function matchGovServices(input: MatchInput, limit = 8): GovService[] {
   return scored.slice(0, limit).map((x) => x.service);
 }
 
+/** Deterministic ManualDemo pool for case planning fallbacks. */
+export function planCivicCaseServicesFromPool(input: MatchInput, limit = 8): GovService[] {
+  return matchGovServices(input, limit);
+}
+
 export const TOPIC_CATEGORIES = [
   'Wohnen',
   'Familie',

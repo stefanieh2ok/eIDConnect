@@ -72,6 +72,8 @@ export type CivicCasePlanResult = {
   handoverLinks: OfficialHandoverLink[];
   mode: 'private' | 'business' | 'unsure';
   isDemoData: boolean;
+  sourceNotice?: string | null;
+  sourceMode?: 'demo' | 'pvog_search' | 'pvog_bereitstelldienst';
 };
 
 export {

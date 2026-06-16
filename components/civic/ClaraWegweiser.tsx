@@ -170,22 +170,39 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
           </div>
         </fieldset>
 
-        <div className="clara-wegweiser__cta-row">
-          <button
-            type="button"
-            onClick={caseInput.handleAnalyze}
-            disabled={!caseInput.text.trim() || caseInput.analyzing}
-            className="clara-wegweiser__cta-primary btn-primary t-button"
+        <div className="clara-wegweiser__submit-block">
+          <div className="clara-wegweiser__cta-row">
+            <button
+              type="button"
+              onClick={caseInput.handleAnalyze}
+              disabled={!caseInput.canSubmit}
+              className={
+                'clara-wegweiser__cta-primary btn-primary t-button' +
+                (caseInput.canSubmit ? ' clara-wegweiser__cta-primary--ready' : '')
+              }
+            >
+              {caseInput.analyzing ? 'Erstelle Behördenfahrplan…' : 'Behördenfahrplan erstellen'}
+            </button>
+            <button
+              type="button"
+              onClick={() => caseInput.loadExample('move-kids', false)}
+              className="clara-wegweiser__cta-secondary btn-ghost t-button"
+            >
+              Beispielfall laden
+            </button>
+          </div>
+          <p
+            className="clara-wegweiser__submit-hint"
+            aria-live="polite"
           >
-            {caseInput.analyzing ? 'Erstelle Behördenfahrplan…' : 'Behördenfahrplan erstellen'}
-          </button>
-          <button
-            type="button"
-            onClick={() => caseInput.loadExample('move-kids', false)}
-            className="clara-wegweiser__cta-secondary btn-ghost t-button"
-          >
-            Beispielfall laden
-          </button>
+            {caseInput.canSubmit
+              ? du
+                ? 'Bereit — Clara erstellt deinen Behördenfahrplan aus deiner Situation.'
+                : 'Bereit — Clara erstellt Ihren Behördenfahrplan aus Ihrer Situation.'
+              : du
+                ? 'Beschreibe kurz deine Situation, dann erstellt Clara deinen Behördenfahrplan.'
+                : 'Beschreiben Sie kurz Ihre Situation, dann erstellt Clara Ihren Behördenfahrplan.'}
+          </p>
         </div>
 
         {!caseInput.plan ? (

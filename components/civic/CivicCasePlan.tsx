@@ -5,10 +5,8 @@ import { Info, ExternalLink } from 'lucide-react';
 import type { CivicCasePlanResult } from '@/lib/govdata/serviceTypes';
 import {
   CLARA_CASE_DISCLAIMER,
-  CLARA_DEMO_DATA_NOTICE,
   CLARA_OFFICIAL_SOURCE_NOTICE,
 } from '@/lib/claraCaseGuidance';
-import { DemoDataBanner } from '@/components/civic/DemoDataBanner';
 import { AuthoritiesOverview } from '@/components/civic/AuthoritiesOverview';
 import { OfficialServiceCard } from '@/components/civic/OfficialServiceCard';
 import { RequiredDocumentsChecklist } from '@/components/civic/RequiredDocumentsChecklist';
@@ -21,11 +19,11 @@ import {
 } from '@/lib/documents/documentPacketResolver';
 import { downloadCasePlanTextExport } from '@/lib/documents/casePlanTextExport';
 import {
-  DEMO_LINK_LABEL,
   EXTERNAL_HANDOVER_MICROCOPY,
   EXTERNAL_HANDOVER_NOTICE,
   externalLinkButtonLabel,
   isVerifiedOfficialLink,
+  shouldRenderExternalLink,
 } from '@/lib/govdata/externalLinkGate';
 
 type Props = {
@@ -100,7 +98,12 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
       role="region"
       aria-label={du ? 'Behördenfahrplan' : 'Behördenfahrplan'}
     >
-      {plan.isDemoData ? <DemoDataBanner className="civic-case-plan__demo-banner" /> : null}
+      {plan.sourceNotice ? (
+        <aside className="civic-source-notice" role="note">
+          <Info className="civic-source-notice__icon" aria-hidden />
+          <p>{plan.sourceNotice}</p>
+        </aside>
+      ) : null}
 
       <section className="civic-case-plan__section civic-case-plan__section--summary" aria-labelledby="plan-summary">
         <SectionHead
@@ -113,14 +116,11 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
           }
         />
         <p className="civic-case-plan__summary-text">{plan.situationSummary}</p>
-        {plan.isDemoData ? (
-          <p className="civic-case-plan__demo-inline">{CLARA_DEMO_DATA_NOTICE}</p>
-        ) : null}
       </section>
 
       {plan.topics.length > 0 ? (
         <section className="civic-case-plan__section" aria-labelledby="plan-topics">
-          <SectionHead id="plan-topics" title="Betroffene Themen" />
+          <SectionHead id="plan-topics" title="Beteiligte Stellen" lead="Betroffene Themen und Bereiche." />
           <div className="civic-case-plan__topic-pills">
             {plan.topics.map((t) => (
               <span key={t} className="civic-case-plan__topic-pill">
@@ -175,7 +175,7 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
       />
 
       <section className="civic-case-plan__section" aria-labelledby="plan-sequence">
-        <SectionHead id="plan-sequence" title="Sinnvolle Reihenfolge" />
+        <SectionHead id="plan-sequence" title="Nächste Schritte" lead="Sinnvolle Reihenfolge für die Vorbereitung." />
         <CaseTimeline steps={plan.sequenceSteps} />
       </section>
 
@@ -197,28 +197,22 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
           <p className="civic-case-plan__handover-micro">{EXTERNAL_HANDOVER_MICROCOPY}</p>
           <ul className="civic-case-plan__handover-list">
             {plan.handoverLinks.map((link) => {
-              const verified = link.linkStatus ? isVerifiedOfficialLink(link.linkStatus) : false;
-              const buttonLabel = link.linkStatus
-                ? externalLinkButtonLabel(link.linkStatus, du, 'handover')
-                : 'Offizielle Stelle öffnen';
+              const status = link.linkStatus ?? 'missing';
+              const verified = isVerifiedOfficialLink(status);
+              const showLink = Boolean(link.url) && shouldRenderExternalLink(status);
+              const buttonLabel = externalLinkButtonLabel(status, du, 'handover');
               return (
                 <li key={link.id}>
-                  {link.url ? (
+                  {showLink && link.url ? (
                     <a
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={
-                        'civic-case-plan__handover-link' +
-                        (verified ? '' : ' civic-case-plan__handover-link--demo')
-                      }
+                      className="civic-case-plan__handover-link"
                     >
                       <span className="min-w-0 flex-1">
                         <span className="civic-case-plan__handover-title">{link.title}</span>
                         <span className="civic-case-plan__handover-label">{link.label}</span>
-                        {!verified ? (
-                          <span className="civic-case-plan__handover-demo">{DEMO_LINK_LABEL}</span>
-                        ) : null}
                         <span className="civic-case-plan__handover-action">{buttonLabel}</span>
                       </span>
                       <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
@@ -227,6 +221,9 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
                     <div className="civic-case-plan__handover-static">
                       <span className="civic-case-plan__handover-title">{link.title}</span>
                       <span className="civic-case-plan__handover-label">{link.label}</span>
+                      {!verified ? (
+                        <span className="civic-case-plan__handover-pending">{buttonLabel}</span>
+                      ) : null}
                     </div>
                   )}
                 </li>
@@ -245,11 +242,14 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
           <Info className="h-4 w-4 shrink-0 text-[#0055A4]" aria-hidden />
           <p>{CLARA_CASE_DISCLAIMER}</p>
         </div>
+        <p className="civic-case-plan__no-submission">
+          Die Antragstellung erfolgt immer über die zuständige offizielle Stelle.
+        </p>
       </section>
 
       <div className="civic-case-plan__export-wrap">
         <button type="button" onClick={handleExport} className="civic-case-plan__export-btn">
-          {du ? 'Vorbereitung herunterladen (Demo-Text)' : 'Vorbereitung herunterladen (Demo-Text)'}
+          {du ? 'Vorbereitung herunterladen (Text)' : 'Vorbereitung herunterladen (Text)'}
         </button>
         <p className="civic-case-plan__export-note">
           {du

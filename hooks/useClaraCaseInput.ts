@@ -100,11 +100,37 @@ export function useClaraCaseInput({
   }, []);
 
   const runAnalysis = useCallback(
-    (inputText: string, inputMode: ClaraWegweiserMode) => {
+    async (inputText: string, inputMode: ClaraWegweiserMode) => {
       const trimmed = inputText.trim();
       if (!trimmed) return;
       setAnalyzing(true);
-      requestAnimationFrame(() => {
+      try {
+        const response = await fetch('/api/govdata/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: trimmed,
+            mode: inputMode,
+            plz,
+            bundesland,
+            wohnort,
+          }),
+        });
+        const resolution = response.ok ? await response.json() : null;
+        const result = planCivicCase(
+          {
+            text: trimmed,
+            mode: inputMode,
+            plz,
+            bundesland,
+            wohnort,
+          },
+          du,
+          resolution ?? undefined,
+        );
+        setPlan(result);
+        onPlanReady?.(result);
+      } catch {
         const result = planCivicCase(
           {
             text: trimmed,
@@ -116,9 +142,10 @@ export function useClaraCaseInput({
           du,
         );
         setPlan(result);
-        setAnalyzing(false);
         onPlanReady?.(result);
-      });
+      } finally {
+        setAnalyzing(false);
+      }
     },
     [plz, bundesland, wohnort, du, onPlanReady],
   );
