@@ -179,7 +179,7 @@ const LiveSection: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="civic-module-shell flex flex-col gap-2">
       <div className="flex items-start justify-between">
         <div className="t-meta mt-0.5">
           {selectionLabelForSection('live', state.activeLocation)}

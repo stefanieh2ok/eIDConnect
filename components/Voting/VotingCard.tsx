@@ -129,7 +129,7 @@ const VotingCard: React.FC<VotingCardProps> = memo(
         {/* ── Pro / Contra: einklappbar ── */}
         {!introHideProCon ? (
         <div
-          className={`mx-4 items-start ${
+          className={`items-start ${
             introProConExpanded
               ? 'mb-2 grid min-w-0 grid-cols-2 gap-1'
               : introCompact
