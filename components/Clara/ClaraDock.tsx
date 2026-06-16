@@ -311,9 +311,9 @@ export default function ClaraDock({
     [contextChipLabel],
   );
 
-  /** Kompakte Pille — HookAI Civic Navy/Mint, kein Lavender. */
+  /** Kompakte Pille — Clara Lavendel-Identität (premium, erkennbar). */
   const pillToolbar = (
-    <div className="clara-dock-pill clara-dock-pill--civic" role="toolbar" aria-label="Clara – KI-Assistentin (neutral, keine Wahlempfehlung)">
+    <div className="clara-dock-pill clara-dock-pill--lavender" role="toolbar" aria-label="Clara – KI-Assistentin (neutral, keine Wahlempfehlung)">
       <button
         type="button"
         onClick={() => {
