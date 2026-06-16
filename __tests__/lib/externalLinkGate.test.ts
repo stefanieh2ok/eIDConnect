@@ -56,6 +56,20 @@ describe('externalLinkGate', () => {
     expect(externalLinkButtonLabel(status)).toBe('Offizielle Informationen öffnen');
   });
 
+  it('labels VerifiedCatalog as verified_official_manual', () => {
+    const catalogLike = {
+      sourceSystem: 'VerifiedCatalog' as const,
+      officialSourceUrl: 'https://www.arbeitsagentur.de/familie-und-kinder/kindergeld',
+      sourceVerifiedAt: '2026-06-01',
+      sourceLabel: 'Manuell verifizierte offizielle Quelle',
+    };
+    const status = resolveExternalLinkStatus(catalogLike);
+    expect(status).toBe('verified_official_manual');
+    expect(externalLinkBadgeLabel(status)).toBe('Manuell verifizierte offizielle Quelle');
+    expect(shouldRenderExternalLink(status)).toBe(true);
+    expect(externalLinkButtonLabel(status)).toBe('Offizielle Informationen öffnen');
+  });
+
   it('keeps official handover copy external-only', () => {
     expect(EXTERNAL_HANDOVER_NOTICE).toContain('extern');
     expect(EXTERNAL_HANDOVER_NOTICE).toMatch(/reicht nichts ein/i);

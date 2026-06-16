@@ -22,7 +22,7 @@ import {
   EXTERNAL_HANDOVER_MICROCOPY,
   EXTERNAL_HANDOVER_NOTICE,
   externalLinkButtonLabel,
-  isVerifiedOfficialLink,
+  isRenderableOfficialLink,
   shouldRenderExternalLink,
 } from '@/lib/govdata/externalLinkGate';
 
@@ -198,7 +198,7 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
           <ul className="civic-case-plan__handover-list">
             {plan.handoverLinks.map((link) => {
               const status = link.linkStatus ?? 'missing';
-              const verified = isVerifiedOfficialLink(status);
+              const verified = isRenderableOfficialLink(status);
               const showLink = Boolean(link.url) && shouldRenderExternalLink(status);
               const buttonLabel = externalLinkButtonLabel(status, du, 'handover');
               return (

@@ -33,6 +33,9 @@ const CASES = [
 function inferLinkStatus(service, resolution) {
   const hasUrl = Boolean(service.officialSourceUrl || service.onlineServiceUrl || service.formUrl);
   if (!hasUrl) return 'missing';
+  if (service.sourceSystem === 'VerifiedCatalog' && service.sourceVerifiedAt) {
+    return 'verified_official_manual';
+  }
   if (service.sourceSystem === 'ManualDemo' || service.sourceSystem === 'Unknown') {
     return 'demo_unverified';
   }
@@ -48,19 +51,20 @@ function inferLinkStatus(service, resolution) {
 function collectViolations(resolution, label) {
   const violations = [];
   const linkStatuses = resolution.services.map((service) => inferLinkStatus(service, resolution));
-  const verifiedCount = linkStatuses.filter((status) => status === 'verified_official').length;
-  const fallbackUsed = resolution.isDemoData && resolution.sourceNotice != null;
+  const verifiedPvogCount = linkStatuses.filter((status) => status === 'verified_official').length;
+  const verifiedManualCount = linkStatuses.filter((status) => status === 'verified_official_manual').length;
+  const fallbackUsed = Boolean(resolution.fallbackUsed ?? (resolution.isDemoData && resolution.sourceNotice != null));
 
   if (resolution.status === 'live' && resolution.isDemoData) {
     violations.push(`${label}: status=live but isDemoData=true`);
   }
 
-  if (resolution.status === 'live' && !resolution.isDemoData && verifiedCount === 0) {
-    violations.push(`${label}: claims live but no verified official services`);
+  if (resolution.status === 'live' && !resolution.isDemoData && verifiedPvogCount === 0) {
+    violations.push(`${label}: claims live but no verified PVOG services`);
   }
 
-  if (resolution.status === 'demo' && verifiedCount > 0) {
-    violations.push(`${label}: demo mode produced verified_official links`);
+  if (resolution.status === 'demo' && (verifiedPvogCount > 0 || verifiedManualCount > 0)) {
+    violations.push(`${label}: demo mode produced verified links`);
   }
 
   if (resolution.status === 'credentials_required' && resolution.isDemoData === false) {
@@ -75,19 +79,27 @@ function collectViolations(resolution, label) {
     violations.push(`${label}: credentials_required without clear source notice`);
   }
 
-  if (fallbackUsed && verifiedCount > 0) {
-    violations.push(`${label}: fallback used but verified official links present`);
+  if (fallbackUsed && resolution.mode === 'demo' && verifiedManualCount > 0) {
+    violations.push(`${label}: demo fallback used but manual verified links present`);
+  }
+
+  if (
+    resolution.sourceNotice &&
+    /PVOG live|XZuFi live|amtlich angebunden/i.test(resolution.sourceNotice) &&
+    resolution.status !== 'live'
+  ) {
+    violations.push(`${label}: source notice falsely claims live integration`);
   }
 
   for (const service of resolution.services) {
     const status = inferLinkStatus(service, resolution);
     const url = service.officialSourceUrl || service.onlineServiceUrl || service.formUrl;
     if (url && status === 'verified_official' && resolution.status !== 'live') {
-      violations.push(`${label}: official URL shown as verified without live resolution`);
+      violations.push(`${label}: PVOG URL shown as verified without live resolution`);
     }
   }
 
-  return { violations, linkStatuses, verifiedCount, fallbackUsed };
+  return { violations, linkStatuses, verifiedPvogCount, verifiedManualCount, fallbackUsed };
 }
 
 async function fetchJson(path, init) {
@@ -122,10 +134,8 @@ async function main() {
       body: JSON.stringify({ text: testCase.text, mode: testCase.mode }),
     });
 
-    const { violations, linkStatuses, verifiedCount, fallbackUsed } = collectViolations(
-      resolution,
-      testCase.label,
-    );
+    const { violations, linkStatuses, verifiedPvogCount, verifiedManualCount, fallbackUsed } =
+      collectViolations(resolution, testCase.label);
     allViolations.push(...violations);
 
     console.log(`=== ${testCase.label} ===`);
@@ -137,7 +147,8 @@ async function main() {
       `source systems: ${[...new Set(resolution.services.map((s) => s.sourceSystem))].join(', ') || '(none)'}`,
     );
     console.log(`link statuses: ${linkStatuses.join(', ') || '(none)'}`);
-    console.log(`verified official link count: ${verifiedCount}`);
+    console.log(`verified PVOG link count: ${verifiedPvogCount}`);
+    console.log(`verified manual link count: ${verifiedManualCount}`);
     console.log(`source notice: ${resolution.sourceNotice ?? '(none — live official data)'}`);
     console.log(`fallback used: ${fallbackUsed ? 'yes' : 'no'}`);
     if (violations.length) {

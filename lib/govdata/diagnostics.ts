@@ -11,6 +11,7 @@ import type { GovService } from '@/lib/govdata/serviceTypes';
 import {
   hasPvogClientCredentials,
   readGovDataSourceMode,
+  type GovDataResolutionStatus,
   type GovDataSourceMode,
 } from '@/lib/govdata/sourceStatus';
 
@@ -26,6 +27,11 @@ export type GovDataLastProbe = {
   httpStatus: number | null;
   serviceCount: number;
   verifiedOfficialCount: number;
+  verifiedManualCount: number;
+  verifiedPvogCount: number;
+  fallbackUsed: boolean;
+  sourceStatus: GovDataResolutionStatus;
+  sourceNotice: string | null;
   sampleTitles: string[];
   sampleOfficialUrls: string[];
 };
@@ -49,8 +55,23 @@ export function isGovDataDiagnosticsEnabled(): boolean {
   );
 }
 
-function countVerifiedOfficial(services: GovService[]): number {
-  return services.filter((service) => resolveExternalLinkStatus(service) === 'verified_official').length;
+function countLinkStatuses(services: GovService[]) {
+  let verifiedOfficialCount = 0;
+  let verifiedManualCount = 0;
+  let verifiedPvogCount = 0;
+
+  for (const service of services) {
+    const status = resolveExternalLinkStatus(service);
+    if (status === 'verified_official') {
+      verifiedOfficialCount += 1;
+      if (service.sourceSystem === 'PVOG') verifiedPvogCount += 1;
+    }
+    if (status === 'verified_official_manual') {
+      verifiedManualCount += 1;
+    }
+  }
+
+  return { verifiedOfficialCount, verifiedManualCount, verifiedPvogCount };
 }
 
 function sampleFromServices(
@@ -93,6 +114,12 @@ function mapResolutionProbeStatus(
     return resolution.status === 'demo' ? 'ok' : 'error';
   }
 
+  if (mode === 'verified_catalog') {
+    return resolution.status === 'verified_catalog' || resolution.status === 'verified_catalog_no_match'
+      ? 'ok'
+      : 'error';
+  }
+
   if (resolution.status === 'credentials_required') {
     return 'credentials_required';
   }
@@ -132,6 +159,7 @@ export async function buildGovDataDiagnostics(): Promise<GovDataDiagnostics> {
   }
 
   const samples = sampleFromServices(resolution.services);
+  const counts = countLinkStatuses(resolution.services);
 
   return {
     sourceMode,
@@ -144,7 +172,10 @@ export async function buildGovDataDiagnostics(): Promise<GovDataDiagnostics> {
       status: mapResolutionProbeStatus(sourceMode, resolution, httpStatus, httpProbeStatus),
       httpStatus,
       serviceCount: resolution.services.length,
-      verifiedOfficialCount: countVerifiedOfficial(resolution.services),
+      sourceStatus: resolution.status,
+      sourceNotice: resolution.sourceNotice,
+      fallbackUsed: Boolean(resolution.fallbackUsed),
+      ...counts,
       ...samples,
     },
   };

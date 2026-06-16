@@ -16,6 +16,8 @@ export function sourceSystemLabel(source: GovServiceSourceSystem): string {
       return 'PVOG / Portalverbund';
     case 'Bundesportal':
       return 'Bundesportal';
+    case 'VerifiedCatalog':
+      return 'Kuratiert aus offiziellen Quellen';
     case 'ManualDemo':
       return DEMO_SERVICE_SOURCE_LABEL;
     case 'Unknown':
@@ -26,6 +28,10 @@ export function sourceSystemLabel(source: GovServiceSourceSystem): string {
 
 export function isDemoSource(source: GovServiceSourceSystem): boolean {
   return source === 'ManualDemo' || source === 'Unknown';
+}
+
+export function isVerifiedCatalogSource(source: GovServiceSourceSystem): boolean {
+  return source === 'VerifiedCatalog';
 }
 
 export function confidenceLabel(confidence: GovService['confidence']): string {

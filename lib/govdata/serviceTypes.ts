@@ -3,7 +3,12 @@
  * PVOG/XZuFi live feeds map into this shape via serviceNormalizer.
  */
 
-export type GovServiceSourceSystem = 'PVOG' | 'Bundesportal' | 'ManualDemo' | 'Unknown';
+export type GovServiceSourceSystem =
+  | 'PVOG'
+  | 'Bundesportal'
+  | 'ManualDemo'
+  | 'VerifiedCatalog'
+  | 'Unknown';
 
 export type GovServiceConfidence = 'high' | 'medium' | 'low';
 
@@ -31,6 +36,10 @@ export type GovService = {
   sourceSystem: GovServiceSourceSystem;
   lastUpdated?: string;
   confidence?: GovServiceConfidence;
+  /** Manually verified catalogue metadata */
+  sourceLabel?: string;
+  sourceVerifiedAt?: string;
+  sourceOwner?: string;
   /** Keyword hints for deterministic matcher */
   matchKeywords?: string[];
 };
@@ -73,7 +82,7 @@ export type CivicCasePlanResult = {
   mode: 'private' | 'business' | 'unsure';
   isDemoData: boolean;
   sourceNotice?: string | null;
-  sourceMode?: 'demo' | 'pvog_search' | 'pvog_bereitstelldienst';
+  sourceMode?: 'demo' | 'verified_catalog' | 'pvog_search' | 'pvog_bereitstelldienst';
 };
 
 export {

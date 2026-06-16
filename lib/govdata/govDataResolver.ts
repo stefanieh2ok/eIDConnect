@@ -10,6 +10,8 @@ import {
   SOURCE_NOTICE_PVOG_BEREITSTELL_UNAVAILABLE,
   SOURCE_NOTICE_PVOG_CREDENTIALS_MISSING,
   SOURCE_NOTICE_PVOG_SEARCH_UNAVAILABLE,
+  SOURCE_NOTICE_VERIFIED_CATALOG,
+  SOURCE_NOTICE_VERIFIED_CATALOG_NO_MATCH,
   type GovDataResolution,
 } from '@/lib/govdata/sourceStatus';
 import {
@@ -18,6 +20,7 @@ import {
   markPvogLiveVerified,
   resetPvogLiveVerified,
 } from '@/lib/govdata/pvogClient';
+import { matchVerifiedCatalogServices } from '@/lib/govdata/verifiedOfficialSources';
 
 function demoResolution(input: MatchInput, notice: string | null = SOURCE_NOTICE_DEMO): GovDataResolution {
   return {
@@ -26,6 +29,7 @@ function demoResolution(input: MatchInput, notice: string | null = SOURCE_NOTICE
     services: planCivicCaseServicesFromPool(input),
     isDemoData: true,
     sourceNotice: notice,
+    fallbackUsed: true,
   };
 }
 
@@ -43,6 +47,30 @@ export async function resolveGovDataForCase(input: MatchInput): Promise<GovDataR
     return demoResolution(input);
   }
 
+  if (mode === 'verified_catalog') {
+    resetPvogLiveVerified();
+    const services = matchVerifiedCatalogServices(input);
+    if (services.length === 0) {
+      return {
+        mode: 'verified_catalog',
+        status: 'verified_catalog_no_match',
+        services: [],
+        isDemoData: false,
+        sourceNotice: SOURCE_NOTICE_VERIFIED_CATALOG_NO_MATCH,
+        message: 'Keine passende kuratierte Quelle gefunden.',
+        fallbackUsed: true,
+      };
+    }
+    return {
+      mode: 'verified_catalog',
+      status: 'verified_catalog',
+      services,
+      isDemoData: false,
+      sourceNotice: SOURCE_NOTICE_VERIFIED_CATALOG,
+      fallbackUsed: false,
+    };
+  }
+
   if (mode === 'pvog_search') {
     resetPvogLiveVerified();
     const pvog = await fetchPvogSearchServices(input.text);
@@ -55,6 +83,7 @@ export async function resolveGovDataForCase(input: MatchInput): Promise<GovDataR
         isDemoData: false,
         sourceNotice: null,
         message: pvog.message,
+        fallbackUsed: false,
       };
     }
     markPvogLiveVerified(false);
@@ -65,6 +94,7 @@ export async function resolveGovDataForCase(input: MatchInput): Promise<GovDataR
       isDemoData: true,
       sourceNotice: SOURCE_NOTICE_PVOG_SEARCH_UNAVAILABLE,
       message: pvog.message,
+      fallbackUsed: true,
     };
   }
 
@@ -78,6 +108,7 @@ export async function resolveGovDataForCase(input: MatchInput): Promise<GovDataR
       isDemoData: true,
       sourceNotice: SOURCE_NOTICE_PVOG_CREDENTIALS_MISSING,
       message: 'PVOG_CLIENT_ID / PVOG_CLIENT_SECRET / PVOG_TOKEN_URL fehlen.',
+      fallbackUsed: true,
     };
   }
 
@@ -91,6 +122,7 @@ export async function resolveGovDataForCase(input: MatchInput): Promise<GovDataR
       isDemoData: false,
       sourceNotice: null,
       message: pvog.message,
+      fallbackUsed: false,
     };
   }
 
@@ -102,5 +134,6 @@ export async function resolveGovDataForCase(input: MatchInput): Promise<GovDataR
     isDemoData: true,
     sourceNotice: SOURCE_NOTICE_PVOG_BEREITSTELL_UNAVAILABLE,
     message: pvog.message,
+    fallbackUsed: true,
   };
 }

@@ -60,6 +60,7 @@ describe('govDataDiagnostics', () => {
     expect(diagnostics.sourceMode).toBe('demo');
     expect(diagnostics.lastProbe.status).toBe('ok');
     expect(diagnostics.lastProbe.verifiedOfficialCount).toBe(0);
+    expect(diagnostics.lastProbe.verifiedManualCount).toBe(0);
     expect(diagnostics.lastProbe.serviceCount).toBeGreaterThan(0);
   });
 
@@ -71,18 +72,15 @@ describe('govDataDiagnostics', () => {
     expect(diagnostics.lastProbe.verifiedOfficialCount).toBe(0);
   });
 
-  it('reports unauthorized when PVOG search returns 401', async () => {
-    process.env.NEXT_PUBLIC_GOVDATA_SOURCE_MODE = 'pvog_search';
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: false,
-      status: 401,
-      json: async () => ({}),
-    }) as typeof fetch;
-
+  it('reports verified_catalog manual counts separately from PVOG', async () => {
+    process.env.NEXT_PUBLIC_GOVDATA_SOURCE_MODE = 'verified_catalog';
     const diagnostics = await buildGovDataDiagnostics();
-    expect(diagnostics.lastProbe.status).toBe('unauthorized');
-    expect(diagnostics.lastProbe.httpStatus).toBe(401);
-    expect(diagnostics.lastProbe.verifiedOfficialCount).toBe(0);
+
+    expect(diagnostics.sourceMode).toBe('verified_catalog');
+    expect(diagnostics.lastProbe.sourceStatus).toBe('verified_catalog');
+    expect(diagnostics.lastProbe.verifiedManualCount).toBeGreaterThan(0);
+    expect(diagnostics.lastProbe.verifiedPvogCount).toBe(0);
+    expect(diagnostics.lastProbe.fallbackUsed).toBe(false);
   });
 });
 
