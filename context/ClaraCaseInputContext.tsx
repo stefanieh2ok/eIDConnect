@@ -19,6 +19,8 @@ export type ClaraCaseInputBridge = {
   startSpeechInput: () => void;
   speechListening: boolean;
   speechMessage: string | null;
+  /** Wegweiser input view: hide floating dock until plan exists or user scrolls past input. */
+  showFloatingDock: boolean;
 };
 
 export const inactiveClaraCaseInputBridge: ClaraCaseInputBridge = {
@@ -31,6 +33,7 @@ export const inactiveClaraCaseInputBridge: ClaraCaseInputBridge = {
   startSpeechInput: () => {},
   speechListening: false,
   speechMessage: null,
+  showFloatingDock: true,
 };
 
 type ClaraCaseInputContextValue = {
@@ -68,11 +71,18 @@ export function useClaraCaseInputBridgeRegistration(bridge: ClaraCaseInputBridge
     if (typeof document === 'undefined') return;
     if (bridge.isActive) {
       document.documentElement.dataset.claraWegweiserActive = 'true';
+      if (bridge.showFloatingDock) {
+        delete document.documentElement.dataset.claraWegweiserInputOnly;
+      } else {
+        document.documentElement.dataset.claraWegweiserInputOnly = 'true';
+      }
     } else {
       delete document.documentElement.dataset.claraWegweiserActive;
+      delete document.documentElement.dataset.claraWegweiserInputOnly;
     }
     return () => {
       delete document.documentElement.dataset.claraWegweiserActive;
+      delete document.documentElement.dataset.claraWegweiserInputOnly;
     };
-  }, [bridge.isActive]);
+  }, [bridge.isActive, bridge.showFloatingDock]);
 }
