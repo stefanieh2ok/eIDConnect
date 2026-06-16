@@ -38,15 +38,23 @@ export function pvogLiveAccessAvailable(): boolean {
   return pvogLiveVerifiedFlag;
 }
 
-function searchBaseUrl(): string {
+export function getPvogSearchBaseUrl(): string {
   return (
     process.env.PVOG_SEARCH_BASE_URL?.replace(/\/$/, '') ||
     'https://pvog.fitko.net/suchdienst/api'
   );
 }
 
-function bereitstellBaseUrl(): string {
+export function getPvogBereitstelldienstBaseUrl(): string {
   return process.env.PVOG_BEREITSTELLDIENST_BASE_URL?.replace(/\/$/, '') || 'https://pvog.fitko.net';
+}
+
+function searchBaseUrl(): string {
+  return getPvogSearchBaseUrl();
+}
+
+function bereitstellBaseUrl(): string {
+  return getPvogBereitstelldienstBaseUrl();
 }
 
 function parsePvogPayload(payload: unknown): GovService[] {
