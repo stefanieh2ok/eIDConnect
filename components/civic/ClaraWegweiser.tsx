@@ -50,27 +50,36 @@ const EXAMPLE_ROWS: {
 
 export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanReady }: Props) {
   const caseInput = useClaraCaseInput({ du, plz, bundesland, wohnort, onPlanReady });
-  const inputWorkflowRef = useRef<HTMLDivElement | null>(null);
-  const [inputScrolledPast, setInputScrolledPast] = useState(false);
+  const dockVisibilityGuardRef = useRef<HTMLDivElement | null>(null);
+  const resultRef = useRef<HTMLDivElement | null>(null);
+  const [inputGuardScrolledPast, setInputGuardScrolledPast] = useState(false);
 
-  const showFloatingDock = Boolean(caseInput.plan) || inputScrolledPast;
+  /** Dock only after textarea/CTA/examples block has left the viewport — not on typed input or plan alone. */
+  const showFloatingDock = inputGuardScrolledPast;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const root = document.getElementById('main-content');
-    const target = inputWorkflowRef.current;
+    const target = dockVisibilityGuardRef.current;
     if (!root || !target) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setInputScrolledPast(!entry.isIntersecting);
+        setInputGuardScrolledPast(!entry.isIntersecting);
       },
-      { root, threshold: 0, rootMargin: '-8px 0px 0px 0px' },
+      { root, threshold: 0, rootMargin: '0px 0px 0px 0px' },
     );
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, []);
+  }, [caseInput.plan]);
+
+  useEffect(() => {
+    if (!caseInput.plan || !resultRef.current) return;
+    requestAnimationFrame(() => {
+      resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [caseInput.plan]);
 
   const bridge = useMemo<ClaraCaseInputBridge>(
     () => ({
@@ -114,7 +123,7 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
 
   return (
     <div className="clara-wegweiser clara-wegweiser--workflow">
-      <div ref={inputWorkflowRef} className="clara-wegweiser__workflow">
+      <div className="clara-wegweiser__workflow">
         <header className="clara-wegweiser__workflow-header">
           <p className="clara-wegweiser__micro-label">Clara Wegweiser</p>
           <h2 id="clara-wegweiser-heading" className="clara-wegweiser__headline">
@@ -130,6 +139,7 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
           </p>
         </header>
 
+        <div ref={dockVisibilityGuardRef} className="clara-wegweiser__dock-guard">
         <div className="clara-wegweiser__input-block">
           <label htmlFor={caseInput.textareaId} className="clara-wegweiser__textarea-label">
             {du ? 'Deine Situation' : 'Ihre Situation'}
@@ -226,10 +236,11 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
             </ul>
           </section>
         ) : null}
+        </div>
       </div>
 
       {caseInput.plan ? (
-        <div className="clara-wegweiser__result">
+        <div ref={resultRef} className="clara-wegweiser__result">
           <div className="clara-wegweiser__result-header">
             <h3 className="clara-wegweiser__result-title">
               {du ? 'Dein Behördenfahrplan' : 'Ihr Behördenfahrplan'}

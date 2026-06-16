@@ -51,6 +51,21 @@ describe('useClaraCaseInput submit flow', () => {
     expect(result.current.plan?.sourceNotice).toBe(SOURCE_NOTICE_DEMO);
   });
 
+  it('demo plan has one source notice and no verified official link labels in services', async () => {
+    const { result } = renderHook(() => useClaraCaseInput({ du: true }));
+    act(() => {
+      result.current.setText('Ich bekomme ein Kind und brauche Elterngeld und Kindergeld.');
+    });
+    await act(async () => {
+      await result.current.handleAnalyze();
+    });
+    const plan = result.current.plan;
+    expect(plan?.sourceNotice).toMatch(/Offizielle Datenquelle/);
+    const serviceText = JSON.stringify(plan?.services ?? []);
+    expect(serviceText).not.toMatch(/Demo-Link/i);
+    expect(serviceText).not.toMatch(/Offizielle Informationen öffnen/);
+  });
+
   it('does not create a plan for empty input', async () => {
     const { result } = renderHook(() => useClaraCaseInput({ du: true }));
     await act(async () => {

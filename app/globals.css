@@ -1559,6 +1559,12 @@ html[data-clara-wegweiser-input-only='true'] {
   --clara-dock-scroll-top-btn-bottom: calc(var(--app-bottom-nav-height) + 1.35rem + env(safe-area-inset-bottom, 0px));
 }
 
+html[data-clara-wegweiser-input-only='true'] .clara-dock-pill {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
 html[data-clara-sheet-open] .app-bottom-nav {
   opacity: 0.35;
   pointer-events: none;

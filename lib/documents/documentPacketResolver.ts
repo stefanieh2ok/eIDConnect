@@ -1,5 +1,7 @@
 import type { CivicCasePlanResult } from '@/lib/govdata/serviceTypes';
-import { DEMO_LINK_LABEL } from '@/lib/govdata/externalLinkGate';
+
+const DEMO_HANDOVER_PACKET_NOTICE =
+  'Externer offizieller Weg folgt nach Quellenverifizierung. Antragstellung nur über zuständige Stellen.';
 
 export type DocumentPacketCardStatus = 'available' | 'demo' | 'coming_soon' | 'external';
 export type DocumentPacketCardSource = 'HookAI' | 'Official' | 'Demo';
@@ -96,7 +98,7 @@ export function resolveDocumentPacket(
       id: 'official-links',
       title: du ? 'Offizielle Links und Quellen' : 'Offizielle Links und Quellen',
       description: plan.isDemoData
-        ? `${DEMO_LINK_LABEL} — externe Antragstellung nur über zuständige Stellen.`
+        ? DEMO_HANDOVER_PACKET_NOTICE
         : du
           ? 'Externe offizielle Wege — Clara bereitet nur vor.'
           : 'Externe offizielle Wege — Clara bereitet nur vor.',
