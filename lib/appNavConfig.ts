@@ -1,4 +1,5 @@
 import type { EbeneLevel, Location, Section } from '@/types';
+import { isClaraWegweiserEnabled } from '@/lib/claraWegweiserFeature';
 
 export type MainNavIconKey = 'wegweiser' | 'meldungen' | 'abstimmen' | 'wahlen';
 
@@ -8,6 +9,8 @@ export type MainNavItem = {
   kommuneOnly?: boolean;
   iconKey: MainNavIconKey;
   tourId?: string;
+  /** Optional Clara Wegweiser pilot zone — visually separated from core civic modules. */
+  pilot?: boolean;
 };
 
 export const MAIN_NAV_ITEMS: MainNavItem[] = [
@@ -51,8 +54,11 @@ export function residencePathForLocation(loc: Location): EbeneLevel[] {
 
 export function visibleMainNavItems(residenceLocation: Location): MainNavItem[] {
   const path = residencePathForLocation(residenceLocation);
+  const wegweiserEnabled = isClaraWegweiserEnabled();
   return MAIN_NAV_ITEMS.filter((item) => {
-    if (item.section === 'fuermich') return false;
+    if (item.section === 'fuermich') return wegweiserEnabled;
     return !item.kommuneOnly || path.includes('kommune');
-  });
+  }).map((item) =>
+    item.section === 'fuermich' ? { ...item, pilot: true } : item,
+  );
 }

@@ -22,20 +22,30 @@ describe('claraWegweiserFeature', () => {
     expect(isClaraWegweiserEnabled()).toBe(false);
   });
 
-  it('shows pilot card on core sections when enabled', () => {
+  it('does not show pilot card on core sections (entry is bottom nav)', () => {
     delete process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER;
-    expect(shouldShowClaraWegweiserPilotCard('live')).toBe(true);
-    expect(shouldShowClaraWegweiserPilotCard('fuermich')).toBe(false);
-  });
-
-  it('hides pilot card when flag is false', () => {
-    process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER = 'false';
     expect(shouldShowClaraWegweiserPilotCard('live')).toBe(false);
+    expect(shouldShowClaraWegweiserPilotCard('fuermich')).toBe(false);
   });
 });
 
 describe('visibleMainNavItems', () => {
-  it('excludes Wegweiser from core bottom navigation', () => {
+  const prev = process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER;
+
+  afterEach(() => {
+    if (prev === undefined) delete process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER;
+    else process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER = prev;
+  });
+
+  it('includes Wegweiser as pilot item when flag is enabled', () => {
+    delete process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER;
+    const items = visibleMainNavItems('kirkel');
+    expect(items.map((i) => i.label)).toEqual(['Wegweiser', 'Melden', 'Beteiligen', 'Wahlen']);
+    expect(items[0]).toMatchObject({ section: 'fuermich', pilot: true });
+  });
+
+  it('excludes Wegweiser when flag is false', () => {
+    process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER = 'false';
     const items = visibleMainNavItems('kirkel');
     expect(items.map((i) => i.label)).toEqual(['Melden', 'Beteiligen', 'Wahlen']);
     expect(items.some((i) => i.section === 'fuermich')).toBe(false);

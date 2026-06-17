@@ -19,7 +19,8 @@ describe('AppBottomNav', () => {
     else process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER = prevFlag;
   });
 
-  it('renders core modules without Wegweiser as equal nav item', () => {
+  it('shows Wegweiser pilot zone and core modules when flag is enabled', () => {
+    delete process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER;
     render(
       <AppProvider>
         <AppBottomNav />
@@ -27,13 +28,67 @@ describe('AppBottomNav', () => {
       </AppProvider>,
     );
 
-    expect(screen.queryByRole('button', { name: 'Wegweiser' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Clara Wegweiser Pilotmodul' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Clara Wegweiser Pilotmodul' })).toHaveClass(
+      'app-bottom-nav__item--pilot',
+    );
+    expect(screen.getByTestId('bottom-nav-zone-separator')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Melden' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Beteiligen' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Wahlen' })).toBeInTheDocument();
+    expect(screen.getByText('Pilot')).toBeInTheDocument();
+  });
+
+  it('hides Wegweiser and separator when flag is false', () => {
+    process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER = 'false';
+    render(
+      <AppProvider>
+        <AppBottomNav />
+        <ActiveSectionProbe />
+      </AppProvider>,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Clara Wegweiser Pilotmodul' })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('bottom-nav-zone-separator')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Melden' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Beteiligen' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Wahlen' })).toBeInTheDocument();
   });
 
+  it('opens Wegweiser section from pilot zone', () => {
+    delete process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER;
+    render(
+      <AppProvider>
+        <AppBottomNav />
+        <ActiveSectionProbe />
+      </AppProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clara Wegweiser Pilotmodul' }));
+    expect(screen.getByTestId('active-section')).toHaveTextContent('fuermich');
+    expect(screen.getByRole('button', { name: 'Clara Wegweiser Pilotmodul' })).toHaveClass(
+      'app-bottom-nav__item--pilot-active',
+    );
+  });
+
+  it('uses mint active state for core modules', () => {
+    delete process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER;
+    render(
+      <AppProvider>
+        <AppBottomNav />
+        <ActiveSectionProbe />
+      </AppProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Beteiligen' }));
+    const beteiligen = screen.getByRole('button', { name: 'Beteiligen' });
+    expect(beteiligen).toHaveClass('app-bottom-nav__item--active');
+    expect(beteiligen).not.toHaveClass('app-bottom-nav__item--pilot-active');
+    expect(screen.getByTestId('active-section')).toHaveTextContent('live');
+  });
+
   it('wechselt die aktive Section über Bottom Navigation', () => {
+    delete process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER;
     render(
       <AppProvider>
         <AppBottomNav />
@@ -76,16 +131,18 @@ describe('Clara Wegweiser pilot entry in app shell', () => {
     else process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER = prevFlag;
   });
 
-  it('shows pilot card when flag is true on core section', async () => {
+  it('does not render pilot card on core sections', async () => {
     render(
       <AppProvider>
         <BuergerApp />
       </AppProvider>,
     );
-    expect(await screen.findByTestId('clara-wegweiser-pilot-card')).toBeInTheDocument();
+    await screen.findByRole('button', { name: 'Beteiligen' });
+    expect(screen.queryByTestId('clara-wegweiser-pilot-card')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Clara Wegweiser Pilotmodul' })).toBeInTheDocument();
   });
 
-  it('hides pilot card when flag is false', async () => {
+  it('hides Wegweiser nav when flag is false', async () => {
     process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER = 'false';
     render(
       <AppProvider>
@@ -94,5 +151,7 @@ describe('Clara Wegweiser pilot entry in app shell', () => {
     );
     await screen.findByRole('button', { name: 'Beteiligen' });
     expect(screen.queryByTestId('clara-wegweiser-pilot-card')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Clara Wegweiser Pilotmodul' })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('bottom-nav-zone-separator')).not.toBeInTheDocument();
   });
 });

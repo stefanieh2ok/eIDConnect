@@ -12,8 +12,6 @@ import CalendarSection from '@/components/Calendar/CalendarSection';
 import MeldungenSection from '@/components/Meldungen/MeldungenSection';
 import PostfachSection from '@/components/Postfach/PostfachSection';
 import FuerMichSection from '@/components/FuerMich/FuerMichSection';
-import ClaraWegweiserPilotCard from '@/components/civic/ClaraWegweiserPilotCard';
-import { shouldShowClaraWegweiserPilotCard } from '@/lib/claraWegweiserFeature';
 import StimmzettelModal from '@/components/Modals/StimmzettelModal';
 import IntroOverlay from '@/components/Intro/IntroOverlay';
 import DemoIntroWalkthrough from '@/components/Intro/DemoIntroWalkthrough';
@@ -520,9 +518,6 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
                 <div className="app-main-content px-3 pb-app-shell-safe">
-                  {shouldShowClaraWegweiserPilotCard(state.activeSection) ? (
-                    <ClaraWegweiserPilotCard du={state.anrede === 'du'} />
-                  ) : null}
                   {renderSection()}
                   {state.activeSection !== 'fuermich' && state.activeSection !== 'live' ? (
                     <SecurityFaqFooter />

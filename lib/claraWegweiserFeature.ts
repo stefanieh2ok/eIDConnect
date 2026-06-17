@@ -8,11 +8,10 @@ export function isClaraWegweiserEnabled(): boolean {
   return raw.trim().toLowerCase() === 'true';
 }
 
-/** Core civic sections where the optional pilot card may appear. */
+/** @deprecated Pilot entry lives in the bottom nav pilot zone — card is not shown on core tabs. */
 export const CLARA_WEGWEISER_PILOT_ANCHOR_SECTIONS = ['live', 'meldungen', 'wahlen'] as const;
 
-export function shouldShowClaraWegweiserPilotCard(activeSection: string): boolean {
-  if (!isClaraWegweiserEnabled()) return false;
-  if (activeSection === 'fuermich') return false;
-  return (CLARA_WEGWEISER_PILOT_ANCHOR_SECTIONS as readonly string[]).includes(activeSection);
+/** Pilot card above content is disabled; Wegweiser is reachable via bottom nav pilot zone. */
+export function shouldShowClaraWegweiserPilotCard(_activeSection: string): boolean {
+  return false;
 }

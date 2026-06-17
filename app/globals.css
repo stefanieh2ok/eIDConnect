@@ -2143,6 +2143,87 @@ html[data-shell-nav='legacy'] {
   min-height: var(--app-bottom-nav-height);
 }
 
+.app-bottom-nav__layout {
+  display: flex;
+  width: 100%;
+  min-height: var(--app-bottom-nav-height);
+}
+
+.app-bottom-nav__layout--two-zone .app-bottom-nav__pilot-zone {
+  flex: 0 0 25%;
+  min-width: 0;
+  display: flex;
+  background: linear-gradient(180deg, rgba(244, 238, 255, 0.55) 0%, rgba(255, 255, 255, 0.92) 100%);
+}
+
+.app-bottom-nav__layout--two-zone .app-bottom-nav__core-zone {
+  flex: 1 1 0;
+  min-width: 0;
+  display: grid;
+}
+
+.app-bottom-nav__zone-separator {
+  flex: 0 0 1px;
+  align-self: stretch;
+  background: linear-gradient(
+    180deg,
+    rgba(216, 199, 255, 0.15) 0%,
+    var(--clara-dock-border, #d8c7ff) 35%,
+    rgba(216, 199, 255, 0.15) 100%
+  );
+}
+
+.app-bottom-nav__label-wrap {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.05rem;
+}
+
+.app-bottom-nav__pilot-badge {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--clara-dock-accent, #6d45d8);
+  white-space: nowrap;
+}
+
+.app-bottom-nav__item--pilot {
+  color: #6b7280;
+  background: transparent;
+}
+
+.app-bottom-nav__item--pilot .app-bottom-nav__icon {
+  color: var(--clara-dock-accent, #6d45d8);
+}
+
+.app-bottom-nav__item--pilot-active {
+  border-top-color: var(--clara-dock-accent, #6d45d8);
+  color: var(--clara-dock-accent-deep, #5b21b6);
+  background: var(--clara-dock-bg, #f4eeff);
+  box-shadow: inset 0 1px 0 rgba(216, 199, 255, 0.65);
+}
+
+.app-bottom-nav__item--pilot-active .app-bottom-nav__icon {
+  color: var(--clara-dock-accent-deep, #5b21b6);
+  stroke-width: 2;
+}
+
+.app-bottom-nav__item--pilot-active .app-bottom-nav__label {
+  font-weight: 700;
+  color: var(--clara-dock-accent-deep, #5b21b6);
+}
+
+.app-bottom-nav__item--pilot-active .app-bottom-nav__pilot-badge {
+  color: var(--clara-dock-accent-deep, #5b21b6);
+}
+
 .clara-wegweiser-pilot-card {
   margin: 0.5rem 0 0.75rem;
   border-radius: 0.9rem;
