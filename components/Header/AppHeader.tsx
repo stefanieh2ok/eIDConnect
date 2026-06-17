@@ -18,6 +18,7 @@ import {
 } from '@/data/fuerMichProfileOptions';
 import type { ChildAgeBand } from '@/types/fuerMich';
 import ProductIdentityHeader from '@/components/ui/ProductIdentityHeader';
+import { isClaraWegweiserEnabled } from '@/lib/claraWegweiserFeature';
 import { persistAndSyncDemoAddress } from '@/lib/demo-address-persist';
 import {
   CIVIC_DEMO_STAMMDATEN_HINT,
@@ -579,16 +580,18 @@ const AppHeader: React.FC = () => {
                       'Themen wie Führerschein, Online-Ausweis und Kfz finden Sie im Wegweiser unter „Mobilität & Führerschein“. Keine Anspruchsprüfung.',
                     )}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'fuermich' });
-                      setShowSettings(false);
-                    }}
-                    className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-[#003366] bg-white px-3 py-2 text-[11px] font-semibold text-[#003366] hover:bg-neutral-50"
-                  >
-                    Zum Wegweiser
-                  </button>
+                  {isClaraWegweiserEnabled() ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'fuermich' });
+                        setShowSettings(false);
+                      }}
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-[#003366] bg-white px-3 py-2 text-[11px] font-semibold text-[#003366] hover:bg-neutral-50"
+                    >
+                      Zum Wegweiser
+                    </button>
+                  ) : null}
                 </section>
 
                 {/* 10. Interessen & Relevanz */}

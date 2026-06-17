@@ -2141,7 +2141,82 @@ html[data-shell-nav='legacy'] {
   display: grid;
   width: 100%;
   min-height: var(--app-bottom-nav-height);
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.clara-wegweiser-pilot-card {
+  margin: 0.5rem 0 0.75rem;
+  border-radius: 0.9rem;
+  border: 1px solid var(--clara-dock-border, #d8c7ff);
+  background: linear-gradient(165deg, var(--clara-dock-bg, #f4eeff) 0%, #ffffff 58%);
+  padding: 0.8rem 0.85rem 0.9rem;
+  box-shadow: 0 6px 20px rgba(91, 33, 182, 0.07);
+}
+
+.clara-wegweiser-pilot-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.35rem;
+}
+
+.clara-wegweiser-pilot-card__badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 199, 255, 0.95);
+  background: #fff;
+  padding: 0.12rem 0.45rem;
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--clara-dock-accent-deep, #5b21b6);
+}
+
+.clara-wegweiser-pilot-card__label {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--clara-dock-accent, #6d45d8);
+}
+
+.clara-wegweiser-pilot-card__title {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  font-weight: 700;
+  color: #1a2b45;
+}
+
+.clara-wegweiser-pilot-card__micro {
+  margin: 0.35rem 0 0;
+  font-size: 0.625rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.clara-wegweiser-pilot-card__cta {
+  display: inline-flex;
+  width: 100%;
+  margin-top: 0.65rem;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--clara-dock-accent-deep, #5b21b6);
+  background: linear-gradient(180deg, var(--clara-dock-accent, #6d45d8) 0%, var(--clara-dock-accent-deep, #5b21b6) 100%);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(91, 33, 182, 0.16);
+}
+
+.clara-wegweiser-pilot-card__cta:hover {
+  filter: brightness(1.03);
 }
 
 .app-bottom-nav__item {

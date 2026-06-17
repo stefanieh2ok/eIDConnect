@@ -51,5 +51,8 @@ export function residencePathForLocation(loc: Location): EbeneLevel[] {
 
 export function visibleMainNavItems(residenceLocation: Location): MainNavItem[] {
   const path = residencePathForLocation(residenceLocation);
-  return MAIN_NAV_ITEMS.filter((item) => !item.kommuneOnly || path.includes('kommune'));
+  return MAIN_NAV_ITEMS.filter((item) => {
+    if (item.section === 'fuermich') return false;
+    return !item.kommuneOnly || path.includes('kommune');
+  });
 }
