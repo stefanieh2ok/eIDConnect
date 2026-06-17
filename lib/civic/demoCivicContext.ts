@@ -23,7 +23,7 @@ export const KIRKEL_DEMO_CONTEXT: CivicIdentityContext = {
   plz: '66459',
   knownFrom: 'demo_profile',
   disclaimer:
-    'Für diese Demo nutzt Clara vorbereitete Verwaltungswege und kuratierte offizielle Quellen. Wohnort Kirkel, Saarland ist aus dem Demo-Profil bekannt.',
+    'Für diese Demo nutzt Clara einen vorbereiteten Profilkontext mit Wohnort Kirkel, Saarland. In der Produktivversion würden solche Daten nur mit Zustimmung aus einem verifizierten Profil übernommen.',
 };
 
 export function formatKnownLocationLabel(ctx: CivicIdentityContext, du = true): string | null {

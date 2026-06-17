@@ -200,7 +200,7 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
         >
           <SectionHead
             id="plan-followup"
-            title={du ? 'Was Clara noch braucht' : 'Was Clara noch braucht'}
+            title={du ? 'Was Clara noch wissen sollte' : 'Was Clara noch wissen sollte'}
           />
           <ul className="civic-case-plan__followup-list">
             {plan.followUpQuestions.map((q) => (

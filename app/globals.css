@@ -1553,6 +1553,13 @@ html[data-shell-nav='bottom'] {
   padding-bottom: 0.35rem;
 }
 
+.clara-wegweiser__demo-context-note {
+  margin: 0.35rem 0 0;
+  font-size: 0.625rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
 .clara-wegweiser__context-chips {
   display: flex;
   flex-wrap: wrap;

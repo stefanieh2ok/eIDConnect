@@ -46,7 +46,7 @@ const EXAMPLE_CASES = [
     label: 'Ein Elternteil wird pflegebedürftig und ich weiß nicht, welche Leistungen relevant sind.',
     text: 'Mein Elternteil wird pflegebedürftig. Ich weiß nicht, welche Leistungen und Stellen relevant sind.',
     mode: 'private' as const,
-    journeyId: 'care_family' as const,
+    journeyId: 'family_care' as const,
   },
   {
     id: 'gewerbe-start',
@@ -60,7 +60,7 @@ const EXAMPLE_CASES = [
     label: 'Ich stelle zum ersten Mal Mitarbeitende ein und brauche einen Überblick über Pflichten und Meldungen.',
     text: 'Ich stelle zum ersten Mal Mitarbeitende ein und brauche einen Überblick über Pflichten, Meldungen und Sozialversicherung.',
     mode: 'business' as const,
-    journeyId: 'employer_first_hire' as const,
+    journeyId: 'employer_onboarding' as const,
   },
 ] as const;
 
@@ -125,9 +125,24 @@ function buildGenericFollowUpQuestions(
   return questions.slice(0, 3);
 }
 
-function buildDocuments(services: GovService[]): DocumentReadinessItem[] {
+function buildDocuments(
+  services: GovService[],
+  journey?: { requiredDocuments: string[] } | null,
+): DocumentReadinessItem[] {
   const seen = new Set<string>();
   const docs: DocumentReadinessItem[] = [];
+
+  for (const label of journey?.requiredDocuments ?? []) {
+    if (seen.has(label)) continue;
+    seen.add(label);
+    docs.push({
+      id: `doc-j-${docs.length}`,
+      label,
+      readiness: 'likely',
+      checked: false,
+    });
+  }
+
   for (const s of services) {
     for (const d of s.requiredDocuments ?? []) {
       if (seen.has(d)) continue;
@@ -140,7 +155,7 @@ function buildDocuments(services: GovService[]): DocumentReadinessItem[] {
       });
     }
   }
-  return docs.slice(0, 12);
+  return docs.slice(0, 14);
 }
 
 function buildSequence(mode: CasePlannerInput['mode'], hasRegion: boolean): string[] {
@@ -219,10 +234,14 @@ export function planCivicCase(
   const effectiveMode = journey?.inferredMode ?? regionInput.mode;
   const matchInput: CasePlannerInput = { ...regionInput, mode: effectiveMode };
 
+  const matchText = journey
+    ? `${matchInput.text} ${journey.sourceKeywords.join(' ')}`
+    : matchInput.text;
+
   const resolvedServices =
     resolution?.services ??
     matchGovServices({
-      text: matchInput.text,
+      text: matchText,
       mode: matchInput.mode,
       plz: matchInput.plz,
       bundesland: matchInput.bundesland,
@@ -254,7 +273,7 @@ export function planCivicCase(
     followUpQuestions: journey
       ? journey.missingQuestions
       : buildGenericFollowUpQuestions(matchInput, identity),
-    documents: buildDocuments(services),
+    documents: buildDocuments(services, journey),
     sequenceSteps: journey ? journey.orderedSteps : buildSequence(matchInput.mode, hasRegion),
     risks: buildRisks(matchInput, matchInput.mode, Boolean(journey)),
     handoverLinks,

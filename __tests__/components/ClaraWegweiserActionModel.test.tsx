@@ -98,7 +98,8 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
     expect(screen.getByText(/Keine Rechtsberatung/i)).toBeInTheDocument();
     expect(screen.getByTestId('wegweiser-context-chips')).toBeInTheDocument();
     expect(screen.getByText('Kirkel')).toBeInTheDocument();
-    expect(screen.getByText('Identifiziert')).toBeInTheDocument();
+    expect(screen.getByText('Demo-Profil')).toBeInTheDocument();
+    expect(screen.getByText('Saarland')).toBeInTheDocument();
     const card = screen.getByTestId('wegweiser-input-card');
     expect(within(card).getByText('Deine Situation')).toBeInTheDocument();
     expect(within(card).getByRole('textbox')).toBeInTheDocument();
@@ -131,7 +132,7 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
   it('renders Kirkel quick starts', () => {
     setup();
     expect(screen.getByRole('button', { name: 'Geburt & Kita' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Umzug' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Umzug mit Kindern' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Wohngeld & Unterstützung' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Arbeitgeber werden' })).toBeInTheDocument();
   });
@@ -151,7 +152,7 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
   it('fills textarea on quick-start click without auto-submit', () => {
     setup();
     const submit = screen.getByRole('button', { name: /Behördenfahrplan erstellen/i });
-    fireEvent.click(screen.getByRole('button', { name: 'Umzug' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Umzug mit Kindern' }));
 
     expect(screen.getByRole('textbox').value.length).toBeGreaterThan(0);
     expect(submit).toBeEnabled();

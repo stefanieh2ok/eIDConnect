@@ -41,19 +41,35 @@ describe('civic journey resolver', () => {
     expect(journey?.journeyId).toBe('business_registration');
   });
 
-  it('resolves employer input to employer_first_hire', () => {
+  it('resolves employer input to employer_onboarding', () => {
     const journey = resolveCivicJourney(
       'Ich stelle zum ersten Mal Mitarbeitende ein und brauche Meldungen.',
       'business',
       identity,
       true,
     );
-    expect(journey?.journeyId).toBe('employer_first_hire');
+    expect(journey?.journeyId).toBe('employer_onboarding');
   });
 
-  it('resolves housing benefits input', () => {
+  it('resolves housing support input', () => {
     const journey = resolveCivicJourney('Ich brauche Wohngeld wegen hoher Miete.', 'private', identity, true);
-    expect(journey?.journeyId).toBe('housing_benefits');
+    expect(journey?.journeyId).toBe('housing_support');
+  });
+
+  it('resolves quick start hint to child_birth_kita with high confidence', () => {
+    const journey = resolveCivicJourney(CHILD_INPUT, 'unsure', identity, true, 'child_birth_kita');
+    expect(journey?.journeyId).toBe('child_birth_kita');
+    expect(journey?.confidence).toBe('high');
+  });
+
+  it('includes child journey authorities', () => {
+    const journey = resolveCivicJourney(CHILD_INPUT, 'unsure', identity, true);
+    const authorities = journey?.suggestedAuthorities.join(' ') ?? '';
+    expect(authorities).toMatch(/Standesamt/i);
+    expect(authorities).toMatch(/Familienkasse/i);
+    expect(authorities).toMatch(/Elterngeldstelle/i);
+    expect(authorities).toMatch(/Krankenkasse/i);
+    expect(authorities).toMatch(/Kita|Kinderbetreuung/i);
   });
 });
 

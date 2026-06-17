@@ -43,12 +43,12 @@ const QUICK_START_ROWS: {
   exampleId?: string;
 }[] = [
   { key: 'geburt-kita', title: 'Geburt & Kita', journeyId: 'child_birth_kita' },
-  { key: 'umzug', title: 'Umzug', journeyId: 'moving_with_children' },
-  { key: 'wohngeld', title: 'Wohngeld & Unterstützung', journeyId: 'housing_benefits' },
-  { key: 'pflege', title: 'Pflegefall', journeyId: 'care_family', exampleId: 'pflege-parent' },
-  { key: 'passport', title: 'Reisepass & Ausweis', journeyId: 'passport_id' },
+  { key: 'umzug', title: 'Umzug mit Kindern', journeyId: 'moving_with_children' },
+  { key: 'wohngeld', title: 'Wohngeld & Unterstützung', journeyId: 'housing_support' },
+  { key: 'pflege', title: 'Pflegefall', journeyId: 'family_care', exampleId: 'pflege-parent' },
+  { key: 'passport', title: 'Reisepass & Ausweis', journeyId: 'id_passport' },
   { key: 'gewerbe', title: 'Gewerbe anmelden', journeyId: 'business_registration', exampleId: 'gewerbe-start' },
-  { key: 'arbeitgeber', title: 'Arbeitgeber werden', journeyId: 'employer_first_hire', exampleId: 'first-employee' },
+  { key: 'arbeitgeber', title: 'Arbeitgeber werden', journeyId: 'employer_onboarding', exampleId: 'first-employee' },
 ];
 
 export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanReady }: Props) {
@@ -148,8 +148,11 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
           </h2>
           <p className="clara-wegweiser__subheadline">
             {du
-              ? 'Beschreibe deine Situation oder wähle einen Startpunkt. Clara führt dich Schritt für Schritt durch Unterlagen, Stellen und nächste Schritte.'
-              : 'Beschreiben Sie Ihre Situation oder wählen Sie einen Startpunkt. Clara führt Sie Schritt für Schritt durch Unterlagen, Stellen und nächste Schritte.'}
+              ? 'Beschreibe deine Situation oder wähle einen Startpunkt. Clara ordnet deinen Fall einem vorbereiteten Behördenweg zu.'
+              : 'Beschreiben Sie Ihre Situation oder wählen Sie einen Startpunkt. Clara ordnet Ihren Fall einem vorbereiteten Behördenweg zu.'}
+          </p>
+          <p className="clara-wegweiser__demo-context-note">
+            Clara nutzt für diese Demo den Kontext Kirkel, Saarland und vorbereitete offizielle Quellen.
           </p>
           <p className="clara-wegweiser__compliance clara-wegweiser__compliance--inline">
             Keine Rechtsberatung. Keine Antragstellung durch Clara.
@@ -160,8 +163,9 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
             aria-label={du ? 'Demo-Kontext' : 'Demo-Kontext'}
           >
             <span className="clara-wegweiser__context-chip">{KIRKEL_DEMO_CONTEXT.municipality}</span>
+            <span className="clara-wegweiser__context-chip">{KIRKEL_DEMO_CONTEXT.federalState}</span>
             <span className="clara-wegweiser__context-chip">
-              {du ? 'Identifiziert' : 'Identifiziert'}
+              {du ? 'Demo-Profil' : 'Demo-Profil'}
             </span>
             {domainChipLabel ? (
               <span className="clara-wegweiser__context-chip clara-wegweiser__context-chip--domain">
