@@ -13,7 +13,12 @@ import type {
   GovService,
 } from '@/lib/govdata/serviceTypes';
 import { CLARA_CASE_DISCLAIMER } from '@/lib/claraCaseGuidance';
-import { SOURCE_NOTICE_DEMO, type GovDataResolution } from '@/lib/govdata/sourceStatus';
+import {
+  SOURCE_NOTICE_DEMO,
+  SOURCE_NOTICE_TEMPLATE_ONLY,
+  SOURCE_NOTICE_VERIFIED_CATALOG,
+  type GovDataResolution,
+} from '@/lib/govdata/sourceStatus';
 import {
   resolvePlannerIdentityContext,
   type CivicIdentityContext,
@@ -158,18 +163,51 @@ function buildDocuments(
   return docs.slice(0, 14);
 }
 
-function buildSequence(mode: CasePlannerInput['mode'], hasRegion: boolean): string[] {
-  const steps = [
-    hasRegion ? 'Wohnort / Kommune klären' : 'Region und zuständige Kommune klären',
-    'Unterlagen sammeln und prüfen',
-    'Zuständige Stellen und offizielle Quellen vergleichen',
-    'Offiziellen Antrag oder Online-Dienst bei der zuständigen Stelle starten',
-    'Nachweise nachreichen und Fristen im Blick behalten',
-  ];
+function buildSequence(
+  mode: CasePlannerInput['mode'],
+  hasRegion: boolean,
+  identity: CivicIdentityContext,
+): string[] {
+  const kirkelDemo = hasMunicipalityContext(identity) && identity.profileMode === 'demo';
+  const steps = kirkelDemo
+    ? [
+        'Unterlagen sammeln und prüfen',
+        'Zuständige Stellen und offizielle Quellen vergleichen',
+        'Offiziellen Antrag oder Online-Dienst bei der zuständigen Stelle starten',
+        'Nachweise nachreichen und Fristen im Blick behalten',
+      ]
+    : [
+        hasRegion ? 'Wohnort / Kommune klären' : 'Region und zuständige Kommune klären',
+        'Unterlagen sammeln und prüfen',
+        'Zuständige Stellen und offizielle Quellen vergleigen',
+        'Offiziellen Antrag oder Online-Dienst bei der zuständigen Stelle starten',
+        'Nachweise nachreichen und Fristen im Blick behalten',
+      ];
   if (mode === 'business') {
-    steps.splice(2, 0, 'Privat- und Geschäftskontext trennen');
+    steps.splice(kirkelDemo ? 1 : 2, 0, 'Privat- und Geschäftskontext trennen');
   }
   return steps;
+}
+
+function hasVerifiedCatalogServices(services: GovService[]): boolean {
+  return services.some((s) => s.sourceSystem === 'VerifiedCatalog');
+}
+
+function resolvePlanSourceNotice(
+  journey: ReturnType<typeof resolveCivicJourney>,
+  services: GovService[],
+  resolution?: Pick<GovDataResolution, 'services' | 'isDemoData' | 'sourceNotice' | 'mode'>,
+): string | null {
+  if (resolution && resolution.mode !== 'demo' && resolution.mode !== 'verified_catalog') {
+    return resolution.sourceNotice ?? null;
+  }
+  if (journey) {
+    if (hasVerifiedCatalogServices(services)) {
+      return resolution?.sourceNotice ?? SOURCE_NOTICE_VERIFIED_CATALOG;
+    }
+    return SOURCE_NOTICE_TEMPLATE_ONLY;
+  }
+  return resolution ? (resolution.sourceNotice ?? null) : SOURCE_NOTICE_DEMO;
 }
 
 function buildRisks(input: CasePlannerInput, mode: CasePlannerInput['mode'], hasJourney: boolean): CasePlanRisk[] {
@@ -274,12 +312,12 @@ export function planCivicCase(
       ? journey.missingQuestions
       : buildGenericFollowUpQuestions(matchInput, identity),
     documents: buildDocuments(services, journey),
-    sequenceSteps: journey ? journey.orderedSteps : buildSequence(matchInput.mode, hasRegion),
+    sequenceSteps: journey ? journey.orderedSteps : buildSequence(matchInput.mode, hasRegion, identity),
     risks: buildRisks(matchInput, matchInput.mode, Boolean(journey)),
     handoverLinks,
     mode: effectiveMode,
     isDemoData: resolution?.isDemoData ?? true,
-    sourceNotice: resolution ? (resolution.sourceNotice ?? null) : SOURCE_NOTICE_DEMO,
+    sourceNotice: resolvePlanSourceNotice(journey, services, resolution),
     sourceMode: resolution?.mode ?? 'demo',
     journeyId: journey?.journeyId,
     journeyTitle: journey?.journeyTitle,

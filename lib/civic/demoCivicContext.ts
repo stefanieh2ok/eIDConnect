@@ -44,6 +44,12 @@ export function hasMunicipalityContext(ctx: CivicIdentityContext): boolean {
   return Boolean(ctx.municipality || ctx.federalState || ctx.plz);
 }
 
+export function formatJurisdictionContextNote(du = true): string {
+  return du
+    ? 'Zuständigkeiten können je nach konkreter Stelle variieren; für diese Demo nutzt Clara Kirkel, Saarland als Kontext.'
+    : 'Zuständigkeiten können je nach konkreter Stelle variieren; für diese Demo nutzt Clara Kirkel, Saarland als Kontext.';
+}
+
 /** Merge explicit profile fields with Kirkel demo fallback for Wegweiser planning. */
 export function resolvePlannerIdentityContext(fields?: {
   plz?: string;

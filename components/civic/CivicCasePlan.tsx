@@ -7,6 +7,7 @@ import {
   CLARA_CASE_DISCLAIMER,
   CLARA_OFFICIAL_SOURCE_NOTICE,
 } from '@/lib/claraCaseGuidance';
+import { SOURCE_NOTICE_TEMPLATE_ONLY } from '@/lib/govdata/sourceStatus';
 import { AuthoritiesOverview } from '@/components/civic/AuthoritiesOverview';
 import { OfficialServiceCard } from '@/components/civic/OfficialServiceCard';
 import { RequiredDocumentsChecklist } from '@/components/civic/RequiredDocumentsChecklist';
@@ -58,6 +59,9 @@ function scrollToSection(id: string) {
 
 export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
   const documentCards = useMemo(() => resolveDocumentPacket(plan, { du }), [plan, du]);
+  const templateDriven = Boolean(plan.journeyId);
+  const showTemplateSourceNote =
+    templateDriven && plan.services.length === 0 && plan.sourceNotice === SOURCE_NOTICE_TEMPLATE_ONLY;
 
   const handleExport = useCallback(() => {
     if (onExportPdf) {
@@ -99,7 +103,7 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
       aria-label={du ? 'Behördenfahrplan' : 'Behördenfahrplan'}
     >
       {plan.sourceNotice ? (
-        <aside className="civic-source-notice" role="note">
+        <aside className="civic-source-notice civic-source-notice--lavender" role="note">
           <Info className="civic-source-notice__icon" aria-hidden />
           <p>{plan.sourceNotice}</p>
         </aside>
@@ -110,9 +114,13 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
           id="plan-summary"
           title={du ? 'Lage erkannt' : 'Lage erkannt'}
           lead={
-            du
-              ? 'Kurzfassung deiner Situation — ohne Anspruchsprüfung.'
-              : 'Kurzfassung Ihrer Situation — ohne Anspruchsprüfung.'
+            plan.journeyTitle
+              ? du
+                ? `Wegweiser-Template: ${plan.journeyTitle}`
+                : `Wegweiser-Template: ${plan.journeyTitle}`
+              : du
+                ? 'Kurzfassung deiner Situation — ohne Anspruchsprüfung.'
+                : 'Kurzfassung Ihrer Situation — ohne Anspruchsprüfung.'
           }
         />
         <p className="civic-case-plan__summary-text">{plan.situationSummary}</p>
@@ -128,11 +136,13 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
       </section>
 
       {plan.knownContextFacts && plan.knownContextFacts.length > 0 ? (
-        <section className="civic-case-plan__section civic-case-plan__section--known-context" aria-labelledby="plan-known-context">
+        <section
+          className="civic-case-plan__section civic-case-plan__section--known-context"
+          aria-labelledby="plan-known-context"
+        >
           <SectionHead
             id="plan-known-context"
-            title={du ? 'Bekannter Kontext' : 'Bekannter Kontext'}
-            lead={du ? 'Aus Demo-Profil und Kirkel-Kontext.' : 'Aus Demo-Profil und Kirkel-Kontext.'}
+            title={du ? 'Demo-Kontext / bekannte Angaben' : 'Demo-Kontext / bekannte Angaben'}
           />
           <ul className="civic-case-plan__known-context-list">
             {plan.knownContextFacts.map((fact) => (
@@ -148,22 +158,10 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
       <section className="civic-case-plan__section" aria-labelledby="plan-sequence">
         <SectionHead
           id="plan-sequence"
-          title={du ? 'Nächste Schritte in Kirkel' : 'Nächste Schritte in Kirkel'}
+          title={du ? 'Nächste Schritte' : 'Nächste Schritte'}
           lead={du ? 'Sinnvolle Reihenfolge für die Vorbereitung.' : 'Sinnvolle Reihenfolge für die Vorbereitung.'}
         />
         <CaseTimeline steps={plan.sequenceSteps} />
-        {plan.uncataloguedStepLabels && plan.uncataloguedStepLabels.length > 0 ? (
-          <ul className="civic-case-plan__uncatalogued-steps">
-            {plan.uncataloguedStepLabels.map((label) => (
-              <li key={label}>
-                {label} —{' '}
-                <span className="civic-case-plan__uncatalogued-label">
-                  noch nicht im Quellenkatalog hinterlegt
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
       </section>
 
       <section className="civic-case-plan__section" aria-labelledby="plan-documents">
@@ -177,7 +175,7 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
       <AuthoritiesOverview
         authorities={plan.touchedAuthorities}
         du={du}
-        title={du ? 'Zuständige Stellen' : 'Zuständige Stellen'}
+        title={du ? 'Beteiligte Stellen' : 'Beteiligte Stellen'}
       />
 
       <section className="civic-case-plan__section" aria-labelledby="plan-services">
@@ -186,11 +184,17 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
           title={du ? 'Online weiter / Offizielle Informationen' : 'Online weiter / Offizielle Informationen'}
           lead="Clara ordnet Orientierung — keine Anspruchsprüfung, keine Einreichung."
         />
-        <div className="civic-case-plan__service-list">
-          {plan.services.map((s) => (
-            <OfficialServiceCard key={s.serviceId} service={s} du={du} />
-          ))}
-        </div>
+        {plan.services.length > 0 ? (
+          <div className="civic-case-plan__service-list">
+            {plan.services.map((s) => (
+              <OfficialServiceCard key={s.serviceId} service={s} du={du} />
+            ))}
+          </div>
+        ) : showTemplateSourceNote ? (
+          <p className="civic-case-plan__missing-source-note">
+            Quelle noch nicht im Katalog hinterlegt — der Fahrplan basiert auf dem Wegweiser-Template.
+          </p>
+        ) : null}
       </section>
 
       {plan.followUpQuestions.length > 0 ? (
@@ -276,7 +280,7 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
       >
         <SectionHead id="plan-disclaimer" title="Hinweise" />
         <div className="civic-case-plan__disclaimer-box">
-          <Info className="h-4 w-4 shrink-0 text-[#0055A4]" aria-hidden />
+          <Info className="civic-case-plan__disclaimer-icon" aria-hidden />
           <p>{CLARA_CASE_DISCLAIMER}</p>
         </div>
         <p className="civic-case-plan__no-submission">

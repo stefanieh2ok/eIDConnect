@@ -47,6 +47,7 @@ const QUICK_START_ROWS: {
   { key: 'wohngeld', title: 'Wohngeld & Unterstützung', journeyId: 'housing_support' },
   { key: 'pflege', title: 'Pflegefall', journeyId: 'family_care', exampleId: 'pflege-parent' },
   { key: 'passport', title: 'Reisepass & Ausweis', journeyId: 'id_passport' },
+  { key: 'kuendigung', title: 'Kündigung & Arbeit', journeyId: 'job_loss_unemployment' },
   { key: 'gewerbe', title: 'Gewerbe anmelden', journeyId: 'business_registration', exampleId: 'gewerbe-start' },
   { key: 'arbeitgeber', title: 'Arbeitgeber werden', journeyId: 'employer_onboarding', exampleId: 'first-employee' },
 ];
@@ -57,7 +58,7 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
   const resultRef = useRef<HTMLDivElement | null>(null);
   const [inputGuardScrolledPast, setInputGuardScrolledPast] = React.useState(false);
 
-  const showFloatingDock = inputGuardScrolledPast;
+  const showFloatingDock = caseInput.plan ? true : inputGuardScrolledPast;
 
   const domainChipLabel = useMemo(() => {
     if (caseInput.journeyHint) {
@@ -67,6 +68,18 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
     if (caseInput.mode === 'private') return du ? 'Privat' : 'Privat';
     return null;
   }, [caseInput.journeyHint, caseInput.mode, du]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (caseInput.plan) {
+      document.documentElement.dataset.claraWegweiserPlan = 'true';
+    } else {
+      delete document.documentElement.dataset.claraWegweiserPlan;
+    }
+    return () => {
+      delete document.documentElement.dataset.claraWegweiserPlan;
+    };
+  }, [caseInput.plan]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

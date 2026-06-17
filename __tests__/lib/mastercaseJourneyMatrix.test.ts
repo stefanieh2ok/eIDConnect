@@ -8,7 +8,7 @@ const CHILD_INPUT =
 
 describe('mastercase journey matrix', () => {
   it('defines 24 MVP templates', () => {
-    expect(CIVIC_JOURNEY_TEMPLATES).toHaveLength(24);
+    expect(CIVIC_JOURNEY_TEMPLATES).toHaveLength(25);
     expect(CIVIC_JOURNEY_TEMPLATES.every((t) => t.priority === 'mvp')).toBe(true);
   });
 

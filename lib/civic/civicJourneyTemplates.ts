@@ -12,6 +12,7 @@ export type CivicJourneyId =
   | 'id_passport'
   | 'separation_support'
   | 'unemployment_training'
+  | 'job_loss_unemployment'
   | 'pension_retirement'
   | 'death_case'
   | 'marriage_name_change'
@@ -81,6 +82,7 @@ export const QUICK_START_JOURNEY_IDS: CivicJourneyId[] = [
   'housing_support',
   'family_care',
   'id_passport',
+  'job_loss_unemployment',
   'business_registration',
   'employer_onboarding',
 ];

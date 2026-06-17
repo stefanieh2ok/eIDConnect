@@ -5,6 +5,7 @@ import type { CasePlannerInput } from '@/lib/ai/claraCasePlanner';
 import {
   formatKnownLocationFact,
   formatKnownLocationLabel,
+  formatJurisdictionContextNote,
   hasMunicipalityContext,
   type CivicIdentityContext,
 } from '@/lib/civic/demoCivicContext';
@@ -80,6 +81,19 @@ function buildMissingQuestions(template: CivicJourneyTemplate, text: string, du:
   return questions.slice(0, 4);
 }
 
+function filterStepsForKnownContext(
+  steps: string[],
+  identity: CivicIdentityContext,
+): string[] {
+  if (!hasMunicipalityContext(identity)) return steps;
+  return steps.filter(
+    (step) =>
+      !/wohnort\s*\/\s*kommune|kommune klären|region und zuständige|zuständigkeit für kirkel/i.test(
+        step,
+      ),
+  );
+}
+
 function buildKnownContextFacts(identity: CivicIdentityContext, du: boolean): string[] {
   const facts: string[] = [];
   const label = formatKnownLocationLabel(identity, du);
@@ -94,6 +108,8 @@ function buildKnownContextFacts(identity: CivicIdentityContext, du: boolean): st
     if (place && !facts.some((f) => f.includes(place))) {
       facts.push(du ? `Bekannter Wohnort: ${place}.` : `Bekannter Wohnort: ${place}.`);
     }
+    const jurisdiction = formatJurisdictionContextNote(du);
+    if (!facts.includes(jurisdiction)) facts.push(jurisdiction);
   }
   return facts;
 }
@@ -120,7 +136,7 @@ function buildResolution(
     inferredMode,
     inferredDomain: template.domain,
     knownContextFacts,
-    orderedSteps: template.orderedSteps,
+    orderedSteps: filterStepsForKnownContext(template.orderedSteps, identity),
     relevantServiceKeywords: template.relevantServiceKeywords,
     sourceKeywords: template.sourceKeywords,
     catalogServiceIds: template.catalogServiceIds,

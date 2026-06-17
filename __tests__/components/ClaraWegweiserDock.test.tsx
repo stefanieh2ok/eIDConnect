@@ -100,7 +100,7 @@ describe('ClaraWegweiser dock visibility', () => {
     expect(document.documentElement.dataset.claraWegweiserInputOnly).toBeUndefined();
   });
 
-  it('does not show dock on plan alone while guard remains visible', async () => {
+  it('shows dock when plan is visible so Clara stays reachable', async () => {
     setup();
     emitIntersection(true);
     fireEvent.change(screen.getByRole('textbox'), {
@@ -112,6 +112,7 @@ describe('ClaraWegweiser dock visibility', () => {
     await waitFor(() => {
       expect(screen.getByText(/Dein Behördenfahrplan/i)).toBeInTheDocument();
     });
-    expect(screen.getByTestId('dock-visible')).toHaveAttribute('data-show-floating-dock', 'false');
+    expect(screen.getByTestId('dock-visible')).toHaveAttribute('data-show-floating-dock', 'true');
+    expect(document.documentElement.dataset.claraWegweiserPlan).toBe('true');
   });
 });

@@ -20,7 +20,7 @@ describe('claraCasePlanner', () => {
     expect(plan.services.length).toBeGreaterThan(0);
     expect(plan.sequenceSteps.length).toBeGreaterThanOrEqual(4);
     expect(plan.isDemoData).toBe(true);
-    expect(plan.sourceNotice).toMatch(/Offizielle Datenquelle/);
+    expect(plan.sourceNotice).toMatch(/Offizielle Datenquelle|kuratierten|Wegweiser-Template/i);
     expect(plan.followUpQuestions.length).toBeLessThanOrEqual(3);
   });
 

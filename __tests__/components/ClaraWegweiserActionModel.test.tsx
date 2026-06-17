@@ -187,7 +187,7 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
       expect(screen.getByText(/Dein Behördenfahrplan/i)).toBeInTheDocument();
     });
     expect(screen.getByText(/Lage erkannt/i)).toBeInTheDocument();
-    expect(screen.getByText(/Nächste Schritte in Kirkel/i)).toBeInTheDocument();
+    expect(screen.getByText(/Nächste Schritte/i)).toBeInTheDocument();
     expect(screen.queryByText(/Kommune oder welchem Bundesland/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Demo-Link/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/PVOG ist live/i)).not.toBeInTheDocument();
@@ -218,7 +218,7 @@ describe('verified_catalog source labels in CivicCasePlan', () => {
   it('uses structured Kirkel section titles', () => {
     render(<CivicCasePlan du plan={verifiedCatalogPlan} />);
     expect(screen.getByText(/Lage erkannt/i)).toBeInTheDocument();
-    expect(screen.getByText(/Nächste Schritte in Kirkel/i)).toBeInTheDocument();
+    expect(screen.getByText(/Nächste Schritte/i)).toBeInTheDocument();
     expect(screen.getByText(/Benötigte Unterlagen/i)).toBeInTheDocument();
   });
 });
