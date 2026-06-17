@@ -1,16 +1,15 @@
-/**
- * Wegweiser action model — textarea/CTA grouping, order, lavender accent, submit flow.
- */
 'use client';
 
 import React from 'react';
-import { render, screen, fireEvent, act, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, act, waitFor, within } from '@testing-library/react';
 import { AppProvider } from '@/context/AppContext';
 import { ClaraCaseInputProvider } from '@/context/ClaraCaseInputContext';
 import { ClaraWegweiser } from '@/components/civic/ClaraWegweiser';
 import { CivicCasePlan } from '@/components/civic/CivicCasePlan';
 import { SOURCE_NOTICE_DEMO, SOURCE_NOTICE_VERIFIED_CATALOG } from '@/lib/govdata/sourceStatus';
 import type { CivicCasePlanResult } from '@/lib/govdata/serviceTypes';
+import { planCivicCase } from '@/lib/ai/claraCasePlanner';
+import { KIRKEL_DEMO_CONTEXT } from '@/lib/civic/demoCivicContext';
 
 let intersectionCallback: IntersectionObserverCallback | null = null;
 
@@ -91,7 +90,23 @@ const verifiedCatalogPlan: CivicCasePlanResult = {
   sourceMode: 'verified_catalog',
 };
 
-describe('ClaraWegweiser action model', () => {
+describe('ClaraWegweiser Kirkel journey start screen', () => {
+  it('renders start screen hierarchy in correct order', () => {
+    setup();
+    expect(screen.getByText('Clara Wegweiser')).toHaveClass('clara-wegweiser__micro-label--lavender');
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/Kirkel/i);
+    expect(screen.getByText(/Keine Rechtsberatung/i)).toBeInTheDocument();
+    expect(screen.getByTestId('wegweiser-context-chips')).toBeInTheDocument();
+    expect(screen.getByText('Kirkel')).toBeInTheDocument();
+    expect(screen.getByText('Identifiziert')).toBeInTheDocument();
+    const card = screen.getByTestId('wegweiser-input-card');
+    expect(within(card).getByText('Deine Situation')).toBeInTheDocument();
+    expect(within(card).getByRole('textbox')).toBeInTheDocument();
+    expect(within(card).getByRole('button', { name: /Behördenfahrplan erstellen/i })).toBeInTheDocument();
+    expect(screen.getByTestId('wegweiser-quick-starts')).toBeInTheDocument();
+    expect(screen.getByTestId('wegweiser-domain-fieldset')).toBeInTheDocument();
+  });
+
   it('groups textarea and submit CTA in the same input card', () => {
     setup();
     const card = screen.getByTestId('wegweiser-input-card');
@@ -101,31 +116,24 @@ describe('ClaraWegweiser action model', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders context selector after quick starts, not between textarea and CTA', () => {
+  it('renders domain selector after quick starts, not between textarea and CTA', () => {
     setup();
     const card = screen.getByTestId('wegweiser-input-card');
     const quickStarts = screen.getByTestId('wegweiser-quick-starts');
-    const context = screen.getByTestId('wegweiser-context-fieldset');
+    const domain = screen.getByTestId('wegweiser-domain-fieldset');
     const submit = within(card).getByRole('button', { name: /Behördenfahrplan erstellen/i });
 
     expect(isBefore(submit, quickStarts)).toBe(true);
-    expect(isBefore(quickStarts, context)).toBe(true);
+    expect(isBefore(quickStarts, domain)).toBe(true);
     expect(within(card).queryByRole('button', { name: /Privat/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/Clara erkennt den Kontext automatisch/i)).toBeInTheDocument();
   });
 
-  it('uses lavender accent class on Clara label', () => {
+  it('renders Kirkel quick starts', () => {
     setup();
-    expect(screen.getByText('Clara Wegweiser')).toHaveClass('clara-wegweiser__micro-label--lavender');
-  });
-
-  it('defaults context to Automatisch erkennen when expanded', () => {
-    setup();
-    fireEvent.click(screen.getByRole('button', { name: 'Kontext ändern' }));
-    expect(screen.getByRole('button', { name: 'Automatisch erkennen' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    expect(screen.getByRole('button', { name: 'Geburt & Kita' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Umzug' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Wohngeld & Unterstützung' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Arbeitgeber werden' })).toBeInTheDocument();
   });
 
   it('disables CTA for empty input and enables after typing', () => {
@@ -134,38 +142,42 @@ describe('ClaraWegweiser action model', () => {
     expect(submit).toBeDisabled();
 
     fireEvent.change(screen.getByRole('textbox'), {
-      target: { value: 'Ich ziehe mit Kindern um.' },
+      target: { value: 'Ich ziehe um.' },
     });
     expect(submit).toBeEnabled();
     expect(submit).toHaveClass('clara-wegweiser__cta-primary--ready');
   });
 
-  it('fills textarea and enables CTA on quick-start click without auto-submit', async () => {
+  it('fills textarea on quick-start click without auto-submit', () => {
     setup();
     const submit = screen.getByRole('button', { name: /Behördenfahrplan erstellen/i });
-    fireEvent.click(screen.getByRole('button', { name: 'Umzug mit Kindern' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Umzug' }));
 
     expect(screen.getByRole('textbox').value.length).toBeGreaterThan(0);
-    expect(screen.getByRole('textbox').value).toMatch(/Kindern/i);
     expect(submit).toBeEnabled();
     expect(screen.queryByText(/Dein Behördenfahrplan/i)).not.toBeInTheDocument();
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('preserves textarea when context changes', () => {
+  it('auto-classifies domain from quick start', () => {
+    setup();
+    fireEvent.click(screen.getByRole('button', { name: 'Gewerbe anmelden' }));
+    expect(screen.getByText('Unternehmen')).toBeInTheDocument();
+  });
+
+  it('preserves textarea when domain changes', () => {
     setup();
     const textarea = screen.getByRole('textbox');
     fireEvent.change(textarea, { target: { value: 'Pflegefall in der Familie' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Kontext ändern' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Unternehmen & Selbstständigkeit' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Selbstständig / Unternehmen' }));
     expect(textarea).toHaveValue('Pflegefall in der Familie');
     expect(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i })).toBeEnabled();
   });
 
-  it('renders case plan after submit without Demo-Link wording', async () => {
+  it('renders structured plan after submit without generic municipality question', async () => {
     setup();
     fireEvent.change(screen.getByRole('textbox'), {
-      target: { value: 'Ich ziehe mit Kindern um und brauche Unterstützung.' },
+      target: { value: 'Ich bekomme ein Kind. An was muss ich alles denken?' },
     });
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i }));
@@ -173,7 +185,24 @@ describe('ClaraWegweiser action model', () => {
     await waitFor(() => {
       expect(screen.getByText(/Dein Behördenfahrplan/i)).toBeInTheDocument();
     });
+    expect(screen.getByText(/Lage erkannt/i)).toBeInTheDocument();
+    expect(screen.getByText(/Nächste Schritte in Kirkel/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Kommune oder welchem Bundesland/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Demo-Link/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/PVOG ist live/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('Kirkel demo planner without journey match', () => {
+  it('does not ask municipality question when Kirkel context is known', () => {
+    const plan = planCivicCase(
+      { text: 'Ich brauche Hilfe bei einem unklaren Verwaltungsthema.', mode: 'unsure' },
+      true,
+      undefined,
+      KIRKEL_DEMO_CONTEXT,
+    );
+    expect(plan.followUpQuestions.join(' ')).not.toMatch(/Kommune|Bundesland/i);
+    expect(plan.followUpQuestions.join(' ')).not.toMatch(/privat.*Unternehmen/i);
   });
 });
 
@@ -182,5 +211,13 @@ describe('verified_catalog source labels in CivicCasePlan', () => {
     render(<CivicCasePlan du plan={verifiedCatalogPlan} />);
     expect(screen.getByText(/Manuell verifizierte offizielle Quelle/i)).toBeInTheDocument();
     expect(screen.queryByText(/Demo-Link/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/PVOG ist live/i)).not.toBeInTheDocument();
+  });
+
+  it('uses structured Kirkel section titles', () => {
+    render(<CivicCasePlan du plan={verifiedCatalogPlan} />);
+    expect(screen.getByText(/Lage erkannt/i)).toBeInTheDocument();
+    expect(screen.getByText(/Nächste Schritte in Kirkel/i)).toBeInTheDocument();
+    expect(screen.getByText(/Benötigte Unterlagen/i)).toBeInTheDocument();
   });
 });

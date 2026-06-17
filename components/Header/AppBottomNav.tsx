@@ -12,7 +12,7 @@ const NAV_ICONS: Record<MainNavIconKey, React.ComponentType<{ className?: string
   wahlen: CheckCircle,
 };
 
-const WEGWEISER_ARIA_LABEL = 'Clara Wegweiser Pilotmodul';
+const WEGWEISER_ARIA_LABEL = 'Clara Wegweiser';
 
 type AppBottomNavProps = {
   hidden?: boolean;
@@ -47,14 +47,7 @@ function NavButton({
       }`}
     >
       <Icon className="app-bottom-nav__icon" aria-hidden />
-      <span className="app-bottom-nav__label-wrap">
-        <span className="app-bottom-nav__label">{item.label}</span>
-        {isPilot ? (
-          <span className="app-bottom-nav__pilot-badge" aria-hidden>
-            Pilot
-          </span>
-        ) : null}
-      </span>
+      <span className="app-bottom-nav__label">{item.label}</span>
     </button>
   );
 }

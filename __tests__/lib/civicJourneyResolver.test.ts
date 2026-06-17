@@ -24,8 +24,8 @@ describe('civic journey resolver', () => {
   it('includes child-specific missing questions only', () => {
     const journey = resolveCivicJourney(CHILD_INPUT, 'unsure', identity, true);
     expect(journey?.missingQuestions.some((q) => /geboren|erwartest/i.test(q))).toBe(true);
-    expect(journey?.missingQuestions.some((q) => /Kita-Platz/i.test(q))).toBe(true);
-    expect(journey?.missingQuestions.some((q) => /krankenversichert/i.test(q))).toBe(true);
+    expect(journey?.missingQuestions.some((q) => /Betreuung/i.test(q))).toBe(true);
+    expect(journey?.missingQuestions.some((q) => /erste Kind/i.test(q))).toBe(true);
     expect(journey?.missingQuestions.some((q) => /privat.*Unternehmen|geschäftlich/i.test(q))).toBe(
       false,
     );
@@ -39,6 +39,21 @@ describe('civic journey resolver', () => {
   it('resolves business input to business_registration', () => {
     const journey = resolveCivicJourney('Ich möchte ein Gewerbe anmelden beim Finanzamt und IHK.', 'business', identity, true);
     expect(journey?.journeyId).toBe('business_registration');
+  });
+
+  it('resolves employer input to employer_first_hire', () => {
+    const journey = resolveCivicJourney(
+      'Ich stelle zum ersten Mal Mitarbeitende ein und brauche Meldungen.',
+      'business',
+      identity,
+      true,
+    );
+    expect(journey?.journeyId).toBe('employer_first_hire');
+  });
+
+  it('resolves housing benefits input', () => {
+    const journey = resolveCivicJourney('Ich brauche Wohngeld wegen hoher Miete.', 'private', identity, true);
+    expect(journey?.journeyId).toBe('housing_benefits');
   });
 });
 

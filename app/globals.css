@@ -1549,8 +1549,52 @@ html[data-shell-nav='bottom'] {
   --clara-dock-scroll-top-btn-bottom: calc(var(--app-bottom-nav-height) + 5.75rem + env(safe-area-inset-bottom, 0px));
 }
 
+.clara-wegweiser--kirkel {
+  padding-bottom: 0.35rem;
+}
+
+.clara-wegweiser__context-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+}
+
+.clara-wegweiser__context-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 199, 255, 0.9);
+  background: rgba(255, 255, 255, 0.85);
+  padding: 0.15rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--clara-dock-accent-deep, #5b21b6);
+  white-space: nowrap;
+}
+
+.clara-wegweiser__context-chip--domain {
+  background: var(--clara-dock-bg, #f4eeff);
+}
+
+.clara-wegweiser__domain-fieldset {
+  margin: 0.75rem 0 0;
+}
+
+.clara-wegweiser__domain-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.civic-case-plan__topic-pills--inline {
+  margin-top: 0.45rem;
+}
+
 html[data-clara-wegweiser-active='true'] {
-  --clara-dock-content-pad-bottom: calc(var(--app-bottom-nav-height) + 8.5rem + env(safe-area-inset-bottom, 0px));
+  --clara-dock-content-pad-bottom: calc(var(--app-bottom-nav-height) + 9rem + env(safe-area-inset-bottom, 0px));
   --clara-dock-scroll-top-btn-bottom: calc(var(--app-bottom-nav-height) + 6.75rem + env(safe-area-inset-bottom, 0px));
 }
 

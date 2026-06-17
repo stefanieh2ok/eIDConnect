@@ -18,6 +18,7 @@ import {
   resolvePlannerIdentityContext,
   type CivicIdentityContext,
 } from '@/lib/civic/demoCivicContext';
+import { hasMunicipalityContext } from '@/lib/civic/demoCivicContext';
 import { resolveCivicJourney } from '@/lib/civic/civicJourneyResolver';
 import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
 import { getVerifiedCatalogByIds } from '@/lib/govdata/verifiedOfficialSources';
@@ -59,7 +60,7 @@ const EXAMPLE_CASES = [
     label: 'Ich stelle zum ersten Mal Mitarbeitende ein und brauche einen Überblick über Pflichten und Meldungen.',
     text: 'Ich stelle zum ersten Mal Mitarbeitende ein und brauche einen Überblick über Pflichten, Meldungen und Sozialversicherung.',
     mode: 'business' as const,
-    journeyId: 'business_registration' as const,
+    journeyId: 'employer_first_hire' as const,
   },
 ] as const;
 
@@ -108,10 +109,11 @@ function buildGenericFollowUpQuestions(
   identity: CivicIdentityContext,
 ): string[] {
   const questions: string[] = [];
-  if (!identity.municipality && !input.plz && !identity.federalState) {
+  const kirkelDemo = hasMunicipalityContext(identity) && identity.profileMode === 'demo';
+  if (!kirkelDemo && !identity.municipality && !input.plz && !identity.federalState) {
     questions.push('In welcher Kommune oder welchem Bundesland findet der Fall statt?');
   }
-  if (input.mode === 'unsure') {
+  if (input.mode === 'unsure' && !kirkelDemo) {
     questions.push('Geht es um dich privat, dein Unternehmen oder beides?');
   }
   if (/frist|schreiben|bescheid/i.test(input.text) === false) {

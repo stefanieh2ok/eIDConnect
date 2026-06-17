@@ -106,7 +106,7 @@ function buildResolution(
     suggestedAuthorities: template.suggestedAuthorities,
     situationSummary: du ? template.situationSummaryDu : template.situationSummarySie,
     sourceHint:
-      'Clara ordnet deinen Fall einem vorbereiteten Behördenweg zu und ergänzt verifizierte offizielle Quellen, wo verfügbar.',
+      'Für diese Demo nutzt Clara vorbereitete Verwaltungswege und kuratierte offizielle Quellen.',
   };
 }
 

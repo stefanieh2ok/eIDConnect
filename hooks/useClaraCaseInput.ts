@@ -5,6 +5,7 @@ import { planCivicCase, getExampleCases } from '@/lib/ai/claraCasePlanner';
 import type { CivicCasePlanResult } from '@/lib/govdata/serviceTypes';
 import type { ClaraWegweiserMode } from '@/components/civic/ClaraWegweiser';
 import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
+import { getJourneyTemplateById } from '@/lib/civic/civicJourneyTemplates';
 import { resolvePlannerIdentityContext } from '@/lib/civic/demoCivicContext';
 
 const SPEECH_UNSUPPORTED =
@@ -176,7 +177,12 @@ export function useClaraCaseInput({
     (journeyId: CivicJourneyId, presetText: string, journeyMode?: ClaraWegweiserMode) => {
       setText(presetText);
       setJourneyHint(journeyId);
-      if (journeyMode) setMode(journeyMode);
+      const template = getJourneyTemplateById(journeyId);
+      if (journeyMode) {
+        setMode(journeyMode);
+      } else if (template) {
+        setMode(template.defaultMode === 'business' ? 'business' : 'private');
+      }
       requestAnimationFrame(() => textareaRef.current?.focus());
     },
     [],

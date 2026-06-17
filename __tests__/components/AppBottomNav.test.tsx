@@ -28,15 +28,16 @@ describe('AppBottomNav', () => {
       </AppProvider>,
     );
 
-    expect(screen.getByRole('button', { name: 'Clara Wegweiser Pilotmodul' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Clara Wegweiser Pilotmodul' })).toHaveClass(
+    expect(screen.getByRole('button', { name: 'Clara Wegweiser' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Clara Wegweiser' })).toHaveClass(
       'app-bottom-nav__item--pilot',
     );
     expect(screen.getByTestId('bottom-nav-zone-separator')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Melden' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Beteiligen' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Wahlen' })).toBeInTheDocument();
-    expect(screen.getByText('Pilot')).toBeInTheDocument();
+    expect(screen.queryByText('Pilot')).not.toBeInTheDocument();
+    expect(screen.queryByText('PILOT')).not.toBeInTheDocument();
   });
 
   it('hides Wegweiser and separator when flag is false', () => {
@@ -48,7 +49,7 @@ describe('AppBottomNav', () => {
       </AppProvider>,
     );
 
-    expect(screen.queryByRole('button', { name: 'Clara Wegweiser Pilotmodul' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Clara Wegweiser' })).not.toBeInTheDocument();
     expect(screen.queryByTestId('bottom-nav-zone-separator')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Melden' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Beteiligen' })).toBeInTheDocument();
@@ -64,9 +65,9 @@ describe('AppBottomNav', () => {
       </AppProvider>,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Clara Wegweiser Pilotmodul' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Clara Wegweiser' }));
     expect(screen.getByTestId('active-section')).toHaveTextContent('fuermich');
-    expect(screen.getByRole('button', { name: 'Clara Wegweiser Pilotmodul' })).toHaveClass(
+    expect(screen.getByRole('button', { name: 'Clara Wegweiser' })).toHaveClass(
       'app-bottom-nav__item--pilot-active',
     );
   });
@@ -139,7 +140,7 @@ describe('Clara Wegweiser pilot entry in app shell', () => {
     );
     await screen.findByRole('button', { name: 'Beteiligen' });
     expect(screen.queryByTestId('clara-wegweiser-pilot-card')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Clara Wegweiser Pilotmodul' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Clara Wegweiser' })).toBeInTheDocument();
   });
 
   it('hides Wegweiser nav when flag is false', async () => {
@@ -151,7 +152,7 @@ describe('Clara Wegweiser pilot entry in app shell', () => {
     );
     await screen.findByRole('button', { name: 'Beteiligen' });
     expect(screen.queryByTestId('clara-wegweiser-pilot-card')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Clara Wegweiser Pilotmodul' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Clara Wegweiser' })).not.toBeInTheDocument();
     expect(screen.queryByTestId('bottom-nav-zone-separator')).not.toBeInTheDocument();
   });
 });
