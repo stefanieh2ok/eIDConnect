@@ -28,7 +28,7 @@ export function useClaraCaseInput({
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const [text, setText] = useState('');
-  const [mode, setMode] = useState<ClaraWegweiserMode>('private');
+  const [mode, setMode] = useState<ClaraWegweiserMode>('unsure');
   const [plan, setPlan] = useState<CivicCasePlanResult | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);

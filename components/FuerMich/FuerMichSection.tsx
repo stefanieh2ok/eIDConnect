@@ -85,16 +85,10 @@ export default function FuerMichSection() {
         onPlanReady={() => setHasCasePlan(true)}
       />
 
-      {!hasCasePlan ? (
-        <div className="mt-4">
-          <InstitutionalReliefPanel du={du} />
-        </div>
-      ) : null}
-
       <div className="my-4 flex items-center gap-3 wegweiser-secondary-divider">
         <div className="h-px flex-1 bg-slate-200" aria-hidden />
         <span className="wegweiser-secondary-divider__label">
-          {du ? 'Oder Lebenslage wählen' : 'Oder Lebenslage wählen'}
+          {du ? 'Alternativ: Lebenslage aus Katalog wählen' : 'Alternativ: Lebenslage aus Katalog wählen'}
         </span>
         <div className="h-px flex-1 bg-slate-200" aria-hidden />
       </div>
@@ -103,6 +97,7 @@ export default function FuerMichSection() {
         Lebenslage wählen
       </h2>
 
+      {/* TODO: bridge life-event picker results into Clara case plan when unified planner exists */}
       <FuerMichLifeEventPicker
         du={du}
         profile={profile}
@@ -112,6 +107,12 @@ export default function FuerMichSection() {
         onClearSelection={handleClearSelection}
         onShowFullResults={handleShowFullResults}
       />
+
+      {!hasCasePlan ? (
+        <div className="mt-4 wegweiser-institutional-secondary">
+          <InstitutionalReliefPanel du={du} />
+        </div>
+      ) : null}
 
       <CivicTrustBar
         onOpenSecurity={() => {

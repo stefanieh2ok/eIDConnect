@@ -3221,6 +3221,10 @@ html[data-shell-nav='legacy'] {
     font-size: 0.5625rem;
   }
 
+  .clara-wegweiser__input-card {
+    padding: 0.65rem 0.7rem 0.75rem;
+  }
+
   .clara-wegweiser__input-block {
     margin-top: 0.55rem;
   }
@@ -3260,7 +3264,7 @@ html[data-shell-nav='legacy'] {
   }
 
   .clara-wegweiser__cta-primary--ready {
-    box-shadow: 0 4px 14px rgba(0, 51, 102, 0.12);
+    box-shadow: 0 4px 14px rgba(91, 33, 182, 0.14);
   }
 
   .clara-wegweiser__cta-primary,
@@ -3325,6 +3329,10 @@ html[data-shell-nav='legacy'] {
   color: #0055a4;
 }
 
+.clara-wegweiser__micro-label--lavender {
+  color: var(--clara-dock-accent, #6d45d8);
+}
+
 .clara-wegweiser__headline {
   margin: 0.25rem 0 0;
   font-size: 1rem;
@@ -3358,6 +3366,19 @@ html[data-shell-nav='legacy'] {
   color: #64748b;
 }
 
+.clara-wegweiser__dock-guard {
+  margin-top: 0.65rem;
+}
+
+.clara-wegweiser__input-card {
+  margin-top: 0;
+  border-radius: 0.85rem;
+  border: 1px solid var(--clara-dock-border, #d8c7ff);
+  background: linear-gradient(180deg, var(--clara-dock-bg, #f4eeff) 0%, #ffffff 42%);
+  padding: 0.75rem 0.8rem 0.85rem;
+  box-shadow: 0 4px 16px rgba(91, 33, 182, 0.06);
+}
+
 .clara-wegweiser__input-block {
   margin-top: 0.65rem;
 }
@@ -3367,7 +3388,7 @@ html[data-shell-nav='legacy'] {
   margin-bottom: 0.35rem;
   font-size: 0.6875rem;
   font-weight: 700;
-  color: #003366;
+  color: var(--clara-dock-accent-deep, #5b21b6);
 }
 
 .clara-wegweiser__textarea {
@@ -3376,14 +3397,15 @@ html[data-shell-nav='legacy'] {
   max-height: 9rem;
   resize: vertical;
   overflow-y: auto;
-  border-radius: 0.75rem;
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  background: #fbfdff;
+  border-radius: 0.65rem 0.65rem 0 0;
+  border: 1px solid rgba(216, 199, 255, 0.85);
+  border-bottom: 0;
+  background: #fff;
   padding: 0.65rem 0.8rem;
   font-size: 0.8125rem;
   line-height: 1.5;
   color: #1a2b45;
-  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: inset 0 1px 2px rgba(91, 33, 182, 0.04);
 }
 
 .clara-wegweiser__textarea::placeholder {
@@ -3394,6 +3416,48 @@ html[data-shell-nav='legacy'] {
   outline: none;
   border-color: rgba(109, 69, 216, 0.55);
   box-shadow: 0 0 0 3px rgba(216, 199, 255, 0.45);
+}
+
+.clara-wegweiser__input-card .clara-wegweiser__cta-primary {
+  width: 100%;
+  margin-top: 0;
+  border-radius: 0 0 0.65rem 0.65rem;
+  border-top: 1px solid rgba(216, 199, 255, 0.65);
+}
+
+.clara-wegweiser__input-card .clara-wegweiser__submit-hint {
+  margin-top: 0.45rem;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.clara-wegweiser__quick-starts {
+  margin-top: 0.75rem;
+  padding-top: 0;
+}
+
+.clara-wegweiser__quick-starts-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.clara-wegweiser__context-fieldset {
+  margin: 0.75rem 0 0;
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.clara-wegweiser__context-legend {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
 }
 
 .clara-wegweiser__mode-fieldset {
@@ -3427,7 +3491,8 @@ html[data-shell-nav='legacy'] {
 }
 
 .clara-wegweiser__mode-segment-btn:hover {
-  color: #003366;
+  color: var(--clara-dock-accent-deep, #5b21b6);
+  background: var(--clara-dock-bg-hover, #ede4ff);
 }
 
 .clara-wegweiser__mode-segment-btn:focus-visible {
@@ -3437,8 +3502,9 @@ html[data-shell-nav='legacy'] {
 
 .clara-wegweiser__mode-segment-btn--selected {
   background: #fff;
-  color: #003366;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  color: var(--clara-dock-accent-deep, #5b21b6);
+  box-shadow: 0 1px 3px rgba(91, 33, 182, 0.12);
+  border: 1px solid rgba(216, 199, 255, 0.85);
 }
 
 .clara-wegweiser__cta-row {
@@ -3460,7 +3526,9 @@ html[data-shell-nav='legacy'] {
 }
 
 .clara-wegweiser__cta-primary--ready {
-  box-shadow: 0 6px 18px rgba(0, 51, 102, 0.14);
+  box-shadow: 0 6px 18px rgba(91, 33, 182, 0.18);
+  background: linear-gradient(180deg, var(--clara-dock-accent, #6d45d8) 0%, var(--clara-dock-accent-deep, #5b21b6) 100%);
+  border-color: var(--clara-dock-accent-deep, #5b21b6);
 }
 
 @media (min-width: 480px) {
@@ -3527,8 +3595,8 @@ html[data-shell-nav='legacy'] {
 }
 
 .clara-wegweiser__example-row:hover {
-  background: #f8fbff;
-  border-color: #d6e0ee;
+  background: var(--clara-dock-bg-hover, #ede4ff);
+  border-color: var(--clara-dock-border, #d8c7ff);
 }
 
 .clara-wegweiser__example-row:focus-visible {
@@ -4522,6 +4590,10 @@ html[data-shell-nav='legacy'] {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #94a3b8;
+}
+
+.wegweiser-institutional-secondary {
+  opacity: 0.95;
 }
 
 .clara-wegweiser__result {

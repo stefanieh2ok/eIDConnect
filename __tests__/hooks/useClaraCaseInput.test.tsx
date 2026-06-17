@@ -19,6 +19,7 @@ describe('useClaraCaseInput submit flow', () => {
   it('keeps submit disabled when input is empty', () => {
     const { result } = renderHook(() => useClaraCaseInput({ du: true }));
     expect(result.current.canSubmit).toBe(false);
+    expect(result.current.mode).toBe('unsure');
   });
 
   it('enables submit after typing', () => {

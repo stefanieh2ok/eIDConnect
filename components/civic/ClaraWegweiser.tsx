@@ -54,7 +54,6 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
   const resultRef = useRef<HTMLDivElement | null>(null);
   const [inputGuardScrolledPast, setInputGuardScrolledPast] = useState(false);
 
-  /** Dock only after textarea/CTA/examples block has left the viewport — not on typed input or plan alone. */
   const showFloatingDock = inputGuardScrolledPast;
 
   useEffect(() => {
@@ -125,7 +124,9 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
     <div className="clara-wegweiser clara-wegweiser--workflow">
       <div className="clara-wegweiser__workflow">
         <header className="clara-wegweiser__workflow-header">
-          <p className="clara-wegweiser__micro-label">Clara Wegweiser</p>
+          <p className="clara-wegweiser__micro-label clara-wegweiser__micro-label--lavender">
+            Clara Wegweiser
+          </p>
           <h2 id="clara-wegweiser-heading" className="clara-wegweiser__headline">
             Von der Lebenslage zum Behördenfahrplan.
           </h2>
@@ -140,48 +141,19 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
         </header>
 
         <div ref={dockVisibilityGuardRef} className="clara-wegweiser__dock-guard">
-        <div className="clara-wegweiser__input-block">
-          <label htmlFor={caseInput.textareaId} className="clara-wegweiser__textarea-label">
-            {du ? 'Deine Situation' : 'Ihre Situation'}
-          </label>
-          <textarea
-            id={caseInput.textareaId}
-            ref={caseInput.textareaRef}
-            value={caseInput.text}
-            onChange={(e) => caseInput.setText(e.target.value)}
-            rows={3}
-            placeholder={PLACEHOLDER}
-            className="clara-wegweiser__textarea"
-          />
-        </div>
-
-        <fieldset className="clara-wegweiser__mode-fieldset">
-          <legend className="clara-wegweiser__mode-legend sr-only">
-            {du ? 'Kontext wählen' : 'Kontext wählen'}
-          </legend>
-          <div className="clara-wegweiser__mode-segment" role="group" aria-label={du ? 'Kontext wählen' : 'Kontext wählen'}>
-            {MODE_OPTIONS.map((m) => {
-              const selected = caseInput.mode === m.id;
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => caseInput.setMode(m.id)}
-                  className={
-                    'clara-wegweiser__mode-segment-btn' +
-                    (selected ? ' clara-wegweiser__mode-segment-btn--selected' : '')
-                  }
-                  aria-pressed={selected}
-                >
-                  {m.label}
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
-
-        <div className="clara-wegweiser__submit-block">
-          <div className="clara-wegweiser__cta-row">
+          <div className="clara-wegweiser__input-card" data-testid="wegweiser-input-card">
+            <label htmlFor={caseInput.textareaId} className="clara-wegweiser__textarea-label">
+              {du ? 'Deine Situation' : 'Ihre Situation'}
+            </label>
+            <textarea
+              id={caseInput.textareaId}
+              ref={caseInput.textareaRef}
+              value={caseInput.text}
+              onChange={(e) => caseInput.setText(e.target.value)}
+              rows={3}
+              placeholder={PLACEHOLDER}
+              className="clara-wegweiser__textarea"
+            />
             <button
               type="button"
               onClick={caseInput.handleAnalyze}
@@ -193,49 +165,74 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
             >
               {caseInput.analyzing ? 'Erstelle Behördenfahrplan…' : 'Behördenfahrplan erstellen'}
             </button>
-            <button
-              type="button"
-              onClick={() => caseInput.loadExample('move-kids', false)}
-              className="clara-wegweiser__cta-secondary btn-ghost t-button"
-            >
-              Beispielfall laden
-            </button>
+            <p className="clara-wegweiser__submit-hint" aria-live="polite">
+              {caseInput.canSubmit
+                ? du
+                  ? 'Bereit — Clara erstellt deinen Behördenfahrplan aus deiner Situation.'
+                  : 'Bereit — Clara erstellt Ihren Behördenfahrplan aus Ihrer Situation.'
+                : du
+                  ? 'Beschreibe kurz deine Situation, dann erstellt Clara deinen Behördenfahrplan.'
+                  : 'Beschreiben Sie kurz Ihre Situation, dann erstellt Clara Ihren Behördenfahrplan.'}
+            </p>
           </div>
-          <p
-            className="clara-wegweiser__submit-hint"
-            aria-live="polite"
-          >
-            {caseInput.canSubmit
-              ? du
-                ? 'Bereit — Clara erstellt deinen Behördenfahrplan aus deiner Situation.'
-                : 'Bereit — Clara erstellt Ihren Behördenfahrplan aus Ihrer Situation.'
-              : du
-                ? 'Beschreibe kurz deine Situation, dann erstellt Clara deinen Behördenfahrplan.'
-                : 'Beschreiben Sie kurz Ihre Situation, dann erstellt Clara Ihren Behördenfahrplan.'}
-          </p>
-        </div>
 
-        {!caseInput.plan ? (
-          <section className="clara-wegweiser__examples" aria-labelledby="clara-examples-heading">
-            <h3 id="clara-examples-heading" className="clara-wegweiser__examples-title">
-              Beispielfälle
-            </h3>
-            <ul className="clara-wegweiser__example-rows">
-              {EXAMPLE_ROWS.map((row) => (
-                <li key={row.key}>
+          {!caseInput.plan ? (
+            <section
+              className="clara-wegweiser__quick-starts"
+              aria-labelledby="clara-quick-starts-heading"
+              data-testid="wegweiser-quick-starts"
+            >
+              <h3 id="clara-quick-starts-heading" className="clara-wegweiser__quick-starts-title">
+                {du ? 'Oder wähle einen Startpunkt' : 'Oder wählen Sie einen Startpunkt'}
+              </h3>
+              <ul className="clara-wegweiser__example-rows">
+                {EXAMPLE_ROWS.map((row) => (
+                  <li key={row.key}>
+                    <button
+                      type="button"
+                      onClick={() => loadExampleRow(row)}
+                      className="clara-wegweiser__example-row"
+                    >
+                      <span>{row.title}</span>
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          <fieldset
+            className="clara-wegweiser__context-fieldset"
+            data-testid="wegweiser-context-fieldset"
+          >
+            <legend className="clara-wegweiser__context-legend">
+              {du ? 'Kontext einordnen' : 'Kontext einordnen'}
+            </legend>
+            <div
+              className="clara-wegweiser__mode-segment"
+              role="group"
+              aria-label={du ? 'Kontext einordnen' : 'Kontext einordnen'}
+            >
+              {MODE_OPTIONS.map((m) => {
+                const selected = caseInput.mode === m.id;
+                return (
                   <button
+                    key={m.id}
                     type="button"
-                    onClick={() => loadExampleRow(row)}
-                    className="clara-wegweiser__example-row"
+                    onClick={() => caseInput.setMode(m.id)}
+                    className={
+                      'clara-wegweiser__mode-segment-btn' +
+                      (selected ? ' clara-wegweiser__mode-segment-btn--selected' : '')
+                    }
+                    aria-pressed={selected}
                   >
-                    <span>{row.title}</span>
-                    <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60" aria-hidden />
+                    {m.label}
                   </button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
+                );
+              })}
+            </div>
+          </fieldset>
         </div>
       </div>
 
