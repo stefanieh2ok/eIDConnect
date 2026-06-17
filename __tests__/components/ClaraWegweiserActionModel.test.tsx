@@ -175,6 +175,21 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
     expect(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i })).toBeEnabled();
   });
 
+  it('shows guided intake after submit before plan', async () => {
+    setup();
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'Ich wurde gekündigt, was nun?' },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i }));
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('clara-guided-intake')).toBeInTheDocument();
+    });
+    expect(screen.getByTestId('clara-guided-intake')).toHaveTextContent(/Kündigung|Arbeitslos/i);
+    expect(screen.queryByText(/Dein Behördenfahrplan/i)).not.toBeInTheDocument();
+  });
+
   it('renders structured plan after submit without generic municipality question', async () => {
     setup();
     fireEvent.change(screen.getByRole('textbox'), {
@@ -182,6 +197,12 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
     });
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i }));
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('clara-guided-intake')).toBeInTheDocument();
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Fahrplan trotzdem erstellen/i }));
     });
     await waitFor(() => {
       expect(screen.getByText(/Dein Behördenfahrplan/i)).toBeInTheDocument();

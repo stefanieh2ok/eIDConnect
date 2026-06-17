@@ -7,6 +7,14 @@ import type { ClaraWegweiserMode } from '@/components/civic/ClaraWegweiser';
 import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
 import { getJourneyTemplateById } from '@/lib/civic/civicJourneyTemplates';
 import { resolvePlannerIdentityContext } from '@/lib/civic/demoCivicContext';
+import { resolveCivicJourney } from '@/lib/civic/civicJourneyResolver';
+import {
+  buildGuidedIntake,
+  formatIntakeAnswerFacts,
+  intakeAnswersToContextText,
+  type GuidedIntakeResult,
+  type IntakeAnswerMap,
+} from '@/lib/civic/civicGuidedIntake';
 
 const SPEECH_UNSUPPORTED =
   'Spracheingabe wird von diesem Browser noch nicht unterstützt.';
@@ -34,6 +42,8 @@ export function useClaraCaseInput({
   const [mode, setMode] = useState<ClaraWegweiserMode>('unsure');
   const [journeyHint, setJourneyHint] = useState<CivicJourneyId | undefined>(undefined);
   const [plan, setPlan] = useState<CivicCasePlanResult | null>(null);
+  const [guidedIntake, setGuidedIntake] = useState<GuidedIntakeResult | null>(null);
+  const [intakeAnswers, setIntakeAnswers] = useState<IntakeAnswerMap>({});
   const [analyzing, setAnalyzing] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [speechListening, setSpeechListening] = useState(false);
@@ -104,16 +114,42 @@ export function useClaraCaseInput({
   }, []);
 
   const runAnalysis = useCallback(
-    async (inputText: string, inputMode: ClaraWegweiserMode) => {
+    async (
+      inputText: string,
+      inputMode: ClaraWegweiserMode,
+      activeIntake: GuidedIntakeResult | null,
+      answers: IntakeAnswerMap,
+    ) => {
       const trimmed = inputText.trim();
       if (!trimmed) return;
       setAnalyzing(true);
+      const identity = resolvePlannerIdentityContext({ plz, bundesland, wohnort });
+      const answerFacts = activeIntake
+        ? formatIntakeAnswerFacts(answers, activeIntake.questions)
+        : [];
+      const enrichedText = `${trimmed} ${intakeAnswersToContextText(answers)}`.trim();
+      const effectiveJourneyHint = activeIntake?.journeyId ?? journeyHint;
+
+      const plannerInput = {
+        text: enrichedText,
+        mode: inputMode,
+        plz,
+        bundesland,
+        wohnort,
+        journeyHint: effectiveJourneyHint ?? undefined,
+        intakeAnswers: answers,
+        intakeAnswerFacts: answerFacts.length ? answerFacts : undefined,
+        safeGuidance: activeIntake?.safeGuidance,
+        safeGuidanceSteps: activeIntake?.safeGuidanceSteps,
+        integrityFlags: activeIntake?.integrityFlags,
+      };
+
       try {
         const response = await fetch('/api/govdata/search', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            text: trimmed,
+            text: enrichedText,
             mode: inputMode,
             plz,
             bundesland,
@@ -121,42 +157,65 @@ export function useClaraCaseInput({
           }),
         });
         const resolution = response.ok ? await response.json() : null;
-        const result = planCivicCase(
-          {
-            text: trimmed,
-            mode: inputMode,
-            plz,
-            bundesland,
-            wohnort,
-            journeyHint,
-          },
-          du,
-          resolution ?? undefined,
-          resolvePlannerIdentityContext({ plz, bundesland, wohnort }),
-        );
+        const result = planCivicCase(plannerInput, du, resolution ?? undefined, identity);
         setPlan(result);
+        setGuidedIntake(null);
         onPlanReady?.(result);
       } catch {
-        const result = planCivicCase(
-          {
-            text: trimmed,
-            mode: inputMode,
-            plz,
-            bundesland,
-            wohnort,
-            journeyHint,
-          },
-          du,
-          undefined,
-          resolvePlannerIdentityContext({ plz, bundesland, wohnort }),
-        );
+        const result = planCivicCase(plannerInput, du, undefined, identity);
         setPlan(result);
+        setGuidedIntake(null);
         onPlanReady?.(result);
       } finally {
         setAnalyzing(false);
       }
     },
     [plz, bundesland, wohnort, du, onPlanReady, journeyHint],
+  );
+
+  const startGuidedIntake = useCallback(() => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    const identity = resolvePlannerIdentityContext({ plz, bundesland, wohnort });
+    const journey = resolveCivicJourney(trimmed, mode, identity, du, journeyHint);
+    const intake = buildGuidedIntake(trimmed, journey, identity, du, journeyHint);
+    setGuidedIntake(intake);
+    setIntakeAnswers({});
+    setPlan(null);
+  }, [text, mode, du, journeyHint, plz, bundesland, wohnort]);
+
+  const submitPlanWithAnswers = useCallback(() => {
+    if (!guidedIntake) {
+      runAnalysis(text, mode, null, {});
+      return;
+    }
+    runAnalysis(text, mode, guidedIntake, intakeAnswers);
+  }, [guidedIntake, intakeAnswers, runAnalysis, text, mode]);
+
+  const submitPlanSkip = useCallback(() => {
+    runAnalysis(text, mode, guidedIntake, {});
+  }, [guidedIntake, runAnalysis, text, mode]);
+
+  const setIntakeAnswer = useCallback((questionId: string, value: string) => {
+    setIntakeAnswers((prev) => ({ ...prev, [questionId]: value }));
+  }, []);
+
+  const selectClassifierJourney = useCallback(
+    (journeyId: CivicJourneyId) => {
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      setJourneyHint(journeyId);
+      const template = getJourneyTemplateById(journeyId);
+      if (template) {
+        setMode(template.defaultMode === 'business' ? 'business' : 'private');
+      }
+      const identity = resolvePlannerIdentityContext({ plz, bundesland, wohnort });
+      const journey = resolveCivicJourney(trimmed, mode, identity, du, journeyId);
+      const intake = buildGuidedIntake(trimmed, journey, identity, du, journeyId);
+      setGuidedIntake(intake);
+      setIntakeAnswers({});
+    },
+    [text, mode, du, plz, bundesland, wohnort],
   );
 
   const loadExample = useCallback(
@@ -166,17 +225,21 @@ export function useClaraCaseInput({
       setText(ex.text);
       setMode(ex.mode);
       setJourneyHint('journeyId' in ex ? ex.journeyId : undefined);
+      setGuidedIntake(null);
+      setIntakeAnswers({});
       if (autoRun) {
-        runAnalysis(ex.text, ex.mode);
+        startGuidedIntake();
       }
     },
-    [examples, runAnalysis],
+    [examples, startGuidedIntake],
   );
 
   const loadJourneyQuickStart = useCallback(
     (journeyId: CivicJourneyId, presetText: string, journeyMode?: ClaraWegweiserMode) => {
       setText(presetText);
       setJourneyHint(journeyId);
+      setGuidedIntake(null);
+      setIntakeAnswers({});
       const template = getJourneyTemplateById(journeyId);
       if (journeyMode) {
         setMode(journeyMode);
@@ -188,10 +251,12 @@ export function useClaraCaseInput({
     [],
   );
 
-  const handleAnalyze = useCallback(() => runAnalysis(text, mode), [runAnalysis, text, mode]);
+  const handleAnalyze = useCallback(() => startGuidedIntake(), [startGuidedIntake]);
 
   const handleClear = useCallback(() => {
     setPlan(null);
+    setGuidedIntake(null);
+    setIntakeAnswers({});
     setText('');
     setJourneyHint(undefined);
   }, []);
@@ -238,6 +303,12 @@ export function useClaraCaseInput({
     mode,
     setMode,
     plan,
+    guidedIntake,
+    intakeAnswers,
+    setIntakeAnswer,
+    selectClassifierJourney,
+    submitPlanWithAnswers,
+    submitPlanSkip,
     analyzing,
     examples,
     speechSupported,

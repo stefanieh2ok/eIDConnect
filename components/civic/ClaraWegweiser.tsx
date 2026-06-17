@@ -9,6 +9,7 @@ import {
 import { useClaraCaseInput } from '@/hooks/useClaraCaseInput';
 import type { CivicCasePlanResult } from '@/lib/govdata/serviceTypes';
 import { CivicCasePlan } from '@/components/civic/CivicCasePlan';
+import { ClaraGuidedIntakePanel } from '@/components/civic/ClaraGuidedIntakePanel';
 import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
 import { journeyQuickStartText } from '@/lib/civic/civicJourneyResolver';
 import { getJourneyDomainLabel, getJourneyTemplateById } from '@/lib/civic/civicJourneyTemplates';
@@ -224,7 +225,7 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
             </p>
           </div>
 
-          {!caseInput.plan ? (
+          {!caseInput.plan && !caseInput.guidedIntake ? (
             <>
               <section
                 className="clara-wegweiser__quick-starts"
@@ -286,6 +287,19 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
           ) : null}
         </div>
       </div>
+
+      {caseInput.guidedIntake && !caseInput.plan ? (
+        <ClaraGuidedIntakePanel
+          intake={caseInput.guidedIntake}
+          answers={caseInput.intakeAnswers}
+          onAnswer={caseInput.setIntakeAnswer}
+          onClassifierSelect={caseInput.selectClassifierJourney}
+          onSubmitWithAnswers={caseInput.submitPlanWithAnswers}
+          onSubmitSkip={caseInput.submitPlanSkip}
+          analyzing={caseInput.analyzing}
+          du={du}
+        />
+      ) : null}
 
       {caseInput.plan ? (
         <div ref={resultRef} className="clara-wegweiser__result">

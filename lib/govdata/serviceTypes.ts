@@ -89,6 +89,10 @@ export type CivicCasePlanResult = {
   knownContextFacts?: string[];
   identityContextDisclaimer?: string;
   uncataloguedStepLabels?: string[];
+  /** Guided intake answers reflected in plan */
+  intakeAnswerFacts?: string[];
+  safeGuidance?: string;
+  integrityFlags?: string[];
 };
 
 export {

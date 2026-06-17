@@ -110,6 +110,12 @@ describe('ClaraWegweiser dock visibility', () => {
       fireEvent.click(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i }));
     });
     await waitFor(() => {
+      expect(screen.getByTestId('clara-guided-intake')).toBeInTheDocument();
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Fahrplan trotzdem erstellen/i }));
+    });
+    await waitFor(() => {
       expect(screen.getByText(/Dein Behördenfahrplan/i)).toBeInTheDocument();
     });
     expect(screen.getByTestId('dock-visible')).toHaveAttribute('data-show-floating-dock', 'true');

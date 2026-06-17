@@ -27,6 +27,7 @@ import { hasMunicipalityContext } from '@/lib/civic/demoCivicContext';
 import { resolveCivicJourney } from '@/lib/civic/civicJourneyResolver';
 import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
 import { getVerifiedCatalogByIds } from '@/lib/govdata/verifiedOfficialSources';
+import type { IntakeAnswerMap } from '@/lib/civic/civicGuidedIntake';
 
 export type CasePlannerInput = {
   text: string;
@@ -36,6 +37,11 @@ export type CasePlannerInput = {
   wohnort?: string;
   urgency?: boolean;
   journeyHint?: CivicJourneyId;
+  intakeAnswers?: IntakeAnswerMap;
+  intakeAnswerFacts?: string[];
+  safeGuidance?: string;
+  safeGuidanceSteps?: string[];
+  integrityFlags?: string[];
 };
 
 const EXAMPLE_CASES = [
@@ -253,6 +259,34 @@ function mergeJourneyServices(
   return matchGovServices(matchInput).slice(0, 8);
 }
 
+function filterFollowUpForIntake(
+  questions: string[],
+  intakeAnswers?: IntakeAnswerMap,
+): string[] {
+  if (!intakeAnswers || Object.keys(intakeAnswers).length === 0) return questions;
+  const answered = new Set(Object.keys(intakeAnswers).filter((k) => intakeAnswers[k] && intakeAnswers[k] !== 'skip'));
+  if (answered.size === 0) return questions;
+  return questions.filter((q) => {
+    if (/kommune|bundesland|privat.*unternehmen|geschäftlich/i.test(q)) return false;
+    if (answered.has('employment_end') && /endet.*Arbeitsverhältnis|Enddatum/i.test(q)) return false;
+    if (answered.has('written_notice') && /Kündigungsschreiben|Aufhebungsvertrag/i.test(q)) return false;
+    if (answered.has('current_status') && /Situation trifft/i.test(q)) return false;
+    return true;
+  });
+}
+
+function mergeSequenceWithGuidance(
+  baseSteps: string[],
+  safeGuidanceSteps?: string[],
+): string[] {
+  if (!safeGuidanceSteps?.length) return baseSteps;
+  const merged = [...safeGuidanceSteps];
+  for (const step of baseSteps) {
+    if (!merged.some((s) => s.toLowerCase() === step.toLowerCase())) merged.push(step);
+  }
+  return merged.slice(0, 10);
+}
+
 export function planCivicCase(
   input: CasePlannerInput,
   du = true,
@@ -302,17 +336,28 @@ export function planCivicCase(
     ? Array.from(new Set([...journey.suggestedAuthorities, ...serviceAuthorities])).slice(0, 10)
     : serviceAuthorities.slice(0, 8);
 
+  const knownFacts = [
+    ...(journey?.knownContextFacts ?? []),
+    ...(regionInput.intakeAnswerFacts ?? []),
+  ];
+
+  const baseSteps = journey ? journey.orderedSteps : buildSequence(matchInput.mode, hasRegion, identity);
+  const sequenceSteps = mergeSequenceWithGuidance(baseSteps, regionInput.safeGuidanceSteps);
+
+  const followUpQuestions = filterFollowUpForIntake(
+    journey ? journey.missingQuestions : buildGenericFollowUpQuestions(matchInput, identity),
+    regionInput.intakeAnswers,
+  );
+
   return {
     situationSummary: journey ? journey.situationSummary : buildSituationSummary(matchInput.text, matchInput.mode, du),
     topics,
     services,
     touchedAuthorities,
     missingCriticalInfo: buildMissingInfo(matchInput, identity, Boolean(journey)),
-    followUpQuestions: journey
-      ? journey.missingQuestions
-      : buildGenericFollowUpQuestions(matchInput, identity),
+    followUpQuestions,
     documents: buildDocuments(services, journey),
-    sequenceSteps: journey ? journey.orderedSteps : buildSequence(matchInput.mode, hasRegion, identity),
+    sequenceSteps,
     risks: buildRisks(matchInput, matchInput.mode, Boolean(journey)),
     handoverLinks,
     mode: effectiveMode,
@@ -321,9 +366,12 @@ export function planCivicCase(
     sourceMode: resolution?.mode ?? 'demo',
     journeyId: journey?.journeyId,
     journeyTitle: journey?.journeyTitle,
-    knownContextFacts: journey?.knownContextFacts,
+    knownContextFacts: knownFacts.length ? knownFacts : undefined,
     identityContextDisclaimer: identity.disclaimer,
     uncataloguedStepLabels: journey?.uncataloguedStepLabels,
+    intakeAnswerFacts: regionInput.intakeAnswerFacts,
+    safeGuidance: regionInput.safeGuidance,
+    integrityFlags: regionInput.integrityFlags,
   };
 }
 

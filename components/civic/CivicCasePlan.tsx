@@ -155,6 +155,12 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
         </section>
       ) : null}
 
+      {plan.safeGuidance ? (
+        <aside className="civic-case-plan__safe-guidance" role="note" data-testid="plan-safe-guidance">
+          <p>{plan.safeGuidance}</p>
+        </aside>
+      ) : null}
+
       <section className="civic-case-plan__section" aria-labelledby="plan-sequence">
         <SectionHead
           id="plan-sequence"
