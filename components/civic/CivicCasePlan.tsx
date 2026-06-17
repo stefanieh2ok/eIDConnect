@@ -118,9 +118,27 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
         <p className="civic-case-plan__summary-text">{plan.situationSummary}</p>
       </section>
 
+      {plan.knownContextFacts && plan.knownContextFacts.length > 0 ? (
+        <section className="civic-case-plan__section civic-case-plan__section--known-context" aria-labelledby="plan-known-context">
+          <SectionHead
+            id="plan-known-context"
+            title={du ? 'Bekannter Kontext' : 'Bekannter Kontext'}
+            lead={du ? 'Aus Demo-Profil und vorbereitetem Kirkel-Kontext.' : 'Aus Demo-Profil und vorbereitetem Kirkel-Kontext.'}
+          />
+          <ul className="civic-case-plan__known-context-list">
+            {plan.knownContextFacts.map((fact) => (
+              <li key={fact}>{fact}</li>
+            ))}
+          </ul>
+          {plan.identityContextDisclaimer ? (
+            <p className="civic-case-plan__known-context-disclaimer">{plan.identityContextDisclaimer}</p>
+          ) : null}
+        </section>
+      ) : null}
+
       {plan.topics.length > 0 ? (
         <section className="civic-case-plan__section" aria-labelledby="plan-topics">
-          <SectionHead id="plan-topics" title="Beteiligte Stellen" lead="Betroffene Themen und Bereiche." />
+          <SectionHead id="plan-topics" title="Betroffene Themen" />
           <div className="civic-case-plan__topic-pills">
             {plan.topics.map((t) => (
               <span key={t} className="civic-case-plan__topic-pill">
@@ -140,7 +158,7 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
         >
           <SectionHead
             id="plan-followup"
-            title={du ? 'Clara würde noch kurz nachfragen' : 'Clara würde noch kurz nachfragen'}
+            title={du ? 'Noch hilfreich zu wissen' : 'Noch hilfreich zu wissen'}
           />
           <ul className="civic-case-plan__followup-list">
             {plan.followUpQuestions.map((q) => (
@@ -177,6 +195,15 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
       <section className="civic-case-plan__section" aria-labelledby="plan-sequence">
         <SectionHead id="plan-sequence" title="Nächste Schritte" lead="Sinnvolle Reihenfolge für die Vorbereitung." />
         <CaseTimeline steps={plan.sequenceSteps} />
+        {plan.uncataloguedStepLabels && plan.uncataloguedStepLabels.length > 0 ? (
+          <ul className="civic-case-plan__uncatalogued-steps">
+            {plan.uncataloguedStepLabels.map((label) => (
+              <li key={label}>
+                {label} — <span className="civic-case-plan__uncatalogued-label">Quelle noch nicht im Katalog hinterlegt</span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </section>
 
       <section className="civic-case-plan__section" aria-labelledby="plan-risks">

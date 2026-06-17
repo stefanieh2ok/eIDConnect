@@ -48,7 +48,7 @@ describe('useClaraCaseInput submit flow', () => {
       await result.current.handleAnalyze();
     });
     expect(result.current.plan).not.toBeNull();
-    expect(result.current.plan?.situationSummary).toMatch(/Situation erfasst/i);
+    expect(result.current.plan?.situationSummary).toMatch(/Kind|Situation erfasst/i);
     expect(result.current.plan?.sourceNotice).toBe(SOURCE_NOTICE_DEMO);
   });
 

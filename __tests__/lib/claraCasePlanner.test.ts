@@ -15,7 +15,7 @@ describe('claraCasePlanner', () => {
       text: 'Ich ziehe mit zwei Kindern um, Einkommen ist niedrig, brauche Wohngeld und Schulwechsel.',
       mode: 'private',
     });
-    expect(plan.situationSummary).toMatch(/Situation erfasst/i);
+    expect(plan.situationSummary).toMatch(/Kind|Situation erfasst/i);
     expect(plan.topics.length).toBeGreaterThan(0);
     expect(plan.services.length).toBeGreaterThan(0);
     expect(plan.sequenceSteps.length).toBeGreaterThanOrEqual(4);

@@ -4,6 +4,8 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { planCivicCase, getExampleCases } from '@/lib/ai/claraCasePlanner';
 import type { CivicCasePlanResult } from '@/lib/govdata/serviceTypes';
 import type { ClaraWegweiserMode } from '@/components/civic/ClaraWegweiser';
+import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
+import { resolvePlannerIdentityContext } from '@/lib/civic/demoCivicContext';
 
 const SPEECH_UNSUPPORTED =
   'Spracheingabe wird von diesem Browser noch nicht unterstützt.';
@@ -29,6 +31,7 @@ export function useClaraCaseInput({
 
   const [text, setText] = useState('');
   const [mode, setMode] = useState<ClaraWegweiserMode>('unsure');
+  const [journeyHint, setJourneyHint] = useState<CivicJourneyId | undefined>(undefined);
   const [plan, setPlan] = useState<CivicCasePlanResult | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
@@ -124,9 +127,11 @@ export function useClaraCaseInput({
             plz,
             bundesland,
             wohnort,
+            journeyHint,
           },
           du,
           resolution ?? undefined,
+          resolvePlannerIdentityContext({ plz, bundesland, wohnort }),
         );
         setPlan(result);
         onPlanReady?.(result);
@@ -138,8 +143,11 @@ export function useClaraCaseInput({
             plz,
             bundesland,
             wohnort,
+            journeyHint,
           },
           du,
+          undefined,
+          resolvePlannerIdentityContext({ plz, bundesland, wohnort }),
         );
         setPlan(result);
         onPlanReady?.(result);
@@ -147,7 +155,7 @@ export function useClaraCaseInput({
         setAnalyzing(false);
       }
     },
-    [plz, bundesland, wohnort, du, onPlanReady],
+    [plz, bundesland, wohnort, du, onPlanReady, journeyHint],
   );
 
   const loadExample = useCallback(
@@ -156,6 +164,7 @@ export function useClaraCaseInput({
       if (!ex) return;
       setText(ex.text);
       setMode(ex.mode);
+      setJourneyHint('journeyId' in ex ? ex.journeyId : undefined);
       if (autoRun) {
         runAnalysis(ex.text, ex.mode);
       }
@@ -163,11 +172,22 @@ export function useClaraCaseInput({
     [examples, runAnalysis],
   );
 
+  const loadJourneyQuickStart = useCallback(
+    (journeyId: CivicJourneyId, presetText: string, journeyMode?: ClaraWegweiserMode) => {
+      setText(presetText);
+      setJourneyHint(journeyId);
+      if (journeyMode) setMode(journeyMode);
+      requestAnimationFrame(() => textareaRef.current?.focus());
+    },
+    [],
+  );
+
   const handleAnalyze = useCallback(() => runAnalysis(text, mode), [runAnalysis, text, mode]);
 
   const handleClear = useCallback(() => {
     setPlan(null);
     setText('');
+    setJourneyHint(undefined);
   }, []);
 
   const focusInput = useCallback(() => {
@@ -219,6 +239,9 @@ export function useClaraCaseInput({
     speechMessage,
     runAnalysis,
     loadExample,
+    loadJourneyQuickStart,
+    journeyHint,
+    setJourneyHint,
     handleAnalyze,
     handleClear,
     focusInput,

@@ -155,27 +155,20 @@ function PickerHarness() {
 
 
 describe('FuerMichLifeEventPicker – Auswahl', () => {
-
   it('markiert eine Situation und entfernt sie beim erneuten Klick', () => {
-
     render(<PickerHarness />);
 
     openClusterFor(firstEvent.id);
 
     const option = screen.getByRole('button', { name: firstEvent.labelDu });
 
-
-
     fireEvent.click(option);
 
     expect(option).toHaveAttribute('aria-pressed', 'true');
 
-
-
     fireEvent.click(option);
 
     expect(option).toHaveAttribute('aria-pressed', 'false');
-
   });
 
 
@@ -221,8 +214,16 @@ describe('FuerMichLifeEventPicker – Auswahl', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Andere Situation wählen' }));
 
     expect(option).toHaveAttribute('aria-pressed', 'false');
-
   });
 
+  it('shows calm catalog notice instead of yellow Demo banner in verified_catalog mode', () => {
+    const prev = process.env.NEXT_PUBLIC_GOVDATA_SOURCE_MODE;
+    process.env.NEXT_PUBLIC_GOVDATA_SOURCE_MODE = 'verified_catalog';
+    render(<PickerHarness />);
+    expect(screen.getByText(/kuratierte offizielle Quellen/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Demo-Daten: noch nicht live mit PVOG/i)).not.toBeInTheDocument();
+    if (prev === undefined) delete process.env.NEXT_PUBLIC_GOVDATA_SOURCE_MODE;
+    else process.env.NEXT_PUBLIC_GOVDATA_SOURCE_MODE = prev;
+  });
 });
 

@@ -83,6 +83,12 @@ export type CivicCasePlanResult = {
   isDemoData: boolean;
   sourceNotice?: string | null;
   sourceMode?: 'demo' | 'verified_catalog' | 'pvog_search' | 'pvog_bereitstelldienst';
+  /** Journey template metadata */
+  journeyId?: string;
+  journeyTitle?: string;
+  knownContextFacts?: string[];
+  identityContextDisclaimer?: string;
+  uncataloguedStepLabels?: string[];
 };
 
 export {

@@ -111,6 +111,7 @@ describe('ClaraWegweiser action model', () => {
     expect(isBefore(submit, quickStarts)).toBe(true);
     expect(isBefore(quickStarts, context)).toBe(true);
     expect(within(card).queryByRole('button', { name: /Privat/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/Clara erkennt den Kontext automatisch/i)).toBeInTheDocument();
   });
 
   it('uses lavender accent class on Clara label', () => {
@@ -118,9 +119,10 @@ describe('ClaraWegweiser action model', () => {
     expect(screen.getByText('Clara Wegweiser')).toHaveClass('clara-wegweiser__micro-label--lavender');
   });
 
-  it('defaults context to Ich bin unsicher', () => {
+  it('defaults context to Automatisch erkennen when expanded', () => {
     setup();
-    expect(screen.getByRole('button', { name: 'Ich bin unsicher' })).toHaveAttribute(
+    fireEvent.click(screen.getByRole('button', { name: 'Kontext ändern' }));
+    expect(screen.getByRole('button', { name: 'Automatisch erkennen' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
@@ -154,7 +156,8 @@ describe('ClaraWegweiser action model', () => {
     setup();
     const textarea = screen.getByRole('textbox');
     fireEvent.change(textarea, { target: { value: 'Pflegefall in der Familie' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Geschäftlich' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Kontext ändern' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Unternehmen & Selbstständigkeit' }));
     expect(textarea).toHaveValue('Pflegefall in der Familie');
     expect(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i })).toBeEnabled();
   });

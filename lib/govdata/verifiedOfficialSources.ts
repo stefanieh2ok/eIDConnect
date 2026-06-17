@@ -272,6 +272,11 @@ const CATALOG: VerifiedCatalogEntry[] = [
 
 export const VERIFIED_OFFICIAL_CATALOG = CATALOG;
 
+export function getVerifiedCatalogByIds(ids: string[]): GovService[] {
+  const byId = new Map(CATALOG.map((entry) => [entry.serviceId, entry]));
+  return ids.map((id) => byId.get(id)).filter((entry): entry is VerifiedCatalogEntry => Boolean(entry));
+}
+
 function normalizeText(s: string): string {
   return s.toLowerCase().replace(/\s+/g, ' ').trim();
 }

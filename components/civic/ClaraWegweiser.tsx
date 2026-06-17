@@ -9,6 +9,8 @@ import {
 import { useClaraCaseInput } from '@/hooks/useClaraCaseInput';
 import type { CivicCasePlanResult } from '@/lib/govdata/serviceTypes';
 import { CivicCasePlan } from '@/components/civic/CivicCasePlan';
+import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
+import { journeyQuickStartText } from '@/lib/civic/civicJourneyResolver';
 
 export type ClaraWegweiserMode = 'private' | 'business' | 'unsure';
 
@@ -24,34 +26,31 @@ const MODE_OPTIONS: {
   id: ClaraWegweiserMode;
   label: string;
 }[] = [
-  { id: 'private', label: 'Privat' },
-  { id: 'business', label: 'Geschäftlich' },
-  { id: 'unsure', label: 'Ich bin unsicher' },
+  { id: 'unsure', label: 'Automatisch erkennen' },
+  { id: 'private', label: 'Privatperson / Familie' },
+  { id: 'business', label: 'Unternehmen & Selbstständigkeit' },
 ];
 
 const PLACEHOLDER =
   'Ich bekomme ein Kind und möchte wissen, welche Unterlagen ich brauche — z. B. Elterngeld, Kindergeld, Kita oder Krankenversicherung.';
 
-const GEBURT_KITA_PRESET =
-  'Ich bekomme ein Kind und möchte wissen, welche Unterlagen ich brauche — z. B. Elterngeld, Kindergeld, Kita-Anmeldung und Krankenversicherung.';
-
 const EXAMPLE_ROWS: {
   key: string;
   title: string;
+  journeyId: CivicJourneyId;
   exampleId?: string;
-  presetText?: string;
-  mode?: ClaraWegweiserMode;
 }[] = [
-  { key: 'geburt-kita', title: 'Geburt & Kita', presetText: GEBURT_KITA_PRESET, mode: 'private' },
-  { key: 'move-kids', title: 'Umzug mit Kindern', exampleId: 'move-kids' },
-  { key: 'pflege-parent', title: 'Pflegefall', exampleId: 'pflege-parent' },
-  { key: 'gewerbe-start', title: 'Gewerbe anmelden', exampleId: 'gewerbe-start' },
+  { key: 'geburt-kita', title: 'Geburt & Kita', journeyId: 'child_birth_kita' },
+  { key: 'move-kids', title: 'Umzug mit Kindern', journeyId: 'moving_with_children', exampleId: 'move-kids' },
+  { key: 'pflege-parent', title: 'Pflegefall', journeyId: 'care_family', exampleId: 'pflege-parent' },
+  { key: 'gewerbe-start', title: 'Gewerbe anmelden', journeyId: 'business_registration', exampleId: 'gewerbe-start' },
 ];
 
 export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanReady }: Props) {
   const caseInput = useClaraCaseInput({ du, plz, bundesland, wohnort, onPlanReady });
   const dockVisibilityGuardRef = useRef<HTMLDivElement | null>(null);
   const resultRef = useRef<HTMLDivElement | null>(null);
+  const [contextExpanded, setContextExpanded] = useState(false);
   const [inputGuardScrolledPast, setInputGuardScrolledPast] = useState(false);
 
   const showFloatingDock = inputGuardScrolledPast;
@@ -109,15 +108,13 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
   useClaraCaseInputBridgeRegistration(bridge);
 
   const loadExampleRow = (row: (typeof EXAMPLE_ROWS)[number]) => {
+    const preset = journeyQuickStartText(row.journeyId);
     if (row.exampleId) {
       caseInput.loadExample(row.exampleId, false);
+      caseInput.setJourneyHint(row.journeyId);
       return;
     }
-    if (row.presetText) {
-      caseInput.setText(row.presetText);
-      if (row.mode) caseInput.setMode(row.mode);
-      caseInput.textareaRef.current?.focus();
-    }
+    caseInput.loadJourneyQuickStart(row.journeyId, preset);
   };
 
   return (
@@ -202,37 +199,51 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
             </section>
           ) : null}
 
-          <fieldset
-            className="clara-wegweiser__context-fieldset"
-            data-testid="wegweiser-context-fieldset"
-          >
-            <legend className="clara-wegweiser__context-legend">
-              {du ? 'Kontext einordnen' : 'Kontext einordnen'}
-            </legend>
-            <div
-              className="clara-wegweiser__mode-segment"
-              role="group"
-              aria-label={du ? 'Kontext einordnen' : 'Kontext einordnen'}
+          <div className="clara-wegweiser__context-advanced" data-testid="wegweiser-context-fieldset">
+            <p className="clara-wegweiser__context-auto">
+              {du
+                ? 'Clara erkennt den Kontext automatisch.'
+                : 'Clara erkennt den Kontext automatisch.'}
+            </p>
+            <button
+              type="button"
+              className="clara-wegweiser__context-toggle"
+              onClick={() => setContextExpanded((v) => !v)}
+              aria-expanded={contextExpanded}
             >
-              {MODE_OPTIONS.map((m) => {
-                const selected = caseInput.mode === m.id;
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => caseInput.setMode(m.id)}
-                    className={
-                      'clara-wegweiser__mode-segment-btn' +
-                      (selected ? ' clara-wegweiser__mode-segment-btn--selected' : '')
-                    }
-                    aria-pressed={selected}
-                  >
-                    {m.label}
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
+              {du ? 'Kontext ändern' : 'Kontext ändern'}
+            </button>
+            {contextExpanded ? (
+              <fieldset className="clara-wegweiser__context-fieldset">
+                <legend className="clara-wegweiser__context-legend">
+                  {du ? 'Kontext manuell setzen' : 'Kontext manuell setzen'}
+                </legend>
+                <div
+                  className="clara-wegweiser__mode-segment"
+                  role="group"
+                  aria-label={du ? 'Kontext manuell setzen' : 'Kontext manuell setzen'}
+                >
+                  {MODE_OPTIONS.map((m) => {
+                    const selected = caseInput.mode === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => caseInput.setMode(m.id)}
+                        className={
+                          'clara-wegweiser__mode-segment-btn' +
+                          (selected ? ' clara-wegweiser__mode-segment-btn--selected' : '')
+                        }
+                        aria-pressed={selected}
+                      >
+                        {m.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            ) : null}
+          </div>
         </div>
       </div>
 

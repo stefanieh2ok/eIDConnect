@@ -20,6 +20,7 @@ export default function FuerMichSection() {
   const [selectedLifeEvent, setSelectedLifeEvent] = useState<LifeEventId | null>(null);
   const [showFullResults, setShowFullResults] = useState(false);
   const [hasCasePlan, setHasCasePlan] = useState(false);
+  const [legacyPickerOpen, setLegacyPickerOpen] = useState(false);
   const resultsRef = useRef<HTMLDivElement | null>(null);
 
   const selectedLabel = useMemo(() => {
@@ -85,28 +86,42 @@ export default function FuerMichSection() {
         onPlanReady={() => setHasCasePlan(true)}
       />
 
-      <div className="my-4 flex items-center gap-3 wegweiser-secondary-divider">
-        <div className="h-px flex-1 bg-slate-200" aria-hidden />
-        <span className="wegweiser-secondary-divider__label">
-          {du ? 'Alternativ: Lebenslage aus Katalog wählen' : 'Alternativ: Lebenslage aus Katalog wählen'}
-        </span>
-        <div className="h-px flex-1 bg-slate-200" aria-hidden />
+      <div className="my-4 wegweiser-legacy-picker">
+        <button
+          type="button"
+          className="wegweiser-legacy-picker__toggle"
+          onClick={() => setLegacyPickerOpen((v) => !v)}
+          aria-expanded={legacyPickerOpen}
+        >
+          {du ? 'Weitere Lebenslagen anzeigen' : 'Weitere Lebenslagen anzeigen'}
+        </button>
+        {legacyPickerOpen ? (
+          <>
+            <div className="my-3 flex items-center gap-3 wegweiser-secondary-divider">
+              <div className="h-px flex-1 bg-slate-200" aria-hidden />
+              <span className="wegweiser-secondary-divider__label">
+                {du ? 'Alternativ: Lebenslage aus Katalog wählen' : 'Alternativ: Lebenslage aus Katalog wählen'}
+              </span>
+              <div className="h-px flex-1 bg-slate-200" aria-hidden />
+            </div>
+
+            <h2 id="fuer-mich-life-event-heading" className="sr-only">
+              Lebenslage wählen
+            </h2>
+
+            {/* TODO: bridge life-event picker results into Clara case plan when unified planner exists */}
+            <FuerMichLifeEventPicker
+              du={du}
+              profile={profile}
+              selectedId={selectedLifeEvent}
+              resolved={selectedLifeEvent ? resolved : null}
+              onSelect={handleSelectSituation}
+              onClearSelection={handleClearSelection}
+              onShowFullResults={handleShowFullResults}
+            />
+          </>
+        ) : null}
       </div>
-
-      <h2 id="fuer-mich-life-event-heading" className="sr-only">
-        Lebenslage wählen
-      </h2>
-
-      {/* TODO: bridge life-event picker results into Clara case plan when unified planner exists */}
-      <FuerMichLifeEventPicker
-        du={du}
-        profile={profile}
-        selectedId={selectedLifeEvent}
-        resolved={selectedLifeEvent ? resolved : null}
-        onSelect={handleSelectSituation}
-        onClearSelection={handleClearSelection}
-        onShowFullResults={handleShowFullResults}
-      />
 
       {!hasCasePlan ? (
         <div className="mt-4 wegweiser-institutional-secondary">

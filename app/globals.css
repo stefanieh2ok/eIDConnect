@@ -3443,6 +3443,34 @@ html[data-shell-nav='legacy'] {
   color: #475569;
 }
 
+.clara-wegweiser__context-advanced {
+  margin: 0.75rem 0 0;
+}
+
+.clara-wegweiser__context-auto {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--clara-dock-accent, #6d45d8);
+}
+
+.clara-wegweiser__context-toggle {
+  margin-top: 0.25rem;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: #64748b;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.clara-wegweiser__context-toggle:hover {
+  color: var(--clara-dock-accent-deep, #5b21b6);
+}
+
 .clara-wegweiser__context-fieldset {
   margin: 0.75rem 0 0;
   border: 0;
@@ -4594,6 +4622,57 @@ html[data-shell-nav='legacy'] {
 
 .wegweiser-institutional-secondary {
   opacity: 0.95;
+}
+
+.wegweiser-legacy-picker__toggle {
+  width: 100%;
+  border: 1px dashed #e2e8f0;
+  border-radius: 0.65rem;
+  background: #f8fafc;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #64748b;
+  text-align: left;
+}
+
+.lebenslagen-board__catalog-notice {
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.65rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.civic-case-plan__known-context-list {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: #334155;
+}
+
+.civic-case-plan__known-context-disclaimer {
+  margin: 0.45rem 0 0;
+  font-size: 0.625rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.civic-case-plan__uncatalogued-steps {
+  margin: 0.55rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.6875rem;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.civic-case-plan__uncatalogued-label {
+  color: #64748b;
+  font-style: italic;
 }
 
 .clara-wegweiser__result {
