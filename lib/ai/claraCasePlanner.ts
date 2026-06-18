@@ -28,6 +28,10 @@ import { resolveCivicJourney } from '@/lib/civic/civicJourneyResolver';
 import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
 import { getVerifiedCatalogByIds } from '@/lib/govdata/verifiedOfficialSources';
 import type { IntakeAnswerMap } from '@/lib/civic/civicGuidedIntake';
+import {
+  buildDocumentsFromOfficialActions,
+  resolveOfficialActionsForJourney,
+} from '@/lib/civic/officialActionResolver';
 
 export type CasePlannerInput = {
   text: string;
@@ -349,6 +353,27 @@ export function planCivicCase(
     regionInput.intakeAnswers,
   );
 
+  const officialActionGroups = journey
+    ? resolveOfficialActionsForJourney(
+        journey.journeyId,
+        regionInput.intakeAnswers,
+        identity,
+        regionInput.text,
+      )
+    : undefined;
+
+  const baseDocuments = buildDocuments(services, journey);
+  const documents =
+    officialActionGroups && journey
+      ? buildDocumentsFromOfficialActions(
+          officialActionGroups,
+          journey.journeyId,
+          regionInput.text,
+          regionInput.intakeAnswers,
+          baseDocuments,
+        )
+      : baseDocuments;
+
   return {
     situationSummary: journey ? journey.situationSummary : buildSituationSummary(matchInput.text, matchInput.mode, du),
     topics,
@@ -356,7 +381,7 @@ export function planCivicCase(
     touchedAuthorities,
     missingCriticalInfo: buildMissingInfo(matchInput, identity, Boolean(journey)),
     followUpQuestions,
-    documents: buildDocuments(services, journey),
+    documents,
     sequenceSteps,
     risks: buildRisks(matchInput, matchInput.mode, Boolean(journey)),
     handoverLinks,
@@ -372,6 +397,7 @@ export function planCivicCase(
     intakeAnswerFacts: regionInput.intakeAnswerFacts,
     safeGuidance: regionInput.safeGuidance,
     integrityFlags: regionInput.integrityFlags,
+    officialActionGroups,
   };
 }
 

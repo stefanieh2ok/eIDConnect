@@ -49,6 +49,11 @@ export type DocumentReadinessItem = {
   label: string;
   readiness: 'likely' | 'possible' | 'regional';
   checked?: boolean;
+  whyNeeded?: string;
+  actionId?: string;
+  journeyId?: string;
+  required?: 'required' | 'conditional';
+  sourceOwner?: string;
 };
 
 export type CasePlanRisk = {
@@ -56,6 +61,7 @@ export type CasePlanRisk = {
   text: string;
 };
 
+import type { ResolvedOfficialActionGroup } from '@/lib/civic/officialActionTypes';
 import type { ExternalLinkStatus } from '@/lib/govdata/externalLinkGate';
 
 export type OfficialHandoverLink = {
@@ -93,6 +99,8 @@ export type CivicCasePlanResult = {
   intakeAnswerFacts?: string[];
   safeGuidance?: string;
   integrityFlags?: string[];
+  /** Catalogue-backed official actions and forms */
+  officialActionGroups?: ResolvedOfficialActionGroup[];
 };
 
 export {

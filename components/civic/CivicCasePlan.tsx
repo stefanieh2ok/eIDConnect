@@ -12,6 +12,7 @@ import { AuthoritiesOverview } from '@/components/civic/AuthoritiesOverview';
 import { OfficialServiceCard } from '@/components/civic/OfficialServiceCard';
 import { RequiredDocumentsChecklist } from '@/components/civic/RequiredDocumentsChecklist';
 import { CaseTimeline } from '@/components/civic/CaseTimeline';
+import { OfficialActionCard } from '@/components/civic/OfficialActionCard';
 import { RiskNotes } from '@/components/civic/RiskNotes';
 import { CaseDocumentPacketSection } from '@/components/civic/CaseDocumentPacketSection';
 import {
@@ -169,6 +170,34 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
         />
         <CaseTimeline steps={plan.sequenceSteps} />
       </section>
+
+      {plan.officialActionGroups && plan.officialActionGroups.length > 0 ? (
+        <section
+          className="civic-case-plan__section civic-case-plan__section--official-actions"
+          aria-labelledby="plan-official-actions"
+          data-testid="plan-official-actions"
+        >
+          <SectionHead
+            id="plan-official-actions"
+            title={du ? 'Offizielle Vorgänge & Formulare' : 'Offizielle Vorgänge & Formulare'}
+            lead={
+              du
+                ? 'Kataloggestützte offizielle Vorgänge — Clara reicht nichts ein und prüft keinen Anspruch.'
+                : 'Kataloggestützte offizielle Vorgänge — Clara reicht nichts ein und prüft keinen Anspruch.'
+            }
+          />
+          {plan.officialActionGroups.map((group) => (
+            <div key={group.groupTitle} className="civic-official-action-group">
+              <h4 className="civic-official-action-group__title">{group.groupTitle}</h4>
+              <div className="civic-official-action-group__list">
+                {group.actions.map((action) => (
+                  <OfficialActionCard key={action.actionId} action={action} du={du} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+      ) : null}
 
       <section className="civic-case-plan__section" aria-labelledby="plan-documents">
         <SectionHead

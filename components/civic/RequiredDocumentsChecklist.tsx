@@ -40,7 +40,14 @@ export function RequiredDocumentsChecklist({ items, du = true }: Props) {
           />
           <label htmlFor={item.id} className="civic-doc-checklist__label">
             <span className="civic-doc-checklist__title">{item.label}</span>
-            <span className="civic-doc-checklist__meta">{READINESS_LABEL[item.readiness]}</span>
+            <span className="civic-doc-checklist__meta">
+              {item.required === 'conditional' ? 'falls zutreffend · ' : ''}
+              {READINESS_LABEL[item.readiness]}
+              {item.sourceOwner ? ` · ${item.sourceOwner}` : ''}
+            </span>
+            {item.whyNeeded ? (
+              <span className="civic-doc-checklist__why">{item.whyNeeded}</span>
+            ) : null}
           </label>
         </li>
       ))}
