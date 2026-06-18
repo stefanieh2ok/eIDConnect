@@ -4,6 +4,8 @@ import {
   getOfficialActionsForJourney,
   VERIFIED_URLS,
   BA_URLS,
+  FAMILY_OFFICIAL_URLS,
+  EMPLOYER_OFFICIAL_URLS,
 } from '@/lib/civic/officialActionCatalog';
 import { linkCtaLabel } from '@/lib/civic/officialActionLinkLabels';
 import {
@@ -54,19 +56,58 @@ describe('officialActionCatalog', () => {
   });
 
   it('verified URLs match repository catalogue', () => {
-    expect(VERIFIED_URLS.kindergeld).toContain('arbeitsagentur.de');
-    expect(VERIFIED_URLS.gewerbe).toContain('bund.de');
+    expect(VERIFIED_URLS.familienportalForms).toBe(FAMILY_OFFICIAL_URLS.familienportalForms);
+    expect(VERIFIED_URLS.kinderzuschlag).toBe(FAMILY_OFFICIAL_URLS.kinderzuschlag);
+    expect(VERIFIED_URLS.betriebsnummerService).toBe(EMPLOYER_OFFICIAL_URLS.betriebsnummerService);
     expect(VERIFIED_URLS.arbeitslosengeldHub).toBe(BA_URLS.arbeitslosengeldHub);
     expect(VERIFIED_URLS.baEservices).toBe(BA_URLS.eservices);
   });
 
-  it('does not use fragile BA arbeitslos-melden deep link', () => {
+  it('does not use fragile or known-404 catalogue deep links', () => {
+    const banned = [
+      '/arbeitslos-melden',
+      '/familie-und-kinder/elterngeld',
+      '/unternehmen/unternehmensfuehrung/personal',
+      '/de/BG/index.jsp',
+    ];
     for (const action of OFFICIAL_ACTION_CATALOG) {
       for (const link of action.links) {
         if (!link.url) continue;
-        expect(link.url).not.toContain('/arbeitslos-melden');
+        for (const frag of banned) {
+          expect(link.url).not.toContain(frag);
+        }
       }
     }
+  });
+
+  it('family actions use stable Familienportal and BA Kinderzuschlag entry points', () => {
+    const actions = getOfficialActionsForJourney('child_birth_kita');
+    const elterngeld = actions.find((a) => a.actionId === 'elterngeld_apply');
+    const kindergeld = actions.find((a) => a.actionId === 'kindergeld_apply');
+    const kinderzuschlag = actions.find((a) => a.actionId === 'kinderzuschlag_check');
+    const kita = actions.find((a) => a.actionId === 'kita_reserve');
+    expect(elterngeld?.links[0]?.url).toBe(FAMILY_OFFICIAL_URLS.familienportalForms);
+    expect(elterngeld?.links[0]?.ctaLabel).toMatch(/Familienportal/i);
+    expect(kindergeld?.links[0]?.url).toBe(FAMILY_OFFICIAL_URLS.familienportalForms);
+    expect(kinderzuschlag?.links[0]?.url).toBe(FAMILY_OFFICIAL_URLS.kinderzuschlag);
+    expect(kita?.links[0]?.status).toBe('regional_lookup_required');
+    expect(kita?.links[0]?.url).toBeUndefined();
+  });
+
+  it('employer onboarding uses stable BA Betriebsnummer and Meldeverfahren pages', () => {
+    const actions = getOfficialActionsForJourney('employer_onboarding');
+    const betrieb = actions.find((a) => a.actionId === 'employer_number');
+    const sv = actions.find((a) => a.actionId === 'social_insurance_employer');
+    expect(betrieb?.links[0]?.url).toBe(EMPLOYER_OFFICIAL_URLS.betriebsnummerService);
+    expect(betrieb?.links[0]?.ctaLabel).toMatch(/Betriebsnummer-Service/i);
+    expect(sv?.links[0]?.url).toBe(EMPLOYER_OFFICIAL_URLS.meldeverfahrenSozialversicherung);
+  });
+
+  it('business registration uses catalog_missing for Berufsgenossenschaft', () => {
+    const actions = getOfficialActionsForJourney('business_registration');
+    const bg = actions.find((a) => a.actionId === 'bg_register');
+    expect(bg?.links[0]?.status).toBe('catalog_missing');
+    expect(bg?.links[0]?.url).toBeUndefined();
   });
 
   it('job-loss actions use stable BA hub or eServices', () => {
@@ -233,7 +274,7 @@ describe('CivicCasePlan official actions UI', () => {
     render(<CivicCasePlan plan={plan} />);
     expect(screen.getByTestId('plan-official-actions')).toBeInTheDocument();
     expect(screen.getByText('Offizielle Vorgänge & Formulare')).toBeInTheDocument();
-    expect(screen.getAllByText(/Offizielle Informationen öffnen|Online-Antrag starten|Beratung vorbereiten|Zuständige Stelle suchen/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Familienportal|Kindergeld-Formular|Betriebsnummer-Service|Meldeverfahren|Beratung vorbereiten|Zuständige Stelle suchen|Noch kein geprüfter/i).length).toBeGreaterThan(0);
     expect(screen.getByText(CLARA_CASE_DISCLAIMER)).toBeInTheDocument();
     expect(screen.queryByText(/Demo-Link/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/PVOG live/i)).not.toBeInTheDocument();

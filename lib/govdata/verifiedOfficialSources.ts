@@ -4,6 +4,10 @@
  */
 import type { MatchInput } from '@/lib/govdata/serviceMatcher';
 import type { GovService } from '@/lib/govdata/serviceTypes';
+import {
+  EMPLOYER_OFFICIAL_URLS,
+  FAMILY_OFFICIAL_URLS,
+} from '@/lib/civic/officialUrls';
 
 export const VERIFIED_CATALOG_SOURCE_LABEL = 'Manuell verifizierte offizielle Quelle';
 export const VERIFIED_CATALOG_REVIEW_DATE = '2026-06-01';
@@ -23,11 +27,11 @@ const CATALOG: VerifiedCatalogEntry[] = [
     situationType: 'private',
     responsibleAuthority: 'Familienkasse / Bundesagentur für Arbeit',
     requiredDocuments: ['Geburtsurkunde', 'Einkommensnachweise', 'Mutterschaftsgeld-Bescheid'],
-    officialSourceUrl: 'https://www.arbeitsagentur.de/familie-und-kinder/elterngeld',
+    officialSourceUrl: FAMILY_OFFICIAL_URLS.familienportalForms,
     sourceSystem: 'VerifiedCatalog',
     sourceLabel: VERIFIED_CATALOG_SOURCE_LABEL,
     sourceVerifiedAt: VERIFIED_CATALOG_REVIEW_DATE,
-    sourceOwner: 'Bundesagentur für Arbeit',
+    sourceOwner: 'Familienportal des Bundes',
     confidence: 'high',
     matchKeywords: ['elterngeld', 'elternzeit', 'kind', 'baby', 'geburt', 'familie'],
   },
@@ -39,11 +43,11 @@ const CATALOG: VerifiedCatalogEntry[] = [
     situationType: 'private',
     responsibleAuthority: 'Familienkasse',
     requiredDocuments: ['Kindergeldantrag', 'Geburtsurkunde', 'Steuer-ID des Kindes'],
-    officialSourceUrl: 'https://www.arbeitsagentur.de/familie-und-kinder/kindergeld',
+    officialSourceUrl: FAMILY_OFFICIAL_URLS.familienportalForms,
     sourceSystem: 'VerifiedCatalog',
     sourceLabel: VERIFIED_CATALOG_SOURCE_LABEL,
     sourceVerifiedAt: VERIFIED_CATALOG_REVIEW_DATE,
-    sourceOwner: 'Bundesagentur für Arbeit',
+    sourceOwner: 'Familienportal des Bundes / Familienkasse',
     confidence: 'high',
     matchKeywords: ['kindergeld', 'kind', 'familie', 'unterhalt'],
   },
@@ -56,7 +60,7 @@ const CATALOG: VerifiedCatalogEntry[] = [
     responsibleAuthority: 'Kommune / Jugendamt',
     regionRequired: true,
     regionHint: 'Die zuständige Stelle hängt von Kommune/Bundesland ab.',
-    officialSourceUrl: 'https://www.bmfsfj.de/bmfsfj/themen/familie/kinderbetreuung/kinderbetreuung-69710',
+    officialSourceUrl: undefined,
     sourceSystem: 'VerifiedCatalog',
     sourceLabel: VERIFIED_CATALOG_SOURCE_LABEL,
     sourceVerifiedAt: VERIFIED_CATALOG_REVIEW_DATE,
@@ -161,8 +165,7 @@ const CATALOG: VerifiedCatalogEntry[] = [
     regionRequired: true,
     regionHint: 'Die zuständige Stelle hängt von Kommune/Bundesland ab.',
     requiredDocuments: ['Personalausweis', 'Gewerbeanmeldung', 'Handwerkskarte falls erforderlich'],
-    officialSourceUrl:
-      'https://www.bund.de/DE/themen/verwaltung-in-deutschland/unternehmensgruendung/gewerbeanmeldung/gewerbeanmeldung-node.html',
+    officialSourceUrl: undefined,
     sourceSystem: 'VerifiedCatalog',
     sourceLabel: VERIFIED_CATALOG_SOURCE_LABEL,
     sourceVerifiedAt: VERIFIED_CATALOG_REVIEW_DATE,
@@ -193,7 +196,7 @@ const CATALOG: VerifiedCatalogEntry[] = [
     situationType: 'business',
     responsibleAuthority: 'Agentur für Arbeit / Krankenkasse / Finanzamt',
     requiredDocuments: ['Arbeitsvertrag', 'Sozialversicherungsmeldungen', 'Lohnunterlagen'],
-    officialSourceUrl: 'https://www.arbeitsagentur.de/unternehmen/unternehmensfuehrung/personal',
+    officialSourceUrl: EMPLOYER_OFFICIAL_URLS.betriebsnummerService,
     sourceSystem: 'VerifiedCatalog',
     sourceLabel: VERIFIED_CATALOG_SOURCE_LABEL,
     sourceVerifiedAt: VERIFIED_CATALOG_REVIEW_DATE,
@@ -208,7 +211,7 @@ const CATALOG: VerifiedCatalogEntry[] = [
     category: 'Gründung & Gewerbe',
     situationType: 'business',
     responsibleAuthority: 'Berufsgenossenschaft / DGUV',
-    officialSourceUrl: 'https://www.dguv.de/de/BG/index.jsp',
+    officialSourceUrl: undefined,
     sourceSystem: 'VerifiedCatalog',
     sourceLabel: VERIFIED_CATALOG_SOURCE_LABEL,
     sourceVerifiedAt: VERIFIED_CATALOG_REVIEW_DATE,

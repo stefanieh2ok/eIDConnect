@@ -37,6 +37,8 @@ export type OfficialActionLink = {
   lastVerified: string;
   confidence: 'manual_verified' | 'official_source' | 'needs_region_check';
   notes?: string;
+  /** User-facing CTA when distinct from generic kind-based label */
+  ctaLabel?: string;
 };
 
 export type OfficialAction = {

@@ -9,7 +9,11 @@ import type {
 } from '@/lib/civic/officialActionTypes';
 import { CATALOG_LAST_VERIFIED } from '@/lib/civic/officialActionTypes';
 import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
-import { BA_URLS } from '@/lib/civic/baOfficialUrls';
+import {
+  BA_URLS,
+  EMPLOYER_OFFICIAL_URLS,
+  FAMILY_OFFICIAL_URLS,
+} from '@/lib/civic/officialUrls';
 
 export type {
   OfficialAction,
@@ -22,14 +26,23 @@ export type {
 } from '@/lib/civic/officialActionTypes';
 
 export { CATALOG_LAST_VERIFIED } from '@/lib/civic/officialActionTypes';
-export { BA_URLS } from '@/lib/civic/baOfficialUrls';
+export { BA_URLS, FAMILY_OFFICIAL_URLS, EMPLOYER_OFFICIAL_URLS } from '@/lib/civic/officialUrls';
 
 const V = CATALOG_LAST_VERIFIED;
 
+type LinkMeta = {
+  ctaLabel?: string;
+  notes?: string;
+  sourceRuleId?: string;
+  requiresBundId?: boolean;
+  requiresEid?: boolean;
+};
+
 export const VERIFIED_URLS = {
-  elterngeld: 'https://www.arbeitsagentur.de/familie-und-kinder/elterngeld',
-  kindergeld: 'https://www.arbeitsagentur.de/familie-und-kinder/kindergeld',
-  kita: 'https://www.bmfsfj.de/bmfsfj/themen/familie/kinderbetreuung/kinderbetreuung-69710',
+  familienportalForms: FAMILY_OFFICIAL_URLS.familienportalForms,
+  kinderzuschlag: FAMILY_OFFICIAL_URLS.kinderzuschlag,
+  betriebsnummerService: EMPLOYER_OFFICIAL_URLS.betriebsnummerService,
+  meldeverfahrenSozialversicherung: EMPLOYER_OFFICIAL_URLS.meldeverfahrenSozialversicherung,
   ummeldung: 'https://www.bund.de/DE/themen/verwaltung-in-deutschland/buergerdienste/buergerdienste-node.html',
   wohngeld: 'https://www.bmwsb.bund.de/SharedDocs/faqs/DE/wohngeld/wohngeld.html',
   pflege: 'https://www.bund.de/DE/themen/gesundheit-und-pflege/pflege/pflege-node.html',
@@ -37,10 +50,7 @@ export const VERIFIED_URLS = {
   baEservices: BA_URLS.eservices,
   baBildungsgutschein: BA_URLS.bildungsgutschein,
   baWeiterbildung: BA_URLS.weiterbildung,
-  gewerbe: 'https://www.bund.de/DE/themen/verwaltung-in-deutschland/unternehmensgruendung/gewerbeanmeldung/gewerbeanmeldung-node.html',
   gruendung: 'https://www.existenzgruender.de/DE/Home/home_node.html',
-  personal: 'https://www.arbeitsagentur.de/unternehmen/unternehmensfuehrung/personal',
-  bg: 'https://www.dguv.de/de/BG/index.jsp',
   elster: 'https://www.elster.de/eportal/start',
   kammer: 'https://www.bund.de/DE/themen/verwaltung-in-deutschland/unternehmensgruendung/unternehmensgruendung-node.html',
   foerderung: 'https://www.foerderdatenbank.de/',
@@ -50,44 +60,53 @@ export const VERIFIED_URLS = {
 
 function info(
   url: string,
-  owner: string,
+  sourceOwner: string,
   level: OfficialActionLevel,
-  sourceRuleId?: string,
+  meta?: LinkMeta | string,
 ): OfficialActionLink {
+  const opts = typeof meta === 'string' ? { sourceRuleId: meta } : meta;
   return {
-    label: owner,
+    label: sourceOwner,
     url,
     kind: 'info_page',
-    sourceOwner: owner,
+    sourceOwner,
     level,
     status: 'online_info_available',
     lastVerified: V,
     confidence: 'manual_verified',
-    notes: sourceRuleId,
+    notes: opts?.notes ?? opts?.sourceRuleId,
+    ctaLabel: opts?.ctaLabel,
   };
 }
 
 function online(
   url: string,
-  owner: string,
+  sourceOwner: string,
   level: OfficialActionLevel,
-  opts?: { requiresBundId?: boolean; requiresEid?: boolean },
+  meta?: LinkMeta,
 ): OfficialActionLink {
+  const opts = meta ?? {};
   return {
-    label: owner,
+    label: sourceOwner,
     url,
     kind: 'online_service',
-    sourceOwner: owner,
+    sourceOwner,
     level,
     status: 'online_service_available',
     lastVerified: V,
     confidence: 'official_source',
-    requiresBundId: opts?.requiresBundId,
-    requiresEid: opts?.requiresEid,
+    requiresBundId: opts.requiresBundId,
+    requiresEid: opts.requiresEid,
+    notes: opts.notes,
+    ctaLabel: opts.ctaLabel,
   };
 }
 
-function regional(owner: string, level: OfficialActionLevel = 'municipal'): OfficialActionLink {
+function regional(
+  owner: string,
+  level: OfficialActionLevel = 'municipal',
+  ctaLabel?: string,
+): OfficialActionLink {
   return {
     label: owner,
     kind: 'appointment',
@@ -97,6 +116,7 @@ function regional(owner: string, level: OfficialActionLevel = 'municipal'): Offi
     regionSpecific: true,
     lastVerified: V,
     confidence: 'needs_region_check',
+    ctaLabel: ctaLabel ?? 'Zuständige Stelle suchen',
   };
 }
 
@@ -121,6 +141,7 @@ function catalogMissing(owner: string, level: OfficialActionLevel = 'mixed'): Of
     status: 'catalog_missing',
     lastVerified: V,
     confidence: 'needs_region_check',
+    ctaLabel: 'Zuständige Stelle prüfen',
   };
 }
 
@@ -168,7 +189,11 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['child_birth_kita', 'separation_support', 'moving_with_children', 'housing_support'],
     ['Familienkasse'],
     ['Kindergeldantrag', 'Geburtsurkunde', 'Steuer-ID des Kindes'],
-    [info(VERIFIED_URLS.kindergeld, 'Familienkasse', 'federal', 'vc-kindergeld')],
+    [info(VERIFIED_URLS.familienportalForms, 'Familienportal des Bundes / Familienkasse', 'federal', {
+      ctaLabel: 'Kindergeld-Formular öffnen',
+      notes: 'Offizieller Einstieg; Formular/Onlineweg abhängig von Familienkasse und Nutzerkonto.',
+      sourceRuleId: 'vc-kindergeld',
+    })],
     { sourceRuleIds: ['vc-kindergeld'], triggerKeywords: ['kindergeld'] },
   ),
   act(
@@ -178,7 +203,13 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['child_birth_kita'],
     ['Familienkasse'],
     ['Geburtsurkunde', 'Einkommensnachweise', 'Mutterschaftsgeld-Bescheid'],
-    [info(VERIFIED_URLS.elterngeld, 'Bundesagentur für Arbeit', 'federal', 'vc-elterngeld')],
+    [
+      info(VERIFIED_URLS.familienportalForms, 'Familienportal des Bundes', 'federal', {
+        ctaLabel: 'Formulare beim Familienportal öffnen',
+        notes: 'Bundesland auswählen; Online-Antrag/Antragsformular abhängig vom Land.',
+        sourceRuleId: 'vc-elterngeld',
+      }),
+    ],
     {
       sourceRuleIds: ['vc-elterngeld'],
       triggerKeywords: ['elterngeld', 'elternzeit'],
@@ -192,7 +223,10 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['child_birth_kita', 'housing_support', 'separation_support'],
     ['Familienkasse'],
     ['Einkommensnachweise', 'Mietunterlagen', 'Haushaltsmitglieder'],
-    [info(VERIFIED_URLS.kindergeld, 'Familienkasse', 'federal')],
+    [info(VERIFIED_URLS.kinderzuschlag, 'Bundesagentur für Arbeit / Familienkasse', 'federal', {
+      ctaLabel: 'Kinderzuschlag online prüfen',
+      notes: 'KiZ-Lotse und Online-Antrag über offizielle BA-Seite.',
+    })],
     { triggerKeywords: ['kinderzuschlag', 'einkommen'] },
   ),
   act(
@@ -202,10 +236,7 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['child_birth_kita', 'childcare_school', 'moving_with_children'],
     ['Kommune / Jugendamt'],
     ['Geburtsurkunde oder Schwangerschaftsnachweis', 'Wohnsitznachweis'],
-    [
-      info(VERIFIED_URLS.kita, 'BMFSFJ', 'federal', 'vc-kita'),
-      regional('Kommune / Jugendamt', 'municipal'),
-    ],
+    [regional('Kommune / Jugendamt', 'municipal')],
     { sourceRuleIds: ['vc-kita'], triggerKeywords: ['kita', 'betreuung'] },
   ),
   act(
@@ -261,7 +292,6 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['Schule / Kommune / Jugendamt'],
     ['Immatrikulations- oder Anmeldeunterlagen', 'Zeugnisse'],
     [
-      info(VERIFIED_URLS.kita, 'BMFSFJ', 'federal'),
       regional('Schulamt / Kommune', 'municipal'),
     ],
     { triggerKeywords: ['schule', 'kita', 'wechsel'] },
@@ -621,7 +651,7 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['marriage_name_change'],
     ['Finanzamt'],
     ['Steuer-ID', 'Heiratsurkunde'],
-    [online(VERIFIED_URLS.elster, 'ELSTER / Finanzverwaltung', 'federal')],
+    [info(VERIFIED_URLS.elster, 'ELSTER / Finanzverwaltung', 'federal', { ctaLabel: 'ELSTER-Portal öffnen' })],
     { triggerKeywords: ['steuerklasse'] },
   ),
 
@@ -665,10 +695,7 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['business_registration', 'self_employed_start', 'craft_business_start', 'gastronomy_permit', 'ecommerce_start', 'company_foundation', 'business_change_deregister'],
     ['Gewerbeamt / Ordnungsamt'],
     ['Personalausweis', 'Gewerbeanmeldung'],
-    [
-      info(VERIFIED_URLS.gewerbe, 'Bund.de', 'municipal', 'vc-gewerbe'),
-      regional('Gewerbeamt', 'municipal'),
-    ],
+    [regional('Gewerbeamt', 'municipal')],
     { sourceRuleIds: ['vc-gewerbe'], triggerKeywords: ['gewerbe'] },
   ),
   act(
@@ -678,7 +705,13 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['business_registration', 'self_employed_start', 'company_foundation', 'ecommerce_start', 'business_change_deregister'],
     ['Finanzamt'],
     ['Fragebogen zur steuerlichen Erfassung', 'Gewerbeanmeldung', 'Identifikationsnachweise'],
-    [online(VERIFIED_URLS.elster, 'ELSTER / Finanzverwaltung', 'federal', { requiresBundId: true })],
+    [
+      info(VERIFIED_URLS.elster, 'ELSTER / Finanzverwaltung', 'federal', {
+        ctaLabel: 'ELSTER-Portal öffnen',
+        notes: 'Offizieller Einstieg; Antrag/Formular über ELSTER — keine direkte Formular-URL im Katalog.',
+        sourceRuleId: 'vc-finanzamt',
+      }),
+    ],
     { sourceRuleIds: ['vc-finanzamt'], triggerKeywords: ['steuer', 'finanzamt', 'elster'] },
   ),
   act(
@@ -701,7 +734,7 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['business_registration', 'self_employed_start', 'employer_onboarding', 'craft_business_start', 'company_foundation', 'gastronomy_permit', 'ecommerce_start'],
     ['Berufsgenossenschaft / DGUV'],
     ['Gewerbeanmeldung', 'Beschäftigtenzahl'],
-    [info(VERIFIED_URLS.bg, 'DGUV', 'federal', 'vc-bg')],
+    [catalogMissing('Berufsgenossenschaft / DGUV')],
     { sourceRuleIds: ['vc-bg'], triggerKeywords: ['berufsgenossenschaft', 'unfallversicherung'] },
   ),
   act(
@@ -725,7 +758,7 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['Tätigkeitsbeschreibung'],
     [
       info(VERIFIED_URLS.gruendung, 'Existenzgründerportal', 'federal'),
-      info(VERIFIED_URLS.gewerbe, 'Bund.de', 'federal'),
+      regional('Gewerbeamt / Finanzamt', 'mixed'),
     ],
     { triggerKeywords: ['freiberuf', 'selbstständig'] },
   ),
@@ -784,7 +817,13 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['employer_onboarding'],
     ['Bundesagentur für Arbeit'],
     ['Unternehmensdaten', 'Gewerbeanmeldung'],
-    [info(VERIFIED_URLS.personal, 'Bundesagentur für Arbeit', 'federal', 'vc-personal')],
+    [
+      info(VERIFIED_URLS.betriebsnummerService, 'Bundesagentur für Arbeit', 'federal', {
+        ctaLabel: 'Betriebsnummer-Service öffnen',
+        notes: 'Offizieller BA-Einstieg zur Betriebsnummer; Online-Antrag wird dort angeboten.',
+        sourceRuleId: 'vc-personal',
+      }),
+    ],
     { sourceRuleIds: ['vc-personal'], triggerKeywords: ['betriebsnummer'] },
   ),
   act(
@@ -794,7 +833,12 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['employer_onboarding'],
     ['Krankenkasse', 'Bundesagentur für Arbeit'],
     ['Arbeitsvertrag', 'Sozialversicherungsmeldungen'],
-    [info(VERIFIED_URLS.personal, 'Bundesagentur für Arbeit', 'federal')],
+    [
+      info(VERIFIED_URLS.meldeverfahrenSozialversicherung, 'Bundesagentur für Arbeit', 'federal', {
+        ctaLabel: 'Meldeverfahren öffnen',
+        notes: 'Informationen zu Meldungen, Betriebsnummer und Sozialversicherung.',
+      }),
+    ],
     { triggerKeywords: ['sozialversicherung', 'krankenkasse'] },
   ),
   act(
@@ -804,7 +848,12 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['employer_onboarding'],
     ['Finanzamt'],
     ['Betriebsnummer', 'Lohnunterlagen'],
-    [online(VERIFIED_URLS.elster, 'ELSTER / Finanzverwaltung', 'federal')],
+    [
+      info(VERIFIED_URLS.elster, 'ELSTER / Finanzverwaltung', 'federal', {
+        ctaLabel: 'ELSTER-Portal öffnen',
+        notes: 'Offizieller Einstieg für Lohnsteuer-Meldungen über ELSTER.',
+      }),
+    ],
     { triggerKeywords: ['lohnsteuer', 'elster'] },
   ),
   act(
@@ -896,10 +945,7 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['business_change_deregister'],
     ['Gewerbeamt'],
     ['Gewerbeanmeldung', 'Personalausweis'],
-    [
-      info(VERIFIED_URLS.gewerbe, 'Bund.de', 'municipal'),
-      regional('Gewerbeamt', 'municipal'),
-    ],
+    [regional('Gewerbeamt', 'municipal')],
     { triggerKeywords: ['ummeld', 'standort'] },
   ),
   act(
@@ -919,7 +965,7 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['business_change_deregister'],
     ['Finanzamt'],
     ['Gewerbeabmeldung', 'Schlussrechnungen'],
-    [online(VERIFIED_URLS.elster, 'ELSTER / Finanzverwaltung', 'federal')],
+    [info(VERIFIED_URLS.elster, 'ELSTER / Finanzverwaltung', 'federal', { ctaLabel: 'ELSTER-Portal öffnen' })],
     { triggerKeywords: ['finanzamt'] },
   ),
   act(
@@ -1060,7 +1106,7 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['ecommerce_start'],
     ['Finanzamt'],
     ['Umsatzprognose', 'Lieferländer'],
-    [online(VERIFIED_URLS.elster, 'ELSTER / Finanzverwaltung', 'federal')],
+    [info(VERIFIED_URLS.elster, 'ELSTER / Finanzverwaltung', 'federal', { ctaLabel: 'ELSTER-Portal öffnen' })],
     { triggerKeywords: ['umsatzsteuer', 'oss', 'ust-id'] },
   ),
   act(

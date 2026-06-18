@@ -1,6 +1,10 @@
 import type { OfficialActionLink, OfficialActionStatus } from '@/lib/civic/officialActionTypes';
 
 export function linkCtaLabel(link: OfficialActionLink, du = true): string {
+  if (link.ctaLabel) {
+    return link.ctaLabel;
+  }
+
   if (!link.url) {
     switch (link.status) {
       case 'counselling_required':
@@ -9,7 +13,9 @@ export function linkCtaLabel(link: OfficialActionLink, du = true): string {
       case 'appointment_required':
         return du ? 'Zuständige Stelle suchen' : 'Zuständige Stelle suchen';
       case 'catalog_missing':
-        return du ? 'Quelle/Formular noch nicht im Katalog hinterlegt' : 'Quelle/Formular noch nicht im Katalog hinterlegt';
+        return du
+          ? 'Noch kein geprüfter Online-Einstieg im Katalog'
+          : 'Noch kein geprüfter Online-Einstieg im Katalog';
       default:
         return du ? 'Offizielle Informationen öffnen' : 'Offizielle Informationen öffnen';
     }
@@ -17,7 +23,7 @@ export function linkCtaLabel(link: OfficialActionLink, du = true): string {
 
   switch (link.kind) {
     case 'online_service':
-      return du ? 'Online-Antrag starten' : 'Online-Antrag starten';
+      return du ? 'Offiziellen Online-Dienst öffnen' : 'Offiziellen Online-Dienst öffnen';
     case 'pdf_form':
       return du ? 'Formular herunterladen' : 'Formular herunterladen';
     case 'appointment':
