@@ -94,18 +94,14 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
   it('renders start screen hierarchy in correct order', () => {
     setup();
     expect(screen.getByText('Clara Wegweiser')).toHaveClass('clara-wegweiser__micro-label--lavender');
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/Kirkel/i);
-    expect(screen.getByText(/Keine Rechtsberatung/i)).toBeInTheDocument();
-    expect(screen.getByTestId('wegweiser-context-chips')).toBeInTheDocument();
-    expect(screen.getByText('Kirkel')).toBeInTheDocument();
-    expect(screen.getByText('Demo-Profil')).toBeInTheDocument();
-    expect(screen.getByText('Saarland')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/Behördenweg strukturiert vorbereiten/i);
+    expect(screen.getByTestId('wegweiser-context-row')).toBeInTheDocument();
+    expect(screen.getByText(/Demo-Kontext: Kirkel · Saarland · Profil/i)).toBeInTheDocument();
     const card = screen.getByTestId('wegweiser-input-card');
     expect(within(card).getByText('Deine Situation')).toBeInTheDocument();
     expect(within(card).getByRole('textbox')).toBeInTheDocument();
     expect(within(card).getByRole('button', { name: /Behördenfahrplan erstellen/i })).toBeInTheDocument();
     expect(screen.getByTestId('wegweiser-quick-starts')).toBeInTheDocument();
-    expect(screen.getByTestId('wegweiser-domain-fieldset')).toBeInTheDocument();
   });
 
   it('groups textarea and submit CTA in the same input card', () => {
@@ -117,16 +113,14 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders domain selector after quick starts, not between textarea and CTA', () => {
+  it('renders quick starts after input card, not domain selector', () => {
     setup();
     const card = screen.getByTestId('wegweiser-input-card');
     const quickStarts = screen.getByTestId('wegweiser-quick-starts');
-    const domain = screen.getByTestId('wegweiser-domain-fieldset');
     const submit = within(card).getByRole('button', { name: /Behördenfahrplan erstellen/i });
 
     expect(isBefore(submit, quickStarts)).toBe(true);
-    expect(isBefore(quickStarts, domain)).toBe(true);
-    expect(within(card).queryByRole('button', { name: /Privat/i })).not.toBeInTheDocument();
+    expect(screen.queryByTestId('wegweiser-domain-fieldset')).not.toBeInTheDocument();
   });
 
   it('renders Kirkel quick starts', () => {
@@ -134,7 +128,8 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
     expect(screen.getByRole('button', { name: 'Geburt & Kita' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Umzug mit Kindern' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Wohngeld & Unterstützung' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Arbeitgeber werden' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Kündigung & Arbeit' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Gewerbe anmelden' })).toBeInTheDocument();
   });
 
   it('disables CTA for empty input and enables after typing', () => {
@@ -160,18 +155,19 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
-  it('auto-classifies domain from quick start', () => {
+  it('auto-classifies domain from quick start without visible domain UI', () => {
     setup();
     fireEvent.click(screen.getByRole('button', { name: 'Gewerbe anmelden' }));
-    expect(screen.getByText('Unternehmen')).toBeInTheDocument();
+    expect(screen.getByRole('textbox').value.length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i })).toBeEnabled();
   });
 
-  it('preserves textarea when domain changes', () => {
+  it('preserves textarea when typing after quick start', () => {
     setup();
+    fireEvent.click(screen.getByRole('button', { name: 'Pflegefall' }));
     const textarea = screen.getByRole('textbox');
-    fireEvent.change(textarea, { target: { value: 'Pflegefall in der Familie' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Selbstständig / Unternehmen' }));
-    expect(textarea).toHaveValue('Pflegefall in der Familie');
+    fireEvent.change(textarea, { target: { value: 'Pflegefall in der Familie — ergänzt' } });
+    expect(textarea).toHaveValue('Pflegefall in der Familie — ergänzt');
     expect(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i })).toBeEnabled();
   });
 

@@ -3518,6 +3518,199 @@ html[data-shell-nav='legacy'] {
   overflow-x: hidden;
 }
 
+.clara-wegweiser--compact.clara-wegweiser--workflow {
+  gap: 1rem;
+}
+
+.clara-wegweiser--compact .clara-wegweiser__workflow-header {
+  margin-bottom: 0;
+}
+
+.clara-wegweiser--compact .clara-wegweiser__headline {
+  margin-top: 0.35rem;
+  font-size: 1.5rem;
+  line-height: 1.25;
+  color: #2d2450;
+}
+
+@media (min-width: 640px) {
+  .clara-wegweiser--compact .clara-wegweiser__headline {
+    font-size: 1.625rem;
+    line-height: 1.2;
+  }
+}
+
+.clara-wegweiser--compact .clara-wegweiser__subheadline {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.43;
+  color: #5f6b7a;
+}
+
+.clara-wegweiser__context-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.clara-wegweiser__context-row-text {
+  font-size: 0.75rem;
+  line-height: 1.33;
+  color: #8b7cb3;
+  font-weight: 500;
+}
+
+.clara-wegweiser__compliance-info--inline {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.clara-wegweiser--compact .clara-wegweiser__dock-guard {
+  margin-top: 1rem;
+}
+
+.clara-wegweiser--compact .clara-wegweiser__input-card {
+  border-radius: 1rem;
+  padding: 0.75rem 0.875rem 0.65rem;
+  background: #fbfaff;
+  box-shadow: 0 2px 10px rgba(91, 33, 182, 0.05);
+}
+
+.clara-wegweiser__input-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.clara-wegweiser--compact .clara-wegweiser__textarea-label {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.33;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #5b4f8a;
+}
+
+.clara-wegweiser__dictate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 0;
+  background: transparent;
+  padding: 0.15rem 0.35rem;
+  font-size: 0.75rem;
+  line-height: 1.33;
+  font-weight: 600;
+  color: #6d45d8;
+  cursor: pointer;
+  border-radius: 0.4rem;
+}
+
+.clara-wegweiser__dictate-btn:hover {
+  background: rgba(216, 199, 255, 0.35);
+}
+
+.clara-wegweiser__dictate-btn--listening {
+  color: #5b21b6;
+  background: rgba(216, 199, 255, 0.45);
+}
+
+.clara-wegweiser__dictate-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.clara-wegweiser__input-composer {
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.75rem;
+  border: 1px solid #d8c7ff;
+  background: #fff;
+  overflow: hidden;
+}
+
+.clara-wegweiser--compact .clara-wegweiser__textarea {
+  min-height: 6rem;
+  max-height: 12.5rem;
+  resize: none;
+  overflow-y: hidden;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  padding: 0.75rem 0.875rem;
+  font-size: 0.875rem;
+  line-height: 1.43;
+  box-shadow: none;
+}
+
+.clara-wegweiser--compact .clara-wegweiser__textarea:focus {
+  box-shadow: none;
+  border-color: transparent;
+  outline: 2px solid #6d45d8;
+  outline-offset: -2px;
+}
+
+.clara-wegweiser--compact .clara-wegweiser__input-card .clara-wegweiser__cta-primary {
+  min-height: 2.75rem;
+  margin-top: 0;
+  border-radius: 0;
+  border: 0;
+  border-top: 1px solid #d8c7ff;
+  font-size: 0.875rem;
+}
+
+.clara-wegweiser--compact .clara-wegweiser__input-card .clara-wegweiser__cta-primary:disabled {
+  background: #ebe6f5;
+  color: #9b8bb8;
+  border-color: #d8c7ff;
+  opacity: 1;
+}
+
+.clara-wegweiser--compact .clara-wegweiser__submit-hint {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  line-height: 1.33;
+  color: #94a3b8;
+}
+
+.clara-wegweiser__speech-hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.6875rem;
+  color: #8b7cb3;
+}
+
+.clara-wegweiser--compact .clara-wegweiser__quick-starts {
+  margin-top: 1.125rem;
+}
+
+.clara-wegweiser--compact .clara-wegweiser__quick-starts-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.clara-wegweiser__quick-starts-lead {
+  margin: 0.2rem 0 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.33;
+  color: #94a3b8;
+}
+
+.clara-wegweiser--compact .clara-wegweiser__example-row {
+  min-height: 2.75rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(216, 199, 255, 0.55);
+  background: #fff;
+  font-size: 0.875rem;
+}
+
 .clara-wegweiser--workflow {
   gap: 0.65rem;
 }
@@ -3574,6 +3767,49 @@ html[data-shell-nav='legacy'] {
   background: transparent;
   font-size: 0.625rem;
   line-height: 1.4;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.clara-wegweiser__compliance-info {
+  margin: 0.35rem 0 0;
+  max-width: 20rem;
+}
+
+.clara-wegweiser__compliance-info-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  list-style: none;
+  cursor: pointer;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #8b7cb3;
+  user-select: none;
+}
+
+.clara-wegweiser__compliance-info-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.clara-wegweiser__compliance-info-trigger:hover {
+  color: #5b21b6;
+}
+
+.clara-wegweiser__compliance-info-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex-shrink: 0;
+}
+
+.clara-wegweiser__compliance-info-body {
+  margin: 0.35rem 0 0;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(196, 181, 253, 0.45);
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 0.625rem;
+  line-height: 1.45;
   font-weight: 600;
   color: #64748b;
 }

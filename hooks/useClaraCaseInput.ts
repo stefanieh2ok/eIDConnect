@@ -51,6 +51,18 @@ export function useClaraCaseInput({
 
   const examples = getExampleCases();
 
+  const syncTextareaHeight = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    const next = Math.min(Math.max(el.scrollHeight, 96), 200);
+    el.style.height = `${next}px`;
+  }, []);
+
+  useEffect(() => {
+    syncTextareaHeight();
+  }, [text, syncTextareaHeight]);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const RecognitionCtor =
@@ -87,7 +99,10 @@ export function useClaraCaseInput({
       if (trimmed) {
         setText((prev) => (prev.trim() ? `${prev.trim()} ${trimmed}` : trimmed));
         setSpeechMessage(null);
-        requestAnimationFrame(() => textareaRef.current?.focus());
+        requestAnimationFrame(() => {
+          textareaRef.current?.focus();
+          syncTextareaHeight();
+        });
       }
     };
 
