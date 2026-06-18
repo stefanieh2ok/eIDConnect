@@ -12,18 +12,22 @@ type Props = {
 };
 
 export function OfficialActionCard({ action, du = true }: Props) {
-  const primaryLink = action.availableLinks[0];
+  const linksWithUrl = action.availableLinks.filter((l) => l.url);
+  const primaryLink = linksWithUrl[0] ?? action.availableLinks[0];
+  const secondaryLinks = linksWithUrl.slice(1);
   const hasUrl = Boolean(primaryLink?.url);
   const status = primaryLink?.status ?? 'catalog_missing';
   const ctaLabel = primaryLink ? linkCtaLabel(primaryLink, du) : action.ctaLabel;
   const badge = statusBadgeLabel(status, du);
-  const sourceLabel = primarySourceOwnerLabel(action);
-  const bodies = action.responsibleBodies.join(' · ');
   const docSummary =
     action.requiredDocuments.length > 0
-      ? action.requiredDocuments.slice(0, 4).join(', ') +
-        (action.requiredDocuments.length > 4 ? ' …' : '')
+      ? action.requiredDocuments.slice(0, 2).join(', ') +
+        (action.requiredDocuments.length > 2 ? ' …' : '')
       : null;
+  const showReason =
+    action.reason &&
+    !action.reason.startsWith('Nächster Schritt:') &&
+    action.reason.length < 120;
 
   return (
     <article className="civic-official-action-card" data-testid={`official-action-${action.actionId}`}>
@@ -34,8 +38,7 @@ export function OfficialActionCard({ action, du = true }: Props) {
         </span>
       </div>
 
-      <p className="civic-official-action-card__body">{bodies}</p>
-      <p className="civic-official-action-card__reason">{action.reason}</p>
+      {showReason ? <p className="civic-official-action-card__reason">{action.reason}</p> : null}
 
       {docSummary ? (
         <p className="civic-official-action-card__docs">
@@ -44,13 +47,11 @@ export function OfficialActionCard({ action, du = true }: Props) {
         </p>
       ) : null}
 
-      {action.safetyNotes?.map((note) => (
+      {action.safetyNotes?.slice(0, 1).map((note) => (
         <p key={note} className="civic-official-action-card__safety" role="note">
           {note}
         </p>
       ))}
-
-      <p className="civic-official-action-card__source">{sourceLabel}</p>
 
       <div className="civic-official-action-card__cta-wrap">
         {hasUrl ? (
@@ -69,6 +70,21 @@ export function OfficialActionCard({ action, du = true }: Props) {
             {action.missingLinkReason ?? ctaLabel}
           </span>
         )}
+        {secondaryLinks.length > 0 ? (
+          <div className="civic-official-action-card__secondary-links">
+            {secondaryLinks.map((link) => (
+              <a
+                key={`${link.url}-${link.label}`}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="civic-official-action-card__secondary-link"
+              >
+                {linkCtaLabel(link, du)}
+              </a>
+            ))}
+          </div>
+        ) : null}
       </div>
     </article>
   );

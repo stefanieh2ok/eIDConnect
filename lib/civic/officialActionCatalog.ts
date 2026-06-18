@@ -9,6 +9,7 @@ import type {
 } from '@/lib/civic/officialActionTypes';
 import { CATALOG_LAST_VERIFIED } from '@/lib/civic/officialActionTypes';
 import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
+import { BA_URLS } from '@/lib/civic/baOfficialUrls';
 
 export type {
   OfficialAction,
@@ -21,6 +22,7 @@ export type {
 } from '@/lib/civic/officialActionTypes';
 
 export { CATALOG_LAST_VERIFIED } from '@/lib/civic/officialActionTypes';
+export { BA_URLS } from '@/lib/civic/baOfficialUrls';
 
 const V = CATALOG_LAST_VERIFIED;
 
@@ -31,7 +33,10 @@ export const VERIFIED_URLS = {
   ummeldung: 'https://www.bund.de/DE/themen/verwaltung-in-deutschland/buergerdienste/buergerdienste-node.html',
   wohngeld: 'https://www.bmwsb.bund.de/SharedDocs/faqs/DE/wohngeld/wohngeld.html',
   pflege: 'https://www.bund.de/DE/themen/gesundheit-und-pflege/pflege/pflege-node.html',
-  arbeitslos: 'https://www.arbeitsagentur.de/arbeitslos-arbeit-finden/arbeitslosengeld/arbeitslos-melden',
+  arbeitslosengeldHub: BA_URLS.arbeitslosengeldHub,
+  baEservices: BA_URLS.eservices,
+  baBildungsgutschein: BA_URLS.bildungsgutschein,
+  baWeiterbildung: BA_URLS.weiterbildung,
   gewerbe: 'https://www.bund.de/DE/themen/verwaltung-in-deutschland/unternehmensgruendung/gewerbeanmeldung/gewerbeanmeldung-node.html',
   gruendung: 'https://www.existenzgruender.de/DE/Home/home_node.html',
   personal: 'https://www.arbeitsagentur.de/unternehmen/unternehmensfuehrung/personal',
@@ -452,7 +457,10 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['job_loss_unemployment', 'unemployment_training'],
     ['Agentur für Arbeit'],
     ['Personalausweis', 'Arbeitsvertrag'],
-    [info(VERIFIED_URLS.arbeitslos, 'Bundesagentur für Arbeit', 'federal', 'vc-arbeitslos')],
+    [
+      online(VERIFIED_URLS.baEservices, 'Bundesagentur für Arbeit', 'federal'),
+      info(VERIFIED_URLS.arbeitslosengeldHub, 'Bundesagentur für Arbeit', 'federal', 'vc-arbeitslos'),
+    ],
     { sourceRuleIds: ['vc-arbeitslos'], triggerKeywords: ['arbeitsuchend'] },
   ),
   act(
@@ -462,7 +470,10 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['job_loss_unemployment', 'unemployment_training'],
     ['Agentur für Arbeit'],
     ['Personalausweis', 'Kündigungsschreiben oder Aufhebungsvertrag', 'Arbeitsvertrag', 'Lebenslauf'],
-    [info(VERIFIED_URLS.arbeitslos, 'Bundesagentur für Arbeit', 'federal', 'vc-arbeitslos')],
+    [
+      online(VERIFIED_URLS.baEservices, 'Bundesagentur für Arbeit', 'federal'),
+      info(VERIFIED_URLS.arbeitslosengeldHub, 'Bundesagentur für Arbeit', 'federal', 'vc-arbeitslos'),
+    ],
     { sourceRuleIds: ['vc-arbeitslos'], triggerKeywords: ['arbeitslos', 'gekündigt'] },
   ),
   act(
@@ -472,7 +483,7 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['job_loss_unemployment', 'unemployment_training'],
     ['Agentur für Arbeit'],
     ['Kündigungsschreiben', 'Arbeitsvertrag', 'Lohnnachweise', 'Sozialversicherungsnachweise'],
-    [info(VERIFIED_URLS.arbeitslos, 'Bundesagentur für Arbeit', 'federal', 'vc-arbeitslos')],
+    [info(VERIFIED_URLS.arbeitslosengeldHub, 'Bundesagentur für Arbeit', 'federal', 'vc-arbeitslos')],
     { sourceRuleIds: ['vc-arbeitslos'], triggerKeywords: ['alg', 'arbeitslosengeld'] },
   ),
   act(
@@ -482,7 +493,11 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['job_loss_unemployment', 'unemployment_training'],
     ['Agentur für Arbeit'],
     ['Lebenslauf', 'Qualifikationsnachweise'],
-    [counselling('Bundesagentur für Arbeit', 'federal')],
+    [
+      counselling('Bundesagentur für Arbeit', 'federal'),
+      info(VERIFIED_URLS.baBildungsgutschein, 'Bundesagentur für Arbeit', 'federal'),
+      info(VERIFIED_URLS.baWeiterbildung, 'Bundesagentur für Arbeit', 'federal'),
+    ],
     {
       triggerKeywords: ['weiterbildung', 'bildungsgutschein', 'qualifizierung'],
       safetyNotes: [

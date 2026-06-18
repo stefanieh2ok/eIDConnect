@@ -4491,7 +4491,23 @@ html[data-shell-nav='legacy'] {
 }
 
 .civic-case-plan--with-dock {
-  padding-bottom: var(--clara-dock-content-pad-bottom, 5.5rem);
+  padding-bottom: calc(var(--clara-dock-content-pad-bottom, 5.5rem) + 0.75rem);
+}
+
+@media (max-width: 480px) {
+  .civic-case-plan--with-dock {
+    padding-bottom: calc(var(--clara-dock-content-pad-bottom, 5.5rem) + 1.5rem);
+  }
+
+  .civic-case-plan__section-title {
+    font-size: 0.75rem;
+  }
+
+  .civic-case-plan__section-lead,
+  .civic-case-plan__summary-text {
+    font-size: 0.6875rem;
+    line-height: 1.45;
+  }
 }
 
 .civic-step-cards {
@@ -4957,10 +4973,10 @@ html[data-shell-nav='legacy'] {
 }
 
 .civic-official-action-card {
-  border-radius: 0.85rem;
-  border: 1px solid rgba(196, 181, 253, 0.55);
-  background: linear-gradient(180deg, #faf8ff 0%, #fff 100%);
-  padding: 0.75rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(196, 181, 253, 0.45);
+  background: #fff;
+  padding: 0.55rem 0.6rem;
 }
 
 .civic-official-action-card__head {
@@ -4973,8 +4989,8 @@ html[data-shell-nav='legacy'] {
 
 .civic-official-action-card__title {
   margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 800;
+  font-size: 0.75rem;
+  font-weight: 700;
   line-height: 1.35;
   color: #4c3d7a;
 }
@@ -4993,10 +5009,10 @@ html[data-shell-nav='legacy'] {
 .civic-official-action-card__docs,
 .civic-official-action-card__safety,
 .civic-official-action-card__source {
-  margin: 0.4rem 0 0;
-  font-size: 0.6875rem;
-  line-height: 1.45;
-  color: #5f6b7a;
+  margin: 0.25rem 0 0;
+  font-size: 0.625rem;
+  line-height: 1.4;
+  color: #64748b;
 }
 
 .civic-official-action-card__source {
@@ -5010,7 +5026,25 @@ html[data-shell-nav='legacy'] {
 }
 
 .civic-official-action-card__cta-wrap {
-  margin-top: 0.55rem;
+  margin-top: 0.4rem;
+}
+
+.civic-official-action-card__secondary-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.civic-official-action-card__secondary-link {
+  font-size: 0.5625rem;
+  font-weight: 600;
+  color: #6d45d8;
+  text-decoration: none;
+}
+
+.civic-official-action-card__secondary-link:hover {
+  text-decoration: underline;
 }
 
 .civic-official-action-card__cta {
@@ -5461,6 +5495,23 @@ html[data-shell-nav='legacy'] {
   font-size: 0.75rem;
   line-height: 1.5;
   color: #334155;
+}
+
+.civic-case-plan__known-context-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.civic-case-plan__known-context-chip {
+  border-radius: 9999px;
+  border: 1px solid rgba(196, 181, 253, 0.45);
+  background: rgba(245, 243, 255, 0.7);
+  padding: 0.15rem 0.5rem;
+  font-size: 0.625rem;
+  line-height: 1.35;
+  color: #5b4f8a;
 }
 
 .civic-case-plan__known-context-disclaimer {

@@ -245,7 +245,7 @@ function resolveRelevance(
     return { relevance: 'primary', reason: `Gehört zum Wegweiser-Schritt „${action.title}".` };
   }
 
-  return { relevance: 'primary', reason: `Typischer Vorgang für „${template?.title ?? journeyId}".` };
+  return { relevance: 'primary', reason: `Nächster Schritt: ${action.title}.` };
 }
 
 function resolveAvailableLinks(
@@ -254,11 +254,19 @@ function resolveAvailableLinks(
 ): { links: OfficialActionLink[]; missingLinkReason?: string } {
   if (action.actionId === 'training_counselling' && trainingState !== 'training_approved') {
     const counsellingLinks = action.links.filter((l) => l.status === 'counselling_required');
+    const infoLinks = action.links.filter((l) => l.url && l.kind === 'info_page');
     return {
-      links: counsellingLinks.length ? counsellingLinks : action.links,
+      links: [...(counsellingLinks.length ? counsellingLinks : action.links.slice(0, 1)), ...infoLinks],
       missingLinkReason:
         'Weiterbildungsinteresse kann Clara strukturieren. Ob eine Förderung möglich ist, klärt die Agentur für Arbeit nach Beratung und Prüfung. Ein Bildungsgutschein ist keine automatische Leistung.',
     };
+  }
+
+  if (action.actionId === 'training_counselling' && trainingState === 'training_approved') {
+    const withUrl = action.links.filter((l) => l.url);
+    if (withUrl.length > 0) {
+      return { links: prioritizeLinks(withUrl) };
+    }
   }
 
   const withUrl = action.links.filter((l) => l.url);
@@ -341,6 +349,28 @@ export function resolveOfficialActionsForJourney(
   return groups;
 }
 
+const DOCUMENT_WHY_BY_ACTION: Partial<Record<string, string>> = {
+  register_jobseeker: 'Für die Meldung als arbeitsuchend.',
+  register_unemployed: 'Für die Arbeitslosmeldung.',
+  alg1_apply: 'Für den Antrag auf Arbeitslosengeld.',
+  training_counselling: 'Für die Beratung zu Weiterbildung.',
+  kindergeld_apply: 'Für den Kindergeldantrag.',
+  elterngeld_apply: 'Für den Elterngeldantrag.',
+  trade_register: 'Für die Gewerbeanmeldung.',
+};
+
+function documentWhyNeeded(action: ResolvedOfficialAction, label: string): string {
+  const byAction = DOCUMENT_WHY_BY_ACTION[action.actionId];
+  if (byAction) return byAction;
+  const lower = label.toLowerCase();
+  if (/kündigung|aufhebung/i.test(lower)) return 'Für die Arbeitslosmeldung.';
+  if (/personalausweis/i.test(lower)) return 'Zur Identifikation bei der Stelle.';
+  if (/arbeitsvertrag/i.test(lower)) return 'Als Nachweis des Beschäftigungsverhältnisses.';
+  if (/lebenslauf/i.test(lower)) return 'Für Vermittlung oder Beratung.';
+  if (/lohn|gehalt/i.test(lower)) return 'Zur Prüfung der Leistungsvoraussetzungen.';
+  return `Für: ${action.title}.`;
+}
+
 export function buildDocumentsFromOfficialActions(
   groups: ResolvedOfficialActionGroup[],
   journeyId: CivicJourneyId | undefined,
@@ -369,7 +399,7 @@ export function buildDocumentsFromOfficialActions(
           label,
           readiness: primaryLink?.regionSpecific ? 'regional' : 'likely',
           checked: false,
-          whyNeeded: action.reason,
+          whyNeeded: documentWhyNeeded(action, label),
           actionId: action.actionId,
           journeyId,
           required: 'required',

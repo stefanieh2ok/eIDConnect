@@ -3,9 +3,6 @@
  */
 import type { CasePlannerInput } from '@/lib/ai/claraCasePlanner';
 import {
-  formatKnownLocationFact,
-  formatKnownLocationLabel,
-  formatJurisdictionContextNote,
   hasMunicipalityContext,
   type CivicIdentityContext,
 } from '@/lib/civic/demoCivicContext';
@@ -96,22 +93,14 @@ function filterStepsForKnownContext(
 
 function buildKnownContextFacts(identity: CivicIdentityContext, du: boolean): string[] {
   const facts: string[] = [];
-  const label = formatKnownLocationLabel(identity, du);
-  const fact = formatKnownLocationFact(identity, du);
-  if (label) facts.push(label);
-  if (fact && !facts.includes(fact)) facts.push(fact);
+  const place = [identity.municipality, identity.federalState].filter(Boolean).join(' · ');
+  if (place) {
+    facts.push(du ? `Kontext: ${place}` : `Kontext: ${place}`);
+  }
   if (identity.knownFrom === 'demo_profile') {
-    facts.push(du ? 'Demo-Profil: identifizierter Demo-Kontext.' : 'Demo-Profil: identifizierter Demo-Kontext.');
+    facts.push(du ? 'Demo-Profil aktiv' : 'Demo-Profil aktiv');
   }
-  if (hasMunicipalityContext(identity)) {
-    const place = [identity.municipality, identity.federalState].filter(Boolean).join(', ');
-    if (place && !facts.some((f) => f.includes(place))) {
-      facts.push(du ? `Bekannter Wohnort: ${place}.` : `Bekannter Wohnort: ${place}.`);
-    }
-    const jurisdiction = formatJurisdictionContextNote(du);
-    if (!facts.includes(jurisdiction)) facts.push(jurisdiction);
-  }
-  return facts;
+  return facts.slice(0, 2);
 }
 
 function buildResolution(

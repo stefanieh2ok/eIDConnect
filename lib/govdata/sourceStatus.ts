@@ -36,7 +36,7 @@ export const SOURCE_NOTICE_VERIFIED_CATALOG =
   'Clara nutzt für diese Demo einen kuratierten offiziellen Quellenkatalog. Die direkte PVOG/XZuFi-Live-Anbindung ist vorbereitet, erfordert aber entsprechende Zugangsberechtigungen.';
 
 export const SOURCE_NOTICE_TEMPLATE_ONLY =
-  'Für diesen Fall ist noch keine kuratierte Online-Quelle im Katalog hinterlegt. Der vorbereitende Fahrplan basiert auf dem passenden Wegweiser-Template.';
+  'Für diesen Fall ist noch keine kuratierte Online-Quelle hinterlegt. Der Fahrplan folgt dem passenden Wegweiser-Template.';
 
 export const SOURCE_NOTICE_VERIFIED_CATALOG_NO_MATCH =
   'Für diesen Fall ist noch keine kuratierte Quelle hinterlegt. Clara kann weiterhin einen vorbereitenden Behördenfahrplan erstellen. Die direkte PVOG/XZuFi-Live-Anbindung ist vorbereitet, erfordert aber entsprechende Zugangsberechtigungen.';

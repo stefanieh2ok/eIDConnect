@@ -3,6 +3,7 @@ import {
   OFFICIAL_ACTION_CATALOG,
   getOfficialActionsForJourney,
   VERIFIED_URLS,
+  BA_URLS,
 } from '@/lib/civic/officialActionCatalog';
 import { linkCtaLabel } from '@/lib/civic/officialActionLinkLabels';
 import {
@@ -55,6 +56,27 @@ describe('officialActionCatalog', () => {
   it('verified URLs match repository catalogue', () => {
     expect(VERIFIED_URLS.kindergeld).toContain('arbeitsagentur.de');
     expect(VERIFIED_URLS.gewerbe).toContain('bund.de');
+    expect(VERIFIED_URLS.arbeitslosengeldHub).toBe(BA_URLS.arbeitslosengeldHub);
+    expect(VERIFIED_URLS.baEservices).toBe(BA_URLS.eservices);
+  });
+
+  it('does not use fragile BA arbeitslos-melden deep link', () => {
+    for (const action of OFFICIAL_ACTION_CATALOG) {
+      for (const link of action.links) {
+        if (!link.url) continue;
+        expect(link.url).not.toContain('/arbeitslos-melden');
+      }
+    }
+  });
+
+  it('job-loss actions use stable BA hub or eServices', () => {
+    const actions = getOfficialActionsForJourney('job_loss_unemployment');
+    const jobseeker = actions.find((a) => a.actionId === 'register_jobseeker');
+    const unemployed = actions.find((a) => a.actionId === 'register_unemployed');
+    const alg = actions.find((a) => a.actionId === 'alg1_apply');
+    expect(jobseeker?.links.some((l) => l.url === BA_URLS.eservices)).toBe(true);
+    expect(unemployed?.links.some((l) => l.url === BA_URLS.eservices)).toBe(true);
+    expect(alg?.links.some((l) => l.url === BA_URLS.arbeitslosengeldHub)).toBe(true);
   });
 });
 
@@ -87,6 +109,7 @@ describe('resolveOfficialActionsForJourney', () => {
     expect(titles).toMatch(/Weiterbildungsinteresse/i);
     const training = actions.find((a) => a.actionId === 'training_counselling');
     expect(training?.availableLinks[0]?.status).toBe('counselling_required');
+    expect(training?.availableLinks.some((l) => l.url === BA_URLS.bildungsgutschein)).toBe(true);
     expect(training?.safetyNotes?.join(' ')).toMatch(/keine automatische Leistung/i);
   });
 
@@ -190,6 +213,9 @@ describe('resolveOfficialActionsForJourney', () => {
     expect(plan.documents.length).toBeGreaterThan(0);
     const fromActions = plan.documents.filter((d) => d.actionId);
     expect(fromActions.length).toBeGreaterThan(0);
+    const whyTexts = fromActions.map((d) => d.whyNeeded ?? '').join(' ');
+    expect(whyTexts).not.toMatch(/Typischer Vorgang/i);
+    expect(whyTexts).toMatch(/Arbeitslosmeldung|Arbeitslosengeld|Meldung als arbeitsuchend/i);
   });
 });
 
@@ -207,7 +233,7 @@ describe('CivicCasePlan official actions UI', () => {
     render(<CivicCasePlan plan={plan} />);
     expect(screen.getByTestId('plan-official-actions')).toBeInTheDocument();
     expect(screen.getByText('Offizielle Vorgänge & Formulare')).toBeInTheDocument();
-    expect(screen.getAllByText(/Offizielle Informationen öffnen|Beratung vorbereiten|Zuständige Stelle suchen/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Offizielle Informationen öffnen|Online-Antrag starten|Beratung vorbereiten|Zuständige Stelle suchen/).length).toBeGreaterThan(0);
     expect(screen.getByText(CLARA_CASE_DISCLAIMER)).toBeInTheDocument();
     expect(screen.queryByText(/Demo-Link/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/PVOG live/i)).not.toBeInTheDocument();

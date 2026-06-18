@@ -143,7 +143,7 @@ const CATALOG: VerifiedCatalogEntry[] = [
     situationType: 'private',
     responsibleAuthority: 'Agentur für Arbeit',
     requiredDocuments: ['Personalausweis', 'Arbeitsvertrag / Kündigung', 'Lebenslauf'],
-    officialSourceUrl: 'https://www.arbeitsagentur.de/arbeitslos-arbeit-finden/arbeitslosengeld/arbeitslos-melden',
+    officialSourceUrl: 'https://www.arbeitsagentur.de/arbeitslos-arbeit-finden/arbeitslosengeld',
     sourceSystem: 'VerifiedCatalog',
     sourceLabel: VERIFIED_CATALOG_SOURCE_LABEL,
     sourceVerifiedAt: VERIFIED_CATALOG_REVIEW_DATE,

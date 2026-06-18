@@ -143,13 +143,15 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
         >
           <SectionHead
             id="plan-known-context"
-            title={du ? 'Demo-Kontext / bekannte Angaben' : 'Demo-Kontext / bekannte Angaben'}
+            title={du ? 'Bekannter Kontext' : 'Bekannter Kontext'}
           />
-          <ul className="civic-case-plan__known-context-list">
+          <div className="civic-case-plan__known-context-row">
             {plan.knownContextFacts.map((fact) => (
-              <li key={fact}>{fact}</li>
+              <span key={fact} className="civic-case-plan__known-context-chip">
+                {fact}
+              </span>
             ))}
-          </ul>
+          </div>
           {plan.identityContextDisclaimer ? (
             <p className="civic-case-plan__known-context-disclaimer">{plan.identityContextDisclaimer}</p>
           ) : null}
@@ -180,11 +182,11 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
           <SectionHead
             id="plan-official-actions"
             title={du ? 'Offizielle Vorgänge & Formulare' : 'Offizielle Vorgänge & Formulare'}
-            lead={
-              du
-                ? 'Kataloggestützte offizielle Vorgänge — Clara reicht nichts ein und prüft keinen Anspruch.'
-                : 'Kataloggestützte offizielle Vorgänge — Clara reicht nichts ein und prüft keinen Anspruch.'
-            }
+          lead={
+            du
+              ? 'Kataloggestützte Vorgänge — Clara reicht nichts ein.'
+              : 'Kataloggestützte Vorgänge — Clara reicht nichts ein.'
+          }
           />
           {plan.officialActionGroups.map((group) => (
             <div key={group.groupTitle} className="civic-official-action-group">
@@ -227,7 +229,7 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
           </div>
         ) : showTemplateSourceNote ? (
           <p className="civic-case-plan__missing-source-note">
-            Quelle noch nicht im Katalog hinterlegt — der Fahrplan basiert auf dem Wegweiser-Template.
+            Noch keine kuratierte Online-Quelle — der Fahrplan folgt dem Wegweiser-Template.
           </p>
         ) : null}
       </section>
