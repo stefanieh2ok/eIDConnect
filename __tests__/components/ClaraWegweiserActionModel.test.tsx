@@ -28,7 +28,8 @@ beforeEach(() => {
     };
   }) as unknown as typeof IntersectionObserver;
 
-  document.body.innerHTML = '<main id="main-content"></main>';
+  document.body.innerHTML =
+    '<main id="main-content"></main><div id="clara-portal-root"></div>';
   delete document.documentElement.dataset.claraWegweiserActive;
   delete document.documentElement.dataset.claraWegweiserInputOnly;
 
@@ -171,7 +172,7 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
     expect(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i })).toBeEnabled();
   });
 
-  it('shows guided intake after submit before plan', async () => {
+  it('opens clarification dialog after submit before plan', async () => {
     setup();
     fireEvent.change(screen.getByRole('textbox'), {
       target: { value: 'Ich wurde gekündigt, was nun?' },
@@ -180,9 +181,10 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
       fireEvent.click(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i }));
     });
     await waitFor(() => {
-      expect(screen.getByTestId('clara-guided-intake')).toBeInTheDocument();
+      expect(screen.getByTestId('clara-clarification-sheet')).toBeInTheDocument();
     });
-    expect(screen.getByTestId('clara-guided-intake')).toHaveTextContent(/Kündigung|Arbeitslos/i);
+    expect(screen.getByText(/Kündigung|Arbeitslos/i)).toBeInTheDocument();
+    expect(screen.queryByTestId('clara-guided-intake')).not.toBeInTheDocument();
     expect(screen.queryByText(/Dein Behördenfahrplan/i)).not.toBeInTheDocument();
   });
 
@@ -195,10 +197,10 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
       fireEvent.click(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i }));
     });
     await waitFor(() => {
-      expect(screen.getByTestId('clara-guided-intake')).toBeInTheDocument();
+      expect(screen.getByTestId('clara-clarification-sheet')).toBeInTheDocument();
     });
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Fahrplan trotzdem erstellen/i }));
+      fireEvent.click(screen.getByTestId('clarification-submit-skip-btn'));
     });
     await waitFor(() => {
       expect(screen.getByText(/Dein Behördenfahrplan/i)).toBeInTheDocument();

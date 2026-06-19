@@ -17,7 +17,8 @@ beforeEach(() => {
     thresholds: [],
   })) as unknown as typeof IntersectionObserver;
 
-  document.body.innerHTML = '<main id="main-content"></main>';
+  document.body.innerHTML =
+    '<main id="main-content"></main><div id="clara-portal-root"></div>';
 });
 
 function setup(du = true) {
@@ -141,5 +142,12 @@ describe('ClaraWegweiser compact input UX', () => {
     } else {
       delete (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition;
     }
+  });
+
+  it('hides dictate button when speech API is unsupported', () => {
+    delete (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition;
+    delete (window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition;
+    setup();
+    expect(screen.queryByTestId('wegweiser-dictate-btn')).not.toBeInTheDocument();
   });
 });

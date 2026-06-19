@@ -27,7 +27,8 @@ beforeEach(() => {
     };
   }) as unknown as typeof IntersectionObserver;
 
-  document.body.innerHTML = '<main id="main-content"></main>';
+  document.body.innerHTML =
+    '<main id="main-content"></main><div id="clara-portal-root"></div>';
   delete document.documentElement.dataset.claraWegweiserActive;
   delete document.documentElement.dataset.claraWegweiserInputOnly;
 
@@ -110,10 +111,11 @@ describe('ClaraWegweiser dock visibility', () => {
       fireEvent.click(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i }));
     });
     await waitFor(() => {
-      expect(screen.getByTestId('clara-guided-intake')).toBeInTheDocument();
+      expect(screen.getByTestId('clara-clarification-sheet')).toBeInTheDocument();
     });
+    expect(screen.getByTestId('dock-visible')).toHaveAttribute('data-show-floating-dock', 'false');
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Fahrplan trotzdem erstellen/i }));
+      fireEvent.click(screen.getByTestId('clarification-submit-skip-btn'));
     });
     await waitFor(() => {
       expect(screen.getByText(/Dein Behördenfahrplan/i)).toBeInTheDocument();

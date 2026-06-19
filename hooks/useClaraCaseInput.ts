@@ -16,9 +16,6 @@ import {
   type IntakeAnswerMap,
 } from '@/lib/civic/civicGuidedIntake';
 
-const SPEECH_UNSUPPORTED =
-  'Spracheingabe wird von diesem Browser noch nicht unterstützt.';
-
 type UseClaraCaseInputOptions = {
   du?: boolean;
   plz?: string;
@@ -44,6 +41,7 @@ export function useClaraCaseInput({
   const [plan, setPlan] = useState<CivicCasePlanResult | null>(null);
   const [guidedIntake, setGuidedIntake] = useState<GuidedIntakeResult | null>(null);
   const [intakeAnswers, setIntakeAnswers] = useState<IntakeAnswerMap>({});
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [speechListening, setSpeechListening] = useState(false);
@@ -108,7 +106,6 @@ export function useClaraCaseInput({
 
     recognition.onerror = () => {
       setSpeechListening(false);
-      setSpeechMessage(SPEECH_UNSUPPORTED);
     };
 
     recognition.onend = () => {
@@ -194,10 +191,17 @@ export function useClaraCaseInput({
     const identity = resolvePlannerIdentityContext({ plz, bundesland, wohnort });
     const journey = resolveCivicJourney(trimmed, mode, identity, du, journeyHint);
     const intake = buildGuidedIntake(trimmed, journey, identity, du, journeyHint);
-    setGuidedIntake(intake);
-    setIntakeAnswers({});
-    setPlan(null);
-  }, [text, mode, du, journeyHint, plz, bundesland, wohnort]);
+
+    if (intake.lowConfidence || intake.questions.length > 0) {
+      setGuidedIntake(intake);
+      setIntakeAnswers({});
+      setActiveQuestionIndex(0);
+      setPlan(null);
+      return;
+    }
+
+    runAnalysis(trimmed, mode, intake, {});
+  }, [text, mode, du, journeyHint, plz, bundesland, wohnort, runAnalysis]);
 
   const submitPlanWithAnswers = useCallback(() => {
     if (!guidedIntake) {
@@ -210,6 +214,33 @@ export function useClaraCaseInput({
   const submitPlanSkip = useCallback(() => {
     runAnalysis(text, mode, guidedIntake, {});
   }, [guidedIntake, runAnalysis, text, mode]);
+
+  const advanceClarification = useCallback(() => {
+    if (!guidedIntake || guidedIntake.lowConfidence) return;
+    const total = guidedIntake.questions.length;
+    if (activeQuestionIndex >= total - 1) {
+      runAnalysis(text, mode, guidedIntake, intakeAnswers);
+      return;
+    }
+    setActiveQuestionIndex((prev) => prev + 1);
+  }, [guidedIntake, activeQuestionIndex, intakeAnswers, runAnalysis, text, mode]);
+
+  const skipCurrentQuestion = useCallback(() => {
+    if (!guidedIntake || guidedIntake.lowConfidence) return;
+    const current = guidedIntake.questions[activeQuestionIndex];
+    const nextAnswers = current
+      ? { ...intakeAnswers, [current.id]: 'skip' }
+      : intakeAnswers;
+    if (current) {
+      setIntakeAnswers(nextAnswers);
+    }
+    const total = guidedIntake.questions.length;
+    if (activeQuestionIndex >= total - 1) {
+      runAnalysis(text, mode, guidedIntake, nextAnswers);
+      return;
+    }
+    setActiveQuestionIndex((prev) => prev + 1);
+  }, [guidedIntake, activeQuestionIndex, intakeAnswers, runAnalysis, text, mode]);
 
   const setIntakeAnswer = useCallback((questionId: string, value: string) => {
     setIntakeAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -229,6 +260,7 @@ export function useClaraCaseInput({
       const intake = buildGuidedIntake(trimmed, journey, identity, du, journeyId);
       setGuidedIntake(intake);
       setIntakeAnswers({});
+      setActiveQuestionIndex(0);
     },
     [text, mode, du, plz, bundesland, wohnort],
   );
@@ -242,6 +274,7 @@ export function useClaraCaseInput({
       setJourneyHint('journeyId' in ex ? ex.journeyId : undefined);
       setGuidedIntake(null);
       setIntakeAnswers({});
+      setActiveQuestionIndex(0);
       if (autoRun) {
         startGuidedIntake();
       }
@@ -255,6 +288,7 @@ export function useClaraCaseInput({
       setJourneyHint(journeyId);
       setGuidedIntake(null);
       setIntakeAnswers({});
+      setActiveQuestionIndex(0);
       const template = getJourneyTemplateById(journeyId);
       if (journeyMode) {
         setMode(journeyMode);
@@ -272,6 +306,7 @@ export function useClaraCaseInput({
     setPlan(null);
     setGuidedIntake(null);
     setIntakeAnswers({});
+    setActiveQuestionIndex(0);
     setText('');
     setJourneyHint(undefined);
   }, []);
@@ -289,7 +324,6 @@ export function useClaraCaseInput({
 
   const startSpeechInput = useCallback(() => {
     if (!speechSupported || !recognitionRef.current) {
-      setSpeechMessage(SPEECH_UNSUPPORTED);
       return;
     }
     if (speechListening) {
@@ -305,10 +339,12 @@ export function useClaraCaseInput({
       recognitionRef.current.start();
       textareaRef.current?.focus();
     } catch {
-      setSpeechMessage(SPEECH_UNSUPPORTED);
       setSpeechListening(false);
     }
   }, [speechListening, speechSupported]);
+
+  const isClarifying = Boolean(guidedIntake && !plan);
+  const hasClarificationAnswers = Object.values(intakeAnswers).some((v) => v && v !== 'skip');
 
   return {
     textareaId,
@@ -320,10 +356,15 @@ export function useClaraCaseInput({
     plan,
     guidedIntake,
     intakeAnswers,
+    activeQuestionIndex,
+    isClarifying,
+    hasClarificationAnswers,
     setIntakeAnswer,
     selectClassifierJourney,
     submitPlanWithAnswers,
     submitPlanSkip,
+    advanceClarification,
+    skipCurrentQuestion,
     analyzing,
     examples,
     speechSupported,

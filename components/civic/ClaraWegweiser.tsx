@@ -9,7 +9,7 @@ import {
 import { useClaraCaseInput } from '@/hooks/useClaraCaseInput';
 import type { CivicCasePlanResult } from '@/lib/govdata/serviceTypes';
 import { CivicCasePlan } from '@/components/civic/CivicCasePlan';
-import { ClaraGuidedIntakePanel } from '@/components/civic/ClaraGuidedIntakePanel';
+import { ClaraClarificationSheet } from '@/components/civic/ClaraClarificationSheet';
 import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
 import { journeyQuickStartText } from '@/lib/civic/civicJourneyResolver';
 import { getJourneyTemplateById } from '@/lib/civic/civicJourneyTemplates';
@@ -48,7 +48,11 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
   const resultRef = useRef<HTMLDivElement | null>(null);
   const [inputGuardScrolledPast, setInputGuardScrolledPast] = React.useState(false);
 
-  const showFloatingDock = caseInput.plan ? true : inputGuardScrolledPast;
+  const showFloatingDock = caseInput.plan
+    ? true
+    : caseInput.isClarifying
+      ? false
+      : inputGuardScrolledPast;
 
   const contextRowLabel = useMemo(() => {
     const parts = [
@@ -107,6 +111,7 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
       speechListening: caseInput.speechListening,
       speechMessage: caseInput.speechMessage,
       showFloatingDock,
+      isClarifying: caseInput.isClarifying,
     }),
     [
       caseInput.focusInput,
@@ -118,6 +123,7 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
       caseInput.speechListening,
       caseInput.speechMessage,
       showFloatingDock,
+      caseInput.isClarifying,
     ],
   );
 
@@ -229,14 +235,9 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
                   ? 'Beschreibe kurz deine Situation oder wähle unten einen Startpunkt.'
                   : 'Beschreiben Sie kurz Ihre Situation oder wählen Sie unten einen Startpunkt.'}
             </p>
-            {caseInput.speechMessage ? (
-              <p className="clara-wegweiser__speech-hint" role="status">
-                {caseInput.speechMessage}
-              </p>
-            ) : null}
           </div>
 
-          {!caseInput.plan && !caseInput.guidedIntake ? (
+          {!caseInput.plan && !caseInput.isClarifying ? (
             <section
               className="clara-wegweiser__quick-starts"
               aria-labelledby="clara-quick-starts-heading"
@@ -269,17 +270,34 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
         </div>
       </div>
 
-      {caseInput.guidedIntake && !caseInput.plan ? (
-        <ClaraGuidedIntakePanel
+      {caseInput.isClarifying && caseInput.guidedIntake ? (
+        <ClaraClarificationSheet
+          open
           intake={caseInput.guidedIntake}
           answers={caseInput.intakeAnswers}
+          activeQuestionIndex={caseInput.activeQuestionIndex}
           onAnswer={caseInput.setIntakeAnswer}
           onClassifierSelect={caseInput.selectClassifierJourney}
-          onSubmitWithAnswers={caseInput.submitPlanWithAnswers}
+          onAdvance={caseInput.advanceClarification}
+          onSkipQuestion={caseInput.skipCurrentQuestion}
           onSubmitSkip={caseInput.submitPlanSkip}
+          onClose={caseInput.submitPlanSkip}
           analyzing={caseInput.analyzing}
           du={du}
         />
+      ) : null}
+
+      {caseInput.plan && caseInput.hasClarificationAnswers ? (
+        <p className="clara-wegweiser__clarification-summary" data-testid="clarification-summary">
+          {du ? 'Angaben übernommen.' : 'Angaben übernommen.'}{' '}
+          <button
+            type="button"
+            className="clara-wegweiser__clarification-summary-edit"
+            onClick={caseInput.handleClear}
+          >
+            {du ? 'Neu starten' : 'Neu starten'}
+          </button>
+        </p>
       ) : null}
 
       {caseInput.plan ? (

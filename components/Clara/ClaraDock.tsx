@@ -99,7 +99,8 @@ export default function ClaraDock({
   const { state } = useApp();
   const caseInputBridge = useClaraCaseInputBridge();
   const wegweiserDockMode = state.isLoggedIn && state.activeSection === 'fuermich' && caseInputBridge.isActive;
-  const hideWegweiserFloatingDock = wegweiserDockMode && !caseInputBridge.showFloatingDock;
+  const hideWegweiserFloatingDock =
+    wegweiserDockMode && (!caseInputBridge.showFloatingDock || caseInputBridge.isClarifying);
   const { speak: speakVoice } = useClaraVoiceContext();
   const [chatOpen, setChatOpen] = useState(false);
   const [sheetSize, setSheetSize] = useState<ClaraSheetSize>('half');
@@ -410,12 +411,7 @@ export default function ClaraDock({
         }}
         aria-hidden={chatOpen || voiceOpen}
       >
-        {wegweiserDockMode && caseInputBridge.speechMessage ? (
-          <p className="clara-dock-pill__speech-hint pointer-events-none" role="status">
-            {caseInputBridge.speechMessage}
-          </p>
-        ) : null}
-        {pillToolbar}
+        {wegweiserDockMode && caseInputBridge.isClarifying ? null : pillToolbar}
       </div>
     ) : null;
 
