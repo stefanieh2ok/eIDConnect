@@ -152,7 +152,7 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
 
     expect(screen.getByRole('textbox').value.length).toBeGreaterThan(0);
     expect(submit).toBeEnabled();
-    expect(screen.queryByText(/Dein Behördenfahrplan/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /^Dein Fahrplan$/i })).not.toBeInTheDocument();
     expect(global.fetch).not.toHaveBeenCalled();
   });
 
@@ -185,7 +185,7 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
     });
     expect(screen.getByText(/Kündigung|Arbeitslos/i)).toBeInTheDocument();
     expect(screen.queryByTestId('clara-guided-intake')).not.toBeInTheDocument();
-    expect(screen.queryByText(/Dein Behördenfahrplan/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /^Dein Fahrplan$/i })).not.toBeInTheDocument();
   });
 
   it('renders structured plan after submit without generic municipality question', async () => {
@@ -203,10 +203,9 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
       fireEvent.click(screen.getByTestId('clarification-submit-skip-btn'));
     });
     await waitFor(() => {
-      expect(screen.getByText(/Dein Behördenfahrplan/i)).toBeInTheDocument();
+      expect(screen.getByText(/Dein Fahrplan/i)).toBeInTheDocument();
     });
-    expect(screen.getByText(/Lage erkannt/i)).toBeInTheDocument();
-    expect(screen.getByText(/Nächste Schritte/i)).toBeInTheDocument();
+    expect(screen.getByText(/Deine nächsten Schritte/i)).toBeInTheDocument();
     expect(screen.queryByText(/Kommune oder welchem Bundesland/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Demo-Link/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/PVOG ist live/i)).not.toBeInTheDocument();
@@ -227,17 +226,29 @@ describe('Kirkel demo planner without journey match', () => {
 });
 
 describe('verified_catalog source labels in CivicCasePlan', () => {
-  it('shows manual verified label and no Demo-Link wording', () => {
-    render(<CivicCasePlan du plan={verifiedCatalogPlan} />);
-    expect(screen.getByText(/Manuell verifizierte offizielle Quelle/i)).toBeInTheDocument();
+  it('shows compact verified source notice and no Demo-Link wording', () => {
+    const plan = planCivicCase(
+      { text: 'Ich bekomme ein Kind und brauche Kindergeld.', mode: 'private' },
+      true,
+      undefined,
+      KIRKEL_DEMO_CONTEXT,
+    );
+    render(<CivicCasePlan du plan={plan} />);
+    expect(screen.getByText(/Offizielle Einstiege|kuratiertem Quellenkatalog|Wegweiser-Template/i)).toBeInTheDocument();
     expect(screen.queryByText(/Demo-Link/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/PVOG ist live/i)).not.toBeInTheDocument();
   });
 
-  it('uses structured Kirkel section titles', () => {
-    render(<CivicCasePlan du plan={verifiedCatalogPlan} />);
-    expect(screen.getByText(/Lage erkannt/i)).toBeInTheDocument();
-    expect(screen.getByText(/Nächste Schritte/i)).toBeInTheDocument();
-    expect(screen.getByText(/Benötigte Unterlagen/i)).toBeInTheDocument();
+  it('uses compact action-plan section titles', () => {
+    const plan = planCivicCase(
+      { text: 'Ich bekomme ein Kind und brauche Kindergeld.', mode: 'private' },
+      true,
+      undefined,
+      KIRKEL_DEMO_CONTEXT,
+    );
+    render(<CivicCasePlan du plan={plan} />);
+    expect(screen.getByText(/erkannt/i)).toBeInTheDocument();
+    expect(screen.getByText(/Deine nächsten Schritte/i)).toBeInTheDocument();
+    expect(screen.getByText(/Unterlagen bereitlegen/i)).toBeInTheDocument();
   });
 });

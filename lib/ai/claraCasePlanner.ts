@@ -32,6 +32,7 @@ import {
   buildDocumentsFromOfficialActions,
   resolveOfficialActionsForJourney,
 } from '@/lib/civic/officialActionResolver';
+import { filterAuthoritiesForJourney } from '@/lib/civic/wegweiserActionPlan';
 
 export type CasePlannerInput = {
   text: string;
@@ -337,7 +338,12 @@ export function planCivicCase(
   );
 
   const touchedAuthorities = journey
-    ? Array.from(new Set([...journey.suggestedAuthorities, ...serviceAuthorities])).slice(0, 10)
+    ? filterAuthoritiesForJourney(
+        journey.journeyId,
+        Array.from(new Set([...journey.suggestedAuthorities, ...serviceAuthorities])).slice(0, 10),
+        regionInput.intakeAnswers,
+        regionInput.text,
+      )
     : serviceAuthorities.slice(0, 8);
 
   const knownFacts = [

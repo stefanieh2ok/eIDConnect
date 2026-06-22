@@ -18,6 +18,13 @@ describe('job_loss_unemployment journey', () => {
     expect(plan.touchedAuthorities.join(' ')).toMatch(/Agentur für Arbeit/i);
   });
 
+  it('includes Krankenkasse and excludes unrelated authorities', () => {
+    const plan = planCivicCase({ text: JOB_LOSS_INPUT, mode: 'unsure' }, true, undefined, identity);
+    const joined = plan.touchedAuthorities.join(' ');
+    expect(joined).toMatch(/Krankenkasse/i);
+    expect(joined).not.toMatch(/Familienkasse|Elterngeldstelle|Bürgerbüro|Meldebehörde/i);
+  });
+
   it('includes required documents from template', () => {
     const plan = planCivicCase({ text: JOB_LOSS_INPUT, mode: 'unsure' }, true, undefined, identity);
     const labels = plan.documents.map((d) => d.label).join(' ');

@@ -118,7 +118,7 @@ describe('ClaraWegweiser dock visibility', () => {
       fireEvent.click(screen.getByTestId('clarification-submit-skip-btn'));
     });
     await waitFor(() => {
-      expect(screen.getByText(/Dein Behördenfahrplan/i)).toBeInTheDocument();
+      expect(screen.getByText(/Dein Fahrplan/i)).toBeInTheDocument();
     });
     expect(screen.getByTestId('dock-visible')).toHaveAttribute('data-show-floating-dock', 'true');
     expect(document.documentElement.dataset.claraWegweiserPlan).toBe('true');

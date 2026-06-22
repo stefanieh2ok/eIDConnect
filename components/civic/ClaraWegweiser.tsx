@@ -304,7 +304,7 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
         <div ref={resultRef} className="clara-wegweiser__result">
           <div className="clara-wegweiser__result-header">
             <h3 className="clara-wegweiser__result-title">
-              {du ? 'Dein Behördenfahrplan' : 'Ihr Behördenfahrplan'}
+              {du ? 'Dein Fahrplan' : 'Ihr Fahrplan'}
             </h3>
             <button
               type="button"
@@ -314,7 +314,7 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
               {du ? 'Neuer Fall' : 'Neuer Fall'}
             </button>
           </div>
-          <CivicCasePlan plan={caseInput.plan} du={du} />
+          <CivicCasePlan plan={caseInput.plan} du={du} onEditContext={caseInput.handleClear} />
         </div>
       ) : null}
     </div>

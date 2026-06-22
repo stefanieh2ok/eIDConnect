@@ -1,68 +1,42 @@
 'use client';
 
 import React, { useCallback, useMemo } from 'react';
-import { Info, ExternalLink } from 'lucide-react';
+import { Info } from 'lucide-react';
 import type { CivicCasePlanResult } from '@/lib/govdata/serviceTypes';
-import {
-  CLARA_CASE_DISCLAIMER,
-  CLARA_OFFICIAL_SOURCE_NOTICE,
-} from '@/lib/claraCaseGuidance';
-import { SOURCE_NOTICE_TEMPLATE_ONLY } from '@/lib/govdata/sourceStatus';
-import { AuthoritiesOverview } from '@/components/civic/AuthoritiesOverview';
-import { OfficialServiceCard } from '@/components/civic/OfficialServiceCard';
-import { RequiredDocumentsChecklist } from '@/components/civic/RequiredDocumentsChecklist';
-import { CaseTimeline } from '@/components/civic/CaseTimeline';
-import { OfficialActionCard } from '@/components/civic/OfficialActionCard';
+import { CLARA_CASE_DISCLAIMER } from '@/lib/claraCaseGuidance';
 import { RiskNotes } from '@/components/civic/RiskNotes';
-import { CaseDocumentPacketSection } from '@/components/civic/CaseDocumentPacketSection';
-import {
-  resolveDocumentPacket,
-  type DocumentPacketCard,
-} from '@/lib/documents/documentPacketResolver';
+import { WegweiserActionPlanCard } from '@/components/civic/WegweiserActionPlanCard';
+import { WegweiserCompactDocumentChecklist } from '@/components/civic/WegweiserCompactDocumentChecklist';
 import { downloadCasePlanTextExport } from '@/lib/documents/casePlanTextExport';
 import {
-  EXTERNAL_HANDOVER_MICROCOPY,
-  EXTERNAL_HANDOVER_NOTICE,
-  externalLinkButtonLabel,
-  isRenderableOfficialLink,
-  shouldRenderExternalLink,
-} from '@/lib/govdata/externalLinkGate';
+  buildCompactContextSummary,
+  buildWegweiserActionPlan,
+  compactSourceNotice,
+  groupDocumentsForPlan,
+  usesActionPlanLayout,
+} from '@/lib/civic/wegweiserActionPlan';
 
 type Props = {
   plan: CivicCasePlanResult;
   du?: boolean;
   onExportPdf?: () => void;
+  onEditContext?: () => void;
 };
 
-function SectionHead({
-  title,
-  lead,
-  id,
-}: {
-  title: string;
-  lead?: string;
-  id?: string;
-}) {
+function SectionTitle({ id, children }: { id?: string; children: React.ReactNode }) {
   return (
-    <div className="civic-case-plan__section-head">
-      <h3 id={id} className="civic-case-plan__section-title">
-        {title}
-      </h3>
-      {lead ? <p className="civic-case-plan__section-lead">{lead}</p> : null}
-    </div>
+    <h3 id={id} className="wegweiser-result__section-title">
+      {children}
+    </h3>
   );
 }
 
-function scrollToSection(id: string) {
-  if (typeof document === 'undefined') return;
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
-  const documentCards = useMemo(() => resolveDocumentPacket(plan, { du }), [plan, du]);
-  const templateDriven = Boolean(plan.journeyId);
-  const showTemplateSourceNote =
-    templateDriven && plan.services.length === 0 && plan.sourceNotice === SOURCE_NOTICE_TEMPLATE_ONLY;
+export function CivicCasePlan({ plan, du = true, onExportPdf, onEditContext }: Props) {
+  const actionPlan = useMemo(() => buildWegweiserActionPlan(plan, du), [plan, du]);
+  const contextSummary = useMemo(() => buildCompactContextSummary(plan, du), [plan, du]);
+  const groupedDocs = useMemo(() => groupDocumentsForPlan(plan), [plan]);
+  const sourceNote = compactSourceNotice(plan);
+  const showActionPlan = usesActionPlanLayout(plan);
 
   const handleExport = useCallback(() => {
     if (onExportPdf) {
@@ -72,268 +46,121 @@ export function CivicCasePlan({ plan, du = true, onExportPdf }: Props) {
     downloadCasePlanTextExport(plan, du);
   }, [du, onExportPdf, plan]);
 
-  const handleDocumentCardAction = useCallback(
-    (card: DocumentPacketCard) => {
-      if (card.action === 'export_plan_text') {
-        handleExport();
-        return;
-      }
-      if (card.action === 'open_nda' && card.actionUrl) {
-        window.open(card.actionUrl, '_blank', 'noopener,noreferrer');
-        return;
-      }
-      if (card.action === 'scroll_documents') {
-        scrollToSection('plan-documents');
-        return;
-      }
-      if (card.action === 'scroll_handover') {
-        scrollToSection('plan-handover');
-        return;
-      }
-      if (card.action === 'scroll_checklist') {
-        scrollToSection('plan-documents');
-      }
-    },
-    [handleExport],
-  );
+  if (!showActionPlan) {
+    return (
+      <div className="civic-case-plan civic-case-plan--with-dock civic-case-plan--kirkel" role="region">
+        {sourceNote ? (
+          <aside className="civic-source-notice civic-source-notice--lavender" role="note">
+            <Info className="civic-source-notice__icon" aria-hidden />
+            <p>{sourceNote}</p>
+          </aside>
+        ) : null}
+        <p className="civic-case-plan__summary-text">{plan.situationSummary}</p>
+        <section className="wegweiser-result__section" aria-labelledby="plan-disclaimer-fallback">
+          <SectionTitle id="plan-disclaimer-fallback">
+            {du ? 'Was Clara nicht entscheiden kann' : 'Was Clara nicht entscheiden kann'}
+          </SectionTitle>
+          <p className="wegweiser-result__disclaimer-text">{CLARA_CASE_DISCLAIMER}</p>
+        </section>
+        <div className="civic-case-plan__export-wrap">
+          <button type="button" onClick={handleExport} className="civic-case-plan__export-btn">
+            {du ? 'Vorbereitung herunterladen' : 'Vorbereitung herunterladen'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
-      className="civic-case-plan civic-case-plan--with-dock civic-case-plan--kirkel"
+      className="wegweiser-result civic-case-plan--with-dock"
       role="region"
       aria-label={du ? 'Behördenfahrplan' : 'Behördenfahrplan'}
+      data-testid="wegweiser-action-plan-result"
     >
-      {plan.sourceNotice ? (
-        <aside className="civic-source-notice civic-source-notice--lavender" role="note">
-          <Info className="civic-source-notice__icon" aria-hidden />
-          <p>{plan.sourceNotice}</p>
-        </aside>
+      {sourceNote ? (
+        <p className="wegweiser-result__source-note" role="note">
+          {sourceNote}
+        </p>
       ) : null}
 
-      <section className="civic-case-plan__section civic-case-plan__section--summary" aria-labelledby="plan-summary">
-        <SectionHead
-          id="plan-summary"
-          title={du ? 'Lage erkannt' : 'Lage erkannt'}
-          lead={
-            plan.journeyTitle
-              ? du
-                ? `Wegweiser-Template: ${plan.journeyTitle}`
-                : `Wegweiser-Template: ${plan.journeyTitle}`
-              : du
-                ? 'Kurzfassung deiner Situation — ohne Anspruchsprüfung.'
-                : 'Kurzfassung Ihrer Situation — ohne Anspruchsprüfung.'
-          }
-        />
-        <p className="civic-case-plan__summary-text">{plan.situationSummary}</p>
-        {plan.topics.length > 0 ? (
-          <div className="civic-case-plan__topic-pills civic-case-plan__topic-pills--inline">
-            {plan.topics.map((t) => (
-              <span key={t} className="civic-case-plan__topic-pill">
-                {t}
-              </span>
-            ))}
-          </div>
+      <section className="wegweiser-result__summary" aria-labelledby="plan-compact-summary">
+        <p id="plan-compact-summary" className="wegweiser-result__summary-headline">
+          {contextSummary.headline}
+        </p>
+        <p className="wegweiser-result__summary-location">{contextSummary.locationLine}</p>
+        {contextSummary.intakeLine ? (
+          <p className="wegweiser-result__summary-intake">
+            {du ? 'Angaben ergänzt: ' : 'Angaben ergänzt: '}
+            {contextSummary.intakeLine}
+          </p>
+        ) : null}
+        {onEditContext ? (
+          <button type="button" onClick={onEditContext} className="wegweiser-result__edit-link">
+            {du ? 'Angaben bearbeiten' : 'Angaben bearbeiten'}
+          </button>
         ) : null}
       </section>
 
-      {plan.knownContextFacts && plan.knownContextFacts.length > 0 ? (
-        <section
-          className="civic-case-plan__section civic-case-plan__section--known-context"
-          aria-labelledby="plan-known-context"
-        >
-          <SectionHead
-            id="plan-known-context"
-            title={du ? 'Bekannter Kontext' : 'Bekannter Kontext'}
-          />
-          <div className="civic-case-plan__known-context-row">
-            {plan.knownContextFacts.map((fact) => (
-              <span key={fact} className="civic-case-plan__known-context-chip">
-                {fact}
-              </span>
-            ))}
-          </div>
-          {plan.identityContextDisclaimer ? (
-            <p className="civic-case-plan__known-context-disclaimer">{plan.identityContextDisclaimer}</p>
-          ) : null}
-        </section>
-      ) : null}
-
       {plan.safeGuidance ? (
-        <aside className="civic-case-plan__safe-guidance" role="note" data-testid="plan-safe-guidance">
+        <aside className="wegweiser-result__safe-guidance" role="note" data-testid="plan-safe-guidance">
           <p>{plan.safeGuidance}</p>
         </aside>
       ) : null}
 
-      <section className="civic-case-plan__section" aria-labelledby="plan-sequence">
-        <SectionHead
-          id="plan-sequence"
-          title={du ? 'Nächste Schritte' : 'Nächste Schritte'}
-          lead={du ? 'Sinnvolle Reihenfolge für die Vorbereitung.' : 'Sinnvolle Reihenfolge für die Vorbereitung.'}
-        />
-        <CaseTimeline steps={plan.sequenceSteps} />
-      </section>
-
-      {plan.officialActionGroups && plan.officialActionGroups.length > 0 ? (
+      {actionPlan.primary.length > 0 ? (
         <section
-          className="civic-case-plan__section civic-case-plan__section--official-actions"
-          aria-labelledby="plan-official-actions"
+          className="wegweiser-result__section"
+          aria-labelledby="plan-primary-actions"
           data-testid="plan-official-actions"
         >
-          <SectionHead
-            id="plan-official-actions"
-            title={du ? 'Offizielle Vorgänge & Formulare' : 'Offizielle Vorgänge & Formulare'}
-          lead={
-            du
-              ? 'Kataloggestützte Vorgänge — Clara reicht nichts ein.'
-              : 'Kataloggestützte Vorgänge — Clara reicht nichts ein.'
-          }
-          />
-          {plan.officialActionGroups.map((group) => (
-            <div key={group.groupTitle} className="civic-official-action-group">
-              <h4 className="civic-official-action-group__title">{group.groupTitle}</h4>
-              <div className="civic-official-action-group__list">
-                {group.actions.map((action) => (
-                  <OfficialActionCard key={action.actionId} action={action} du={du} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </section>
-      ) : null}
-
-      <section className="civic-case-plan__section" aria-labelledby="plan-documents">
-        <SectionHead
-          id="plan-documents"
-          title={du ? 'Benötigte Unterlagen' : 'Benötigte Unterlagen'}
-        />
-        <RequiredDocumentsChecklist items={plan.documents} du={du} />
-      </section>
-
-      <AuthoritiesOverview
-        authorities={plan.touchedAuthorities}
-        du={du}
-        title={du ? 'Beteiligte Stellen' : 'Beteiligte Stellen'}
-      />
-
-      <section className="civic-case-plan__section" aria-labelledby="plan-services">
-        <SectionHead
-          id="plan-services"
-          title={du ? 'Online weiter / Offizielle Informationen' : 'Online weiter / Offizielle Informationen'}
-          lead="Clara ordnet Orientierung — keine Anspruchsprüfung, keine Einreichung."
-        />
-        {plan.services.length > 0 ? (
-          <div className="civic-case-plan__service-list">
-            {plan.services.map((s) => (
-              <OfficialServiceCard key={s.serviceId} service={s} du={du} />
+          <SectionTitle id="plan-primary-actions">
+            {du ? 'Deine nächsten Schritte' : 'Ihre nächsten Schritte'}
+          </SectionTitle>
+          <div className="wegweiser-result__card-list">
+            {actionPlan.primary.map((item) => (
+              <WegweiserActionPlanCard key={item.actionId} item={item} du={du} />
             ))}
           </div>
-        ) : showTemplateSourceNote ? (
-          <p className="civic-case-plan__missing-source-note">
-            Noch keine kuratierte Online-Quelle — der Fahrplan folgt dem Wegweiser-Template.
-          </p>
-        ) : null}
+        </section>
+      ) : null}
+
+      <section className="wegweiser-result__section" aria-labelledby="plan-documents">
+        <SectionTitle id="plan-documents">
+          {du ? 'Unterlagen bereitlegen' : 'Unterlagen bereitlegen'}
+        </SectionTitle>
+        <WegweiserCompactDocumentChecklist
+          likely={groupedDocs.likely}
+          optional={groupedDocs.optional}
+          du={du}
+        />
       </section>
 
-      {plan.followUpQuestions.length > 0 ? (
-        <section
-          className="civic-case-plan__section civic-case-plan__section--followup"
-          aria-labelledby="plan-followup"
-        >
-          <SectionHead
-            id="plan-followup"
-            title={du ? 'Was Clara noch wissen sollte' : 'Was Clara noch wissen sollte'}
-          />
-          <ul className="civic-case-plan__followup-list">
-            {plan.followUpQuestions.map((q) => (
-              <li key={q}>{q}</li>
+      {actionPlan.optional.length > 0 ? (
+        <section className="wegweiser-result__section" aria-labelledby="plan-optional-actions">
+          <SectionTitle id="plan-optional-actions">
+            {du ? 'Optional prüfen' : 'Optional prüfen'}
+          </SectionTitle>
+          <div className="wegweiser-result__card-list">
+            {actionPlan.optional.map((item) => (
+              <WegweiserActionPlanCard key={item.actionId} item={item} du={du} />
             ))}
-          </ul>
+          </div>
         </section>
       ) : null}
 
-      <CaseDocumentPacketSection
-        cards={documentCards}
-        du={du}
-        onCardAction={handleDocumentCardAction}
-      />
-
-      <section className="civic-case-plan__section" aria-labelledby="plan-risks">
-        <SectionHead id="plan-risks" title="Risiken & typische Fehler" />
-        <RiskNotes risks={plan.risks} du={du} />
-      </section>
-
-      {plan.handoverLinks.length > 0 ? (
-        <section
-          className="civic-case-plan__section civic-case-plan__section--handover"
-          aria-labelledby="plan-handover"
-        >
-          <SectionHead
-            id="plan-handover"
-            title="Offizielle Übergabe"
-            lead={`${CLARA_OFFICIAL_SOURCE_NOTICE} ${EXTERNAL_HANDOVER_NOTICE}`}
-          />
-          <p className="civic-case-plan__handover-micro">{EXTERNAL_HANDOVER_MICROCOPY}</p>
-          <ul className="civic-case-plan__handover-list">
-            {plan.handoverLinks.map((link) => {
-              const status = link.linkStatus ?? 'missing';
-              const verified = isRenderableOfficialLink(status);
-              const showLink = Boolean(link.url) && shouldRenderExternalLink(status);
-              const buttonLabel = externalLinkButtonLabel(status, du, 'handover');
-              return (
-                <li key={link.id}>
-                  {showLink && link.url ? (
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="civic-case-plan__handover-link"
-                    >
-                      <span className="min-w-0 flex-1">
-                        <span className="civic-case-plan__handover-title">{link.title}</span>
-                        <span className="civic-case-plan__handover-label">{link.label}</span>
-                        <span className="civic-case-plan__handover-action">{buttonLabel}</span>
-                      </span>
-                      <ExternalLink className="h-4 w-4 shrink-0" aria-hidden />
-                    </a>
-                  ) : (
-                    <div className="civic-case-plan__handover-static">
-                      <span className="civic-case-plan__handover-title">{link.title}</span>
-                      <span className="civic-case-plan__handover-label">{link.label}</span>
-                      {!verified ? (
-                        <span className="civic-case-plan__handover-pending">{buttonLabel}</span>
-                      ) : null}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ) : null}
-
-      <section
-        className="civic-case-plan__section civic-case-plan__section--disclaimer"
-        aria-labelledby="plan-disclaimer"
-      >
-        <SectionHead id="plan-disclaimer" title="Hinweise" />
-        <div className="civic-case-plan__disclaimer-box">
-          <Info className="civic-case-plan__disclaimer-icon" aria-hidden />
-          <p>{CLARA_CASE_DISCLAIMER}</p>
-        </div>
-        <p className="civic-case-plan__no-submission">
-          Die Antragstellung erfolgt immer über die zuständige offizielle Stelle.
-        </p>
+      <section className="wegweiser-result__section" aria-labelledby="plan-disclaimer">
+        <SectionTitle id="plan-disclaimer">
+          {du ? 'Was Clara nicht entscheiden kann' : 'Was Clara nicht entscheiden kann'}
+        </SectionTitle>
+        <p className="wegweiser-result__disclaimer-text">{CLARA_CASE_DISCLAIMER}</p>
+        {plan.risks.length > 0 ? <RiskNotes risks={plan.risks} du={du} /> : null}
       </section>
 
       <div className="civic-case-plan__export-wrap">
         <button type="button" onClick={handleExport} className="civic-case-plan__export-btn">
-          {du ? 'Vorbereitung herunterladen (Text)' : 'Vorbereitung herunterladen (Text)'}
+          {du ? 'Vorbereitung herunterladen' : 'Vorbereitung herunterladen'}
         </button>
-        <p className="civic-case-plan__export-note">
-          {du
-            ? 'Noch kein amtliches PDF — nur eine lokale Vorbereitungsdatei.'
-            : 'Noch kein amtliches PDF — nur eine lokale Vorbereitungsdatei.'}
-        </p>
       </div>
     </div>
   );

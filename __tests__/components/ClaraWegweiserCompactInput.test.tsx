@@ -94,7 +94,7 @@ describe('ClaraWegweiser compact input UX', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Kündigung & Arbeit' }));
     expect(screen.getByRole('textbox').value.length).toBeGreaterThan(0);
     expect(submit).toBeEnabled();
-    expect(screen.queryByText(/Dein Behördenfahrplan/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Dein Fahrplan/i)).not.toBeInTheDocument();
   });
 
   it('renders Startpunkt wählen section with six common cases', () => {

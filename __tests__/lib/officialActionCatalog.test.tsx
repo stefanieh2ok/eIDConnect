@@ -261,7 +261,7 @@ describe('resolveOfficialActionsForJourney', () => {
 });
 
 describe('CivicCasePlan official actions UI', () => {
-  it('renders Offizielle Vorgänge & Formulare with correct CTA labels', () => {
+  it('renders action-plan cards with correct CTA labels for family journey', () => {
     const plan = planCivicCase(
       {
         text: 'Ich bekomme ein Kind und brauche Elterngeld, Kindergeld und Kita.',
@@ -273,8 +273,8 @@ describe('CivicCasePlan official actions UI', () => {
     );
     render(<CivicCasePlan plan={plan} />);
     expect(screen.getByTestId('plan-official-actions')).toBeInTheDocument();
-    expect(screen.getByText('Offizielle Vorgänge & Formulare')).toBeInTheDocument();
-    expect(screen.getAllByText(/Familienportal|Kindergeld-Formular|Betriebsnummer-Service|Meldeverfahren|Beratung vorbereiten|Zuständige Stelle suchen|Noch kein geprüfter/i).length).toBeGreaterThan(0);
+    expect(screen.getByText('Deine nächsten Schritte')).toBeInTheDocument();
+    expect(screen.getAllByText(/Familienportal|Kindergeld|Betriebsnummer|Meldeverfahren|Beratung vorbereiten|Zuständige Stelle|Noch kein geprüfter/i).length).toBeGreaterThan(0);
     expect(screen.getByText(CLARA_CASE_DISCLAIMER)).toBeInTheDocument();
     expect(screen.queryByText(/Demo-Link/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/PVOG live/i)).not.toBeInTheDocument();

@@ -143,7 +143,7 @@ describe('Clara Wegweiser clarification dialog', () => {
       fireEvent.click(screen.getByTestId('clarification-submit-skip-btn'));
     });
     await waitFor(() => {
-      expect(screen.getByText(/Dein Behördenfahrplan/i)).toBeInTheDocument();
+      expect(screen.getByText(/Dein Fahrplan/i)).toBeInTheDocument();
     });
     expect(screen.queryByTestId('clara-clarification-sheet')).not.toBeInTheDocument();
   });
