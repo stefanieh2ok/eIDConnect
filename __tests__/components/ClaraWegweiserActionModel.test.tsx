@@ -181,7 +181,7 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
       fireEvent.click(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i }));
     });
     await waitFor(() => {
-      expect(screen.getByTestId('clara-clarification-sheet')).toBeInTheDocument();
+      expect(screen.getByTestId('clara-wegweiser-chat-flow')).toBeInTheDocument();
     });
     expect(screen.getByText(/Kündigung|Arbeitslos/i)).toBeInTheDocument();
     expect(screen.queryByTestId('clara-guided-intake')).not.toBeInTheDocument();
@@ -197,7 +197,7 @@ describe('ClaraWegweiser Kirkel journey start screen', () => {
       fireEvent.click(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i }));
     });
     await waitFor(() => {
-      expect(screen.getByTestId('clara-clarification-sheet')).toBeInTheDocument();
+      expect(screen.getByTestId('clara-wegweiser-chat-flow')).toBeInTheDocument();
     });
     await act(async () => {
       fireEvent.click(screen.getByTestId('clarification-submit-skip-btn'));

@@ -9,7 +9,7 @@ import {
 import { useClaraCaseInput } from '@/hooks/useClaraCaseInput';
 import type { CivicCasePlanResult } from '@/lib/govdata/serviceTypes';
 import { CivicCasePlan } from '@/components/civic/CivicCasePlan';
-import { ClaraClarificationSheet } from '@/components/civic/ClaraClarificationSheet';
+import { ClaraWegweiserChatFlow } from '@/components/civic/ClaraWegweiserChatFlow';
 import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
 import { journeyQuickStartText } from '@/lib/civic/civicJourneyResolver';
 import { getJourneyTemplateById } from '@/lib/civic/civicJourneyTemplates';
@@ -146,8 +146,23 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
 
   return (
     <div className="clara-wegweiser clara-wegweiser--workflow clara-wegweiser--kirkel clara-wegweiser--compact">
-      <div className="clara-wegweiser__workflow">
-        <header className="clara-wegweiser__workflow-header">
+      {caseInput.isClarifying && caseInput.guidedIntake ? (
+        <ClaraWegweiserChatFlow
+          intake={caseInput.guidedIntake}
+          answers={caseInput.intakeAnswers}
+          activeQuestionIndex={caseInput.activeQuestionIndex}
+          onAnswer={caseInput.setIntakeAnswer}
+          onClassifierSelect={caseInput.selectClassifierJourney}
+          onAdvance={caseInput.advanceClarification}
+          onSkipQuestion={caseInput.skipCurrentQuestion}
+          onSubmitSkip={caseInput.submitPlanSkip}
+          analyzing={caseInput.analyzing}
+          du={du}
+        />
+      ) : (
+        <>
+          <div className="clara-wegweiser__workflow">
+            <header className="clara-wegweiser__workflow-header">
           <p className="clara-wegweiser__micro-label clara-wegweiser__micro-label--lavender">
             Clara Wegweiser
           </p>
@@ -270,36 +285,6 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
         </div>
       </div>
 
-      {caseInput.isClarifying && caseInput.guidedIntake ? (
-        <ClaraClarificationSheet
-          open
-          intake={caseInput.guidedIntake}
-          answers={caseInput.intakeAnswers}
-          activeQuestionIndex={caseInput.activeQuestionIndex}
-          onAnswer={caseInput.setIntakeAnswer}
-          onClassifierSelect={caseInput.selectClassifierJourney}
-          onAdvance={caseInput.advanceClarification}
-          onSkipQuestion={caseInput.skipCurrentQuestion}
-          onSubmitSkip={caseInput.submitPlanSkip}
-          onClose={caseInput.submitPlanSkip}
-          analyzing={caseInput.analyzing}
-          du={du}
-        />
-      ) : null}
-
-      {caseInput.plan && caseInput.hasClarificationAnswers ? (
-        <p className="clara-wegweiser__clarification-summary" data-testid="clarification-summary">
-          {du ? 'Angaben übernommen.' : 'Angaben übernommen.'}{' '}
-          <button
-            type="button"
-            className="clara-wegweiser__clarification-summary-edit"
-            onClick={caseInput.handleClear}
-          >
-            {du ? 'Neu starten' : 'Neu starten'}
-          </button>
-        </p>
-      ) : null}
-
       {caseInput.plan ? (
         <div ref={resultRef} className="clara-wegweiser__result">
           <div className="clara-wegweiser__result-header">
@@ -314,9 +299,11 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
               {du ? 'Neuer Fall' : 'Neuer Fall'}
             </button>
           </div>
-          <CivicCasePlan plan={caseInput.plan} du={du} onEditContext={caseInput.handleClear} />
+          <CivicCasePlan plan={caseInput.plan} du={du} onEditContext={caseInput.handleEditContext} />
         </div>
       ) : null}
+        </>
+      )}
     </div>
   );
 }

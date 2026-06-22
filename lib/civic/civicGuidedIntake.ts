@@ -54,11 +54,16 @@ function confidenceToNumber(confidence: CivicJourneyResolution['confidence'] | u
 }
 
 function journeyIntro(journeyId: CivicJourneyId, du: boolean): string {
+  if (journeyId === 'job_loss_unemployment') {
+    return du
+      ? 'Ich glaube, es geht um Kündigung & Arbeitslosigkeit.'
+      : 'Ich glaube, es geht um Kündigung & Arbeitslosigkeit.';
+  }
   const t = getJourneyTemplateById(journeyId);
   const title = t?.title ?? journeyId;
   return du
-    ? `Ich glaube, es geht um „${title}“. Ich stelle dir kurz ein paar Fragen, damit der Fahrplan passt.`
-    : `Ich glaube, es geht um „${title}“. Ich stelle Ihnen kurz ein paar Fragen, damit der Fahrplan passt.`;
+    ? `Ich glaube, es geht um „${title}".`
+    : `Ich glaube, es geht um „${title}".`;
 }
 
 function jobLossQuestions(du: boolean, integrityClass: IntegrityIntentClass): IntakeQuestion[] {
@@ -81,25 +86,21 @@ function jobLossQuestions(du: boolean, integrityClass: IntegrityIntentClass): In
       { value: 'aufhebungsvertrag', label: 'Aufhebungsvertrag' },
       { value: 'nein', label: 'Nein' },
     ]),
-    q('current_status', 'Welche Situation trifft gerade zu?', [
-      { value: 'noch_angestellt', label: 'Noch angestellt' },
+    q('current_status', 'Bist du schon bei der Agentur für Arbeit gemeldet?', [
+      { value: 'noch_nicht', label: 'Noch nicht' },
       { value: 'arbeitsuchend_gemeldet', label: 'Arbeitsuchend gemeldet' },
       { value: 'arbeitslos_gemeldet', label: 'Arbeitslos gemeldet' },
-      { value: 'alg1', label: 'Arbeitslosengeld I' },
-      { value: 'buergergeld', label: 'Bürgergeld' },
     ]),
-    q('health_aspect', 'Geht es zusätzlich um Gesundheit oder Arbeitsunfähigkeit?', [
+    q('health_aspect', 'Geht es zusätzlich um Krankheit oder Arbeitsunfähigkeit?', [
       { value: 'nein', label: 'Nein' },
       { value: 'ja_ich_bin_krank', label: 'Ja, ich bin krank' },
-      { value: 'psychisch_belastet', label: 'Psychisch belastet' },
-      { value: 'ich_will_termin_verschieben', label: 'Termin verschieben' },
+      { value: 'noch_unklar', label: 'Noch unklar' },
     ]),
     q('first_need', 'Was brauchst du zuerst?', [
       { value: 'arbeitslos_melden', label: 'Arbeitslos melden' },
       { value: 'geldleistungen_klaeren', label: 'Geldleistungen klären' },
-      { value: 'krankheit_sauber_melden', label: 'Krankheit sauber melden' },
-      { value: 'weiterbildung_jobsuche', label: 'Weiterbildung / Jobsuche' },
-      { value: 'dokumente_sortieren', label: 'Dokumente sortieren' },
+      { value: 'weiterbildung_jobsuche', label: 'Weiterbildung besprechen' },
+      { value: 'ueberblick_bekommen', label: 'Überblick bekommen' },
     ]),
   ];
 

@@ -212,8 +212,8 @@ export function useClaraCaseInput({
   }, [guidedIntake, intakeAnswers, runAnalysis, text, mode]);
 
   const submitPlanSkip = useCallback(() => {
-    runAnalysis(text, mode, guidedIntake, {});
-  }, [guidedIntake, runAnalysis, text, mode]);
+    runAnalysis(text, mode, guidedIntake, intakeAnswers);
+  }, [guidedIntake, intakeAnswers, runAnalysis, text, mode]);
 
   const advanceClarification = useCallback(() => {
     if (!guidedIntake || guidedIntake.lowConfidence) return;
@@ -311,6 +311,21 @@ export function useClaraCaseInput({
     setJourneyHint(undefined);
   }, []);
 
+  const handleEditContext = useCallback(() => {
+    const trimmed = text.trim();
+    setPlan(null);
+    setIntakeAnswers({});
+    setActiveQuestionIndex(0);
+    if (!trimmed) {
+      setGuidedIntake(null);
+      return;
+    }
+    const identity = resolvePlannerIdentityContext({ plz, bundesland, wohnort });
+    const journey = resolveCivicJourney(trimmed, mode, identity, du, journeyHint);
+    const intake = buildGuidedIntake(trimmed, journey, identity, du, journeyHint);
+    setGuidedIntake(intake);
+  }, [text, mode, du, journeyHint, plz, bundesland, wohnort]);
+
   const focusInput = useCallback(() => {
     textareaRef.current?.focus();
     textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -377,6 +392,7 @@ export function useClaraCaseInput({
     setJourneyHint,
     handleAnalyze,
     handleClear,
+    handleEditContext,
     focusInput,
     appendTranscript,
     startSpeechInput,

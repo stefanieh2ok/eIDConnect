@@ -275,7 +275,7 @@ function filterFollowUpForIntake(
     if (/kommune|bundesland|privat.*unternehmen|geschäftlich/i.test(q)) return false;
     if (answered.has('employment_end') && /endet.*Arbeitsverhältnis|Enddatum/i.test(q)) return false;
     if (answered.has('written_notice') && /Kündigungsschreiben|Aufhebungsvertrag/i.test(q)) return false;
-    if (answered.has('current_status') && /Situation trifft/i.test(q)) return false;
+    if (answered.has('current_status') && /Agentur für Arbeit gemeldet/i.test(q)) return false;
     return true;
   });
 }

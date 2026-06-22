@@ -84,7 +84,11 @@ export function CivicCasePlan({ plan, du = true, onExportPdf, onEditContext }: P
         </p>
       ) : null}
 
-      <section className="wegweiser-result__summary" aria-labelledby="plan-compact-summary">
+      <section
+        className="wegweiser-result__summary"
+        aria-labelledby="plan-compact-summary"
+        data-testid="wegweiser-compact-summary"
+      >
         <p id="plan-compact-summary" className="wegweiser-result__summary-headline">
           {contextSummary.headline}
         </p>

@@ -35,7 +35,8 @@ describe('civicGuidedIntake', () => {
     const options = intake.questions.flatMap((q) => q.options?.map((o) => o.label) ?? []).join(' ');
     expect(labels).toMatch(/Arbeitsverhältnis/i);
     expect(labels).toMatch(/Kündigungsschreiben|Aufhebungsvertrag/i);
-    expect(options).toMatch(/Arbeitslosengeld|Bürgergeld|angestellt/i);
+    expect(labels).toMatch(/Agentur für Arbeit gemeldet/i);
+    expect(options).toMatch(/Arbeitslos melden|Geldleistungen|Weiterbildung besprechen/i);
   });
 
   it('does not ask municipality with Kirkel context', () => {
@@ -152,7 +153,7 @@ describe('plan with guided intake context', () => {
   it('formats intake answer facts', () => {
     const journey = resolveCivicJourney(JOB_INPUT, 'unsure', identity, true);
     const intake = buildGuidedIntake(JOB_INPUT, journey, identity, true);
-    const facts = formatIntakeAnswerFacts({ current_status: 'alg1' }, intake.questions);
-    expect(facts.join(' ')).toMatch(/Arbeitslosengeld/i);
+    const facts = formatIntakeAnswerFacts({ current_status: 'arbeitslos_gemeldet' }, intake.questions);
+    expect(facts.join(' ')).toMatch(/Arbeitslos gemeldet/i);
   });
 });
