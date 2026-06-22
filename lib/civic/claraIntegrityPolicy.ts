@@ -8,6 +8,7 @@ export type IntegrityIntentClass =
   | 'ambiguous_health_or_benefit'
   | 'possible_avoidance'
   | 'request_for_improper_benefit'
+  | 'improper_benefit_reporting'
   | 'self_harm_or_crisis'
   | 'medical_or_legal_complexity';
 
@@ -94,6 +95,21 @@ export function classifyIntegrityIntent(inputText: string): IntegrityAssessment 
       intentClass: 'medical_or_legal_complexity',
       flags,
       sensitivity: 'medium',
+    };
+  }
+
+  const benefitMisreport =
+    /bürgergeld|grundsicherung|hartz iv|hartziv|jobcenter.*leistung/i.test(t) &&
+    /obwohl|trotzdem noch|eigentlich noch|verstecken|falsch.*angab|nicht angeben|nicht dazu sagen|heimlich|umgehen/i.test(
+      t,
+    );
+
+  if (benefitMisreport) {
+    flags.push('benefit_misreporting');
+    return {
+      intentClass: 'improper_benefit_reporting',
+      flags,
+      sensitivity: 'high',
     };
   }
 

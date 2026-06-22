@@ -338,7 +338,7 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     'buergergeld_housing',
     'Bürgergeld prüfen',
     'Wenn das Einkommen für Wohnkosten nicht reicht, kann Bürgergeld relevant sein — Jobcenter prüft.',
-    ['housing_support', 'unemployment_training', 'job_loss_unemployment'],
+    ['housing_support', 'unemployment_training', 'job_loss_unemployment', 'citizen_benefit'],
     ['Jobcenter'],
     ['Einkommensnachweise', 'Mietvertrag', 'Kontoauszüge'],
     [catalogMissing('Jobcenter', 'agency')],
@@ -353,6 +353,21 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     ['Schulbescheinigung', 'Einkommensnachweise'],
     [regional('Kommune / Jobcenter', 'mixed')],
     { triggerKeywords: ['schule', 'kinder', 'teilhabe'] },
+  ),
+
+  // ── disability_support ──────────────────────────────────────────────
+  act(
+    'disability_certificate_apply',
+    'Schwerbehindertenausweis prüfen / beantragen',
+    'Anspruch und Grad der Behinderung prüft das Versorgungsamt — Clara verspricht keinen Anspruch.',
+    ['disability_support'],
+    ['Versorgungsamt / Integrationsamt'],
+    ['Ärztliche Unterlagen', 'Ausweis'],
+    [
+      info(VERIFIED_URLS.schwerbehinderung, 'Bund.de', 'federal'),
+      regional('Versorgungsamt', 'state'),
+    ],
+    { triggerKeywords: ['schwerbehindert', 'behinderung'] },
   ),
 
   // ── childcare_school ────────────────────────────────────────────────
@@ -692,7 +707,7 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     'trade_register',
     'Gewerbe anmelden',
     'Gewerbeanmeldung beim zuständigen Gewerbeamt.',
-    ['business_registration', 'self_employed_start', 'craft_business_start', 'gastronomy_permit', 'ecommerce_start', 'company_foundation', 'business_change_deregister'],
+    ['business_registration', 'self_employed_start', 'craft_business_start', 'gastronomy_permit', 'ecommerce_start', 'company_foundation', 'business_change_deregister', 'company_relocation'],
     ['Gewerbeamt / Ordnungsamt'],
     ['Personalausweis', 'Gewerbeanmeldung'],
     [regional('Gewerbeamt', 'municipal')],
@@ -942,7 +957,7 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
     'trade_relocate',
     'Gewerbe ummelden',
     'Gewerbeummeldung bei Standortwechsel.',
-    ['business_change_deregister'],
+    ['business_change_deregister', 'company_relocation'],
     ['Gewerbeamt'],
     ['Gewerbeanmeldung', 'Personalausweis'],
     [regional('Gewerbeamt', 'municipal')],
@@ -1166,7 +1181,7 @@ export const OFFICIAL_ACTION_CATALOG: OfficialAction[] = [
   ),
 
   // ── catalog_missing fallback per journey without primary URL ─────────
-  ...(['id_passport', 'death_case', 'marriage_name_change', 'pension_retirement', 'building_use_change', 'event_special_use', 'public_procurement_readiness'] as CivicJourneyId[]).map(
+  ...(['id_passport', 'death_case', 'marriage_name_change', 'pension_retirement', 'building_use_change', 'event_special_use', 'public_procurement_readiness', 'disability_support', 'citizen_benefit', 'company_relocation'] as CivicJourneyId[]).map(
     (jid) =>
       act(
         `catalog_orientation_${jid}`,

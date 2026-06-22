@@ -28,7 +28,10 @@ export type CivicJourneyId =
   | 'building_use_change'
   | 'event_special_use'
   | 'ecommerce_start'
-  | 'public_procurement_readiness';
+  | 'public_procurement_readiness'
+  | 'disability_support'
+  | 'citizen_benefit'
+  | 'company_relocation';
 
 export type CivicJourneyDomain = 'private' | 'business' | 'both';
 export type CivicJourneyPriority = 'mvp' | 'next' | 'later';

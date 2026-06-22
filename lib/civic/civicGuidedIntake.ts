@@ -107,7 +107,8 @@ function jobLossQuestions(du: boolean, integrityClass: IntegrityIntentClass): In
   if (
     integrityClass === 'ambiguous_health_or_benefit' ||
     integrityClass === 'possible_avoidance' ||
-    integrityClass === 'request_for_improper_benefit'
+    integrityClass === 'request_for_improper_benefit' ||
+    integrityClass === 'improper_benefit_reporting'
   ) {
     return questions.slice(0, 5);
   }

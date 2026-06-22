@@ -7,8 +7,8 @@ const CHILD_INPUT =
   'Ich bekomme ein Kind. An was muss ich alles denken? Welche Formulare und Behördengänge sind nötig?';
 
 describe('mastercase journey matrix', () => {
-  it('defines 24 MVP templates', () => {
-    expect(CIVIC_JOURNEY_TEMPLATES).toHaveLength(25);
+  it('defines 28 MVP templates', () => {
+    expect(CIVIC_JOURNEY_TEMPLATES).toHaveLength(28);
     expect(CIVIC_JOURNEY_TEMPLATES.every((t) => t.priority === 'mvp')).toBe(true);
   });
 

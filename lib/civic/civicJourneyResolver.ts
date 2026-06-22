@@ -12,6 +12,11 @@ import {
   type CivicJourneyId,
   type CivicJourneyTemplate,
 } from '@/lib/civic/civicJourneyTemplates';
+import {
+  journeyScoreAdjustment,
+  resolvePriorityJourney,
+} from '@/lib/civic/civicJourneyPriorityRules';
+import { resolveMastercaseFromText } from '@/lib/civic/mastercaseMatrix';
 
 export type JourneyMatchConfidence = 'high' | 'medium' | 'low';
 
@@ -49,6 +54,7 @@ function scoreTemplate(template: CivicJourneyTemplate, text: string): number {
   for (const kw of template.sourceKeywords) {
     if (t.includes(kw.toLowerCase())) score += 1;
   }
+  score += journeyScoreAdjustment(template.id, text);
   return score;
 }
 
@@ -153,6 +159,14 @@ export function resolveCivicJourney(
     }
   }
 
+  const priorityId = resolvePriorityJourney(text);
+  if (priorityId) {
+    const priorityTemplate = getJourneyTemplateById(priorityId);
+    if (priorityTemplate) {
+      return buildResolution(priorityTemplate, text, mode, identity, du, false, 12);
+    }
+  }
+
   const scored = CIVIC_JOURNEY_TEMPLATES.map((template) => ({
     template,
     score: scoreTemplate(template, text),
@@ -160,7 +174,16 @@ export function resolveCivicJourney(
     .filter((x) => x.score > 0)
     .sort((a, b) => b.score - a.score);
 
-  if (scored.length === 0) return null;
+  if (scored.length === 0) {
+    const mastercase = resolveMastercaseFromText(text);
+    if (mastercase?.journeyId) {
+      const fallback = getJourneyTemplateById(mastercase.journeyId);
+      if (fallback) {
+        return buildResolution(fallback, text, mode, identity, du, false, 3);
+      }
+    }
+    return null;
+  }
 
   const best = scored[0];
   if (scored.length > 1 && best.score === scored[1].score) {

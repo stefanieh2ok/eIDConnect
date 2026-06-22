@@ -42,6 +42,16 @@ const RESPONSES_DU: Record<IntegrityIntentClass, AdvisorResponse> = {
       'Bei Überforderung: Beratung und offizielle Unterstützungswege prüfen',
     ],
   },
+  improper_benefit_reporting: {
+    message:
+      'Dabei kann Clara nicht helfen, falsche oder unvollständige Angaben zu machen. Wenn dein Einkommen nicht reicht, kann Clara dir aber zeigen, welche offiziellen Prüfwege und Unterlagen für Bürgergeld, Wohngeld oder Kinderzuschlag relevant sein können.',
+    boundaryNote: 'Leistungen erfordern vollständige und ehrliche Angaben — Clara verspricht keinen Anspruch.',
+    lawfulAlternatives: [
+      'Einkommen und Haushalt vollständig offenlegen',
+      'Jobcenter / Wohngeldstelle / Familienkasse zur offiziellen Prüfung',
+      'Beratung zu Wohngeld, Kinderzuschlag oder Bürgergeld nutzen',
+    ],
+  },
   self_harm_or_crisis: {
     message:
       'Wenn du dich akut belastet fühlst, wende dich bitte an professionelle Hilfe — z. B. Telefonseelsorge (0800 111 0 111) oder den Notruf 112. Clara kann bei Verwaltungswegen orientieren, ersetzt aber keine Krisenversorgung.',
@@ -76,7 +86,8 @@ export function buildSafeGuidanceSteps(intentClass: IntegrityIntentClass): strin
   if (
     intentClass === 'ambiguous_health_or_benefit' ||
     intentClass === 'possible_avoidance' ||
-    intentClass === 'request_for_improper_benefit'
+    intentClass === 'request_for_improper_benefit' ||
+    intentClass === 'improper_benefit_reporting'
   ) {
     return [
       'Gesundheit sauber klären — Arbeitsunfähigkeit nur bei tatsächlicher Krankheit ärztlich prüfen lassen',

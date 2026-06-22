@@ -6166,6 +6166,11 @@ html[data-shell-nav='legacy'] {
   border-top: 1px solid rgba(196, 181, 253, 0.2);
 }
 
+html[data-clara-clarification-open] .wegweiser-clara-chat__actions,
+.civic-app-shell[data-clara-clarification-open] .wegweiser-clara-chat__actions {
+  padding-bottom: calc(var(--app-bottom-nav-height) + env(safe-area-inset-bottom, 0px) + var(--space-2));
+}
+
 .wegweiser-clara-chat__secondary-actions {
   display: flex;
   gap: 0.5rem;
