@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { GuidedIntakeResult, IntakeAnswerMap, IntakeQuestion } from '@/lib/civic/civicGuidedIntake';
 import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
+import { getCivicAppModalRoot } from '@/lib/civic/civicAppModalRoot';
 
 type Props = {
   open: boolean;
@@ -78,20 +79,54 @@ export function ClaraClarificationSheet({
   analyzing = false,
   du = true,
 }: Props) {
-  useEffect(() => {
-    if (!open || typeof document === 'undefined') return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.documentElement.setAttribute('data-clara-clarification-open', 'true');
-    return () => {
-      document.body.style.overflow = prev;
-      document.documentElement.removeAttribute('data-clara-clarification-open');
-    };
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const [portalRoot, setPortalRoot] = useState<HTMLElement | null>(null);
+
+  useLayoutEffect(() => {
+    if (!open || typeof document === 'undefined') {
+      setPortalRoot(null);
+      return;
+    }
+    setPortalRoot(getCivicAppModalRoot());
   }, [open]);
 
-  if (!open || typeof document === 'undefined') return null;
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return;
 
-  const portalRoot = document.getElementById('clara-portal-root') ?? document.body;
+    const shell = document.querySelector('.civic-app-shell');
+    const scrollEl = document.getElementById('main-content');
+    const modalRoot = getCivicAppModalRoot();
+    const prevScrollOverflow = scrollEl?.style.overflow ?? '';
+    const prevBodyOverflow = document.body.style.overflow;
+
+    if (scrollEl) scrollEl.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.documentElement.setAttribute('data-clara-clarification-open', 'true');
+    shell?.setAttribute('data-clara-clarification-open', 'true');
+    modalRoot?.setAttribute('aria-hidden', 'false');
+
+    closeButtonRef.current?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      if (scrollEl) scrollEl.style.overflow = prevScrollOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.removeAttribute('data-clara-clarification-open');
+      shell?.removeAttribute('data-clara-clarification-open');
+      modalRoot?.setAttribute('aria-hidden', 'true');
+    };
+  }, [open, onClose]);
+
+  if (!open || typeof document === 'undefined' || !portalRoot) return null;
+
   const questions = intake.questions;
   const currentQuestion = intake.lowConfidence ? null : questions[activeQuestionIndex] ?? null;
   const totalQuestions = questions.length;
@@ -108,17 +143,19 @@ export function ClaraClarificationSheet({
 
   return createPortal(
     <div
-      className="clara-clarification-sheet-overlay"
+      className="clara-clarification-sheet-overlay clara-clarification-sheet-overlay--app-contained"
       role="presentation"
       onClick={onClose}
       data-testid="clara-clarification-overlay"
+      data-app-contained="true"
     >
       <section
-        className="clara-clarification-sheet"
+        className="clara-clarification-sheet clara-clarification-sheet--app-contained"
         role="dialog"
         aria-modal="true"
         aria-labelledby="clara-clarification-title"
         data-testid="clara-clarification-sheet"
+        data-app-contained="true"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="clara-clarification-sheet__header">
@@ -131,6 +168,7 @@ export function ClaraClarificationSheet({
             <p className="clara-clarification-sheet__intro">{introLead}</p>
           </div>
           <button
+            ref={closeButtonRef}
             type="button"
             onClick={onClose}
             className="clara-clarification-sheet__close clara-hit-target"

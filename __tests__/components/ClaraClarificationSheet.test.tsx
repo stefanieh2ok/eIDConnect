@@ -6,6 +6,7 @@ import { AppProvider } from '@/context/AppContext';
 import { ClaraCaseInputProvider, useClaraCaseInputBridge } from '@/context/ClaraCaseInputContext';
 import { ClaraWegweiser } from '@/components/civic/ClaraWegweiser';
 import { SOURCE_NOTICE_DEMO } from '@/lib/govdata/sourceStatus';
+import { mountCivicAppTestDocument, getCivicAppModalRootEl } from '@/lib/test/civicAppTestShell';
 
 beforeEach(() => {
   global.IntersectionObserver = jest.fn(() => ({
@@ -18,8 +19,7 @@ beforeEach(() => {
     thresholds: [],
   })) as unknown as typeof IntersectionObserver;
 
-  document.body.innerHTML =
-    '<main id="main-content"></main><div id="clara-portal-root"></div>';
+  mountCivicAppTestDocument();
   delete document.documentElement.dataset.claraWegweiserClarifying;
 
   global.fetch = jest.fn().mockResolvedValue({
@@ -185,5 +185,75 @@ describe('Clara Wegweiser clarification dialog', () => {
     expect(within(sheet).getByText(/Keine Rechtsberatung/i)).toBeInTheDocument();
     expect(screen.queryByText(/PVOG ist live/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/Demo-Link/i)).not.toBeInTheDocument();
+  });
+
+  it('renders inside civic app modal root, not clara-portal-root', async () => {
+    setup();
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'Ich wurde gekündigt. Was muss ich tun?' },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i }));
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('clara-clarification-sheet')).toBeInTheDocument();
+    });
+    const modalRoot = getCivicAppModalRootEl();
+    const legacyPortal = document.getElementById('clara-portal-root')!;
+    const sheet = screen.getByTestId('clara-clarification-sheet');
+    const overlay = screen.getByTestId('clara-clarification-overlay');
+    expect(modalRoot).toContainElement(sheet);
+    expect(modalRoot).toContainElement(overlay);
+    expect(legacyPortal).not.toContainElement(sheet);
+    expect(sheet).toHaveAttribute('data-app-contained', 'true');
+    expect(overlay).toHaveAttribute('data-app-contained', 'true');
+    expect(overlay).toHaveClass('clara-clarification-sheet-overlay--app-contained');
+  });
+
+  it('marks civic app shell while dialog is open and restores bottom nav after close', async () => {
+    setup();
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'Ich wurde gekündigt. Was muss ich tun?' },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i }));
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('clara-clarification-sheet')).toBeInTheDocument();
+    });
+    const shell = screen.getByTestId('civic-app-shell');
+    expect(shell).toHaveAttribute('data-clara-clarification-open', 'true');
+    expect(screen.getByTestId('clarification-submit-skip-btn')).toBeInTheDocument();
+    expect(screen.getByTestId('app-bottom-nav')).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('clarification-submit-skip-btn'));
+    });
+    await waitFor(() => {
+      expect(screen.queryByTestId('clara-clarification-sheet')).not.toBeInTheDocument();
+    });
+    expect(shell).not.toHaveAttribute('data-clara-clarification-open');
+    expect(screen.getByTestId('app-bottom-nav')).toBeInTheDocument();
+  });
+
+  it('locks main-content scroll while dialog is open', async () => {
+    setup();
+    const main = document.getElementById('main-content')!;
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'Ich wurde gekündigt. Was muss ich tun?' },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i }));
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('clara-clarification-sheet')).toBeInTheDocument();
+    });
+    expect(main.style.overflow).toBe('hidden');
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('clarification-submit-skip-btn'));
+    });
+    await waitFor(() => {
+      expect(screen.queryByTestId('clara-clarification-sheet')).not.toBeInTheDocument();
+    });
+    expect(main.style.overflow).toBe('');
   });
 });

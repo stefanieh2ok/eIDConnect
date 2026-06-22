@@ -5,6 +5,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react';
 import { AppProvider } from '@/context/AppContext';
 import { ClaraCaseInputProvider } from '@/context/ClaraCaseInputContext';
 import { ClaraWegweiser } from '@/components/civic/ClaraWegweiser';
+import { mountCivicAppTestDocument } from '@/lib/test/civicAppTestShell';
 
 beforeEach(() => {
   global.IntersectionObserver = jest.fn(() => ({
@@ -17,8 +18,7 @@ beforeEach(() => {
     thresholds: [],
   })) as unknown as typeof IntersectionObserver;
 
-  document.body.innerHTML =
-    '<main id="main-content"></main><div id="clara-portal-root"></div>';
+  mountCivicAppTestDocument();
 });
 
 function setup(du = true) {

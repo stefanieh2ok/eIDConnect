@@ -9,6 +9,7 @@ import { AppProvider } from '@/context/AppContext';
 import { ClaraCaseInputProvider, useClaraCaseInputBridge } from '@/context/ClaraCaseInputContext';
 import { ClaraWegweiser } from '@/components/civic/ClaraWegweiser';
 import { SOURCE_NOTICE_DEMO } from '@/lib/govdata/sourceStatus';
+import { mountCivicAppTestDocument } from '@/lib/test/civicAppTestShell';
 
 let intersectionCallback: IntersectionObserverCallback | null = null;
 
@@ -27,8 +28,7 @@ beforeEach(() => {
     };
   }) as unknown as typeof IntersectionObserver;
 
-  document.body.innerHTML =
-    '<main id="main-content"></main><div id="clara-portal-root"></div>';
+  mountCivicAppTestDocument();
   delete document.documentElement.dataset.claraWegweiserActive;
   delete document.documentElement.dataset.claraWegweiserInputOnly;
 

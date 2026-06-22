@@ -527,6 +527,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
 
               <AppBottomNav hidden={!showMainBottomNav} />
               <ScrollToTopButton />
+              <div id="civic-app-modal-root" className="civic-app-modal-root" aria-hidden="true" />
               <StimmzettelModal />
               {demoLaunchOpen ? (
                 <DemoLaunchEffect
@@ -636,7 +637,7 @@ function ScrollToTopButton() {
       onClick={() =>
         document.getElementById('main-content')?.scrollTo({ top: 0, behavior: 'smooth' })
       }
-      className="absolute z-[45] w-9 h-9 rounded-full text-white shadow-lg flex items-center justify-center"
+      className="app-scroll-top-btn absolute z-[45] w-9 h-9 rounded-full text-white shadow-lg flex items-center justify-center"
       style={{
         bottom: 'var(--clara-dock-scroll-top-btn-bottom)',
         right: '0.75rem',

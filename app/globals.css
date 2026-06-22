@@ -1638,9 +1638,29 @@ html[data-clara-clarification-open] .clara-dock-pill {
   visibility: hidden;
 }
 
-html[data-clara-clarification-open] .app-bottom-nav {
+html[data-clara-clarification-open] .app-bottom-nav,
+.civic-app-shell[data-clara-clarification-open] .app-bottom-nav {
   opacity: 0.35;
   pointer-events: none;
+}
+
+html[data-clara-clarification-open] .app-scroll-top-btn,
+.civic-app-shell[data-clara-clarification-open] .app-scroll-top-btn {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.civic-app-modal-root {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-clara-overlay);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.civic-app-modal-root:not([aria-hidden='true']) {
+  pointer-events: auto;
 }
 
 .civic-hit-target {
@@ -5761,6 +5781,17 @@ html[data-shell-nav='legacy'] {
   padding-bottom: max(var(--space-2), env(safe-area-inset-bottom, 0px));
 }
 
+.clara-clarification-sheet-overlay--app-contained,
+#civic-app-modal-root .clara-clarification-sheet-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  padding-bottom: 0;
+  background: rgba(15, 23, 42, 0.38);
+}
+
 .clara-clarification-sheet {
   display: flex;
   width: 100%;
@@ -5770,9 +5801,19 @@ html[data-shell-nav='legacy'] {
   overflow: hidden;
   border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
   background: linear-gradient(180deg, #faf8ff 0%, #fff 28%);
-  border: 1px solid rgba(196, 181, 253, 0.45);
+  border: 1px solid #d8c7ff;
   box-shadow: var(--shadow-sheet);
   z-index: var(--z-clara-sheet);
+}
+
+.clara-clarification-sheet--app-contained,
+#civic-app-modal-root .clara-clarification-sheet {
+  width: 100%;
+  max-width: 100%;
+  max-height: min(78%, 640px);
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
 }
 
 .clara-clarification-sheet__header {
