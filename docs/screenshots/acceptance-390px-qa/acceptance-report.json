@@ -1,0 +1,142 @@
+{
+  "base": "http://localhost:3002",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "criteria": [
+    {
+      "id": "1-nav-pointer-events-during-clarification",
+      "pass": true,
+      "detail": {
+        "clarificationOpen": true,
+        "mainOverflow": "hidden",
+        "modalPointerEvents": "none",
+        "navPointerEvents": "auto",
+        "modalChildren": 0
+      }
+    },
+    {
+      "id": "1-nav-melden-works",
+      "pass": true,
+      "detail": {
+        "label": "Melden",
+        "locks": {
+          "clarificationOpen": false,
+          "mainOverflow": "",
+          "modalPointerEvents": "none",
+          "navPointerEvents": "auto",
+          "modalChildren": 0
+        },
+        "navigated": true,
+        "url": "http://localhost:3002/demo/eidconnect-v1"
+      }
+    },
+    {
+      "id": "1-nav-beteiligen-works",
+      "pass": true,
+      "detail": {
+        "label": "Beteiligen",
+        "locks": {
+          "clarificationOpen": false,
+          "mainOverflow": "",
+          "modalPointerEvents": "none",
+          "navPointerEvents": "auto",
+          "modalChildren": 0
+        },
+        "navigated": true,
+        "url": "http://localhost:3002/demo/eidconnect-v1"
+      }
+    },
+    {
+      "id": "1-nav-wahlen-works",
+      "pass": true,
+      "detail": {
+        "label": "Wahlen",
+        "locks": {
+          "clarificationOpen": false,
+          "mainOverflow": "",
+          "modalPointerEvents": "none",
+          "navPointerEvents": "auto",
+          "modalChildren": 0
+        },
+        "navigated": true,
+        "url": "http://localhost:3002/demo/eidconnect-v1"
+      }
+    },
+    {
+      "id": "2-birth-kita-multiple-options",
+      "pass": true,
+      "detail": {
+        "chips": [
+          "Kind wird erwartet",
+          "Kind ist bereits geboren",
+          "Kita-Platz suchen",
+          "Alles zusammen",
+          "Weiß ich nicht"
+        ]
+      }
+    },
+    {
+      "id": "2-weiter-enabled-after-kita-chip",
+      "pass": true
+    },
+    {
+      "id": "2-kita-first-plan",
+      "pass": true,
+      "detail": {
+        "firstCardText": "1Kita-Platz / Kinderbetreuung vormerkenRegional prüfenFrüh vormerken — Wartelisten variieren regional.Stelle: Kommune / JugendamtBenötigt: Geburtsurkunde oder S"
+      }
+    },
+    {
+      "id": "3-regional-ctas-clickable-or-disabled",
+      "pass": true,
+      "detail": {
+        "regionalIssues": [],
+        "regionalCtaCount": 4
+      }
+    },
+    {
+      "id": "3-regional-cta-opens-guide",
+      "pass": true
+    },
+    {
+      "id": "4-dock-no-overlap",
+      "pass": true,
+      "detail": {
+        "dockVisible": false,
+        "overlaps": []
+      }
+    },
+    {
+      "id": "4-angaben-bearbeiten-available",
+      "pass": true,
+      "detail": {
+        "angabenBearbeiten": 1
+      }
+    },
+    {
+      "id": "5-no-locks-after-plan",
+      "pass": true,
+      "detail": {
+        "clarificationOpen": false,
+        "mainOverflow": "",
+        "modalPointerEvents": "none",
+        "navPointerEvents": "auto",
+        "modalChildren": 0
+      }
+    },
+    {
+      "id": "5-nav-after-plan",
+      "pass": true,
+      "detail": {
+        "clarificationOpen": false,
+        "mainOverflow": "",
+        "modalPointerEvents": "none",
+        "navPointerEvents": "auto",
+        "modalChildren": 0
+      }
+    }
+  ],
+  "pass": true
+}
