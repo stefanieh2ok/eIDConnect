@@ -2,6 +2,11 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
+import {
+  getDevDemoEnterPath,
+  getDefaultDemoId,
+  isDevDemoAutoEnterEnabled,
+} from '@/lib/security/dev-demo-enter-path';
 
 type PageProps = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 
@@ -15,6 +20,10 @@ export default async function DemoEntryPage({ searchParams }: PageProps) {
   const token = typeof params?.token === 'string' ? params.token : (Array.isArray(params?.token) ? params.token[0] : null);
   if (token?.trim()) {
     redirect(`/demo/access?token=${encodeURIComponent(token.trim())}`);
+  }
+
+  if (isDevDemoAutoEnterEnabled()) {
+    redirect(getDevDemoEnterPath(getDefaultDemoId()));
   }
 
   return (

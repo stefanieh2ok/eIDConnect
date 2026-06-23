@@ -1,6 +1,12 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { IphoneFrame } from '@/components/ui/IphoneFrame';
 import { APP_DISPLAY_NAME } from '@/lib/branding';
+import {
+  getDevDemoEnterPath,
+  getDefaultDemoId,
+  isDevDemoAutoEnterEnabled,
+} from '@/lib/security/dev-demo-enter-path';
 
 export const metadata = {
   title: `Zugang verweigert – ${APP_DISPLAY_NAME}`,
@@ -32,6 +38,10 @@ export default async function AccessDeniedPage({
 }: AccessDeniedPageProps) {
   const { reason } = await searchParams;
 
+  if (isDevDemoAutoEnterEnabled() && reason !== 'invalid_secret') {
+    redirect(getDevDemoEnterPath(getDefaultDemoId()));
+  }
+
   return (
     <IphoneFrame>
       <main id="main-content" className="civic-gate-page flex h-full min-h-0 w-full items-center justify-center rounded-b-[1.75rem] px-3 py-6">
@@ -58,9 +68,18 @@ export default async function AccessDeniedPage({
         )}
 
         <p className="mt-6 text-center">
-          <Link href="/demo" className="text-sm text-blue-700 underline hover:text-blue-800">
-            Zum Vorschau-Einstieg
-          </Link>
+          {isDevDemoAutoEnterEnabled() ? (
+            <Link
+              href={getDevDemoEnterPath(getDefaultDemoId())}
+              className="text-sm font-medium text-blue-700 underline hover:text-blue-800"
+            >
+              Lokale Demo starten
+            </Link>
+          ) : (
+            <Link href="/demo" className="text-sm text-blue-700 underline hover:text-blue-800">
+              Zum Vorschau-Einstieg
+            </Link>
+          )}
         </p>
       </div>
       </main>
