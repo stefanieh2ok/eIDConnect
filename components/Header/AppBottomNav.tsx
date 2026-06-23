@@ -3,6 +3,7 @@
 import React from 'react';
 import { CheckCircle, ListChecks, MessageCircle, ThumbsUp } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { useClaraCaseInputBridge } from '@/context/ClaraCaseInputContext';
 import { visibleMainNavItems, type MainNavIconKey, type MainNavItem } from '@/lib/appNavConfig';
 
 const NAV_ICONS: Record<MainNavIconKey, React.ComponentType<{ className?: string }>> = {
@@ -54,6 +55,7 @@ function NavButton({
 
 export default function AppBottomNav({ hidden = false }: AppBottomNavProps) {
   const { state, dispatch } = useApp();
+  const caseInputBridge = useClaraCaseInputBridge();
   const items = visibleMainNavItems(state.residenceLocation);
   const pilotItems = items.filter((item) => item.pilot);
   const coreItems = items.filter((item) => !item.pilot);
@@ -62,6 +64,10 @@ export default function AppBottomNav({ hidden = false }: AppBottomNavProps) {
   if (hidden) return null;
 
   const selectSection = (section: MainNavItem['section']) => {
+    if (caseInputBridge.isActive) {
+      caseInputBridge.dismissClarification();
+      caseInputBridge.resetTransientUi();
+    }
     dispatch({ type: 'SET_ACTIVE_SECTION', payload: section });
   };
 

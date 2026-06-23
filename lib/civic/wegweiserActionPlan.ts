@@ -4,7 +4,9 @@
 import type { CivicCasePlanResult, DocumentReadinessItem } from '@/lib/govdata/serviceTypes';
 import type { CivicJourneyId } from '@/lib/civic/civicJourneyTemplates';
 import type { ResolvedOfficialAction } from '@/lib/civic/officialActionTypes';
+import type { IntakeAnswerMap } from '@/lib/civic/civicGuidedIntake';
 import { primarySourceOwnerLabel, shouldIncludeHousingDocuments } from '@/lib/civic/officialActionResolver';
+import { isKitaFocusedPlanContext } from '@/lib/civic/wegweiserFamilyIntake';
 import { SOURCE_NOTICE_TEMPLATE_ONLY, SOURCE_NOTICE_VERIFIED_CATALOG } from '@/lib/govdata/sourceStatus';
 
 export type WegweiserActionPlanItem = {
@@ -55,6 +57,38 @@ const JOB_LOSS_TIMING: Record<string, string> = {
     'Optional, wenn Qualifizierung für dich relevant ist.',
   buergergeld_housing:
     'Kann relevant sein, wenn ALG I nicht reicht oder kein Anspruch besteht.',
+};
+
+const CHILDCARE_KITA_PRIMARY_ORDER = [
+  'kita_reserve',
+  'school_kita_change',
+  'school_transfer',
+  'school_transport',
+  'kindergeld_apply',
+] as const;
+
+const BIRTH_FAMILY_PRIMARY_ORDER = [
+  'birth_register',
+  'kindergeld_apply',
+  'elterngeld_apply',
+  'family_insurance',
+  'kita_reserve',
+] as const;
+
+const CHILDCARE_KITA_TIMING: Record<string, string> = {
+  kita_reserve: 'Früh vormerken — Wartelisten variieren regional.',
+  school_kita_change: 'Zuständige Kommune / Jugendamt prüfen.',
+  school_transfer: 'Unterlagen für Schule oder Betreuungswechsel vorbereiten.',
+  school_transport: 'Nur bei längerem Schulweg regional prüfen.',
+  kindergeld_apply: 'Optional: weitere Familienleistungen prüfen.',
+};
+
+const BIRTH_FAMILY_TIMING: Record<string, string> = {
+  birth_register: 'Nach der Geburt beim Standesamt.',
+  kindergeld_apply: 'Nach Geburtsurkunde bei der Familienkasse.',
+  elterngeld_apply: 'Nach Geburt und Gehaltsnachweisen.',
+  family_insurance: 'Familienversicherung beim Kind klären.',
+  kita_reserve: 'Optional: Kita-Platz vormerken.',
 };
 
 const HOUSING_DOC_KEYWORDS = ['mietvertrag', 'wohnkosten', 'miete', 'wohnungsgeber', 'haushaltsmitglieder'];
@@ -157,6 +191,52 @@ function buildJobLossPlan(
   return { primary, optional };
 }
 
+function buildChildcareKitaPlan(
+  actions: Map<string, ResolvedOfficialAction>,
+): WegweiserActionPlanView {
+  const primary: WegweiserActionPlanItem[] = [];
+  const optional: WegweiserActionPlanItem[] = [];
+  let step = 1;
+
+  for (const id of CHILDCARE_KITA_PRIMARY_ORDER) {
+    const action = actions.get(id);
+    if (!action) continue;
+    const item = toPlanItem(step, action, CHILDCARE_KITA_TIMING[id] ?? action.reason);
+    if (id === 'kindergeld_apply' || action.relevance === 'optional') {
+      optional.push({ ...item, stepNumber: optional.length + 1 });
+    } else {
+      primary.push({ ...item, stepNumber: step++ });
+    }
+  }
+
+  return { primary, optional };
+}
+
+function buildBirthFamilyPlan(
+  actions: Map<string, ResolvedOfficialAction>,
+  kitaOptionalOnly: boolean,
+): WegweiserActionPlanView {
+  const primary: WegweiserActionPlanItem[] = [];
+  const optional: WegweiserActionPlanItem[] = [];
+  let step = 1;
+
+  for (const id of BIRTH_FAMILY_PRIMARY_ORDER) {
+    const action = actions.get(id);
+    if (!action) continue;
+    if (kitaOptionalOnly && id === 'kita_reserve') {
+      optional.push(toPlanItem(optional.length + 1, action, BIRTH_FAMILY_TIMING[id]));
+      continue;
+    }
+    if (action.relevance === 'optional') {
+      optional.push(toPlanItem(optional.length + 1, action, BIRTH_FAMILY_TIMING[id] ?? action.reason));
+    } else {
+      primary.push(toPlanItem(step++, action, BIRTH_FAMILY_TIMING[id] ?? action.reason));
+    }
+  }
+
+  return { primary, optional };
+}
+
 function buildGenericPlan(plan: CivicCasePlanResult): WegweiserActionPlanView {
   const primary: WegweiserActionPlanItem[] = [];
   const optional: WegweiserActionPlanItem[] = [];
@@ -179,10 +259,20 @@ function buildGenericPlan(plan: CivicCasePlanResult): WegweiserActionPlanView {
 export function buildWegweiserActionPlan(
   plan: CivicCasePlanResult,
   du = true,
+  inputText = '',
+  intakeAnswers?: IntakeAnswerMap,
 ): WegweiserActionPlanView {
   const actions = actionMapFromPlan(plan);
   if (plan.journeyId === 'job_loss_unemployment') {
     return buildJobLossPlan(plan, actions, du);
+  }
+  if (
+    isKitaFocusedPlanContext(plan.journeyId as CivicJourneyId | undefined, inputText, intakeAnswers)
+  ) {
+    return buildChildcareKitaPlan(actions);
+  }
+  if (plan.journeyId === 'child_birth_kita') {
+    return buildBirthFamilyPlan(actions, true);
   }
   if (actions.size === 0) {
     return { primary: [], optional: [] };

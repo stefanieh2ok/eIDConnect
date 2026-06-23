@@ -11,6 +11,7 @@ import {
   type IntegrityIntentClass,
 } from '@/lib/civic/claraIntegrityPolicy';
 import { getAdvisorResponse, buildSafeGuidanceSteps } from '@/lib/civic/claraAdvisorResponses';
+import { buildBirthKitaClarificationQuestion } from '@/lib/civic/wegweiserFamilyIntake';
 
 export type IntakeQuestion = {
   id: string;
@@ -116,7 +117,15 @@ function jobLossQuestions(du: boolean, integrityClass: IntegrityIntentClass): In
   return questions.slice(0, 5);
 }
 
-function genericJourneyQuestions(journeyId: CivicJourneyId, du: boolean): IntakeQuestion[] {
+function birthKitaQuestions(du: boolean, inputText: string): IntakeQuestion[] {
+  return [buildBirthKitaClarificationQuestion(du, inputText)];
+}
+
+function genericJourneyQuestions(journeyId: CivicJourneyId, du: boolean, inputText: string): IntakeQuestion[] {
+  if (journeyId === 'child_birth_kita' || journeyId === 'childcare_school') {
+    return birthKitaQuestions(du, inputText);
+  }
+
   const template = getJourneyTemplateById(journeyId);
   if (!template) return [];
 
@@ -124,7 +133,11 @@ function genericJourneyQuestions(journeyId: CivicJourneyId, du: boolean): Intake
     id: mq.id,
     label: du ? mq.questionDu : mq.questionSie,
     type: 'single_choice' as const,
-    options: [NOT_SURE, SKIP],
+    options: [
+      { value: 'yes', label: du ? 'Ja' : 'Ja' },
+      { value: 'no', label: du ? 'Nein' : 'Nein' },
+      NOT_SURE,
+    ],
     optional: true,
   }));
 }
@@ -161,7 +174,7 @@ export function buildGuidedIntake(
   let questions: IntakeQuestion[] =
     journeyId === 'job_loss_unemployment'
       ? jobLossQuestions(du, integrity.intentClass)
-      : genericJourneyQuestions(journeyId, du);
+      : genericJourneyQuestions(journeyId, du, inputText);
 
   if (hasMunicipalityContext(identity)) {
     questions = questions.filter(

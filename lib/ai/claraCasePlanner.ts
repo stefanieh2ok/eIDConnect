@@ -401,6 +401,8 @@ export function planCivicCase(
     identityContextDisclaimer: identity.disclaimer,
     uncataloguedStepLabels: journey?.uncataloguedStepLabels,
     intakeAnswerFacts: regionInput.intakeAnswerFacts,
+    sourceInputText: regionInput.text,
+    intakeAnswers: regionInput.intakeAnswers,
     safeGuidance: regionInput.safeGuidance,
     integrityFlags: regionInput.integrityFlags,
     officialActionGroups,

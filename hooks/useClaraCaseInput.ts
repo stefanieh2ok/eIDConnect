@@ -15,6 +15,8 @@ import {
   type GuidedIntakeResult,
   type IntakeAnswerMap,
 } from '@/lib/civic/civicGuidedIntake';
+import { resetWegweiserTransientUiState } from '@/lib/civic/resetWegweiserTransientUiState';
+import { resolveFamilyJourneyFromAnswers } from '@/lib/civic/wegweiserFamilyIntake';
 
 type UseClaraCaseInputOptions = {
   du?: boolean;
@@ -140,7 +142,12 @@ export function useClaraCaseInput({
         ? formatIntakeAnswerFacts(answers, activeIntake.questions)
         : [];
       const enrichedText = `${trimmed} ${intakeAnswersToContextText(answers)}`.trim();
-      const effectiveJourneyHint = activeIntake?.journeyId ?? journeyHint;
+      let effectiveJourneyHint = activeIntake?.journeyId ?? journeyHint;
+      if (answers.family_topic) {
+        effectiveJourneyHint =
+          resolveFamilyJourneyFromAnswers(answers, effectiveJourneyHint ?? null, trimmed) ??
+          effectiveJourneyHint;
+      }
 
       const plannerInput = {
         text: enrichedText,
@@ -172,11 +179,13 @@ export function useClaraCaseInput({
         const result = planCivicCase(plannerInput, du, resolution ?? undefined, identity);
         setPlan(result);
         setGuidedIntake(null);
+        resetWegweiserTransientUiState();
         onPlanReady?.(result);
       } catch {
         const result = planCivicCase(plannerInput, du, undefined, identity);
         setPlan(result);
         setGuidedIntake(null);
+        resetWegweiserTransientUiState();
         onPlanReady?.(result);
       } finally {
         setAnalyzing(false);
@@ -302,6 +311,13 @@ export function useClaraCaseInput({
 
   const handleAnalyze = useCallback(() => startGuidedIntake(), [startGuidedIntake]);
 
+  const dismissClarification = useCallback(() => {
+    setGuidedIntake(null);
+    setIntakeAnswers({});
+    setActiveQuestionIndex(0);
+    resetWegweiserTransientUiState();
+  }, []);
+
   const handleClear = useCallback(() => {
     setPlan(null);
     setGuidedIntake(null);
@@ -309,6 +325,7 @@ export function useClaraCaseInput({
     setActiveQuestionIndex(0);
     setText('');
     setJourneyHint(undefined);
+    resetWegweiserTransientUiState();
   }, []);
 
   const handleEditContext = useCallback(() => {
@@ -393,6 +410,8 @@ export function useClaraCaseInput({
     handleAnalyze,
     handleClear,
     handleEditContext,
+    dismissClarification,
+    resetTransientUi: resetWegweiserTransientUiState,
     focusInput,
     appendTranscript,
     startSpeechInput,

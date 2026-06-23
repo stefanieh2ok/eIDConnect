@@ -23,6 +23,9 @@ export type ClaraCaseInputBridge = {
   showFloatingDock: boolean;
   /** Clarification sheet is open — hide dock to avoid duplicate Clara UI. */
   isClarifying: boolean;
+  /** Dismiss clarification without clearing text/plan. */
+  dismissClarification: () => void;
+  resetTransientUi: () => void;
 };
 
 export const inactiveClaraCaseInputBridge: ClaraCaseInputBridge = {
@@ -37,6 +40,8 @@ export const inactiveClaraCaseInputBridge: ClaraCaseInputBridge = {
   speechMessage: null,
   showFloatingDock: true,
   isClarifying: false,
+  dismissClarification: () => {},
+  resetTransientUi: () => {},
 };
 
 type ClaraCaseInputContextValue = {

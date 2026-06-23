@@ -48,11 +48,7 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
   const resultRef = useRef<HTMLDivElement | null>(null);
   const [inputGuardScrolledPast, setInputGuardScrolledPast] = React.useState(false);
 
-  const showFloatingDock = caseInput.plan
-    ? true
-    : caseInput.isClarifying
-      ? false
-      : inputGuardScrolledPast;
+  const showFloatingDock = !caseInput.plan && !caseInput.isClarifying && inputGuardScrolledPast;
 
   const contextRowLabel = useMemo(() => {
     const parts = [
@@ -112,6 +108,8 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
       speechMessage: caseInput.speechMessage,
       showFloatingDock,
       isClarifying: caseInput.isClarifying,
+      dismissClarification: caseInput.dismissClarification,
+      resetTransientUi: caseInput.resetTransientUi,
     }),
     [
       caseInput.focusInput,
@@ -124,6 +122,8 @@ export function ClaraWegweiser({ du = true, plz, bundesland, wohnort, onPlanRead
       caseInput.speechMessage,
       showFloatingDock,
       caseInput.isClarifying,
+      caseInput.dismissClarification,
+      caseInput.resetTransientUi,
     ],
   );
 

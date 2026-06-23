@@ -32,7 +32,10 @@ function SectionTitle({ id, children }: { id?: string; children: React.ReactNode
 }
 
 export function CivicCasePlan({ plan, du = true, onExportPdf, onEditContext }: Props) {
-  const actionPlan = useMemo(() => buildWegweiserActionPlan(plan, du), [plan, du]);
+  const actionPlan = useMemo(
+    () => buildWegweiserActionPlan(plan, du, plan.sourceInputText ?? '', plan.intakeAnswers),
+    [plan, du],
+  );
   const contextSummary = useMemo(() => buildCompactContextSummary(plan, du), [plan, du]);
   const groupedDocs = useMemo(() => groupDocumentsForPlan(plan), [plan]);
   const sourceNote = compactSourceNotice(plan);

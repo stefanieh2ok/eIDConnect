@@ -8,6 +8,7 @@ import {
   illnessGuidanceText,
   shouldShowIllnessGuidance,
 } from '@/lib/civic/wegweiserChatFlow';
+import { countSelectableClarificationOptions } from '@/lib/civic/wegweiserFamilyIntake';
 
 type Props = {
   intake: GuidedIntakeResult;
@@ -32,6 +33,14 @@ function AnswerChips({
   onSelect: (value: string) => void;
 }) {
   const chipOptions = (question.options ?? []).filter((opt) => opt.value !== 'skip');
+
+  if (chipOptions.length === 0) {
+    return (
+      <p className="wegweiser-clara-chat__question-helper" role="note" data-testid="intake-q-empty">
+        Für diese Frage gibt es keine passenden Antwortoptionen — du kannst den Fahrplan trotzdem erstellen.
+      </p>
+    );
+  }
 
   return (
     <fieldset className="wegweiser-clara-chat__question" data-testid={`intake-q-${question.id}`}>
@@ -96,6 +105,8 @@ export function ClaraWegweiserChatFlow({
   const totalQuestions = questions.length;
   const currentAnswer = currentQuestion ? answers[currentQuestion.id] : undefined;
   const hasCurrentAnswer = Boolean(currentAnswer && currentAnswer !== 'skip');
+  const selectableCount = currentQuestion ? countSelectableClarificationOptions(currentQuestion) : 0;
+  const noValidQuestionOptions = Boolean(currentQuestion && selectableCount === 0);
   const progressLabel =
     !intake.lowConfidence && totalQuestions > 0
       ? `Frage ${Math.min(activeQuestionIndex + 1, totalQuestions)} von ${totalQuestions}`
@@ -202,7 +213,7 @@ export function ClaraWegweiserChatFlow({
         ) : null}
       </div>
 
-      {!intake.lowConfidence ? (
+      {!intake.lowConfidence && !noValidQuestionOptions ? (
         <div className="wegweiser-clara-chat__actions">
           <button
             type="button"
@@ -242,12 +253,12 @@ export function ClaraWegweiserChatFlow({
         <div className="wegweiser-clara-chat__actions">
           <button
             type="button"
-            className="wegweiser-clara-chat__cta-secondary"
+            className="wegweiser-clara-chat__cta-primary"
             disabled={analyzing}
             onClick={onSubmitSkip}
             data-testid="clarification-submit-skip-btn"
           >
-            {du ? 'Fahrplan trotzdem erstellen' : 'Fahrplan trotzdem erstellen'}
+            {analyzing ? 'Erstelle Behördenfahrplan…' : du ? 'Fahrplan trotzdem erstellen' : 'Fahrplan trotzdem erstellen'}
           </button>
         </div>
       )}

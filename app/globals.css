@@ -1606,8 +1606,14 @@ html[data-clara-wegweiser-active='true'] {
 }
 
 html[data-clara-wegweiser-active='true'][data-clara-wegweiser-plan='true'] {
-  --clara-dock-content-pad-bottom: calc(var(--app-bottom-nav-height) + 12.5rem + env(safe-area-inset-bottom, 0px));
-  --clara-dock-scroll-top-btn-bottom: calc(var(--app-bottom-nav-height) + 9.5rem + env(safe-area-inset-bottom, 0px));
+  --clara-dock-content-pad-bottom: calc(var(--app-bottom-nav-height) + 1.75rem + env(safe-area-inset-bottom, 0px));
+  --clara-dock-scroll-top-btn-bottom: calc(var(--app-bottom-nav-height) + 1.35rem + env(safe-area-inset-bottom, 0px));
+}
+
+html[data-clara-wegweiser-active='true'][data-clara-wegweiser-plan='true'] .clara-dock-pill {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 html[data-clara-wegweiser-input-only='true'] {
@@ -1640,8 +1646,12 @@ html[data-clara-clarification-open] .clara-dock-pill {
 
 html[data-clara-clarification-open] .app-bottom-nav,
 .civic-app-shell[data-clara-clarification-open] .app-bottom-nav {
-  opacity: 0.35;
-  pointer-events: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+html[data-clara-clarification-open] .wegweiser-institutional-secondary {
+  display: none;
 }
 
 html[data-clara-clarification-open] .app-scroll-top-btn,
@@ -5047,6 +5057,39 @@ html[data-shell-nav='legacy'] {
 .wegweiser-action-plan-card__cta--muted {
   background: #f1f5f9;
   color: #475569;
+}
+
+.wegweiser-action-plan-card__cta--disabled {
+  background: #f1f5f9;
+  color: #475569;
+  cursor: not-allowed;
+  border: 1px dashed #cbd5e1;
+}
+
+.wegweiser-action-plan-card__regional-guide {
+  margin-top: 0.65rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.wegweiser-action-plan-card__regional-guide ul {
+  margin: 0.45rem 0 0.35rem 1rem;
+  padding: 0;
+}
+
+.wegweiser-action-plan-card__regional-context {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.wegweiser-action-plan-card__regional-note {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
 }
 
 .wegweiser-action-plan-card__secondary {

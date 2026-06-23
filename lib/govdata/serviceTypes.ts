@@ -97,6 +97,9 @@ export type CivicCasePlanResult = {
   uncataloguedStepLabels?: string[];
   /** Guided intake answers reflected in plan */
   intakeAnswerFacts?: string[];
+  /** Original user text for action ordering heuristics */
+  sourceInputText?: string;
+  intakeAnswers?: Record<string, string>;
   safeGuidance?: string;
   integrityFlags?: string[];
   /** Catalogue-backed official actions and forms */

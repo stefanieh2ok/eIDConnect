@@ -101,7 +101,7 @@ describe('ClaraWegweiser dock visibility', () => {
     expect(document.documentElement.dataset.claraWegweiserInputOnly).toBeUndefined();
   });
 
-  it('shows dock when plan is visible so Clara stays reachable', async () => {
+  it('hides dock when plan is visible so action cards stay readable', async () => {
     setup();
     emitIntersection(true);
     fireEvent.change(screen.getByRole('textbox'), {
@@ -120,7 +120,7 @@ describe('ClaraWegweiser dock visibility', () => {
     await waitFor(() => {
       expect(screen.getByText(/Dein Fahrplan/i)).toBeInTheDocument();
     });
-    expect(screen.getByTestId('dock-visible')).toHaveAttribute('data-show-floating-dock', 'true');
+    expect(screen.getByTestId('dock-visible')).toHaveAttribute('data-show-floating-dock', 'false');
     expect(document.documentElement.dataset.claraWegweiserPlan).toBe('true');
   });
 });
