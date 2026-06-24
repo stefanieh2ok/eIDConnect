@@ -15,12 +15,12 @@ describe('claraCasePlanner', () => {
       text: 'Ich ziehe mit zwei Kindern um, Einkommen ist niedrig, brauche Wohngeld und Schulwechsel.',
       mode: 'private',
     });
-    expect(plan.situationSummary).toMatch(/Situation erfasst/i);
+    expect(plan.situationSummary).toMatch(/Umzug|Kind/i);
     expect(plan.topics.length).toBeGreaterThan(0);
     expect(plan.services.length).toBeGreaterThan(0);
     expect(plan.sequenceSteps.length).toBeGreaterThanOrEqual(4);
     expect(plan.isDemoData).toBe(true);
-    expect(plan.sourceNotice).toMatch(/Offizielle Datenquelle/);
+    expect(plan.sourceNotice).toMatch(/Offizielle Datenquelle|kuratierten|Wegweiser-Template/i);
     expect(plan.followUpQuestions.length).toBeLessThanOrEqual(3);
   });
 

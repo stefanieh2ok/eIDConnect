@@ -11,7 +11,9 @@ import {
   DEMO_SOURCE_PENDING_LABEL,
   externalLinkBadgeLabel,
   externalLinkButtonLabel,
-  isVerifiedOfficialLink,
+  isRenderableOfficialLink,
+  isVerifiedManualOfficialLink,
+  officialLinkDomain,
   resolveExternalLinkStatus,
   shouldRenderExternalLink,
 } from '@/lib/govdata/externalLinkGate';
@@ -26,8 +28,10 @@ export function OfficialServiceCard({ service, du = true }: Props) {
   const relevance = confidenceLabel(service.confidence);
   const linkStatus = resolveExternalLinkStatus(service);
   const linkBadge = externalLinkBadgeLabel(linkStatus);
-  const verified = isVerifiedOfficialLink(linkStatus);
+  const verified = isRenderableOfficialLink(linkStatus);
+  const manualVerified = isVerifiedManualOfficialLink(linkStatus);
   const primaryUrl = service.onlineServiceUrl || service.officialSourceUrl || service.formUrl;
+  const domain = primaryUrl ? officialLinkDomain(primaryUrl) : null;
 
   return (
     <article className="civic-service-card">
@@ -55,6 +59,10 @@ export function OfficialServiceCard({ service, du = true }: Props) {
         </p>
       ) : null}
 
+      {service.regionHint ? (
+        <p className="civic-service-card__authority">{service.regionHint}</p>
+      ) : null}
+
       {service.requiredDocuments && service.requiredDocuments.length > 0 ? (
         <p className="civic-service-card__docs">
           Unterlagen (Auszug): {service.requiredDocuments.slice(0, 3).join(' · ')}
@@ -75,6 +83,13 @@ export function OfficialServiceCard({ service, du = true }: Props) {
           <span className="civic-service-card__badge civic-service-card__badge--source">{linkBadge}</span>
         ) : null}
       </div>
+
+      {manualVerified && service.sourceVerifiedAt ? (
+        <p className="civic-service-card__authority">
+          Quelle zuletzt geprüft am {service.sourceVerifiedAt}
+          {domain ? ` · ${domain}` : ''}
+        </p>
+      ) : null}
 
       {verified && primaryUrl && shouldRenderExternalLink(linkStatus) ? (
         <a

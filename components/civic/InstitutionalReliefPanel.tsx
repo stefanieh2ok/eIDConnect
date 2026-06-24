@@ -10,18 +10,18 @@ type Props = {
 const BENEFITS = [
   {
     icon: MessageCircle,
-    title: 'Weniger Rückfragen',
-    hint: 'Klarere Ausgangslage vor dem Antrag',
+    title: 'Nichts vergessen',
+    hint: 'Schritte, Unterlagen und Fristen im Blick.',
   },
   {
     icon: ListChecks,
-    title: 'Bessere Unterlagen',
-    hint: 'Checkliste und Readiness vor der Stelle',
+    title: 'Richtig starten',
+    hint: 'Passende offizielle Einstiege statt Such-Chaos.',
   },
   {
     icon: CheckCircle,
-    title: 'Klarere Übergabe',
-    hint: 'Externe offizielle Wege statt Einreichung durch Clara',
+    title: 'Besser vorbereitet',
+    hint: 'Weniger Rückfragen, klarere Übergabe.',
   },
 ] as const;
 
@@ -29,12 +29,12 @@ export function InstitutionalReliefPanel({ du = true }: Props) {
   return (
     <section className="institutional-relief" aria-labelledby="institutional-relief-heading">
       <h3 id="institutional-relief-heading" className="institutional-relief__title">
-        Warum das Behörden entlastet
+        Was du davon hast
       </h3>
       <p className="institutional-relief__copy">
         {du
-          ? 'Clara hilft Menschen, ihre Lage und Unterlagen vor dem offiziellen Antrag zu sortieren. Das kann Rückfragen reduzieren, Termine vorbereiten und unvollständige Anträge vermeiden.'
-          : 'Clara hilft Menschen, ihre Lage und Unterlagen vor dem offiziellen Antrag zu sortieren. Das kann Rückfragen reduzieren, Termine vorbereiten und unvollständige Anträge vermeiden.'}
+          ? 'Clara sortiert deine Situation, Unterlagen und offizielle Einstiege — ohne Antragstellung durch Clara.'
+          : 'Clara sortiert Ihre Situation, Unterlagen und offizielle Einstiege — ohne Antragstellung durch Clara.'}
       </p>
       <ul className="institutional-relief__grid">
         {BENEFITS.map(({ icon: Icon, title, hint }) => (

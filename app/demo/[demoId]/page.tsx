@@ -1,5 +1,9 @@
 import { redirect } from 'next/navigation';
 import { getActiveDemoSession } from '@/lib/security/session';
+import {
+  getDevDemoEnterPath,
+  isDevDemoAutoEnterEnabled,
+} from '@/lib/security/dev-demo-enter-path';
 import { DemoAppClient } from './DemoAppClient';
 
 type PageProps = {
@@ -14,6 +18,9 @@ export default async function DemoPage({ params }: PageProps) {
   const session = await getActiveDemoSession(demoId);
 
   if (!session || session.demoId !== demoId) {
+    if (isDevDemoAutoEnterEnabled()) {
+      redirect(getDevDemoEnterPath(demoId));
+    }
     redirect('/access/denied');
   }
 

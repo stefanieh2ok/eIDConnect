@@ -9,6 +9,7 @@ import { AppProvider } from '@/context/AppContext';
 import { ClaraCaseInputProvider, useClaraCaseInputBridge } from '@/context/ClaraCaseInputContext';
 import { ClaraWegweiser } from '@/components/civic/ClaraWegweiser';
 import { SOURCE_NOTICE_DEMO } from '@/lib/govdata/sourceStatus';
+import { mountCivicAppTestDocument } from '@/lib/test/civicAppTestShell';
 
 let intersectionCallback: IntersectionObserverCallback | null = null;
 
@@ -27,7 +28,7 @@ beforeEach(() => {
     };
   }) as unknown as typeof IntersectionObserver;
 
-  document.body.innerHTML = '<main id="main-content"></main>';
+  mountCivicAppTestDocument();
   delete document.documentElement.dataset.claraWegweiserActive;
   delete document.documentElement.dataset.claraWegweiserInputOnly;
 
@@ -100,7 +101,7 @@ describe('ClaraWegweiser dock visibility', () => {
     expect(document.documentElement.dataset.claraWegweiserInputOnly).toBeUndefined();
   });
 
-  it('does not show dock on plan alone while guard remains visible', async () => {
+  it('hides dock when plan is visible so action cards stay readable', async () => {
     setup();
     emitIntersection(true);
     fireEvent.change(screen.getByRole('textbox'), {
@@ -110,8 +111,16 @@ describe('ClaraWegweiser dock visibility', () => {
       fireEvent.click(screen.getByRole('button', { name: /Behördenfahrplan erstellen/i }));
     });
     await waitFor(() => {
-      expect(screen.getByText(/Dein Behördenfahrplan/i)).toBeInTheDocument();
+      expect(screen.getByTestId('clara-wegweiser-chat-flow')).toBeInTheDocument();
     });
     expect(screen.getByTestId('dock-visible')).toHaveAttribute('data-show-floating-dock', 'false');
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('clarification-submit-skip-btn'));
+    });
+    await waitFor(() => {
+      expect(screen.getByText(/Dein Fahrplan/i)).toBeInTheDocument();
+    });
+    expect(screen.getByTestId('dock-visible')).toHaveAttribute('data-show-floating-dock', 'false');
+    expect(document.documentElement.dataset.claraWegweiserPlan).toBe('true');
   });
 });

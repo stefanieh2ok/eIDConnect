@@ -21,6 +21,11 @@ export type ClaraCaseInputBridge = {
   speechMessage: string | null;
   /** Wegweiser input view: hide floating dock until plan exists or user scrolls past input. */
   showFloatingDock: boolean;
+  /** Clarification sheet is open — hide dock to avoid duplicate Clara UI. */
+  isClarifying: boolean;
+  /** Dismiss clarification without clearing text/plan. */
+  dismissClarification: () => void;
+  resetTransientUi: () => void;
 };
 
 export const inactiveClaraCaseInputBridge: ClaraCaseInputBridge = {
@@ -34,6 +39,9 @@ export const inactiveClaraCaseInputBridge: ClaraCaseInputBridge = {
   speechListening: false,
   speechMessage: null,
   showFloatingDock: true,
+  isClarifying: false,
+  dismissClarification: () => {},
+  resetTransientUi: () => {},
 };
 
 type ClaraCaseInputContextValue = {
@@ -76,13 +84,20 @@ export function useClaraCaseInputBridgeRegistration(bridge: ClaraCaseInputBridge
       } else {
         document.documentElement.dataset.claraWegweiserInputOnly = 'true';
       }
+      if (bridge.isClarifying) {
+        document.documentElement.dataset.claraWegweiserClarifying = 'true';
+      } else {
+        delete document.documentElement.dataset.claraWegweiserClarifying;
+      }
     } else {
       delete document.documentElement.dataset.claraWegweiserActive;
       delete document.documentElement.dataset.claraWegweiserInputOnly;
+      delete document.documentElement.dataset.claraWegweiserClarifying;
     }
     return () => {
       delete document.documentElement.dataset.claraWegweiserActive;
       delete document.documentElement.dataset.claraWegweiserInputOnly;
+      delete document.documentElement.dataset.claraWegweiserClarifying;
     };
-  }, [bridge.isActive, bridge.showFloatingDock]);
+  }, [bridge.isActive, bridge.showFloatingDock, bridge.isClarifying]);
 }

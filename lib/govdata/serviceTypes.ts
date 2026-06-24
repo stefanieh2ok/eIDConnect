@@ -3,7 +3,12 @@
  * PVOG/XZuFi live feeds map into this shape via serviceNormalizer.
  */
 
-export type GovServiceSourceSystem = 'PVOG' | 'Bundesportal' | 'ManualDemo' | 'Unknown';
+export type GovServiceSourceSystem =
+  | 'PVOG'
+  | 'Bundesportal'
+  | 'ManualDemo'
+  | 'VerifiedCatalog'
+  | 'Unknown';
 
 export type GovServiceConfidence = 'high' | 'medium' | 'low';
 
@@ -31,6 +36,10 @@ export type GovService = {
   sourceSystem: GovServiceSourceSystem;
   lastUpdated?: string;
   confidence?: GovServiceConfidence;
+  /** Manually verified catalogue metadata */
+  sourceLabel?: string;
+  sourceVerifiedAt?: string;
+  sourceOwner?: string;
   /** Keyword hints for deterministic matcher */
   matchKeywords?: string[];
 };
@@ -40,6 +49,11 @@ export type DocumentReadinessItem = {
   label: string;
   readiness: 'likely' | 'possible' | 'regional';
   checked?: boolean;
+  whyNeeded?: string;
+  actionId?: string;
+  journeyId?: string;
+  required?: 'required' | 'conditional';
+  sourceOwner?: string;
 };
 
 export type CasePlanRisk = {
@@ -47,6 +61,7 @@ export type CasePlanRisk = {
   text: string;
 };
 
+import type { ResolvedOfficialActionGroup } from '@/lib/civic/officialActionTypes';
 import type { ExternalLinkStatus } from '@/lib/govdata/externalLinkGate';
 
 export type OfficialHandoverLink = {
@@ -73,7 +88,22 @@ export type CivicCasePlanResult = {
   mode: 'private' | 'business' | 'unsure';
   isDemoData: boolean;
   sourceNotice?: string | null;
-  sourceMode?: 'demo' | 'pvog_search' | 'pvog_bereitstelldienst';
+  sourceMode?: 'demo' | 'verified_catalog' | 'pvog_search' | 'pvog_bereitstelldienst';
+  /** Journey template metadata */
+  journeyId?: string;
+  journeyTitle?: string;
+  knownContextFacts?: string[];
+  identityContextDisclaimer?: string;
+  uncataloguedStepLabels?: string[];
+  /** Guided intake answers reflected in plan */
+  intakeAnswerFacts?: string[];
+  /** Original user text for action ordering heuristics */
+  sourceInputText?: string;
+  intakeAnswers?: Record<string, string>;
+  safeGuidance?: string;
+  integrityFlags?: string[];
+  /** Catalogue-backed official actions and forms */
+  officialActionGroups?: ResolvedOfficialActionGroup[];
 };
 
 export {

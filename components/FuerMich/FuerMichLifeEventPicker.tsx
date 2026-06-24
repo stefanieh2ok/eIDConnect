@@ -12,6 +12,7 @@ import { ChevronRight } from 'lucide-react';
 import FuerMichInlineBehördenweg from '@/components/FuerMich/FuerMichInlineBehördenweg';
 import { DemoDataBanner } from '@/components/civic/DemoDataBanner';
 import { InfoHint } from '@/components/ui/InfoHint';
+import { readGovDataSourceMode } from '@/lib/govdata/sourceStatus';
 import { FUER_MICH_LIFE_EVENTS } from '@/data/fuerMichLifeEvents';
 import {
   FUER_MICH_LIFE_EVENT_CLUSTERS,
@@ -122,7 +123,13 @@ export default function FuerMichLifeEventPicker({
 
   return (
     <section className="lebenslagen-board" aria-labelledby="fuer-mich-life-event-heading">
-      <DemoDataBanner className="mb-3" />
+      {readGovDataSourceMode() === 'verified_catalog' ? (
+        <p className="lebenslagen-board__catalog-notice" role="status">
+          Dieser Katalog nutzt in der Demo kuratierte offizielle Quellen und vorbereitete Lebenslagen.
+        </p>
+      ) : (
+        <DemoDataBanner className="mb-3" />
+      )}
       {FUER_MICH_LIFE_EVENT_CLUSTERS.map((cluster) => {
         const isOpen = openClusterId === cluster.id;
         const clusterHasSelection = cluster.eventIds.some((id) => id === selectedId);

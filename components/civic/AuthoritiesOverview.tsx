@@ -6,16 +6,18 @@ import { Building } from 'lucide-react';
 type Props = {
   authorities: string[];
   du?: boolean;
+  title?: string;
 };
 
-export function AuthoritiesOverview({ authorities, du = true }: Props) {
+export function AuthoritiesOverview({ authorities, du = true, title }: Props) {
   if (authorities.length === 0) return null;
+  const heading = title ?? 'Beteiligte Stellen im Überblick';
 
   return (
     <section className="civic-authorities" aria-labelledby="civic-authorities-heading">
       <div className="civic-case-plan__section-head">
         <h3 id="civic-authorities-heading" className="civic-case-plan__section-title">
-          Beteiligte Stellen im Überblick
+          {heading}
         </h3>
         <p className="civic-case-plan__section-lead">
           {du
