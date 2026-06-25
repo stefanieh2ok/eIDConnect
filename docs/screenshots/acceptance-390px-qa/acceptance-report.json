@@ -136,6 +136,136 @@
         "navPointerEvents": "auto",
         "modalChildren": 0
       }
+    },
+    {
+      "id": "6-jobloss-journey-hint",
+      "pass": true,
+      "detail": {
+        "introText": "Ich glaube, es geht um Kündigung & Arbeitslosigkeit."
+      }
+    },
+    {
+      "id": "6-jobloss-arbeitsuchend",
+      "pass": true,
+      "detail": {
+        "cardCount": 5
+      }
+    },
+    {
+      "id": "6-jobloss-arbeitslos-melden",
+      "pass": true
+    },
+    {
+      "id": "6-jobloss-arbeitslosengeld",
+      "pass": true
+    },
+    {
+      "id": "6-jobloss-weiterbildung-optional",
+      "pass": true
+    },
+    {
+      "id": "6-jobloss-no-wohnungsgeber",
+      "pass": true
+    },
+    {
+      "id": "6-jobloss-no-familienkasse",
+      "pass": true
+    },
+    {
+      "id": "6-jobloss-no-elterngeld",
+      "pass": true
+    },
+    {
+      "id": "6-jobloss-no-demo-link",
+      "pass": true
+    },
+    {
+      "id": "6-jobloss-no-pvog-live",
+      "pass": true
+    },
+    {
+      "id": "6-jobloss-dock-no-overlap",
+      "pass": true,
+      "detail": {
+        "dockVisible": false,
+        "overlaps": []
+      }
+    },
+    {
+      "id": "6-jobloss-nav-usable",
+      "pass": true,
+      "detail": {
+        "clarificationOpen": false,
+        "mainOverflow": "",
+        "modalPointerEvents": "none",
+        "navPointerEvents": "auto",
+        "modalChildren": 0
+      }
+    },
+    {
+      "id": "7-buergergeld-integrity-wording",
+      "pass": true,
+      "detail": {
+        "introText": "Dabei kann Clara nicht helfen, falsche oder unvollständige Angaben zu machen. Wenn dein Einkommen nicht reicht, kann Clara dir aber zeigen, welche offiziellen Prüfwege und Unterlagen für Bürgergeld, Wohngeld oder Kinderzuschlag relevant sein können.",
+        "threadSnippet": "Dabei kann Clara nicht helfen, falsche oder unvollständige Angaben zu machen. Wenn dein Einkommen nicht reicht, kann Clara dir aber zeigen, welche offiziellen Prüfwege und Unterlagen für Bürgergeld, Wohngeld oder Kinderzuschlag relevant sein können.\nDabei kann Clara nicht helfen, falsche oder unvollständige Angaben zu machen. Wenn dein Einkommen nicht reicht, kann Clara dir aber zeigen, welche off"
+      }
+    },
+    {
+      "id": "7-buergergeld-safe-guidance-shown",
+      "pass": true
+    },
+    {
+      "id": "7-buergergeld-not-jobloss-route",
+      "pass": true
+    },
+    {
+      "id": "7-buergergeld-no-evasion-advice",
+      "pass": true
+    },
+    {
+      "id": "7-buergergeld-nav-during-clarification",
+      "pass": true,
+      "detail": {
+        "clarificationOpen": true,
+        "mainOverflow": "hidden",
+        "modalPointerEvents": "none",
+        "navPointerEvents": "auto",
+        "modalChildren": 0
+      }
+    },
+    {
+      "id": "7-buergergeld-not-jobloss-plan",
+      "pass": true,
+      "detail": {
+        "hasCitizenBenefit": true
+      }
+    },
+    {
+      "id": "7-buergergeld-lawful-path",
+      "pass": true
+    },
+    {
+      "id": "7-buergergeld-no-entitlement-promise",
+      "pass": true
+    },
+    {
+      "id": "7-buergergeld-no-demo-link",
+      "pass": true
+    },
+    {
+      "id": "7-buergergeld-no-pvog-live",
+      "pass": true
+    },
+    {
+      "id": "7-buergergeld-nav-after-plan",
+      "pass": true,
+      "detail": {
+        "clarificationOpen": false,
+        "mainOverflow": "",
+        "modalPointerEvents": "none",
+        "navPointerEvents": "auto",
+        "modalChildren": 0
+      }
     }
   ],
   "pass": true
