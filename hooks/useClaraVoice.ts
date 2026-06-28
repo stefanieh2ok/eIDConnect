@@ -17,6 +17,19 @@ type PendingTtsPlayback = {
 
 const CLARA_TTS_FAILED_EVENT = 'eidconnect:clara-tts-failed';
 
+/** Minimal silent WAV — use blob: URL (CSP media-src allows blob:, not data:). */
+const SILENT_WAV_B64 =
+  'UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAE=';
+
+function createSilentUnlockAudioUrl(): string {
+  const binary = atob(SILENT_WAV_B64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return URL.createObjectURL(new Blob([bytes], { type: 'audio/wav' }));
+}
+
 function emitClaraTtsFailed(): void {
   if (typeof window === 'undefined') return;
   try {
@@ -183,10 +196,16 @@ export const useClaraVoice = () => {
      */
     iosAudioUnlockedRef.current = true;
     claraAudioDevLog('audio unlock success (optimistic in user gesture)');
-    const silent =
-      'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAE=';
-    const a = new window.Audio(silent);
+    const silentUrl = createSilentUnlockAudioUrl();
+    const a = new window.Audio(silentUrl);
     a.volume = 0.0001;
+    const revokeSilentUrl = () => {
+      try {
+        URL.revokeObjectURL(silentUrl);
+      } catch {
+        /* ignore */
+      }
+    };
     void a
       .play()
       .then(() => {
@@ -196,8 +215,10 @@ export const useClaraVoice = () => {
         } catch {
           /* ignore */
         }
+        revokeSilentUrl();
       })
       .catch((err: unknown) => {
+        revokeSilentUrl();
         const name =
           err instanceof DOMException
             ? err.name
