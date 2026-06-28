@@ -587,7 +587,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
         )}
         <ClaraDock
           toolbarZClassName={
-            !state.isLoggedIn || walkthroughChrome ? 'z-[620]' : 'z-[140]'
+            !state.isLoggedIn || walkthroughChrome ? 'z-[620]' : 'z-[50]'
           }
           compactMicOnlyMode={state.isLoggedIn ? walkthroughChrome : undefined}
           compactMicZClassName={walkthroughChrome ? 'z-[760]' : undefined}

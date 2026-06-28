@@ -100,6 +100,22 @@ describe('AppBottomNav', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Beteiligen' }));
     expect(screen.getByTestId('active-section')).toHaveTextContent('live');
   });
+
+  it('switches from Wegweiser to Melden via bottom nav (UX-003)', () => {
+    delete process.env.NEXT_PUBLIC_ENABLE_CLARA_WEGWEISER;
+    render(
+      <AppProvider>
+        <AppBottomNav />
+        <ActiveSectionProbe />
+      </AppProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clara Wegweiser' }));
+    expect(screen.getByTestId('active-section')).toHaveTextContent('fuermich');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Melden' }));
+    expect(screen.getByTestId('active-section')).toHaveTextContent('meldungen');
+  });
 });
 
 describe('Clara Wegweiser pilot entry in app shell', () => {

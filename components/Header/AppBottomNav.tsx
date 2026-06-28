@@ -64,7 +64,8 @@ export default function AppBottomNav({ hidden = false }: AppBottomNavProps) {
   if (hidden) return null;
 
   const selectSection = (section: MainNavItem['section']) => {
-    if (caseInputBridge.isActive) {
+    const leavingWegweiser = state.activeSection === 'fuermich' && section !== 'fuermich';
+    if (caseInputBridge.isActive || leavingWegweiser) {
       caseInputBridge.dismissClarification();
       caseInputBridge.resetTransientUi();
     }

@@ -45,4 +45,20 @@ describe('AppBottomNav during Clara clarification', () => {
     expect(dismissClarification).toHaveBeenCalled();
     expect(resetTransientUi).toHaveBeenCalled();
   });
+
+  it('clears Wegweiser transient UI when leaving fuermich without clarification open (UX-003)', () => {
+    render(
+      <AppProvider>
+        <AppBottomNav />
+      </AppProvider>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clara Wegweiser' }));
+    dismissClarification.mockClear();
+    resetTransientUi.mockClear();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Melden' }));
+    expect(dismissClarification).toHaveBeenCalled();
+    expect(resetTransientUi).toHaveBeenCalled();
+  });
 });
