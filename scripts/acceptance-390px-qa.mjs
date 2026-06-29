@@ -35,29 +35,52 @@ async function bootstrap(page) {
   const url = `${BASE}/api/dev/enter-demo?demo_id=${encodeURIComponent(demoId)}`;
   await page.goto(url, { waitUntil: 'load', timeout: 120000 });
   await page.waitForTimeout(2000);
-  const du = page.locator('[data-anrede-value="du"]');
-  if (await du.count()) await du.first().click();
-  await page.waitForTimeout(400);
-  const weiter = page.getByRole('button', { name: /^Weiter$/i });
-  if (await weiter.count()) {
-    try {
-      await page.waitForFunction(
-        () => {
-          const btn = [...document.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Weiter');
-          return btn && !btn.disabled;
-        },
-        { timeout: 8000 },
-      );
-      await weiter.first().click({ timeout: 15000 });
-    } catch {
-      await page.waitForTimeout(3000);
+
+  const introV2 = page.locator('[data-testid="intro-v2-walkthrough"]');
+  if (await introV2.count()) {
+    const primary = page.getByTestId('intro-v2-primary-cta');
+    const label = (await primary.textContent())?.trim() ?? '';
+    if (/Zeig mir/i.test(label)) {
+      await primary.click({ timeout: 15000 });
+      await page.waitForTimeout(400);
     }
-    await page.waitForTimeout(600);
-  }
-  const direct = page.getByRole('button', { name: /Direkt zur App/i });
-  if (await direct.count()) {
-    await direct.first().click();
-    await page.waitForTimeout(2000);
+    const skip = page.getByTestId('intro-v2-skip');
+    if (await skip.count()) {
+      await skip.first().click({ timeout: 15000 });
+    } else {
+      for (let i = 0; i < 7; i += 1) {
+        const btn = page.getByTestId('intro-v2-primary-cta');
+        if (!(await btn.count())) break;
+        await btn.click({ timeout: 15000 });
+        await page.waitForTimeout(350);
+      }
+    }
+    await page.waitForTimeout(1200);
+  } else {
+    const du = page.locator('[data-anrede-value="du"]');
+    if (await du.count()) await du.first().click();
+    await page.waitForTimeout(400);
+    const weiter = page.getByRole('button', { name: /^Weiter$/i });
+    if (await weiter.count()) {
+      try {
+        await page.waitForFunction(
+          () => {
+            const btn = [...document.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Weiter');
+            return btn && !btn.disabled;
+          },
+          { timeout: 8000 },
+        );
+        await weiter.first().click({ timeout: 15000 });
+      } catch {
+        await page.waitForTimeout(3000);
+      }
+      await page.waitForTimeout(600);
+    }
+    const direct = page.getByRole('button', { name: /Direkt zur App/i });
+    if (await direct.count()) {
+      await direct.first().click();
+      await page.waitForTimeout(2000);
+    }
   }
   await page.waitForSelector('.civic-app-shell', { timeout: 90000 });
   const rewardsDismiss = page.getByRole('button', { name: /Nicht jetzt/i });
