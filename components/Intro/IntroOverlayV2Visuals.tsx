@@ -4,8 +4,6 @@ import React from 'react';
 import type { IntroOverlayV2StepId } from '@/data/introOverlayV2';
 import {
   Calendar,
-  ListChecks,
-  MessageCircle,
   ThumbsUp,
   Vote,
 } from 'lucide-react';
@@ -22,21 +20,30 @@ export function IntroOverlayV2Visual({ stepId, du }: Props) {
     case 'cold-open':
       return (
         <div className="intro-v2-visual intro-v2-visual--cold-open" aria-hidden>
-          <div className="intro-v2-cold-open__layer intro-v2-cold-open__layer--back" />
-          <div className="intro-v2-cold-open__icons">
-            <span className="intro-v2-cold-open__glyph">
-              <ListChecks className="h-4 w-4" />
-            </span>
-            <span className="intro-v2-cold-open__glyph">
-              <MessageCircle className="h-4 w-4" />
-            </span>
-            <span className="intro-v2-cold-open__glyph">
-              <ThumbsUp className="h-4 w-4" />
-            </span>
-            <span className="intro-v2-cold-open__glyph">
-              <Calendar className="h-4 w-4" />
-            </span>
+          <div className="intro-v2-cold-open__app-ghost">
+            <div className="intro-v2-cold-open__ghost-header">
+              <span className="intro-v2-cold-open__ghost-logo" />
+              <span className="intro-v2-cold-open__ghost-pill" />
+            </div>
+            <div className="intro-v2-cold-open__ghost-chips">
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="intro-v2-cold-open__ghost-main">
+              <span className="intro-v2-cold-open__ghost-line intro-v2-cold-open__ghost-line--wide" />
+              <span className="intro-v2-cold-open__ghost-line" />
+              <span className="intro-v2-cold-open__ghost-block" />
+            </div>
+            <div className="intro-v2-cold-open__ghost-nav">
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
           </div>
+          <div className="intro-v2-cold-open__veil" />
           <div className="intro-v2-cold-open__clara-glow" />
         </div>
       );
@@ -106,20 +113,22 @@ export function IntroOverlayV2Visual({ stepId, du }: Props) {
     case 'mitwirken':
       return (
         <div className="intro-v2-visual intro-v2-visual--split" aria-hidden>
-          <div className="intro-v2-split-col">
-            <ThumbsUp className="intro-v2-split-col__icon" />
-            <span className="intro-v2-split-col__label">Beteiligen</span>
-            <span className="intro-v2-split-col__hint">Neutral</span>
-          </div>
-          <div className="intro-v2-split-col">
-            <Vote className="intro-v2-split-col__icon" />
-            <span className="intro-v2-split-col__label">Wahlen</span>
-            <span className="intro-v2-split-col__hint">Vorschau</span>
-          </div>
-          <div className="intro-v2-split-col">
-            <Calendar className="intro-v2-split-col__icon" />
-            <span className="intro-v2-split-col__label">Termine</span>
-            <span className="intro-v2-split-col__hint">Überblick</span>
+          <div className="intro-v2-split-montage">
+            <div className="intro-v2-split-col intro-v2-split-col--beteiligen">
+              <ThumbsUp className="intro-v2-split-col__icon" />
+              <span className="intro-v2-split-col__label">Beteiligen</span>
+              <span className="intro-v2-split-col__hint">Neutral</span>
+            </div>
+            <div className="intro-v2-split-col intro-v2-split-col--wahlen intro-v2-split-col--lift">
+              <Vote className="intro-v2-split-col__icon" />
+              <span className="intro-v2-split-col__label">Wahlen</span>
+              <span className="intro-v2-split-col__hint">Vorschau</span>
+            </div>
+            <div className="intro-v2-split-col intro-v2-split-col--termine">
+              <Calendar className="intro-v2-split-col__icon" />
+              <span className="intro-v2-split-col__label">Termine</span>
+              <span className="intro-v2-split-col__hint">Überblick</span>
+            </div>
           </div>
         </div>
       );
