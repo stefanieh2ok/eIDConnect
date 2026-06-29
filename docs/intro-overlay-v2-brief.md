@@ -1,7 +1,7 @@
-# Intro Overlay v2 — Fachliches Briefing
+# Intro Overlay v2 — Fachliches Briefing (Blockbuster Civic Story)
 
-**Stand:** 2026-06-29  
-**Baseline:** `main` @ `98447fe`  
+**Stand:** 2026-06-29 (überarbeitet)  
+**Baseline:** `main` @ `98447fe` + Briefing `a742eb2`  
 **Zielgruppe:** Bürger:innen in einer kommunalen Demo (z. B. Kirkel)  
 **Zeitbudget:** unter 2 Minuten bis „Direkt zur App“  
 **Scope:** Briefing only — keine Implementierung in diesem Dokument
@@ -10,139 +10,279 @@
 
 ## 1. Kurzthese
 
-Das Intro zeigt in wenigen, ruhigen Schritten, wie HookAI Civic im Alltag entlastet: Clara hilft beim Sortieren und Vorbereiten — Entscheidungen und offizielle Wege bleiben bei den zuständigen Stellen.
+HookAI Civic ist der Einstieg in eine moderne Civic-App: In wenigen, filmisch geführten Momenten wird aus Ohnmacht Orientierung — und aus Orientierung Handlung. **Du bist nicht nur Zuschauer.**
 
 ---
 
-## 2. Empfohlene Anrede
+## 2. Zentrale Dramaturgie
 
-**Empfehlung: „Du“ als Standard in der Kirkel-Bürger-Demo**
+**Bogen:** Ohnmacht → Orientierung → Handlung → Mitwirkung → Vertrauen → Start
 
-| Kriterium | Du | Sie |
-|-----------|----|-----|
-| Bürgernähe | stark | formaler |
-| Vertrauen | nahbar, nicht belanglos | respektvoll, distanzierter |
-| Kommunale Nutzbarkeit | gut für Mobile-first, Alltagssprache | gut für ältere Zielgruppen / formelle Erwartung |
-| Demo vor institutionellen Käufern | wirkt modern und nutzerzentriert | wirkt behördenkonform, weniger „App-Gefühl“ |
+| Phase | Emotion | Screen |
+|-------|---------|--------|
+| Ohnmacht | „Wo fange ich an?“ | 0–1 |
+| Orientierung | Ruhe, Klarheit | 2–3 |
+| Handlung | Selbstwirksamkeit | 4 |
+| Mitwirkung | Demokratiegefühl | 5 |
+| Vertrauen + Start | Sicherheit, Aktivierung | 6 |
 
-**Begründung:** Für eine Kirkel-Bürger-Demo ist „Du“ der natürlichere Einstieg: kurz, freundlich, ohne Marketing-Ton. Die App unterstützt bereits Du/Sie — **beide Varianten** sollen in v2 parallel gepflegt werden; die **Default-Vorauswahl** in der Demo kann auf „Du“ stehen.
+**Leitmotiv (wiederkehrend, dezent):**  
+**„Verstehen. Vorbereiten. Melden. Mitwirken.“**
 
-**Offene Entscheidung für Stefanie:** Soll die Anrede-Auswahl vor Screen 1 sichtbar bleiben (wie heute) oder erst nach dem ersten Willkommenssatz?
-
----
-
-## 3. Story-Bogen (6 Screens)
-
-| # | Screen-ID | Funktion im Bogen |
-|---|-----------|-------------------|
-| 1 | `welcome` | Orientierung: Problem + Nutzen |
-| 2 | `clara-role` | Clara einordnen: Wegweiserin, keine Entscheiderin |
-| 3 | `wegweiser` | Hauptweg: Schritte verstehen, vorbereiten |
-| 4 | `melden` | Meldungen einfach machen |
-| 5 | `beteiligen-wahlen` | Mitgestalten: Abstimmen, Wahlen, Termine |
-| 6 | `vertrauen-start` | Grenzen, Vertrauen, Start in die App |
-
-**Zeitrichtwert:** ca. 15–20 Sekunden pro Screen → gesamt ca. 1:30–2:00 Minuten.
+**Zentraler Claim (sichtbar):**  
+**„Du bist nicht nur Zuschauer.“**
 
 ---
 
-## 4. Screens im Detail
+## 3. Emotionale Ausgangslage
 
-### Screen 1 — `welcome`
+Bürger:innen fühlen sich oft machtlos, weil:
+
+- Zuständigkeiten unklar sind
+- Anliegen irgendwo hängen bleiben
+- Entscheidungen weit weg wirken
+- Beteiligung schwer auffindbar ist
+- Probleme im Ort sichtbar gemacht werden sollen
+- Menschen nicht nur warten, sondern handeln und mitwirken wollen
+
+Diese Emotion darf **stark** sein — aber nicht juristisch riskant, nicht parteipolitisch, nicht aggressiv.
+
+---
+
+## 4. Strikte No-Gos (Copy & Visual)
+
+**Nicht nennen:** reale Politiker, Skandale, konkrete Vorwürfe, Parteien, Unternehmen, Lobbyismus-Vorwürfe.
+
+**Nicht verwenden:** „ungesühnt“, „Skandal aufdecken“, „bestrafen“, „Korruption entlarven“, „Maskendeal“, Investor, Käufer, Behördenentlastung, weniger Rückfragen, vollständigere Vorgänge (im sichtbaren Intro).
+
+**Stattdessen:** sichtbar machen, nachvollziehbar machen, verstehen, vorbereiten, melden, mitreden, mitwirken, nicht nur zuschauen, Beteiligung finden, Orientierung schaffen.
+
+**Bevorzugte Claims (sichtbar):**
+
+- „Du bist nicht nur Zuschauer.“
+- „Mitreden beginnt mit Verstehen.“
+- „Wenn etwas nicht stimmt, soll es sichtbar werden.“
+- „Aus Unsicherheit wird ein nächster Schritt.“
+- „Verstehen. Vorbereiten. Melden. Mitwirken.“
+
+---
+
+## 5. Tonalität
+
+Filmisch, stark, klar, modern, vertrauenswürdig, demokratisch — nicht aggressiv, nicht parteipolitisch, nicht bürokratisch, nicht kindlich. Keine Emojis. Keine technischen Begriffe (PVOG, XZuFi, GovService). **Keine Investor-/Käuferbotschaften im sichtbaren Bürger:innen-Intro.**
+
+---
+
+## 6. Anrede
+
+**Empfehlung: „Du“ als Default** in der Kirkel-Bürger-Demo.
+
+- **Kein separates Anrede-Gate vor dem Intro** — Anrede wird im Profil/Settings umschaltbar oder nach dem Cold Open einmalig angeboten (offene Entscheidung, siehe Abschnitt 15).
+- **Sie-Variante** parallel pflegen: gleiche Struktur, gleiche Länge, konsequent „Sie/Ihnen“.
+
+---
+
+## 7. Story-Bogen — 7 Screens
+
+| # | Screen-ID | Titel (Arbeit) | Emotion |
+|---|-----------|----------------|---------|
+| 0 | `cold-open` | Du bist nicht nur Zuschauer. | Ohnmacht → Orientierung |
+| 1 | `alltag-chaos` | Wo fange ich an? | Frust, Unsicherheit |
+| 2 | `clara-wegweiserin` | Clara bringt Ordnung rein. | Vertrauen, Ruhe |
+| 3 | `wegweiser-plan` | Aus Unsicherheit wird ein nächster Schritt. | Erleichterung |
+| 4 | `melden-sichtbar` | Wenn etwas nicht stimmt, soll es sichtbar werden. | Selbstwirksamkeit |
+| 5 | `mitwirken` | Mitreden beginnt mit Verstehen. | Demokratiegefühl |
+| 6 | `vertrauen-start` | Bereit für den nächsten Schritt. | Sicherheit + Aktivierung |
+
+**Zeitrichtwert:** Screen 0 ca. 10–15 s, Screens 1–6 je ca. 15–20 s → **gesamt ca. 1:45–2:00 Min.**
+
+**Bewusst nicht im Kern-Bogen:** Prämien-Wallet, Baby-Spezialfall, Ökosystem-Finale, ausführliches Postfach — optional später, nicht v2-Pflicht.
+
+---
+
+## 8. Screens — Copy-, Visual- und Emotions-Briefing
+
+### Screen 0 — `cold-open` (Elevator Pitch)
 
 | Feld | Inhalt |
 |------|--------|
-| **Titel** | Willkommen in HookAI Civic |
-| **Haupttext** | Viele Wege zur Verwaltung wirken unübersichtlich. HookAI Civic hilft dir, das Wichtige zu finden und Schritt für Schritt vorzubereiten. |
-| **Button** | Weiter |
-| **Visual** | App-Shell Kirkel: Logo, Bottom-Nav, dezenter Kirkel-Kontext (ohne vollständigen Walkthrough) |
-| **Nutzeraktion** | Tipp auf „Weiter“ |
-| **Nicht behaupten** | Kein „alles digital erledigt“, kein Ersatz der Gemeindeverwaltung, keine Garantie auf Vollständigkeit |
+| **Titel** | Du bist nicht nur Zuschauer. |
+| **Haupttext** | HookAI Civic hilft dir, Anliegen zu verstehen, Probleme sichtbar zu machen und Beteiligung zu finden. |
+| **Button** | Zeig mir, wie |
+| **Emotionale Funktion** | Sofortige Relevanz — aus Distanz wird Nähe |
+| **Getriggertes Problem** | „Verwaltung ist weit weg / ich kann nichts tun“ |
+| **Gelöste Unsicherheit** | „Es gibt einen klaren Einstieg“ |
+| **No-Go-Claims** | Kein Ersatz der Behörde, kein Live-Betrieb, kein Skandal-Narrativ |
 
 **Copy Variante A (kurz):**  
-„Verwaltungsthemen können viel wirken. HookAI Civic bringt Ordnung in deinen Weg — ohne Fachchinesisch.“
+„HookAI Civic hilft dir, Anliegen zu verstehen, Probleme sichtbar zu machen und Beteiligung zu finden.“
 
 **Copy Variante B (wärmer):**  
-„Ob Kita, Meldung oder Termin: Manchmal weiß man nicht, wo man anfangen soll. Hier bekommst du einen ruhigen Einstieg für Kirkel.“
+„Wenn Entscheidungen weit weg wirken, brauchst du einen klaren Einstieg. HookAI Civic zeigt, wie du Anliegen sortierst, Meldungen vorbereitest und mitwirken kannst.“
+
+**Visual-Briefing**
+
+| Aspekt | Vorgabe |
+|--------|---------|
+| **Filmgefühl** | Cold Open — leicht abgedunkelt, cinematic reveal |
+| **Hauptvisual** | Unscharfe, überlagerte App-Motive: Rathaus-Silhouette, Dokumente, Meldung, Kalender, Beteiligung |
+| **Clara** | Lavendel-Punkt / sanfter Lichtakzent als Orientierung — kein Chatbot-Gimmick |
+| **App-Quelle** | Statische Komposition aus echten 390px-Screenshots, kein Live-Embed |
+| **390px Pflicht** | Claim + Button vollständig sichtbar, kein Logo-Abschnitt |
+| **Nicht zeigen** | Düsterer Thriller, Rot/Alarm, politische Symbole, Personenfotos |
 
 ---
 
-### Screen 2 — `clara-role`
+### Screen 1 — `alltag-chaos`
 
 | Feld | Inhalt |
 |------|--------|
-| **Titel** | Clara begleitet dich |
-| **Haupttext** | Clara ist deine Wegweiserin: Sie stellt Fragen, ordnet dein Anliegen und bereitet nächste Schritte vor. Sie entscheidet nicht für die Verwaltung. |
-| **Button** | So funktioniert Clara |
-| **Visual** | Clara-Dock / Wegweiser-Eingabe mit kurzem Beispieltext (neutral, z. B. Lebenslage ohne Spezialfall-Baby-Demo) |
-| **Nutzeraktion** | Weiter; optional kurzer Tap in Textfeld (ohne echten Submit) |
-| **Nicht behaupten** | Keine „KI-Entscheidung“, keine Zusage zu Fristen, Leistungen oder Unterlagen |
-
-**Copy Variante A:**  
-„Clara hilft dir sortieren — nicht bewilligen. Offizielle Stellen bleiben maßgeblich.“
-
-**Copy Variante B:**  
-„Stell dein Anliegen in eigenen Worten. Clara macht daraus einen verständlichen Fahrplan — ohne Druck und ohne Behördenjargon.“
-
----
-
-### Screen 3 — `wegweiser`
-
-| Feld | Inhalt |
-|------|--------|
-| **Titel** | Wegweiser |
-| **Haupttext** | Im Wegweiser siehst du, was als Nächstes sinnvoll ist: Schritte, Unterlagen und Hinweise — übersichtlich aufbereitet. |
-| **Button** | Wegweiser ansehen |
-| **Visual** | Echter Wegweiser mit Behördenfahrplan / Klärungsdialog (390px: Textarea + „Behördenfahrplan erstellen“ sichtbar) |
-| **Nutzeraktion** | Weiter nach Sicht auf Plan-Karte oder Chat-Flow |
-| **Nicht behaupten** | Kein „Antrag eingereicht“, keine erfundenen Fristen, kein Anspruch auf amtliche Vollständigkeit |
-
-**Copy Variante A:**  
-„Ein Anliegen, ein klarer Plan. Du weißt, was als Nächstes dran ist.“
-
-**Copy Variante B:**  
-„Ob Umzug, Kita oder ein anderes Thema: Der Wegweiser führt dich Schritt für Schritt — ohne dass du alles auf einmal wissen musst.“
-
----
-
-### Screen 4 — `melden`
-
-| Feld | Inhalt |
-|------|--------|
-| **Titel** | Melden |
-| **Haupttext** | Etwas in der Gemeinde auffällig? Unter Melden kannst du Anliegen festhalten und strukturiert vorbereiten. |
-| **Button** | Melden entdecken |
-| **Visual** | Meldungen-Modul: Liste oder Formular mit lokalem Beispiel (z. B. Spielplatz/Mängel — ohne Panik-Ton) |
-| **Nutzeraktion** | Weiter; Bottom-Nav „Melden“ kurz hervorgehoben |
-| **Nicht behaupten** | Keine echte Übermittlung an die Gemeinde in der Demo, kein „sofort erledigt“ |
-
-**Copy Variante A:**  
-„Meldung machen — klar beschrieben, gut vorbereitet.“
-
-**Copy Variante B:**  
-„Wenn dir etwas auffällt, musst du nicht erst wissen, welches Amt zuständig ist. Du startest hier und bereitest sauber vor.“
-
----
-
-### Screen 5 — `beteiligen-wahlen`
-
-| Feld | Inhalt |
-|------|--------|
-| **Titel** | Mitgestalten |
-| **Haupttext** | Unter Beteiligen und Wahlen findest du Abstimmungen und Termine aus deiner Region — zum Informieren und Mitmachen in der Demo. |
+| **Titel** | Wo fange ich an? |
+| **Haupttext** | Ob Ausweis, Umzug, Kita, Jobverlust oder Schaden im Ort: Oft ist der nächste Schritt nicht sofort klar. HookAI Civic hilft dir, dein Anliegen zu sortieren. |
 | **Button** | Weiter |
-| **Visual** | Split oder Wechsel: Beteiligen-Karte + Kalender-/Wahlen-Ausschnitt (390px: ein aktiver Bereich, zweiter angedeutet) |
-| **Nutzeraktion** | Weiter |
-| **Nicht behaupten** | Keine echte Stimmabgabe, keine Wahlempfehlung, kein „live verbunden“ |
+| **Emotionale Funktion** | Wiedererkennung — „Das bin ich“ |
+| **Getriggertes Problem** | Zuständigkeitschaos, Überforderung |
+| **Gelöste Unsicherheit** | „Mein Thema ist hier willkommen“ |
+| **No-Go-Claims** | Keine konkreten Skandale, keine Parteien, kein „System ist kaputt“ |
 
 **Copy Variante A:**  
-„Abstimmen, Termine sehen, Wahlen verstehen — an einem Ort.“
+„Zu viele Wege, zu wenig Orientierung. Hier beginnt die Sortierung.“
 
 **Copy Variante B:**  
-„Was in Kirkel gerade relevant ist, sollst du leichter mitverfolgen können — informiert, ohne Überforderung.“
+„Ob Kita, Umzug oder etwas im Ort: Du musst nicht alles allein enträtseln.“
 
-**Hinweis Postfach (nur Text, kein eigener Screen):**  
-„Nachrichten und Rückfragen können später im Postfach nachverfolgt werden — in dieser Demo nur als Vorschau.“
+**Visual-Briefing**
+
+| Aspekt | Vorgabe |
+|--------|---------|
+| **Filmgefühl** | Close-up auf Alltags-Anliegen — leichte Unschärfe am Rand |
+| **Hauptvisual** | App-Shell mit kleinen Anliegen-Cards: Ausweis, Umzug, Kita, Jobverlust, Schaden melden |
+| **App-Quelle** | Statischer Screenshot Start/Wegweiser-Übersicht oder gestaltete Card-Reihe aus echten UI-Komponenten |
+| **390px Pflicht** | Mind. 3 Cards lesbar, Bottom-Nav sichtbar |
+| **Nicht zeigen** | Panik-UI, rote Fehlerbanner, überladene Listen |
+
+---
+
+### Screen 2 — `clara-wegweiserin`
+
+| Feld | Inhalt |
+|------|--------|
+| **Titel** | Clara bringt Ordnung rein. |
+| **Haupttext** | Clara ist deine Wegweiserin. Sie hilft beim Sortieren und Vorbereiten — aber sie entscheidet nicht und ersetzt keine Behörde. |
+| **Button** | Weiter |
+| **Emotionale Funktion** | Vertrauen, ruhige Führung |
+| **Getriggertes Problem** | „KI / App — kann ich dem trauen?“ |
+| **Gelöste Unsicherheit** | „Clara begleitet, entscheidet nicht“ |
+| **No-Go-Claims** | Keine „KI-Entscheidung“, keine Frist-/Leistungszusage |
+
+**Copy Variante A:**  
+„Clara sortiert mit — nicht statt der Verwaltung.“
+
+**Copy Variante B:**  
+„In eigenen Worten starten. Clara macht daraus einen verständlichen nächsten Schritt.“
+
+**Visual-Briefing**
+
+| Aspekt | Vorgabe |
+|--------|---------|
+| **Filmgefühl** | Calm reveal — Clara tritt aus dem „Chaos“ in den Fokus |
+| **Hauptvisual** | Clara-Dock in **Lavendel** neben Wegweiser-Textarea (echter Ausschnitt) |
+| **App-Quelle** | Screenshot Wegweiser + Clara-Pill, neutraler Beispieltext (Kita/Umzug, kein Baby-Spezialfall) |
+| **390px Pflicht** | Clara-Pill + Textarea; Dock **überlappt Melden-Button nicht** (UX-003) |
+| **Nicht zeigen** | Robotergesicht, Sci-Fi-Glow, Navy/Mint/Teal-Restyling |
+
+---
+
+### Screen 3 — `wegweiser-plan`
+
+| Feld | Inhalt |
+|------|--------|
+| **Titel** | Aus Unsicherheit wird ein nächster Schritt. |
+| **Haupttext** | Du beschreibst dein Anliegen. Der Wegweiser zeigt, welche Stelle passen könnte, was vorzubereiten ist und worauf du achten solltest. |
+| **Button** | Wegweiser ansehen |
+| **Emotionale Funktion** | Erleichterung — Plan statt Nebel |
+| **Getriggertes Problem** | „Ich weiß nicht, was als Nächstes kommt“ |
+| **Gelöste Unsicherheit** | „Es gibt einen nachvollziehbaren Fahrplan“ |
+| **No-Go-Claims** | Kein „Antrag eingereicht“, keine erfundenen Fristen |
+
+**Copy Variante A:**  
+„Ein Anliegen. Ein Plan. Ein nächster Schritt.“
+
+**Copy Variante B:**  
+„Schritte, Unterlagen, Orientierung — ohne Behördenjargon.“
+
+**Visual-Briefing**
+
+| Aspekt | Vorgabe |
+|--------|---------|
+| **Filmgefühl** | Reveal — Plan-Karte löst Unschärfe auf |
+| **Hauptvisual** | Behördenfahrplan / Klärungsdialog mit nächsten Schritten, Unterlagen, Zuständigkeitshinweis |
+| **App-Quelle** | Echter Wegweiser-Screenshot (Plan-Result oder Chat-Flow) |
+| **390px Pflicht** | Plan-Titel + erster Schritt ohne Scroll; CTA „Behördenfahrplan erstellen“ erkennbar |
+| **Nicht zeigen** | Vollständigkeitsversprechen, „sofort bewilligt“ |
+
+---
+
+### Screen 4 — `melden-sichtbar`
+
+| Feld | Inhalt |
+|------|--------|
+| **Titel** | Wenn etwas nicht stimmt, soll es sichtbar werden. |
+| **Haupttext** | Du kannst eine Meldung vorbereiten — zum Beispiel zu Müll, Schäden, Spielplatz oder Ratten. Die Demo zeigt den Ablauf, ohne echte Vorgänge zu versenden. |
+| **Button** | Melden entdecken |
+| **Emotionale Funktion** | Selbstwirksamkeit — „Ich kann etwas tun“ |
+| **Getriggertes Problem** | „Probleme im Ort werden übersehen“ |
+| **Gelöste Unsicherheit** | „Meldung ist vorbereitbar und nachvollziehbar“ |
+| **No-Go-Claims** | Kein Skandal, keine echte Übermittlung, kein „sofort erledigt“ |
+
+**Copy Variante A:**  
+„Sichtbar machen — klar beschrieben, gut vorbereitet.“
+
+**Copy Variante B:**  
+„Du musst nicht wissen, welches Amt zuerst zuständig ist. Du startest hier.“
+
+**Visual-Briefing**
+
+| Aspekt | Vorgabe |
+|--------|---------|
+| **Filmgefühl** | Action moment — sanft, nicht alarmistisch |
+| **Hauptvisual** | Melden-Modul mit kommunalem Alltagsbeispiel (Spielplatz, Schaden, Müll) |
+| **App-Quelle** | Screenshot Meldungen-Liste oder -Detail |
+| **390px Pflicht** | Bottom-Nav „Melden“ aktiv; CTA nicht von Nav verdeckt |
+| **Nicht zeigen** | Dramatische Schadensfotos, Skandal-Headlines, konkrete Vorwürfe |
+
+---
+
+### Screen 5 — `mitwirken`
+
+| Feld | Inhalt |
+|------|--------|
+| **Titel** | Mitreden beginnt mit Verstehen. |
+| **Haupttext** | HookAI Civic zeigt Beteiligung, Termine und neutrale Informationen — damit du nicht nur zuschaust. |
+| **Button** | Weiter |
+| **Emotionale Funktion** | Demokratiegefühl, Mitwirkung |
+| **Getriggertes Problem** | „Beteiligung ist versteckt / zu kompliziert“ |
+| **Gelöste Unsicherheit** | „Ich finde Wege zum Mitreden“ |
+| **No-Go-Claims** | Keine Wahlbeeinflussung, keine echte Stimmabgabe, kein Live-Claim |
+
+**Copy Variante A:**  
+„Beteiligen, Termine, Wahlen verstehen — an einem Ort.“
+
+**Copy Variante B:**  
+„Was in deiner Region relevant ist, soll erreichbar sein — informiert und neutral.“
+
+**Hinweis Postfach (ein Satz, kein eigener Screen):**  
+„Rückfragen können später im Postfach nachverfolgt werden — in dieser Demo nur als Vorschau.“
+
+**Visual-Briefing**
+
+| Aspekt | Vorgabe |
+|--------|---------|
+| **Filmgefühl** | Split-screen / montage — drei Wege einer Idee |
+| **Hauptvisual** | Filmischer Split: Beteiligen + Wahlvorschau + Kalender |
+| **App-Quelle** | Drei statische Screenshots, composited — kein fragiles Live-Embed |
+| **390px Pflicht** | Pro Segment mind. Titel + ein Datum/Abstimmungsname lesbar |
+| **Nicht zeigen** | Partei-Logos, Kandidatenempfehlungen, „Stimme für X“ |
 
 ---
 
@@ -150,123 +290,134 @@ Das Intro zeigt in wenigen, ruhigen Schritten, wie HookAI Civic im Alltag entlas
 
 | Feld | Inhalt |
 |------|--------|
-| **Titel** | Bereit für den Einstieg |
-| **Haupttext** | HookAI Civic bereitet vor — entscheidet aber nicht. Gesetzliche Vorgaben und zuständige Stellen bleiben maßgeblich. In der Demo werden keine echten Anträge versendet. |
+| **Titel** | Bereit für den nächsten Schritt. |
+| **Haupttext** | Diese Demo bereitet vor — sie entscheidet nicht. Offizielle Stellen bleiben maßgeblich. Echte Anträge werden hier nicht versendet. |
 | **Button** | Direkt zur App |
-| **Visual** | Ruhige App-Shell mit Logo + Bottom-Nav; optional dezenter Hinweis „Demo · Kirkel“ |
-| **Nutzeraktion** | „Direkt zur App“ → Intro schließen |
-| **Nicht behaupten** | Kein Live-Betrieb, keine Vollständigkeit, keine Garantie auf Bearbeitungszeit |
+| **Emotionale Funktion** | Sicherheit + Aktivierung |
+| **Getriggertes Problem** | „Darf ich das nutzen? Ist das echt?“ |
+| **Gelöste Unsicherheit** | „Grenzen sind klar — ich kann starten“ |
+| **No-Go-Claims** | Kein Live-Betrieb, kein Vollständigkeitsanspruch |
 
 **Copy Variante A:**  
 „Du behältst die Kontrolle. Clara unterstützt — die Verwaltung entscheidet.“
 
 **Copy Variante B:**  
-„Du kannst jetzt selbst ausprobieren. Alles hier ist eine Demo: zum Verstehen, nicht zum offiziellen Einreichen.“
+„Jetzt selbst ausprobieren. Alles hier ist Demo — zum Verstehen, nicht zum offiziellen Einreichen.“
+
+**Visual-Briefing**
+
+| Aspekt | Vorgabe |
+|--------|---------|
+| **Filmgefühl** | Calm trust — helle Auflösung, Ausklang |
+| **Hauptvisual** | Helle App-Übersicht: Logo, Bottom-Nav, dezentes „Demo · Kirkel“, Clara-Lavendel als Wiedererkennung |
+| **App-Quelle** | Shell-Screenshot nach Intro-Schließen-Vorschau |
+| **390px Pflicht** | „Direkt zur App“ vollständig sichtbar; Navigation nicht verdeckt |
+| **Nicht zeigen** | Überladene Feature-Liste, Käufer-Texte, Technik-Badges |
+
+**Leitmotiv optional als Abschlusszeile:**  
+„Verstehen. Vorbereiten. Melden. Mitwirken.“
 
 ---
 
-## 5. Empfohlene Screen-Reihenfolge
+## 9. Empfohlene Screen-Reihenfolge
 
-1. **Willkommen / Problem** (`welcome`)  
-2. **Clara als Wegweiserin** (`clara-role`)  
-3. **Wegweiser** (`wegweiser`)  
-4. **Melden** (`melden`)  
-5. **Beteiligen / Wahlen / Kalender** (`beteiligen-wahlen`)  
-6. **Vertrauen / Start** (`vertrauen-start`)
-
-**Bewusst nicht im Kern-Bogen:** Prämien-Wallet, ausführliches Postfach, Baby-Spezialfall, Ökosystem-Finale — können später als optionale Vertiefung, nicht in v2 Pflicht.
-
----
-
-## 6. Screenshot-Briefing
-
-| Screen | App-Ausschnitt | Fokus | Sichtbare Aktion | 390px-Pflicht |
-|--------|----------------|-------|------------------|---------------|
-| `welcome` | Gesamtshell nach Demo-Entry | Logo, Kirkel-Kontext, Bottom-Nav | Keine Modul-Tiefe | Nav-Labels lesbar, Header nicht abgeschnitten |
-| `clara-role` | Wegweiser geöffnet, Clara-Dock | Textarea + Clara-Pill | Cursor/Tap auf Eingabe | Dock überlappt Melden-Button **nicht** |
-| `wegweiser` | Klärungsdialog oder Plan-Karte | „Behördenfahrplan“ / nächste Schritte | Button „Behördenfahrplan erstellen“ oder Plan-CTA | Plan-Titel + erster Schritt ohne Scroll |
-| `melden` | Meldungen-Liste oder Detail | Meldungskarte mit Ort/Thema | Bottom-Nav „Melden“ aktiv | FAB/CTA nicht von Nav verdeckt |
-| `beteiligen-wahlen` | Beteiligen oder Wahlen | Eine Abstimmung oder Kalendertermin | Tab-Wechsel Beteiligen ↔ Wahlen | Termin-Datum + Titel lesbar |
-| `vertrauen-start` | Shell ohne Modul-Overlay | Vertrauenszeile + CTA | „Direkt zur App“ prominent | CTA vollständig sichtbar, kein CSS-404 |
-
-**Screenshot-Produktion:** Aus `npm run dev:clean` @ 390px und Desktop; keine gestellten Mockups. Bestehende QA-Pfade (`acceptance-390px-qa`) als Referenz für stabile Views.
+1. `cold-open` — Elevator / Claim  
+2. `alltag-chaos` — Problem erkennen  
+3. `clara-wegweiserin` — Begleitung einführen  
+4. `wegweiser-plan` — Nutzen zeigen  
+5. `melden-sichtbar` — Handlung im Ort  
+6. `mitwirken` — Civic über Service hinaus  
+7. `vertrauen-start` — Grenzen + Start
 
 ---
 
-## 7. Copy-Varianten — Übersicht
+## 10. Screenshot- und Asset-Vorgaben (global)
 
-Jeder Screen hat oben **Variante A** (kurz/direkt) und **Variante B** (wärmer). Für Sie-Anrede: konsequent „Sie/Ihnen“ statt „du/dir“ — gleiche Struktur, gleiche Länge.
-
-**Beispiel Sie — Screen 2, Variante A:**  
-„Clara hilft Ihnen sortieren — nicht bewilligen. Offizielle Stellen bleiben maßgeblich.“
+- **Echte/statische Screenshots** oder bestehende App-Ausschnitte — **kein fragiles Live-Embed** in v2
+- Keine externen Bilder, keine großen neuen Assets
+- **Mobile-first 390px**; Desktop als sekundäre Referenz
+- Kein horizontaler Scroll, kein Logo-Abschneiden, keine verdeckte Navigation
+- **Clara-Farbe Lavendel** respektieren — kein Navy/Mint/Teal-Restyling
+- Produktion aus `npm run dev:clean` @ 390px; QA-Referenz: `acceptance-390px-qa`
 
 ---
 
-## 8. Governance-Hinweise (verbindlich für v2-Copy)
+## 11. Governance-Grenzen (verbindlich)
 
 - Clara trifft **keine** Verwaltungsentscheidung.
 - Clara **ersetzt keine** Behörde.
-- Im Intro werden **keine echten Anträge** versendet.
-- **Offizielle Quellen** und gesetzliche Vorgaben bleiben maßgeblich.
-- Die Demo macht **keinen Vollständigkeitsanspruch**.
-- **Kein Live-Claim** (keine „amtlich angebunden“, „sofort online“, o. Ä.).
-- Keine erfundenen Fristen, Leistungen oder Pflichtunterlagen.
+- **Keine echten Anträge** werden im Intro versendet.
+- **Offizielle Stellen** bleiben maßgeblich.
+- **Keine Wahlbeeinflussung.**
+- **Kein Live-Claim.**
+- **Kein Anspruch auf Vollständigkeit** in der Demo.
+- **Keine konkreten politischen Vorwürfe**, Personennamen, Parteien oder Firmen.
 - Keine technischen Begriffe (PVOG, XZuFi, GovService) im Bürger-Intro.
-- Postfach nur als **Vorschau-Hinweis**, falls Modul nicht voll aktiv.
 
 ---
 
-## 9. Käufer-Demo-Nutzen (institutionelle Perspektive)
+## 12. Abgrenzung zu v1
 
-Für Gemeinde, Landkreis oder IT-Dienstleister soll aus dem Intro erkennbar sein:
+Das Ist-Intro (`DemoIntroWalkthrough`) ist lang und erklärend. **v2** ist:
 
-| Nutzen | Was Käufer sehen sollen |
-|--------|-------------------------|
-| Weniger Rückfragen | Bürger:innen kommen vorbereilter — mit klaren Schritten und Unterlagenhinweisen |
-| Vollständigere Vorgänge | Strukturierte Vorbereitung vor dem offiziellen Kanal |
-| Bessere Anschlussfähigkeit | HookAI Civic als **Vorbereitungs- und Wegweiser-Schicht**, nicht als Parallelverwaltung |
-| Klare Abgrenzung | Keine Schattenverwaltung, keine automatische Entscheidung, keine Umgehung zuständiger Stellen |
-| Vertrauen & Compliance | Transparente Demo-Grenzen, respektvolle Anrede, kein Overclaim |
+- **filmischer**, emotional geführt, mit Cold Open
+- **kürzer** (7 fokussierte Screens statt ~12+ Szenen)
+- **claim-getrieben** („Du bist nicht nur Zuschauer“)
+- **statisch-visual** statt embed-lastig
+- **ohne** Baby-Spezialfall, Prämien-Wallet, Ökosystem-Finale im Pflichtbogen
 
 ---
 
-## 10. Abgrenzung zu v1 (Ist-Zustand)
+## 13. Nicht sichtbar im Intro — nur interner Demo-Kommentar
 
-Das aktuelle Intro (`DemoIntroWalkthrough`) ist inhaltlich reich, aber lang (viele Szenen: Baby-Beispiel, Prämien, Postfach, Ökosystem). **v2** soll:
+*Für institutionelle Demos / Gespräche nach dem Intro — **nicht** in Copy oder Visuals des Bürger:innen-Intros.*
 
-- kürzer sein (6 statt ~12+ Schritte),
-- stärker auf **Hauptwege** fokussieren,
-- Clara-Rolle **früher und klarer** erklären,
-- Vertrauensgrenzen **am Ende bündeln**,
-- auf **390px Mobile-first** optimiert sein.
-
-**Nicht in v2-Scope (separat / später):** TTS-Fix Production (UX-002), Primary-URL (UX-005), flaky Jest-Tests.
-
----
-
-## 11. Offene Entscheidungen für Stefanie
-
-1. **Default-Anrede:** Du bestätigen oder Sie als Default für bestimmte Demo-Zielgruppen?
-2. **Anrede-Gate:** Vor Screen 1 oder integriert in Willkommen?
-3. **Beispiel im Wegweiser:** Neutraler Kirkel-Alltag (Kita/Umzug) statt Baby-Story?
-4. **Postfach:** Nur ein Satz in Screen 5 oder komplett weglassen?
-5. **Vorlesen (TTS):** Intro-Voice aktiv lassen, sobald UX-002 auf lr65 gelöst — oder v2 zunächst rein visuell?
-6. **„Direkt zur App“ vs. geführter Walkthrough:** Nur Kurzintro oder optional „Mehr erfahren“ für 2–3 Zusatzscreens?
-7. **Screenshot-Stil:** Echte App-Einbettung (wie v1) oder statische Screenshots mit Overlay-Text?
+| Interner Nutzen | Kurzbeschreibung |
+|-----------------|------------------|
+| Weniger Rückfragen | Bürger:innen kommen vorbereilter in offizielle Kanäle |
+| Vollständigere Vorgänge | Strukturierte Vorbereitung vor dem echten Antrag |
+| Bessere Anschlussfähigkeit | Vorbereitungs- und Wegweiser-Schicht, keine Parallelverwaltung |
+| Klare Abgrenzung | Keine Schattenverwaltung, keine automatische Entscheidung |
+| Compliance | Transparente Demo-Grenzen, respektvolle Anrede |
 
 ---
 
-## 12. Empfehlung nächster Schritt
+## 14. Was das Intro in Sekunden vermitteln muss
 
-**Ja — separater Intro-v2-Code-PR kann gestartet werden**, sobald die offenen Entscheidungen in Abschnitt 11 (mindestens Anrede, Wegweiser-Beispiel, Postfach-Hinweis) geklärt sind.
+| Frage | Antwort im Intro |
+|-------|------------------|
+| Was ist HookAI Civic? | Moderne Civic-App für Verstehen, Vorbereiten, Melden, Mitwirken |
+| Warum brauche ich das? | Weil Zuständigkeiten und Beteiligung oft unklar wirken |
+| Welches Problem löst es emotional? | Ohnmacht → Orientierung → Handlung |
+| Was kann ich danach tun? | Wegweiser, Melden, Beteiligen, Wahlen/Kalender nutzen |
+| Warum Clara vertrauen? | Wegweiserin, keine Entscheiderin, Grenzen klar |
+| Warum nicht nur Zuschauer? | Claim + Mitwirkungs-Screen |
 
-**Vorgeschlagener PR-Scope (nicht in diesem Prompt):**
+---
 
-- Neue Screen-Konfiguration / reduzierte Step-Liste
-- Copy aus diesem Briefing (Variante A oder B nach Freigabe)
-- Screenshot-Einbettungen gemäß Abschnitt 6
-- Keine Änderung an Clara-Governance, Auth, TTS-Route oder Demo-Daten
-- Regression: bestehende `acceptance-390px-qa` + UX-003 Nav weiter grün
+## 15. Offene Entscheidungen vor Umsetzung
+
+1. **Anrede-Umschaltung:** Nur in Settings vs. dezenter Toggle nach Screen 0?
+2. **Cold-Open-Motion:** Statisches Composite vs. leichte Ken-Burns/Blur-Reveal (Performance 390px)?
+3. **Wegweiser-Beispiel:** Kita, Umzug oder Jobverlust als Hero-Case?
+4. **Postfach:** Ein Satz in Screen 5 oder ganz weglassen?
+5. **TTS:** Intro-Voice nach UX-002-Fix auf lr65 — ja/nein für v2?
+6. **„Zeig mir, wie“ vs. „Weiter“:** Einheitliche Button-Sprache über alle Screens?
+7. **Skip:** „Direkt zur App“ ab Screen 2 erlauben?
+
+---
+
+## 16. Empfehlung nächster Schritt
+
+**Ja — Code-Prompt für Intro-v2 kann gestartet werden**, sobald offene Punkte 1, 3 und 6 geklärt sind (Anrede-Flow, Wegweiser-Beispiel, Button-Sprache).
+
+**Vorgeschlagener PR-Scope (separater Prompt):**
+
+- Neue Step-Config (7 Screens)
+- Copy aus freigegebener Variante A oder B
+- Statische Screenshot-Composites gemäß Visual-Briefing
+- Keine Governance-, Auth-, TTS-, Demo-Daten-Änderungen
+- Regression: `acceptance-390px-qa` + UX-003 Nav
 
 ---
 
