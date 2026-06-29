@@ -59,7 +59,10 @@ export default function IntroOverlayV2Walkthrough({
 
   return (
     <div
-      className="intro-v2-walkthrough relative z-10 flex min-h-0 h-full w-full max-w-[100%] min-w-0 flex-col overflow-hidden bg-[#0f1224] font-sans antialiased [font-synthesis:none]"
+      className={
+        'intro-v2-walkthrough relative z-10 flex min-h-0 h-full w-full max-w-[100%] min-w-0 flex-col overflow-hidden bg-[#0f1224] font-sans antialiased [font-synthesis:none]' +
+        (fillDeviceFrame ? '' : ' intro-v2-walkthrough--desktop-preview')
+      }
       role="dialog"
       aria-modal="true"
       aria-label="Einführung HookAI Civic"
