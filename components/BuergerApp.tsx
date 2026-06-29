@@ -15,6 +15,8 @@ import FuerMichSection from '@/components/FuerMich/FuerMichSection';
 import StimmzettelModal from '@/components/Modals/StimmzettelModal';
 import IntroOverlay from '@/components/Intro/IntroOverlay';
 import DemoIntroWalkthrough from '@/components/Intro/DemoIntroWalkthrough';
+import IntroOverlayV2Walkthrough from '@/components/Intro/IntroOverlayV2Walkthrough';
+import { INTRO_OVERLAY_V2_ENABLED } from '@/data/introOverlayV2';
 import { AnredeGate } from '@/components/Intro/AnredeGate';
 import { IntroEntryBranch } from '@/components/Intro/IntroEntryBranch';
 import {
@@ -210,6 +212,33 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
       // ignore
     }
   }, []);
+
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!INTRO_OVERLAY_V2_ENABLED) return;
+    if (state.isLoggedIn) return;
+    if (!readWantsWalkthrough()) return;
+    try {
+      if (localStorage.getItem(PRODUCT_INTRO_DONE_KEY) === 'true') return;
+    } catch {
+      // ignore
+    }
+    if (state.anrede == null) {
+      dispatch({ type: 'SET_ANREDE', payload: 'du' });
+    }
+    if (preLogin !== 'ok') {
+      try {
+        writePreLoginPhase('ok');
+        writeWantsWalkthrough(true);
+        persistAndSyncDemoAddress(dispatch as never, GUIDED_DEMO_STREET, GUIDED_DEMO_PLZ, GUIDED_DEMO_CITY);
+      } catch {
+        // ignore
+      }
+      dispatch({ type: 'SET_LOGIN_AUTH_METHOD', payload: 'eid' });
+      dispatch({ type: 'SET_LOGGED_IN', payload: true });
+      setPreLogin('ok');
+    }
+  }, [dispatch, preLogin, state.anrede, state.isLoggedIn]);
 
   // Walkthrough nur dann sichtbar, wenn er noch nicht abgeschlossen ist.
   // `useLayoutEffect` läuft synchron vor dem Paint, daher kein sichtbares
@@ -454,18 +483,22 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
               isDevice ? '' : 'min-h-[100dvh]'
             }`}
           >
-            <AnredeGate
-              isOpen={preLogin === 'anrede'}
-              onComplete={onAnredeDone}
-              position={isDevice ? 'absolute' : 'fixed'}
-            />
-            <IntroEntryBranch
-              open={preLogin === 'entry' && state.anrede != null}
-              du={state.anrede === 'du'}
-              onStart={onEntryStart}
-              onDirectToApp={onEntryDirect}
-              position={isDevice ? 'absolute' : 'fixed'}
-            />
+            {!INTRO_OVERLAY_V2_ENABLED ? (
+              <AnredeGate
+                isOpen={preLogin === 'anrede'}
+                onComplete={onAnredeDone}
+                position={isDevice ? 'absolute' : 'fixed'}
+              />
+            ) : null}
+            {!INTRO_OVERLAY_V2_ENABLED ? (
+              <IntroEntryBranch
+                open={preLogin === 'entry' && state.anrede != null}
+                du={state.anrede === 'du'}
+                onStart={onEntryStart}
+                onDirectToApp={onEntryDirect}
+                position={isDevice ? 'absolute' : 'fixed'}
+              />
+            ) : null}
             {/*
               Geführter Walkthrough: nach Entry → sofort Login (onEntryStart), daher
               keine alte LoginScreen-Vollfläche. LoginScreen nur noch, wenn explizit
@@ -494,15 +527,25 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
               <div id="app-overlay-root" className="pointer-events-none absolute inset-0 z-[120]" />
               {postLoginIntroOpen && state.anrede != null && readWantsWalkthrough() ? (
                 <div className={introOverlayShell}>
-                  <DemoIntroWalkthrough
-                    du={state.anrede === 'du'}
-                    residenceLocation={state.residenceLocation}
-                    fillDeviceFrame={isDevice}
-                    onClose={finishProductIntro}
-                    onFinish={finishProductIntro}
-                    onBackFromFirstStep={backFromWalkthroughFirstStep}
-                    onWalkthroughStepChange={setWalkthroughStep}
-                  />
+                  {INTRO_OVERLAY_V2_ENABLED ? (
+                    <IntroOverlayV2Walkthrough
+                      du={state.anrede === 'du'}
+                      fillDeviceFrame={isDevice}
+                      onClose={finishProductIntro}
+                      onFinish={finishProductIntro}
+                      onWalkthroughStepChange={setWalkthroughStep}
+                    />
+                  ) : (
+                    <DemoIntroWalkthrough
+                      du={state.anrede === 'du'}
+                      residenceLocation={state.residenceLocation}
+                      fillDeviceFrame={isDevice}
+                      onClose={finishProductIntro}
+                      onFinish={finishProductIntro}
+                      onBackFromFirstStep={backFromWalkthroughFirstStep}
+                      onWalkthroughStepChange={setWalkthroughStep}
+                    />
+                  )}
                 </div>
               ) : null}
               <AppHeader />
