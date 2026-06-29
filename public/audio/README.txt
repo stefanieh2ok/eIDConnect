@@ -4,3 +4,4 @@ Optionale Demo-Launch-Audio (siehe lib/playDemoLaunchAudio.ts):
 - hookai-welcome-en.mp3   — „Welcome to HookAI Civic Demo.“
 
 Ohne diese Dateien bleibt der visuelle Launch-Effekt aktiv, nur ohne Ton.
+playDemoLaunchAudio() macht derzeit keinen Netzwerk-Request (kein hookai-civic-ready.mp3 mehr).
