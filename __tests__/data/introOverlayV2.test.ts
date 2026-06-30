@@ -30,17 +30,30 @@ describe('introOverlayV2', () => {
   it('enthält Governance-Hinweis auf dem letzten Screen', () => {
     const last = INTRO_OVERLAY_V2_STEPS[6];
     expect(last.bodyDu).toMatch(/bereitet vor/i);
-    expect(last.bodyDu).toMatch(/entscheidet nicht/i);
-    expect(last.bodyDu).toMatch(/nicht versendet/i);
+    expect(last.bodyDu).toMatch(/keine echten Anträge/i);
+  });
+
+  it('referenziert Jobverlust im Wegweiser-Screen-Kontext', () => {
+    const wegweiserScreen = INTRO_OVERLAY_V2_STEPS.find((s) => s.id === 'clara-wegweiserin');
+    expect(wegweiserScreen?.titleDu).toBe('Wo fange ich an?');
+    const planScreen = INTRO_OVERLAY_V2_STEPS.find((s) => s.id === 'wegweiser-plan');
+    expect(planScreen?.bodyDu).toMatch(/vorzubereiten/i);
+  });
+
+  it('enthält Postfach- und Melde-Screens in der Trailer-Reihenfolge', () => {
+    expect(INTRO_OVERLAY_V2_STEPS.map((s) => s.id)).toEqual([
+      'cold-open',
+      'clara-wegweiserin',
+      'melden-sichtbar',
+      'wegweiser-plan',
+      'postfach-status',
+      'wahlen-vorschau',
+      'vertrauen-start',
+    ]);
   });
 
   it('enthält keinen verbotenen Begriff im sichtbaren Copy', () => {
     const forbidden = findForbiddenIntroV2Terms(collectIntroV2VisibleCopy(true));
     expect(forbidden).toEqual([]);
-  });
-
-  it('referenziert Jobverlust im Wegweiser-Screen-Kontext', () => {
-    const chipsScreen = INTRO_OVERLAY_V2_STEPS.find((s) => s.id === 'alltag-chaos');
-    expect(chipsScreen?.bodyDu).toMatch(/Jobverlust/i);
   });
 });
