@@ -48,7 +48,7 @@ async function bootstrap(page) {
     if (await skip.count()) {
       await skip.first().click({ timeout: 15000 });
     } else {
-      for (let i = 0; i < 7; i += 1) {
+      for (let i = 0; i < 8; i += 1) {
         const btn = page.getByTestId('intro-v2-primary-cta');
         if (!(await btn.count())) break;
         await btn.click({ timeout: 15000 });

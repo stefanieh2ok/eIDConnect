@@ -80,9 +80,9 @@ export const INTRO_OVERLAY_V2_STEPS: IntroOverlayV2Step[] = [
     titleDu: 'Mitreden beginnt mit Verstehen.',
     titleSie: 'Mitreden beginnt mit Verstehen.',
     bodyDu:
-      'Anerkennung fürs Mitmachen — unabhängig von deiner Entscheidung.',
+      'Quellen, Pro und Contra helfen dir, neutral informiert mitzuwirken.',
     bodySie:
-      'Anerkennung fürs Mitmachen — unabhängig von Ihrer Entscheidung.',
+      'Quellen, Pro und Contra helfen Ihnen, neutral informiert mitzuwirken.',
     navLabel: 'Beteiligen',
     filmBeat: 'participation',
   },
