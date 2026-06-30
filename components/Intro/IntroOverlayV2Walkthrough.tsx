@@ -134,7 +134,7 @@ export default function IntroOverlayV2Walkthrough({
                 </div>
 
                 {stepIndex >= 1 ? (
-                  <div className="intro-v2-anrede" data-testid="intro-v2-anrede">
+                  <div className="intro-v2-anrede intro-v2-anrede--subtle" data-testid="intro-v2-anrede">
                     <span className="intro-v2-anrede__label">Anrede</span>
                     <button
                       type="button"

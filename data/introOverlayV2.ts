@@ -27,11 +27,11 @@ export const INTRO_V2_FORBIDDEN_VISIBLE_TERMS = [
 
 export type IntroOverlayV2StepId =
   | 'cold-open'
-  | 'alltag-chaos'
   | 'clara-wegweiserin'
-  | 'wegweiser-plan'
   | 'melden-sichtbar'
-  | 'mitwirken'
+  | 'wegweiser-plan'
+  | 'postfach-status'
+  | 'wahlen-vorschau'
   | 'vertrauen-start';
 
 export type IntroOverlayV2Step = {
@@ -58,68 +58,68 @@ export const INTRO_OVERLAY_V2_STEPS: IntroOverlayV2Step[] = [
     filmBeat: 'cold-open',
   },
   {
-    id: 'alltag-chaos',
+    id: 'clara-wegweiserin',
     titleDu: 'Wo fange ich an?',
     titleSie: 'Wo fange ich an?',
     bodyDu:
-      'Ob Ausweis, Umzug, Kita, Jobverlust oder Schaden im Ort: Oft ist der nächste Schritt nicht sofort klar. HookAI Civic hilft dir, dein Anliegen zu sortieren.',
+      'Du beschreibst dein Anliegen. Clara hilft beim Sortieren und Vorbereiten — aber sie entscheidet nicht.',
     bodySie:
-      'Ob Ausweis, Umzug, Kita, Jobverlust oder Schaden im Ort: Oft ist der nächste Schritt nicht sofort klar. HookAI Civic hilft Ihnen, Ihr Anliegen zu sortieren.',
-    navLabel: 'Alltag',
-    filmBeat: 'close-up',
-  },
-  {
-    id: 'clara-wegweiserin',
-    titleDu: 'Clara bringt Ordnung rein.',
-    titleSie: 'Clara bringt Ordnung rein.',
-    bodyDu:
-      'Clara ist deine Wegweiserin. Sie hilft beim Sortieren und Vorbereiten — aber sie entscheidet nicht und ersetzt keine Behörde.',
-    bodySie:
-      'Clara ist Ihre Wegweiserin. Sie hilft beim Sortieren und Vorbereiten — aber sie entscheidet nicht und ersetzt keine Behörde.',
-    navLabel: 'Clara',
-    filmBeat: 'calm-reveal',
-  },
-  {
-    id: 'wegweiser-plan',
-    titleDu: 'Aus Unsicherheit wird ein nächster Schritt.',
-    titleSie: 'Aus Unsicherheit wird ein nächster Schritt.',
-    bodyDu:
-      'Du beschreibst dein Anliegen. Der Wegweiser zeigt, welche Stelle passen könnte, was vorzubereiten ist und worauf du achten solltest.',
-    bodySie:
-      'Sie beschreiben Ihr Anliegen. Der Wegweiser zeigt, welche Stelle passen könnte, was vorzubereiten ist und worauf Sie achten sollten.',
+      'Sie beschreiben Ihr Anliegen. Clara hilft beim Sortieren und Vorbereiten — aber sie entscheidet nicht.',
     navLabel: 'Wegweiser',
-    filmBeat: 'reveal',
+    filmBeat: 'close-up',
   },
   {
     id: 'melden-sichtbar',
     titleDu: 'Wenn etwas nicht stimmt, soll es sichtbar werden.',
     titleSie: 'Wenn etwas nicht stimmt, soll es sichtbar werden.',
     bodyDu:
-      'Du kannst eine Meldung vorbereiten — zum Beispiel zu Müll, Schäden, Spielplatz oder Ratten. Die Demo zeigt den Ablauf, ohne echte Vorgänge zu versenden.',
+      'Foto, Kategorie, Beschreibung — aus einem Problem wird eine vorbereitete Meldung.',
     bodySie:
-      'Sie können eine Meldung vorbereiten — zum Beispiel zu Müll, Schäden, Spielplatz oder Ratten. Die Demo zeigt den Ablauf, ohne echte Vorgänge zu versenden.',
+      'Foto, Kategorie, Beschreibung — aus einem Problem wird eine vorbereitete Meldung.',
     navLabel: 'Melden',
     filmBeat: 'action-moment',
   },
   {
-    id: 'mitwirken',
+    id: 'wegweiser-plan',
+    titleDu: 'Aus Unsicherheit wird ein nächster Schritt.',
+    titleSie: 'Aus Unsicherheit wird ein nächster Schritt.',
+    bodyDu:
+      'Der Wegweiser zeigt, was vorzubereiten ist und worauf du achten solltest.',
+    bodySie:
+      'Der Wegweiser zeigt, was vorzubereiten ist und worauf Sie achten sollten.',
+    navLabel: 'Fahrplan',
+    filmBeat: 'reveal',
+  },
+  {
+    id: 'postfach-status',
+    titleDu: 'Was du vorbereitest, bleibt nachvollziehbar.',
+    titleSie: 'Was Sie vorbereiten, bleibt nachvollziehbar.',
+    bodyDu:
+      'Hinweise, Rückfragen und Statusmeldungen erscheinen an einem Ort.',
+    bodySie:
+      'Hinweise, Rückfragen und Statusmeldungen erscheinen an einem Ort.',
+    navLabel: 'Postfach',
+    filmBeat: 'status-loop',
+  },
+  {
+    id: 'wahlen-vorschau',
     titleDu: 'Mitreden beginnt mit Verstehen.',
     titleSie: 'Mitreden beginnt mit Verstehen.',
     bodyDu:
-      'HookAI Civic zeigt Beteiligung, Termine und neutrale Informationen — damit du nicht nur zuschaust.',
+      'Wahlvorschau, Termine und Quellen helfen dir, neutral informiert zu bleiben.',
     bodySie:
-      'HookAI Civic zeigt Beteiligung, Termine und neutrale Informationen — damit Sie nicht nur zuschauen.',
-    navLabel: 'Mitwirken',
+      'Wahlvorschau, Termine und Quellen helfen Ihnen, neutral informiert zu bleiben.',
+    navLabel: 'Wahlen',
     filmBeat: 'montage',
   },
   {
     id: 'vertrauen-start',
-    titleDu: 'Bereit für den nächsten Schritt.',
-    titleSie: 'Bereit für den nächsten Schritt.',
+    titleDu: 'Mitwirkung darf sichtbar werden.',
+    titleSie: 'Mitwirkung darf sichtbar werden.',
     bodyDu:
-      'Diese Demo bereitet vor — sie entscheidet nicht. Offizielle Stellen bleiben maßgeblich. Echte Anträge werden hier nicht versendet.',
+      'Anerkennung fürs Mitmachen — unabhängig von deiner Entscheidung. Diese Demo bereitet vor und versendet keine echten Anträge.',
     bodySie:
-      'Diese Demo bereitet vor — sie entscheidet nicht. Offizielle Stellen bleiben maßgeblich. Echte Anträge werden hier nicht versendet.',
+      'Anerkennung fürs Mitmachen — unabhängig von Ihrer Entscheidung. Diese Demo bereitet vor und versendet keine echten Anträge.',
     navLabel: 'Start',
     filmBeat: 'calm-trust',
   },
