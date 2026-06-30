@@ -93,6 +93,7 @@ export default function IntroOverlayV2Walkthrough({
               surface="light"
               stepNumber={null}
               showClaraVoice={false}
+              showAudioToolbar={false}
               inlinePad="card"
               toolbarDensity="compact"
               onSkip={onFinish}
@@ -101,7 +102,7 @@ export default function IntroOverlayV2Walkthrough({
 
             <div className="intro-v2-scroll flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
               <div
-                className="intro-v2-stage flex min-h-0 min-w-0 flex-1 flex-col px-4 pb-3 pt-2 sm:px-5"
+                className="intro-v2-stage intro-v2-stage--trailer flex min-h-0 min-w-0 flex-1 flex-col px-3 pb-2 pt-1.5 sm:px-4"
                 data-testid={`intro-v2-step-${step.id}`}
               >
                 <div className="intro-v2-progress" aria-hidden>
@@ -129,11 +130,11 @@ export default function IntroOverlayV2Walkthrough({
                 </h2>
                 <p className="intro-v2-body">{body}</p>
 
-                <div className="intro-v2-visual-wrap intro-v2-animate-in">
-                  <IntroOverlayV2Visual stepId={step.id} du={duActive} />
+                <div className="intro-v2-visual-wrap intro-v2-visual-wrap--hero intro-v2-animate-in">
+                  <IntroOverlayV2Visual key={step.id} stepId={step.id} du={duActive} />
                 </div>
 
-                {stepIndex >= 1 ? (
+                {stepIndex === 1 ? (
                   <div className="intro-v2-anrede intro-v2-anrede--subtle" data-testid="intro-v2-anrede">
                     <span className="intro-v2-anrede__label">Anrede</span>
                     <button
