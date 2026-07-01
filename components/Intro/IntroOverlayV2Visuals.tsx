@@ -2,246 +2,349 @@
 
 import React from 'react';
 import type { IntroOverlayV2StepId } from '@/data/introOverlayV2';
-import { DEMO_POSTFACH_MESSAGES } from '@/data/demoPostfachMessages';
-import { ShieldCheck } from 'lucide-react';
+import {
+  INTRO_TRAILER_ASSETS,
+  INTRO_TRAILER_MONTAGE_TILES,
+} from '@/data/introTrailerAssets';
+import {
+  useIntroV2Phase,
+  useIntroV2ReducedMotion,
+  useIntroV2Typewriter,
+} from '@/components/Intro/introV2Motion';
 
 type Props = {
   stepId: IntroOverlayV2StepId;
   du: boolean;
 };
 
-const BUNDESTAG_ROWS = [
-  { name: 'Müller, Andreas', partei: 'CDU' },
-  { name: 'Klein, Sarah', partei: 'SPD' },
-  { name: 'Hoffmann, Lisa', partei: 'GRÜNE' },
-] as const;
+const MELDEN_TEXT = 'Ratten auf dem Drachenspielplatz in Kirkel-Neuhäusel';
+const WEGWEISER_TEXT =
+  'Ich wurde gekündigt und weiß nicht, was ich jetzt tun muss.';
 
-function IntroV2QrMini() {
-  const n = 11;
-  const cells = new Array<boolean>(n * n).fill(false);
-  const paintFinder = (br: number, bc: number) => {
-    for (let r = 0; r < 5; r++) {
-      for (let c = 0; c < 5; c++) {
-        const i = (br + r) * n + (bc + c);
-        if (i < 0 || i >= cells.length) continue;
-        const outer = r === 0 || c === 0 || r === 4 || c === 4;
-        const inner = r >= 1 && r <= 3 && c >= 1 && c <= 3;
-        cells[i] = outer || inner;
-      }
-    }
-  };
-  paintFinder(0, 0);
-  paintFinder(0, n - 5);
-  paintFinder(n - 5, 0);
-  for (let i = 0; i < cells.length; i++) {
-    if (cells[i]) continue;
-    cells[i] = i % 5 === 0;
-  }
+function IntroFilmStill({
+  src,
+  className = '',
+  children,
+}: {
+  src: string;
+  className?: string;
+  children?: React.ReactNode;
+}) {
   return (
-    <div
-      className="intro-v2-praemie__qr"
-      style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
+    <div className={`intro-v2-film-still ${className}`.trim()} aria-hidden>
+      <img src={src} alt="" className="intro-v2-film-still__img" loading="eager" decoding="async" />
+      {children}
+    </div>
+  );
+}
+
+function IntroFakeCursor({
+  visible,
+  className = '',
+  style,
+}: {
+  visible: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  if (!visible) return null;
+  return (
+    <span
+      className={`intro-v2-fake-cursor intro-v2-fake-cursor--tap ${className}`.trim()}
+      style={style}
       aria-hidden
-    >
-      {cells.map((on, i) => (
-        <span key={i} className={on ? 'intro-v2-praemie__qr-cell--on' : ''} />
+    />
+  );
+}
+
+function IntroUploadProgress({ progress, visible }: { progress: number; visible: boolean }) {
+  if (!visible) return null;
+  return (
+    <div className="intro-v2-upload-progress" aria-hidden>
+      <div className="intro-v2-upload-progress__row">
+        <span>Upload</span>
+        <span>{progress}%</span>
+      </div>
+      <div className="intro-v2-upload-progress__track">
+        <div className="intro-v2-upload-progress__bar" style={{ width: `${progress}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function IntroTypewriterOverlay({
+  text,
+  active,
+  className = '',
+}: {
+  text: string;
+  active: boolean;
+  className?: string;
+}) {
+  const reduced = useIntroV2ReducedMotion();
+  const typed = useIntroV2Typewriter(text, active, reduced);
+  if (!active && !typed) return null;
+  return (
+    <div className={`intro-v2-typewriter-overlay ${className}`.trim()} aria-hidden>
+      {typed}
+      {typed.length < text.length ? <span className="intro-v2-typewriter-cursor" /> : null}
+    </div>
+  );
+}
+
+function IntroMotionToast({
+  visible,
+  lines,
+  className = '',
+}: {
+  visible: boolean;
+  lines: string[];
+  className?: string;
+}) {
+  if (!visible) return null;
+  return (
+    <div className={`intro-v2-motion-toast intro-v2-fade-up ${className}`.trim()} aria-hidden>
+      {lines.map((line) => (
+        <span key={line}>{line}</span>
       ))}
     </div>
   );
 }
 
+function BuergerzugangVisual() {
+  return (
+    <div className="intro-v2-visual intro-v2-visual--hero intro-v2-visual--cold-open" aria-hidden>
+      <div className="intro-v2-montage intro-v2-montage--hero intro-v2-montage--film">
+        {INTRO_TRAILER_MONTAGE_TILES.map((tile) => (
+          <div key={tile.label} className="intro-v2-montage__tile intro-v2-montage__tile--film">
+            <img src={tile.src} alt="" className="intro-v2-montage__film-img" />
+            <span className="intro-v2-montage__badge">{tile.label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="intro-v2-trust-bar">
+        Sicherer Demo-Zugang · Offizielle Stellen maßgeblich
+      </div>
+      <div className="intro-v2-cold-open__veil" />
+      <div className="intro-v2-cold-open__clara-glow" />
+    </div>
+  );
+}
+
+function MeldenAktionVisual() {
+  const reduced = useIntroV2ReducedMotion();
+  const phase = useIntroV2Phase(3, [500, 700, 900], reduced);
+  const uploadPct = phase >= 1 ? (phase >= 2 ? 100 : 62) : 0;
+
+  return (
+    <div className="intro-v2-visual intro-v2-visual--hero intro-v2-visual--melden" aria-hidden>
+      <IntroFilmStill src={INTRO_TRAILER_ASSETS.meldenDrachenspielplatz} className="intro-v2-film-still--hero">
+        <IntroFakeCursor
+          visible={phase >= 0}
+          className="intro-v2-fake-cursor--melden-cat"
+        />
+        <IntroUploadProgress visible={phase >= 1} progress={uploadPct} />
+        <IntroTypewriterOverlay
+          text={MELDEN_TEXT}
+          active={phase >= 2}
+          className="intro-v2-typewriter-overlay--melden"
+        />
+        <span
+          className={
+            'intro-v2-film-cta intro-v2-film-cta--melden' +
+            (phase >= 3 ? ' intro-v2-tap-pulse' : '')
+          }
+        >
+          Meldung vorbereiten
+        </span>
+        <span className="intro-v2-film-draft">Entwurf — nicht versendet</span>
+      </IntroFilmStill>
+    </div>
+  );
+}
+
+function PostfachStatusVisual() {
+  const reduced = useIntroV2ReducedMotion();
+  const phase = useIntroV2Phase(2, [600, 900], reduced);
+
+  return (
+    <div className="intro-v2-visual intro-v2-visual--hero intro-v2-visual--postfach" aria-hidden>
+      <IntroFilmStill
+        src={INTRO_TRAILER_ASSETS.postfachDrachenspielplatz}
+        className={
+          'intro-v2-film-still--hero' + (phase >= 0 ? ' intro-v2-slide-in' : '')
+        }
+      >
+        <span
+          className={
+            'intro-v2-film-badge intro-v2-film-badge--verified' +
+            (phase >= 2 ? ' intro-v2-film-badge--pop' : '')
+          }
+        >
+          Verifiziert
+        </span>
+        <span
+          className={
+            'intro-v2-film-cta intro-v2-film-cta--postfach' +
+            (phase >= 1 ? ' intro-v2-tap-pulse' : '')
+          }
+        >
+          Status ansehen
+        </span>
+      </IntroFilmStill>
+    </div>
+  );
+}
+
+function BeteiligenVisual() {
+  const reduced = useIntroV2ReducedMotion();
+  const phase = useIntroV2Phase(2, [800, 1000], reduced);
+
+  return (
+    <div className="intro-v2-visual intro-v2-visual--hero intro-v2-visual--beteiligen" aria-hidden>
+      <IntroFilmStill src={INTRO_TRAILER_ASSETS.beteiligenKirkel} className="intro-v2-film-still--hero">
+        <IntroFakeCursor
+          visible={phase >= 1}
+          className="intro-v2-fake-cursor--beteiligen-yes"
+        />
+        <IntroMotionToast
+          visible={phase >= 2}
+          lines={['Mitwirkung erfasst', 'Punkt vorgemerkt']}
+          className="intro-v2-motion-toast--beteiligen"
+        />
+        <span className="intro-v2-film-hint intro-v2-film-hint--beteiligen">
+          unabhängig von deiner Entscheidung
+        </span>
+      </IntroFilmStill>
+    </div>
+  );
+}
+
+function PraemienWalletVisual() {
+  const reduced = useIntroV2ReducedMotion();
+  const phase = useIntroV2Phase(2, [700, 900], reduced);
+
+  return (
+    <div className="intro-v2-visual intro-v2-visual--hero intro-v2-visual--trust" aria-hidden>
+      <IntroFilmStill
+        src={INTRO_TRAILER_ASSETS.praemienNaturfreibadWallet}
+        className={
+          'intro-v2-film-still--hero' + (phase >= 1 ? ' intro-v2-film-still--selected' : '')
+        }
+      >
+        {phase >= 2 ? (
+          <div className="intro-v2-wallet-reveal intro-v2-wallet-reveal--film">
+            <span className="intro-v2-tap-pulse">Wallet / Pass anzeigen</span>
+          </div>
+        ) : (
+          <span className="intro-v2-film-cta intro-v2-film-cta--praemien intro-v2-tap-pulse">
+            Prämie auswählen
+          </span>
+        )}
+      </IntroFilmStill>
+    </div>
+  );
+}
+
+function WahlenVisual() {
+  const reduced = useIntroV2ReducedMotion();
+  const phase = useIntroV2Phase(1, [1100], reduced);
+
+  return (
+    <div className="intro-v2-visual intro-v2-visual--hero intro-v2-visual--wahlen" aria-hidden>
+      <IntroFilmStill src={INTRO_TRAILER_ASSETS.wahlenBundestagswahl} className="intro-v2-film-still--hero">
+        <IntroFakeCursor
+          visible={phase === 0}
+          className="intro-v2-fake-cursor--wahlen-cta"
+        />
+        <div
+          className={
+            'intro-v2-ballot-veil' + (phase >= 1 ? ' intro-v2-ballot-veil--open' : '')
+          }
+          aria-hidden
+        />
+        <span
+          className={
+            'intro-v2-film-cta intro-v2-film-cta--wahlen' +
+            (phase === 0 ? ' intro-v2-tap-pulse' : ' intro-v2-film-cta--done')
+          }
+        >
+          {phase >= 1 ? 'Stimmzettel geöffnet' : 'Stimmzettel anzeigen'}
+        </span>
+      </IntroFilmStill>
+    </div>
+  );
+}
+
+function WegweiserPlanVisual() {
+  const reduced = useIntroV2ReducedMotion();
+  const phase = useIntroV2Phase(2, [1200, 800], reduced);
+
+  return (
+    <div className="intro-v2-visual intro-v2-visual--hero intro-v2-visual--clara" aria-hidden>
+      <IntroFilmStill src={INTRO_TRAILER_ASSETS.wegweiserKuendigungFahrplan} className="intro-v2-film-still--hero">
+        <IntroTypewriterOverlay
+          text={WEGWEISER_TEXT}
+          active={phase >= 0 && phase < 2}
+          className="intro-v2-typewriter-overlay--wegweiser"
+        />
+        <span
+          className={
+            'intro-v2-film-cta intro-v2-film-cta--wegweiser' +
+            (phase >= 1 ? ' intro-v2-tap-pulse intro-v2-film-cta--active' : '')
+          }
+        >
+          Behördenfahrplan erstellen
+        </span>
+        <div
+          className={
+            'intro-v2-plan-reveal' + (phase >= 2 ? ' intro-v2-plan-reveal--visible intro-v2-fade-up' : '')
+          }
+          aria-hidden
+        />
+        <div className={'intro-v2-clara-pill' + (phase >= 2 ? ' intro-v2-clara-pill--glow' : '')}>
+          <span className="intro-v2-clara-pill__dot" />
+          Clara
+        </div>
+      </IntroFilmStill>
+    </div>
+  );
+}
+
+function VertrauenStartVisual() {
+  return (
+    <div className="intro-v2-visual intro-v2-visual--hero intro-v2-visual--finale" aria-hidden>
+      <IntroFilmStill src={INTRO_TRAILER_ASSETS.finalAppOverviewTrust} className="intro-v2-film-still--hero">
+        <div className="intro-v2-finale-trust intro-v2-fade-up">
+          Vorbereiten, nicht entscheiden
+        </div>
+        <span className="intro-v2-film-cta intro-v2-film-cta--finale intro-v2-tap-pulse">
+          Direkt zur App
+        </span>
+      </IntroFilmStill>
+    </div>
+  );
+}
+
 export function IntroOverlayV2Visual({ stepId, du }: Props) {
-  const postfachLead = DEMO_POSTFACH_MESSAGES[0];
-
+  void du;
   switch (stepId) {
-    case 'cold-open':
-      return (
-        <div className="intro-v2-visual intro-v2-visual--cold-open" aria-hidden>
-          <div className="intro-v2-montage">
-            <div className="intro-v2-montage__tile intro-v2-montage__tile--wegweiser">
-              <span className="intro-v2-montage__chip">Wegweiser</span>
-              <span className="intro-v2-montage__line intro-v2-montage__line--wide" />
-              <span className="intro-v2-montage__line" />
-              <span className="intro-v2-montage__cta">Behördenfahrplan</span>
-            </div>
-            <div className="intro-v2-montage__tile intro-v2-montage__tile--photo">
-              <img src="/demo-rat-playground.jpg" alt="" className="intro-v2-montage__img" />
-              <span className="intro-v2-montage__badge">Melden</span>
-            </div>
-            <div className="intro-v2-montage__tile intro-v2-montage__tile--postfach">
-              <span className="intro-v2-montage__post-title">Meldung eingegangen</span>
-              <span className="intro-v2-montage__pill">Verifiziert</span>
-            </div>
-            <div className="intro-v2-montage__tile intro-v2-montage__tile--wahlen">
-              <span className="intro-v2-montage__chip">Wahlvorschau</span>
-              <span className="intro-v2-montage__ballot-row" />
-              <span className="intro-v2-montage__ballot-row" />
-              <span className="intro-v2-montage__cta intro-v2-montage__cta--highlight">
-                Stimmzettel anzeigen
-              </span>
-            </div>
-            <div className="intro-v2-montage__tile intro-v2-montage__tile--photo">
-              <img
-                src="/praemien/naturfreibad-kirkel.jpg"
-                alt=""
-                className="intro-v2-montage__img"
-              />
-              <span className="intro-v2-montage__badge">Prämie</span>
-            </div>
-          </div>
-          <div className="intro-v2-cold-open__veil" />
-          <div className="intro-v2-cold-open__clara-glow" />
-        </div>
-      );
-
-    case 'clara-wegweiserin':
-      return (
-        <div className="intro-v2-visual intro-v2-visual--clara" aria-hidden>
-          <div className="intro-v2-mock-wegweiser">
-            <div className="intro-v2-mock-wegweiser__header">
-              <span className="intro-v2-mock-wegweiser__context">Wegweiser · Clara</span>
-              <span className="intro-v2-mock-wegweiser__topic">Kündigung &amp; Arbeit</span>
-            </div>
-            <p className="intro-v2-mock-wegweiser__label">
-              {du ? 'Was beschäftigt dich gerade?' : 'Was beschäftigt Sie gerade?'}
-            </p>
-            <div className="intro-v2-mock-wegweiser__textarea intro-v2-mock-wegweiser__textarea--typed">
-              {du
-                ? 'Ich wurde gekündigt und möchte wissen, was jetzt wichtig ist.'
-                : 'Ich wurde gekündigt und möchte wissen, was jetzt wichtig ist.'}
-            </div>
-            <div className="intro-v2-mock-wegweiser__cta intro-v2-mock-wegweiser__cta--active">
-              Behördenfahrplan erstellen
-            </div>
-          </div>
-          <div className="intro-v2-clara-pill">
-            <span className="intro-v2-clara-pill__dot" />
-            Clara
-          </div>
-        </div>
-      );
-
-    case 'melden-sichtbar':
-      return (
-        <div className="intro-v2-visual intro-v2-visual--melden" aria-hidden>
-          <div className="intro-v2-melden-flow">
-            <div className="intro-v2-melden-flow__photo">
-              <img src="/demo-rat-playground.jpg" alt="" />
-              <span className="intro-v2-melden-flow__photo-tag">Foto hinzugefügt</span>
-            </div>
-            <div className="intro-v2-melden-flow__form">
-              <span className="intro-v2-melden-flow__category intro-v2-melden-flow__category--active">
-                Spielplatz
-              </span>
-              <p className="intro-v2-melden-flow__desc">Ratten am Drachenspielplatz</p>
-              <p className="intro-v2-melden-flow__meta">Drachenspielplatz · Kirkel</p>
-              <div className="intro-v2-melden-flow__footer">
-                <span className="intro-v2-melden-flow__status">Entwurf — nicht versendet</span>
-                <span className="intro-v2-melden-flow__cta">Meldung vorbereiten</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-
-    case 'wegweiser-plan':
-      return (
-        <div className="intro-v2-visual intro-v2-visual--plan" aria-hidden>
-          <div className="intro-v2-plan-split">
-            <div className="intro-v2-plan-split__before">
-              <span className="intro-v2-plan-split__label">Deine Eingabe</span>
-              <p className="intro-v2-plan-split__input">Ich wurde gekündigt …</p>
-            </div>
-            <div className="intro-v2-plan-card intro-v2-plan-card--result">
-              <p className="intro-v2-plan-card__eyebrow">Behördenfahrplan · Demo</p>
-              <h4 className="intro-v2-plan-card__title">Jobverlust — nächste Schritte</h4>
-              <ol className="intro-v2-plan-card__steps">
-                <li className="intro-v2-plan-card__step--active">Arbeitslosigkeit beim Jobcenter anzeigen</li>
-                <li>Unterlagen sammeln (Kündigung, Lohnnachweise)</li>
-                <li>Fristen im Blick behalten</li>
-              </ol>
-              <p className="intro-v2-plan-card__hint">Zuständige Stelle · Orientierung</p>
-            </div>
-          </div>
-        </div>
-      );
-
+    case 'buergezugang-hook':
+      return <BuergerzugangVisual />;
+    case 'melden-aktion':
+      return <MeldenAktionVisual />;
     case 'postfach-status':
-      return (
-        <div className="intro-v2-visual intro-v2-visual--postfach" aria-hidden>
-          <div className="intro-v2-postfach-card">
-            <div className="intro-v2-postfach-card__header">
-              <div className="min-w-0 flex-1">
-                <p className="intro-v2-postfach-card__sender">{postfachLead.sender}</p>
-                <h4 className="intro-v2-postfach-card__title">{postfachLead.title}</h4>
-              </div>
-              <span className="intro-v2-postfach-card__badge">
-                <ShieldCheck className="intro-v2-postfach-card__badge-icon" aria-hidden />
-                {postfachLead.badgeLabel}
-              </span>
-            </div>
-            <p className="intro-v2-postfach-card__body">{postfachLead.body}</p>
-            <div className="intro-v2-postfach-card__meta">
-              <span className="intro-v2-postfach-card__status">{postfachLead.status}</span>
-              <span>{postfachLead.receivedAt}</span>
-            </div>
-            <span className="intro-v2-postfach-card__action">{postfachLead.action.label}</span>
-          </div>
-          <div className="intro-v2-postfach-card intro-v2-postfach-card--secondary">
-            <p className="intro-v2-postfach-card__sender">Wegweiser</p>
-            <h4 className="intro-v2-postfach-card__title">Checkliste vorbereitet</h4>
-            <span className="intro-v2-postfach-card__status intro-v2-postfach-card__status--muted">
-              Bereit
-            </span>
-          </div>
-        </div>
-      );
-
+      return <PostfachStatusVisual />;
+    case 'beteiligen-mitwirken':
+      return <BeteiligenVisual />;
+    case 'praemien-wallet':
+      return <PraemienWalletVisual />;
     case 'wahlen-vorschau':
-      return (
-        <div className="intro-v2-visual intro-v2-visual--wahlen" aria-hidden>
-          <div className="intro-v2-wahlen-crop">
-            <div className="intro-v2-wahlen-crop__header">
-              <span className="intro-v2-wahlen-crop__label">Wahlvorschau</span>
-              <span className="intro-v2-wahlen-crop__neutral">Neutral · Quellen</span>
-            </div>
-            <p className="intro-v2-wahlen-crop__title">Bundestagswahl 2025</p>
-            <p className="intro-v2-wahlen-crop__subtitle">Wahlkreis Saarbrücken · Vorschau</p>
-            <div className="intro-v2-wahlen-crop__ballot">
-              <p className="intro-v2-wahlen-crop__ballot-head">Wahlvorschlag Nr. 1</p>
-              {BUNDESTAG_ROWS.map((row) => (
-                <div key={row.name} className="intro-v2-wahlen-crop__row">
-                  <span className="intro-v2-wahlen-crop__circle" />
-                  <span className="intro-v2-wahlen-crop__name">{row.name}</span>
-                  <span className="intro-v2-wahlen-crop__partei">{row.partei}</span>
-                </div>
-              ))}
-            </div>
-            <span className="intro-v2-wahlen-crop__cta">Stimmzettel anzeigen</span>
-          </div>
-        </div>
-      );
-
+      return <WahlenVisual />;
+    case 'wegweiser-plan':
+      return <WegweiserPlanVisual />;
     case 'vertrauen-start':
-      return (
-        <div className="intro-v2-visual intro-v2-visual--trust" aria-hidden>
-          <div className="intro-v2-praemie-card">
-            <p className="intro-v2-praemie-card__eyebrow">Beispielprämie · Kirkel</p>
-            <div className="intro-v2-praemie-card__hero">
-              <img src="/praemien/naturfreibad-kirkel.jpg" alt="" />
-            </div>
-            <h4 className="intro-v2-praemie-card__title">Naturfreibad Kirkel</h4>
-            <p className="intro-v2-praemie-card__hint">
-              Lokale Anerkennung fürs Mitmachen — unabhängig von deiner Entscheidung.
-            </p>
-            <div className="intro-v2-praemie-card__wallet">
-              <IntroV2QrMini />
-              <span className="intro-v2-praemie-card__wallet-label">Wallet / Pass anzeigen</span>
-            </div>
-          </div>
-        </div>
-      );
-
+      return <VertrauenStartVisual />;
     default:
       return null;
   }

@@ -8,13 +8,14 @@ import {
 } from '@/data/introOverlayV2';
 
 describe('introOverlayV2', () => {
-  it('definiert genau 7 Screens', () => {
-    expect(INTRO_OVERLAY_V2_STEPS).toHaveLength(7);
+  it('definiert genau 8 Trailer-Screens', () => {
+    expect(INTRO_OVERLAY_V2_STEPS).toHaveLength(8);
   });
 
-  it('enthält Elevator Pitch auf Screen 0', () => {
-    expect(INTRO_OVERLAY_V2_STEPS[0].id).toBe('cold-open');
+  it('enthält Claim auf Screen 0', () => {
+    expect(INTRO_OVERLAY_V2_STEPS[0].id).toBe('buergezugang-hook');
     expect(INTRO_OVERLAY_V2_STEPS[0].titleDu).toBe(INTRO_V2_CLAIM_DU);
+    expect(INTRO_OVERLAY_V2_STEPS[0].bodyDu).toMatch(/Behördenwege/i);
   });
 
   it('enthält Leitmotiv als Konstante', () => {
@@ -24,30 +25,30 @@ describe('introOverlayV2', () => {
   it('nutzt vorgeschriebene Button-Sprache', () => {
     expect(introV2PrimaryButton(0, true)).toBe('Zeig mir, wie');
     expect(introV2PrimaryButton(3, true)).toBe('Weiter');
-    expect(introV2PrimaryButton(6, true)).toBe('Direkt zur App');
+    expect(introV2PrimaryButton(7, true)).toBe('Direkt zur App');
   });
 
   it('enthält Governance-Hinweis auf dem letzten Screen', () => {
-    const last = INTRO_OVERLAY_V2_STEPS[6];
+    const last = INTRO_OVERLAY_V2_STEPS[7];
     expect(last.bodyDu).toMatch(/bereitet vor/i);
-    expect(last.bodyDu).toMatch(/keine echten Anträge/i);
+    expect(last.bodyDu).toMatch(/nicht versendet/i);
   });
 
-  it('referenziert Jobverlust im Wegweiser-Screen-Kontext', () => {
-    const wegweiserScreen = INTRO_OVERLAY_V2_STEPS.find((s) => s.id === 'clara-wegweiserin');
-    expect(wegweiserScreen?.titleDu).toBe('Wo fange ich an?');
-    const planScreen = INTRO_OVERLAY_V2_STEPS.find((s) => s.id === 'wegweiser-plan');
-    expect(planScreen?.bodyDu).toMatch(/vorzubereiten/i);
+  it('referenziert Wegweiser-Kündigung im Trailer-Flow', () => {
+    const wegweiserScreen = INTRO_OVERLAY_V2_STEPS.find((s) => s.id === 'wegweiser-plan');
+    expect(wegweiserScreen?.bodyDu).toMatch(/Clara/i);
+    expect(wegweiserScreen?.bodyDu).toMatch(/entscheidet nicht/i);
   });
 
-  it('enthält Postfach- und Melde-Screens in der Trailer-Reihenfolge', () => {
+  it('enthält interaktive Trailer-Reihenfolge', () => {
     expect(INTRO_OVERLAY_V2_STEPS.map((s) => s.id)).toEqual([
-      'cold-open',
-      'clara-wegweiserin',
-      'melden-sichtbar',
-      'wegweiser-plan',
+      'buergezugang-hook',
+      'melden-aktion',
       'postfach-status',
+      'beteiligen-mitwirken',
+      'praemien-wallet',
       'wahlen-vorschau',
+      'wegweiser-plan',
       'vertrauen-start',
     ]);
   });

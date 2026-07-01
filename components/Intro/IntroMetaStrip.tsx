@@ -32,6 +32,8 @@ type Props = {
   inlinePad?: 'none' | 'card';
   /** Schmalere Icons und feste Grid-Zeile — verhindert Überlappung Chip / Lautsprecher (~375px). */
   toolbarDensity?: 'default' | 'compact';
+  /** Audio-Lautsprecher und Speed-Toggle ausblenden (z. B. Intro v2 Trailer). */
+  showAudioToolbar?: boolean;
   /**
    * @deprecated Framing-Texte leben in den eigentlichen Intro-Inhalten, nicht
    * mehr im oberen weißen Streifen.
@@ -50,6 +52,7 @@ export default function IntroMetaStrip({
   surface = 'dark',
   inlinePad = 'none',
   toolbarDensity = 'default',
+  showAudioToolbar = true,
 }: Props) {
   const { tryResumePendingAudioFromUserGesture } = useClaraVoiceContext();
   const onExit = onClose ?? onSkip;
@@ -92,8 +95,12 @@ export default function IntroMetaStrip({
           {INTRO_GLOBAL_PILL_LABEL}
         </span>
         <div className="intro-meta-strip__actions flex shrink-0 items-center gap-1">
-          <IntroAudioStatusButton theme={onLight ? 'light' : 'dark'} density={toolbarDensity} />
-          <IntroSpeechSpeedToggle theme={onLight ? 'light' : 'dark'} density={toolbarDensity} />
+          {showAudioToolbar ? (
+            <>
+              <IntroAudioStatusButton theme={onLight ? 'light' : 'dark'} density={toolbarDensity} />
+              <IntroSpeechSpeedToggle theme={onLight ? 'light' : 'dark'} density={toolbarDensity} />
+            </>
+          ) : null}
           {showClaraVoice ? (
             <button
               type="button"

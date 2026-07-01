@@ -1,5 +1,5 @@
 /**
- * Intro Overlay v2 — cinematic civic story (7 screens).
+ * Intro Overlay v2 — interactive civic trailer (8 screens).
  * @see docs/intro-overlay-v2-brief.md
  */
 
@@ -26,12 +26,13 @@ export const INTRO_V2_FORBIDDEN_VISIBLE_TERMS = [
 ] as const;
 
 export type IntroOverlayV2StepId =
-  | 'cold-open'
-  | 'clara-wegweiserin'
-  | 'melden-sichtbar'
-  | 'wegweiser-plan'
+  | 'buergezugang-hook'
+  | 'melden-aktion'
   | 'postfach-status'
+  | 'beteiligen-mitwirken'
+  | 'praemien-wallet'
   | 'wahlen-vorschau'
+  | 'wegweiser-plan'
   | 'vertrauen-start';
 
 export type IntroOverlayV2Step = {
@@ -40,86 +41,92 @@ export type IntroOverlayV2Step = {
   titleSie: string;
   bodyDu: string;
   bodySie: string;
-  /** Screenreader / Clara context label */
   navLabel: string;
   filmBeat: string;
 };
 
 export const INTRO_OVERLAY_V2_STEPS: IntroOverlayV2Step[] = [
   {
-    id: 'cold-open',
+    id: 'buergezugang-hook',
     titleDu: INTRO_V2_CLAIM_DU,
     titleSie: INTRO_V2_CLAIM_SIE,
     bodyDu:
-      'HookAI Civic hilft dir, Anliegen zu verstehen, Probleme sichtbar zu machen und Beteiligung zu finden.',
+      'HookAI Civic hilft dir, Behördenwege vorzubereiten, Probleme im Ort sichtbar zu machen und Beteiligung zu finden.',
     bodySie:
-      'HookAI Civic hilft Ihnen, Anliegen zu verstehen, Probleme sichtbar zu machen und Beteiligung zu finden.',
+      'HookAI Civic hilft Ihnen, Behördenwege vorzubereiten, Probleme im Ort sichtbar zu machen und Beteiligung zu finden.',
     navLabel: 'Einstieg',
     filmBeat: 'cold-open',
   },
   {
-    id: 'clara-wegweiserin',
-    titleDu: 'Wo fange ich an?',
-    titleSie: 'Wo fange ich an?',
-    bodyDu:
-      'Du beschreibst dein Anliegen. Clara hilft beim Sortieren und Vorbereiten — aber sie entscheidet nicht.',
-    bodySie:
-      'Sie beschreiben Ihr Anliegen. Clara hilft beim Sortieren und Vorbereiten — aber sie entscheidet nicht.',
-    navLabel: 'Wegweiser',
-    filmBeat: 'close-up',
-  },
-  {
-    id: 'melden-sichtbar',
+    id: 'melden-aktion',
     titleDu: 'Wenn etwas nicht stimmt, soll es sichtbar werden.',
     titleSie: 'Wenn etwas nicht stimmt, soll es sichtbar werden.',
-    bodyDu:
-      'Foto, Kategorie, Beschreibung — aus einem Problem wird eine vorbereitete Meldung.',
-    bodySie:
-      'Foto, Kategorie, Beschreibung — aus einem Problem wird eine vorbereitete Meldung.',
+    bodyDu: 'Foto, Kategorie, Beschreibung — aus einem Problem wird eine vorbereitete Meldung.',
+    bodySie: 'Foto, Kategorie, Beschreibung — aus einem Problem wird eine vorbereitete Meldung.',
     navLabel: 'Melden',
     filmBeat: 'action-moment',
+  },
+  {
+    id: 'postfach-status',
+    titleDu: 'Was du vorbereitest, bleibt nachvollziehbar.',
+    titleSie: 'Was Sie vorbereiten, bleibt nachvollziehbar.',
+    bodyDu: 'Hinweise, Rückfragen und Statusmeldungen erscheinen an einem Ort.',
+    bodySie: 'Hinweise, Rückfragen und Statusmeldungen erscheinen an einem Ort.',
+    navLabel: 'Postfach',
+    filmBeat: 'status-loop',
+  },
+  {
+    id: 'beteiligen-mitwirken',
+    titleDu: 'Mitreden beginnt mit Verstehen.',
+    titleSie: 'Mitreden beginnt mit Verstehen.',
+    bodyDu:
+      'Quellen, Pro und Contra helfen dir, neutral informiert mitzuwirken.',
+    bodySie:
+      'Quellen, Pro und Contra helfen Ihnen, neutral informiert mitzuwirken.',
+    navLabel: 'Beteiligen',
+    filmBeat: 'participation',
+  },
+  {
+    id: 'praemien-wallet',
+    titleDu: 'Mitwirkung darf sichtbar werden.',
+    titleSie: 'Mitwirkung darf sichtbar werden.',
+    bodyDu:
+      'Lokale Prämien und Anerkennung — unabhängig von deiner Entscheidung.',
+    bodySie:
+      'Lokale Prämien und Anerkennung — unabhängig von Ihrer Entscheidung.',
+    navLabel: 'Prämien',
+    filmBeat: 'reward-reveal',
+  },
+  {
+    id: 'wahlen-vorschau',
+    titleDu: 'Neutral informiert bleiben.',
+    titleSie: 'Neutral informiert bleiben.',
+    bodyDu:
+      'Wahlvorschau, Termine und verifizierte Quellen helfen dir, neutral informiert zu bleiben.',
+    bodySie:
+      'Wahlvorschau, Termine und verifizierte Quellen helfen Ihnen, neutral informiert zu bleiben.',
+    navLabel: 'Wahlen',
+    filmBeat: 'montage',
   },
   {
     id: 'wegweiser-plan',
     titleDu: 'Aus Unsicherheit wird ein nächster Schritt.',
     titleSie: 'Aus Unsicherheit wird ein nächster Schritt.',
     bodyDu:
-      'Der Wegweiser zeigt, was vorzubereiten ist und worauf du achten solltest.',
+      'Clara hilft beim Sortieren und Vorbereiten — aber sie entscheidet nicht.',
     bodySie:
-      'Der Wegweiser zeigt, was vorzubereiten ist und worauf Sie achten sollten.',
-    navLabel: 'Fahrplan',
+      'Clara hilft beim Sortieren und Vorbereiten — aber sie entscheidet nicht.',
+    navLabel: 'Wegweiser',
     filmBeat: 'reveal',
   },
   {
-    id: 'postfach-status',
-    titleDu: 'Was du vorbereitest, bleibt nachvollziehbar.',
-    titleSie: 'Was Sie vorbereiten, bleibt nachvollziehbar.',
-    bodyDu:
-      'Hinweise, Rückfragen und Statusmeldungen erscheinen an einem Ort.',
-    bodySie:
-      'Hinweise, Rückfragen und Statusmeldungen erscheinen an einem Ort.',
-    navLabel: 'Postfach',
-    filmBeat: 'status-loop',
-  },
-  {
-    id: 'wahlen-vorschau',
-    titleDu: 'Mitreden beginnt mit Verstehen.',
-    titleSie: 'Mitreden beginnt mit Verstehen.',
-    bodyDu:
-      'Wahlvorschau, Termine und Quellen helfen dir, neutral informiert zu bleiben.',
-    bodySie:
-      'Wahlvorschau, Termine und Quellen helfen Ihnen, neutral informiert zu bleiben.',
-    navLabel: 'Wahlen',
-    filmBeat: 'montage',
-  },
-  {
     id: 'vertrauen-start',
-    titleDu: 'Mitwirkung darf sichtbar werden.',
-    titleSie: 'Mitwirkung darf sichtbar werden.',
+    titleDu: 'Bereit für den nächsten Schritt.',
+    titleSie: 'Bereit für den nächsten Schritt.',
     bodyDu:
-      'Anerkennung fürs Mitmachen — unabhängig von deiner Entscheidung. Diese Demo bereitet vor und versendet keine echten Anträge.',
+      'Diese Demo bereitet vor — sie entscheidet nicht. Offizielle Stellen bleiben maßgeblich. Echte Anträge werden hier nicht versendet.',
     bodySie:
-      'Anerkennung fürs Mitmachen — unabhängig von Ihrer Entscheidung. Diese Demo bereitet vor und versendet keine echten Anträge.',
+      'Diese Demo bereitet vor — sie entscheidet nicht. Offizielle Stellen bleiben maßgeblich. Echte Anträge werden hier nicht versendet.',
     navLabel: 'Start',
     filmBeat: 'calm-trust',
   },

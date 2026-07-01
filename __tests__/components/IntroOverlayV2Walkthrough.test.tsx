@@ -29,7 +29,7 @@ describe('IntroOverlayV2Walkthrough', () => {
     const { onFinish } = renderWalkthrough();
     fireEvent.click(screen.getByTestId('intro-v2-primary-cta'));
 
-    for (let i = 0; i < 5; i += 1) {
+    for (let i = 0; i < 6; i += 1) {
       expect(screen.getByTestId('intro-v2-primary-cta')).toHaveTextContent('Weiter');
       fireEvent.click(screen.getByTestId('intro-v2-primary-cta'));
     }
