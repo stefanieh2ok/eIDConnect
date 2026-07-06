@@ -6,7 +6,6 @@ import IntroMetaStrip from '@/components/Intro/IntroMetaStrip';
 import { IntroOverlayV2Visual } from '@/components/Intro/IntroOverlayV2Visuals';
 import {
   INTRO_OVERLAY_V2_STEPS,
-  INTRO_V2_LEITMOTIV,
   introV2PrimaryButton,
   introV2StepBody,
   introV2StepTitle,
@@ -115,12 +114,6 @@ export default function IntroOverlayV2Walkthrough({
                     />
                   ))}
                 </div>
-
-                {isFirst ? (
-                  <p className="intro-v2-leitmotiv" data-testid="intro-v2-leitmotiv">
-                    {INTRO_V2_LEITMOTIV}
-                  </p>
-                ) : null}
 
                 <h2
                   className="intro-v2-title"

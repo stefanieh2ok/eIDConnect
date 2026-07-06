@@ -1,0 +1,124 @@
+{
+  "base": "http://localhost:3002",
+  "scenes": [
+    {
+      "stepId": "ruhiger-einstieg",
+      "file": "01-ruhiger-einstieg.png",
+      "probe": {
+        "title": "Dein Bürgerweg. Sicher vorbereitet.",
+        "body": "HookAI Civic hilft dir, Anliegen zu ordnen, Meldungen vorzubereiten und Beteiligung nachvollziehbar zu machen.",
+        "visualSnippet": "WegweiserMeldenBeteiligenPrämienZugang später per eID oder EU Digital Identity Wallet möglich.Demo: keine echte Antragstellung.",
+        "hasMontage": false
+      },
+      "checks": [
+        {
+          "id": "no-collage",
+          "pass": true
+        },
+        {
+          "id": "claim",
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "stepId": "melden-foto",
+      "file": "02-melden-foto.png",
+      "probe": {
+        "title": "Wenn vor Ort etwas nicht stimmt.",
+        "body": "Ein Foto reicht als Einstieg. HookAI Civic hilft, daraus eine strukturierte Meldung vorzubereiten.",
+        "visualSnippet": "DrachenspielplatzMeldung vorbereiten",
+        "hasMontage": false
+      },
+      "checks": [
+        {
+          "id": "drachenspielplatz",
+          "pass": true
+        },
+        {
+          "id": "prepared-badge",
+          "pass": false
+        }
+      ],
+      "pass": false
+    },
+    {
+      "stepId": "beteiligen-punkte",
+      "file": "05-beteiligen-punkte.png",
+      "probe": {
+        "title": "Mitreden beginnt mit Verstehen.",
+        "body": "Quellen, Pro und Contra helfen dir, neutral informiert mitzuwirken.",
+        "visualSnippet": "QuellenProContraPunktestand2.680 PunkteMitwirkungspunkte belohnen Beteiligung — nicht Meinung.",
+        "hasMontage": false
+      },
+      "checks": [
+        {
+          "id": "points-flow",
+          "pass": true
+        },
+        {
+          "id": "neutral-hint",
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "stepId": "praemien-auswahl",
+      "file": "06-praemien-auswahl.png",
+      "probe": {
+        "title": "Mitwirkung darf sichtbar werden.",
+        "body": "Lokale Prämien zeigen Anerkennung für Beteiligung — unabhängig von deiner Entscheidung.",
+        "visualSnippet": "Kirkel · Prämien2.800 PunkteNaturfreibad Kirkel – Saison-Eintritt reduziertFreibad & Naturbad vor Ort2.800 PunkteDBDeutsche Bahn – Ticketzuschuss Regional (z. B. Saarbrücken)Zuschuss zum Zugticket (Beispielmodell)7.500 PunkteCineStarSaarbrückenCineStar Saarbrücken – Kinogutschein 2 PersonenKinogutschein für CineStar Sa",
+        "hasMontage": false
+      },
+      "checks": [
+        {
+          "id": "kirkel-list",
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "stepId": "praemien-wallet-qr",
+      "file": "07-praemien-wallet-qr.png",
+      "probe": {
+        "title": "Dein Gutschein liegt bereit.",
+        "body": "Der QR-Code kann vor Ort eingelöst und perspektivisch im Wallet gespeichert werden.",
+        "visualSnippet": "Naturfreibad KirkelFreibad & Naturbad vor OrtGültig bis 30.09.2026Demo-Gutschein · keine echte Einlösung",
+        "hasMontage": false
+      },
+      "checks": [
+        {
+          "id": "qr-wallet",
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "stepId": "eid-trust",
+      "file": "08-eid-trust.png",
+      "probe": {
+        "title": "Sicherer Zugang, wenn es darauf ankommt.",
+        "body": "Für echte Vorgänge kann der Zugang über eID oder die EU Digital Identity Wallet bestätigt werden.",
+        "visualSnippet": "Identity SealBürgerzugang bestätigtVorschaudaten geladenOffizielle Stellen bleiben maßgeblichHookAI Civic bereitet vor — rechtswirksame Schritte laufen über die zuständigen offiziellen Dienste.",
+        "hasMontage": false
+      },
+      "checks": [
+        {
+          "id": "identity-seal",
+          "pass": true
+        },
+        {
+          "id": "official",
+          "pass": true
+        }
+      ],
+      "pass": true
+    }
+  ],
+  "ok": false
+}

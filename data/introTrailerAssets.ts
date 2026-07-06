@@ -1,26 +1,35 @@
 /**
- * Intro v2 Phase 3 — real app film stills (Playwright crops).
+ * Intro v3 — real app film stills (Playwright crops).
  * Assets live under public/intro/trailer/ (token-free, no secrets).
  */
+import { regionalPraemienForCity } from '@/data/demoVoting2026';
+
 export const INTRO_TRAILER_ASSETS = {
-  citizenAccess: '/intro/trailer/citizen-access-context.webp',
+  calmAppEntry: '/intro/trailer/citizen-access-context.webp',
   meldenDrachenspielplatz: '/intro/trailer/melden-drachenspielplatz-input.webp',
   postfachDrachenspielplatz: '/intro/trailer/postfach-status-drachenspielplatz.webp',
   beteiligenKirkel: '/intro/trailer/beteiligen-kirkel-action.webp',
-  praemienNaturfreibadWallet: '/intro/trailer/praemien-naturfreibad-wallet.webp',
-  wahlenBundestagswahl: '/intro/trailer/wahlen-bundestagswahl-stimmzettel.webp',
+  praemienOverview: '/intro/trailer/praemien-naturfreibad-wallet.webp',
+  praemienDetailQr: '/intro/trailer/praemien-naturfreibad-wallet.webp',
   wegweiserKuendigungFahrplan: '/intro/trailer/wegweiser-kuendigung-fahrplan.webp',
-  finalAppOverviewTrust: '/intro/trailer/final-app-overview-trust.webp',
+  identityTrust: '/intro/trailer/final-app-overview-trust.webp',
+  finaleApp: '/intro/trailer/final-app-overview-trust.webp',
 } as const;
 
 export type IntroTrailerAssetKey = keyof typeof INTRO_TRAILER_ASSETS;
 
-/** Montage tiles on cold-open screen 0 */
-export const INTRO_TRAILER_MONTAGE_TILES = [
-  { src: INTRO_TRAILER_ASSETS.citizenAccess, label: 'Bürgerzugang' },
-  { src: INTRO_TRAILER_ASSETS.meldenDrachenspielplatz, label: 'Melden' },
-  { src: INTRO_TRAILER_ASSETS.postfachDrachenspielplatz, label: 'Postfach' },
-  { src: INTRO_TRAILER_ASSETS.beteiligenKirkel, label: 'Beteiligen' },
-  { src: INTRO_TRAILER_ASSETS.wahlenBundestagswahl, label: 'Wahlen' },
-  { src: INTRO_TRAILER_ASSETS.praemienNaturfreibadWallet, label: 'Wallet' },
-] as const;
+/** Demo photo for Melden scene (Drachenspielplatz / Ratten). */
+export const INTRO_MELDEN_DEMO_PHOTO = '/demo-rat-playground.jpg';
+
+/** Kirkel Prämien — same source as LeaderboardSection / App. */
+export const INTRO_KIRKEL_PRAEMIEN = regionalPraemienForCity('Kirkel');
+
+/** Showcase selection in intro scene 6–7 (Naturfreibad). */
+export const INTRO_SHOWCASE_PRAEMIE_ID = 'rk1';
+
+export function introShowcasePraemie() {
+  return (
+    INTRO_KIRKEL_PRAEMIEN.find((b) => b.id === INTRO_SHOWCASE_PRAEMIE_ID) ??
+    INTRO_KIRKEL_PRAEMIEN[0]
+  );
+}
