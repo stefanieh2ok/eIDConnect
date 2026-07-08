@@ -4,11 +4,27 @@
     {
       "stepId": "ruhiger-einstieg",
       "file": "01-ruhiger-einstieg.png",
+      "step": 1,
       "probe": {
         "title": "Dein Bürgerweg. Sicher vorbereitet.",
         "body": "HookAI Civic hilft dir, Anliegen zu ordnen, Meldungen vorzubereiten und Beteiligung nachvollziehbar zu machen.",
-        "visualSnippet": "WegweiserMeldenBeteiligenPrämienZugang später per eID oder EU Digital Identity Wallet möglich.Demo: keine echte Antragstellung.",
-        "hasMontage": false
+        "visualSnippet": "",
+        "footerSnippet": "Zugang später per eID oder EU Digital Identity Wallet möglich.Demo: keine echte Antragstellung.",
+        "fullVisualSnippet": "Zugang später per eID oder EU Digital Identity Wallet möglich.Demo: keine echte Antragstellung.",
+        "hasMontage": false,
+        "hasPostfachOverlay": false,
+        "hasQrInPraemien": false,
+        "hasOverlayBar": false,
+        "hasDuplicateBtn": false,
+        "hasNavRings": true,
+        "hasMeldenRings": false,
+        "hasPhotoPreview": false,
+        "hasQrGrid": false,
+        "hasTrustScreen": false,
+        "hasFinaleDim": false,
+        "hasTabOverlay": false,
+        "hasVoteRing": false,
+        "hasEarlyPoints": false
       },
       "checks": [
         {
@@ -18,6 +34,18 @@
         {
           "id": "claim",
           "pass": true
+        },
+        {
+          "id": "trust-below",
+          "pass": true
+        },
+        {
+          "id": "nav-rings",
+          "pass": true
+        },
+        {
+          "id": "no-duplicate-btn",
+          "pass": true
         }
       ],
       "pass": true
@@ -25,40 +53,141 @@
     {
       "stepId": "melden-foto",
       "file": "02-melden-foto.png",
+      "step": 2,
       "probe": {
         "title": "Wenn vor Ort etwas nicht stimmt.",
-        "body": "Ein Foto reicht als Einstieg. HookAI Civic hilft, daraus eine strukturierte Meldung vorzubereiten.",
-        "visualSnippet": "DrachenspielplatzMeldung vorbereiten",
-        "hasMontage": false
+        "body": "Beschreibe kurz den Vorfall. Foto und Ort ergänzen die vorbereitete Meldung.",
+        "visualSnippet": "Ratten auf dem Drachenspielplatz in Kirkel-Neuhäusel.Vorbereitet · nicht versendet",
+        "footerSnippet": "Demo: Meldung wird vorbereitet — nicht versendet.",
+        "fullVisualSnippet": "Ratten auf dem Drachenspielplatz in Kirkel-Neuhäusel.Vorbereitet · nicht versendet Demo: Meldung wird vorbereitet — nicht versendet.",
+        "hasMontage": false,
+        "hasPostfachOverlay": false,
+        "hasQrInPraemien": false,
+        "hasOverlayBar": false,
+        "hasDuplicateBtn": false,
+        "hasNavRings": false,
+        "hasMeldenRings": true,
+        "hasPhotoPreview": true,
+        "hasQrGrid": false,
+        "hasTrustScreen": false,
+        "hasFinaleDim": false,
+        "hasTabOverlay": false,
+        "hasVoteRing": false,
+        "hasEarlyPoints": false
       },
       "checks": [
         {
-          "id": "drachenspielplatz",
+          "id": "text-flow",
+          "pass": true
+        },
+        {
+          "id": "upload-preview",
           "pass": true
         },
         {
           "id": "prepared-badge",
-          "pass": false
+          "pass": true
+        },
+        {
+          "id": "no-anrede",
+          "pass": true
+        },
+        {
+          "id": "tap-rings",
+          "pass": true
+        },
+        {
+          "id": "no-duplicate-btn",
+          "pass": true
         }
       ],
-      "pass": false
+      "pass": true
+    },
+    {
+      "stepId": "wegweiser-clara",
+      "file": "04-wegweiser-clara.png",
+      "step": 4,
+      "probe": {
+        "title": "Aus Unsicherheit wird ein nächster Schritt.",
+        "body": "Clara hilft beim Sortieren und Vorbereiten — entscheidet aber nicht.",
+        "visualSnippet": "Clara ordnet dein Anliegen …",
+        "footerSnippet": "Clara bereitet vor — offizielle Stellen entscheiden.",
+        "fullVisualSnippet": "Clara ordnet dein Anliegen … Clara bereitet vor — offizielle Stellen entscheiden.",
+        "hasMontage": false,
+        "hasPostfachOverlay": false,
+        "hasQrInPraemien": false,
+        "hasOverlayBar": false,
+        "hasDuplicateBtn": false,
+        "hasNavRings": false,
+        "hasMeldenRings": false,
+        "hasPhotoPreview": false,
+        "hasQrGrid": false,
+        "hasTrustScreen": false,
+        "hasFinaleDim": false,
+        "hasTabOverlay": false,
+        "hasVoteRing": false,
+        "hasEarlyPoints": false
+      },
+      "checks": [
+        {
+          "id": "clara-flow",
+          "pass": true
+        },
+        {
+          "id": "no-white-bar",
+          "pass": true
+        },
+        {
+          "id": "no-floating-btn",
+          "pass": true
+        }
+      ],
+      "pass": true
     },
     {
       "stepId": "beteiligen-punkte",
       "file": "05-beteiligen-punkte.png",
+      "step": 5,
       "probe": {
         "title": "Mitreden beginnt mit Verstehen.",
         "body": "Quellen, Pro und Contra helfen dir, neutral informiert mitzuwirken.",
-        "visualSnippet": "QuellenProContraPunktestand2.680 PunkteMitwirkungspunkte belohnen Beteiligung — nicht Meinung.",
-        "hasMontage": false
+        "visualSnippet": "Teilnahme abgeschlossen+120 Punkte2.680 → 2.800 Punkte",
+        "footerSnippet": "Mitwirkungspunkte belohnen Beteiligung — nicht Meinung.",
+        "fullVisualSnippet": "Teilnahme abgeschlossen+120 Punkte2.680 → 2.800 Punkte Mitwirkungspunkte belohnen Beteiligung — nicht Meinung.",
+        "hasMontage": false,
+        "hasPostfachOverlay": false,
+        "hasQrInPraemien": false,
+        "hasOverlayBar": false,
+        "hasDuplicateBtn": false,
+        "hasNavRings": false,
+        "hasMeldenRings": false,
+        "hasPhotoPreview": false,
+        "hasQrGrid": false,
+        "hasTrustScreen": false,
+        "hasFinaleDim": false,
+        "hasTabOverlay": false,
+        "hasVoteRing": true,
+        "hasEarlyPoints": false
       },
       "checks": [
         {
-          "id": "points-flow",
+          "id": "vote-flow",
+          "pass": true
+        },
+        {
+          "id": "points-after",
           "pass": true
         },
         {
           "id": "neutral-hint",
+          "pass": true
+        },
+        {
+          "id": "no-tab-overlay",
+          "pass": true
+        },
+        {
+          "id": "no-early-points",
           "pass": true
         }
       ],
@@ -67,15 +196,39 @@
     {
       "stepId": "praemien-auswahl",
       "file": "06-praemien-auswahl.png",
+      "step": 6,
       "probe": {
         "title": "Mitwirkung darf sichtbar werden.",
         "body": "Lokale Prämien zeigen Anerkennung für Beteiligung — unabhängig von deiner Entscheidung.",
-        "visualSnippet": "Kirkel · Prämien2.800 PunkteNaturfreibad Kirkel – Saison-Eintritt reduziertFreibad & Naturbad vor Ort2.800 PunkteDBDeutsche Bahn – Ticketzuschuss Regional (z. B. Saarbrücken)Zuschuss zum Zugticket (Beispielmodell)7.500 PunkteCineStarSaarbrückenCineStar Saarbrücken – Kinogutschein 2 PersonenKinogutschein für CineStar Sa",
-        "hasMontage": false
+        "visualSnippet": "Kirkel · Prämien2.800 PunkteNaturfreibad Kirkel – Saison-Eintritt reduziertFreibad & Naturbad vor Ort2.800 PunkteDBDeutsche Bahn – Ticketzuschuss Regional (z. B. Saarbrücken)Zuschuss zum Zugticket (Beispielmodell)7.500 PunkteCineStarSaarbrückenCineStar Saarbrücken – Kinogutschein 2 PersonenKinogutschein für CineStar Saarbrücken4.200 PunkteMuseum regional – F",
+        "footerSnippet": "Erst Prämie wählen — Gutschein folgt im nächsten Schritt.",
+        "fullVisualSnippet": "Kirkel · Prämien2.800 PunkteNaturfreibad Kirkel – Saison-Eintritt reduziertFreibad & Naturbad vor Ort2.800 PunkteDBDeutsche Bahn – Ticketzuschuss Regional (z. B. Saarbrücken)Zuschuss zum Zugticket (Beispielmodell)7.500 PunkteCineStarSaarbrückenCineStar Saarbrücken – Kinogutschein 2 PersonenKinogutschein für CineStar Saarbrücken4.200 PunkteMuseum regional – Familien-TageskarteKultur & Museum in der Umgebung3.600 Punkt",
+        "hasMontage": false,
+        "hasPostfachOverlay": false,
+        "hasQrInPraemien": false,
+        "hasOverlayBar": false,
+        "hasDuplicateBtn": false,
+        "hasNavRings": false,
+        "hasMeldenRings": false,
+        "hasPhotoPreview": false,
+        "hasQrGrid": false,
+        "hasTrustScreen": false,
+        "hasFinaleDim": false,
+        "hasTabOverlay": false,
+        "hasVoteRing": false,
+        "hasEarlyPoints": false
       },
       "checks": [
         {
           "id": "kirkel-list",
+          "pass": true
+        },
+        {
+          "id": "no-qr-yet",
+          "pass": true
+        },
+        {
+          "id": "no-duplicate-btn",
           "pass": true
         }
       ],
@@ -84,15 +237,43 @@
     {
       "stepId": "praemien-wallet-qr",
       "file": "07-praemien-wallet-qr.png",
+      "step": 7,
       "probe": {
         "title": "Dein Gutschein liegt bereit.",
         "body": "Der QR-Code kann vor Ort eingelöst und perspektivisch im Wallet gespeichert werden.",
-        "visualSnippet": "Naturfreibad KirkelFreibad & Naturbad vor OrtGültig bis 30.09.2026Demo-Gutschein · keine echte Einlösung",
-        "hasMontage": false
+        "visualSnippet": "Naturfreibad KirkelEintritt reduziertGültig bis 30.09.2026HC-KIRKEL-2026-1270Zum Wallet hinzugefügt · Demo",
+        "footerSnippet": "Demo-Gutschein · keine echte EinlösungPartner sehen nur, ob ein Gutschein gültig ist — nicht, wie du abgestimmt hast.",
+        "fullVisualSnippet": "Naturfreibad KirkelEintritt reduziertGültig bis 30.09.2026HC-KIRKEL-2026-1270Zum Wallet hinzugefügt · Demo Demo-Gutschein · keine echte EinlösungPartner sehen nur, ob ein Gutschein gültig ist — nicht, wie du abgestimmt hast.",
+        "hasMontage": false,
+        "hasPostfachOverlay": false,
+        "hasQrInPraemien": false,
+        "hasOverlayBar": false,
+        "hasDuplicateBtn": false,
+        "hasNavRings": false,
+        "hasMeldenRings": false,
+        "hasPhotoPreview": false,
+        "hasQrGrid": true,
+        "hasTrustScreen": false,
+        "hasFinaleDim": false,
+        "hasTabOverlay": false,
+        "hasVoteRing": false,
+        "hasEarlyPoints": false
       },
       "checks": [
         {
           "id": "qr-wallet",
+          "pass": true
+        },
+        {
+          "id": "demo-hint",
+          "pass": true
+        },
+        {
+          "id": "qr-built",
+          "pass": true
+        },
+        {
+          "id": "no-duplicate-btn",
           "pass": true
         }
       ],
@@ -101,24 +282,94 @@
     {
       "stepId": "eid-trust",
       "file": "08-eid-trust.png",
+      "step": 8,
       "probe": {
         "title": "Sicherer Zugang, wenn es darauf ankommt.",
         "body": "Für echte Vorgänge kann der Zugang über eID oder die EU Digital Identity Wallet bestätigt werden.",
-        "visualSnippet": "Identity SealBürgerzugang bestätigtVorschaudaten geladenOffizielle Stellen bleiben maßgeblichHookAI Civic bereitet vor — rechtswirksame Schritte laufen über die zuständigen offiziellen Dienste.",
-        "hasMontage": false
+        "visualSnippet": "eIDEU WalletPerspektivisch können Nachweise und Berechtigungen über die EU Digital Identity Wallet eingebunden werden.Nachweise sicher vorzeigenWallet-fähige Gutscheine und BerechtigungenNutzer entscheidet, was geteilt wird✓ Vorbereitet für sichere Identitätsflüsse",
+        "footerSnippet": "HookAI Civic bereitet vor — rechtswirksame Schritte laufen über die zuständigen offiziellen Dienste.",
+        "fullVisualSnippet": "eIDEU WalletPerspektivisch können Nachweise und Berechtigungen über die EU Digital Identity Wallet eingebunden werden.Nachweise sicher vorzeigenWallet-fähige Gutscheine und BerechtigungenNutzer entscheidet, was geteilt wird✓ Vorbereitet für sichere Identitätsflüsse HookAI Civic bereitet vor — rechtswirksame Schritte laufen über die zuständigen offiziellen Dienste.",
+        "hasMontage": false,
+        "hasPostfachOverlay": false,
+        "hasQrInPraemien": false,
+        "hasOverlayBar": false,
+        "hasDuplicateBtn": false,
+        "hasNavRings": false,
+        "hasMeldenRings": false,
+        "hasPhotoPreview": false,
+        "hasQrGrid": false,
+        "hasTrustScreen": true,
+        "hasFinaleDim": false,
+        "hasTabOverlay": false,
+        "hasVoteRing": false,
+        "hasEarlyPoints": false
       },
       "checks": [
         {
-          "id": "identity-seal",
+          "id": "tabs",
           "pass": true
         },
         {
-          "id": "official",
+          "id": "trust-copy",
+          "pass": true
+        },
+        {
+          "id": "no-wegweiser-bg",
+          "pass": true
+        },
+        {
+          "id": "trust-screen",
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
+      "stepId": "abschluss",
+      "file": "09-abschluss.png",
+      "step": 9,
+      "probe": {
+        "title": "Bereit für den nächsten Schritt.",
+        "body": "Öffne die Demo und erlebe, wie Bürgeranliegen vorbereitet werden.",
+        "visualSnippet": "",
+        "footerSnippet": "",
+        "fullVisualSnippet": "",
+        "hasMontage": false,
+        "hasPostfachOverlay": false,
+        "hasQrInPraemien": false,
+        "hasOverlayBar": false,
+        "hasDuplicateBtn": false,
+        "hasNavRings": false,
+        "hasMeldenRings": false,
+        "hasPhotoPreview": false,
+        "hasQrGrid": false,
+        "hasTrustScreen": false,
+        "hasFinaleDim": true,
+        "hasTabOverlay": false,
+        "hasVoteRing": false,
+        "hasEarlyPoints": false
+      },
+      "checks": [
+        {
+          "id": "finale-title",
+          "pass": true
+        },
+        {
+          "id": "dim-home",
+          "pass": true
+        },
+        {
+          "id": "no-qr",
+          "pass": true
+        },
+        {
+          "id": "no-duplicate-btn",
           "pass": true
         }
       ],
       "pass": true
     }
   ],
-  "ok": false
+  "ok": true,
+  "filmflowPass": "v3.1"
 }
