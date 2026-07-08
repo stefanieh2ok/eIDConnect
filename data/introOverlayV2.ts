@@ -64,9 +64,9 @@ export const INTRO_OVERLAY_V2_STEPS: IntroOverlayV2Step[] = [
     titleDu: 'Wenn vor Ort etwas nicht stimmt.',
     titleSie: 'Wenn vor Ort etwas nicht stimmt.',
     bodyDu:
-      'Ein Foto reicht als Einstieg. HookAI Civic hilft, daraus eine strukturierte Meldung vorzubereiten.',
+      'Beschreibe kurz den Vorfall. Foto und Ort ergänzen die vorbereitete Meldung.',
     bodySie:
-      'Ein Foto reicht als Einstieg. HookAI Civic hilft, daraus eine strukturierte Meldung vorzubereiten.',
+      'Beschreiben Sie kurz den Vorfall. Foto und Ort ergänzen die vorbereitete Meldung.',
     navLabel: 'Melden',
     filmBeat: 'melden-flow',
   },
@@ -134,8 +134,8 @@ export const INTRO_OVERLAY_V2_STEPS: IntroOverlayV2Step[] = [
     id: 'abschluss',
     titleDu: 'Bereit für den nächsten Schritt.',
     titleSie: 'Bereit für den nächsten Schritt.',
-    bodyDu: 'Melden, vorbereiten, beteiligen und Prämien verwalten — an einem Ort.',
-    bodySie: 'Melden, vorbereiten, beteiligen und Prämien verwalten — an einem Ort.',
+    bodyDu: 'Öffne die Demo und erlebe, wie Bürgeranliegen vorbereitet werden.',
+    bodySie: 'Öffnen Sie die Demo und erleben Sie, wie Bürgeranliegen vorbereitet werden.',
     navLabel: 'Start',
     filmBeat: 'finale',
   },
@@ -170,4 +170,14 @@ export function findForbiddenIntroV2Terms(text: string): string[] {
   return INTRO_V2_FORBIDDEN_VISIBLE_TERMS.filter((term) =>
     lower.includes(term.toLowerCase()),
   );
+}
+
+/** QA/dev: ?introStep=2 (1-based) or ?introStep=0 (0-based id index). */
+export function introV2StepIndexFromParam(raw: string | null): number | null {
+  if (raw == null || raw.trim() === '') return null;
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isFinite(n)) return null;
+  const idx = n >= 1 && n <= INTRO_OVERLAY_V2_STEPS.length ? n - 1 : n;
+  if (idx < 0 || idx >= INTRO_OVERLAY_V2_STEPS.length) return null;
+  return idx;
 }

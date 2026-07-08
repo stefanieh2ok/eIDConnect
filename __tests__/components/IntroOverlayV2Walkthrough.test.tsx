@@ -39,12 +39,11 @@ describe('IntroOverlayV2Walkthrough', () => {
     expect(onFinish).toHaveBeenCalled();
   });
 
-  it('erlaubt Anrede-Umschaltung ab Screen 1', () => {
+  it('zeigt keine Anrede-Auswahl im Melden-Screen', () => {
     renderWalkthrough(true);
     fireEvent.click(screen.getByTestId('intro-v2-primary-cta'));
-    expect(screen.getByTestId('intro-v2-anrede')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Sie' }));
-    expect(screen.getByRole('button', { name: 'Sie' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('intro-v2-step-melden-foto')).toBeInTheDocument();
+    expect(screen.queryByTestId('intro-v2-anrede')).not.toBeInTheDocument();
   });
 
   it('bietet Überspringen vor dem letzten Screen', () => {

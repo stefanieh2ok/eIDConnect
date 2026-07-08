@@ -5,6 +5,7 @@ import {
   collectIntroV2VisibleCopy,
   findForbiddenIntroV2Terms,
   introV2PrimaryButton,
+  introV2StepIndexFromParam,
 } from '@/data/introOverlayV2';
 
 describe('introOverlayV2', () => {
@@ -58,5 +59,13 @@ describe('introOverlayV2', () => {
   it('enthält keinen verbotenen Begriff im sichtbaren Copy', () => {
     const forbidden = findForbiddenIntroV2Terms(collectIntroV2VisibleCopy(true));
     expect(forbidden).toEqual([]);
+  });
+
+  it('parst introStep Query-Parameter (1-basiert)', () => {
+    expect(introV2StepIndexFromParam('2')).toBe(1);
+    expect(introV2StepIndexFromParam('9')).toBe(8);
+    expect(introV2StepIndexFromParam('0')).toBe(0);
+    expect(introV2StepIndexFromParam('99')).toBeNull();
+    expect(introV2StepIndexFromParam(null)).toBeNull();
   });
 });

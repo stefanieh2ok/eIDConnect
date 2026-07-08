@@ -36,7 +36,12 @@ export function createDevDemoEnterResponse(
   });
 
   const baseUrl = new URL(requestUrl).origin;
+  const source = new URL(requestUrl);
   const redirectUrl = new URL(`/demo/${encodeURIComponent(safeDemoId)}`, baseUrl);
+  for (const key of ['resetIntro', 'introStep'] as const) {
+    const val = source.searchParams.get(key);
+    if (val != null && val !== '') redirectUrl.searchParams.set(key, val);
+  }
   const response = NextResponse.redirect(redirectUrl);
 
   response.cookies.set(DEMO_SESSION_COOKIE, rawSessionToken, {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function useIntroV2ReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -57,6 +57,9 @@ export function useIntroV2Phase(
   reduced: boolean,
 ): number {
   const [phase, setPhase] = useState(reduced ? maxPhase : 0);
+  const delaysRef = useRef(delays);
+  delaysRef.current = delays;
+  const delaysKey = delays.join(',');
 
   useEffect(() => {
     if (reduced) {
@@ -66,12 +69,13 @@ export function useIntroV2Phase(
     setPhase(0);
     const timers: number[] = [];
     let acc = 0;
+    const steps = delaysRef.current;
     for (let p = 1; p <= maxPhase; p += 1) {
-      acc += delays[p - 1] ?? 700;
+      acc += steps[p - 1] ?? 700;
       timers.push(window.setTimeout(() => setPhase(p), acc));
     }
     return () => timers.forEach((t) => window.clearTimeout(t));
-  }, [maxPhase, delays, reduced]);
+  }, [maxPhase, delaysKey, reduced]);
 
   return phase;
 }
