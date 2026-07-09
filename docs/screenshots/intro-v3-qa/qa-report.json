@@ -1,5 +1,5 @@
 {
-  "base": "http://localhost:3002",
+  "base": "http://localhost:3005",
   "scenes": [
     {
       "stepId": "ruhiger-einstieg",
@@ -24,6 +24,10 @@
         "hasFinaleDim": false,
         "hasTabOverlay": false,
         "hasVoteRing": false,
+        "hasPostfachCardRing": false,
+        "hasVerifiedRing": false,
+        "hasStatusActionRing": false,
+        "hasLegacyBadge": false,
         "hasEarlyPoints": false
       },
       "checks": [
@@ -73,6 +77,10 @@
         "hasFinaleDim": false,
         "hasTabOverlay": false,
         "hasVoteRing": false,
+        "hasPostfachCardRing": false,
+        "hasVerifiedRing": false,
+        "hasStatusActionRing": false,
+        "hasLegacyBadge": false,
         "hasEarlyPoints": false
       },
       "checks": [
@@ -104,6 +112,63 @@
       "pass": true
     },
     {
+      "stepId": "postfach-status",
+      "file": "03-postfach-status.png",
+      "step": 3,
+      "probe": {
+        "title": "Alles bleibt nachvollziehbar.",
+        "body": "Hinweise, Rückfragen und Statusmeldungen erscheinen an einem Ort.",
+        "visualSnippet": "Status aktualisiert",
+        "footerSnippet": "Status und Rückfragen bleiben nachvollziehbar — ohne neue App-Silos.",
+        "fullVisualSnippet": "Status aktualisiert Status und Rückfragen bleiben nachvollziehbar — ohne neue App-Silos.",
+        "hasMontage": false,
+        "hasPostfachOverlay": false,
+        "hasQrInPraemien": false,
+        "hasOverlayBar": false,
+        "hasDuplicateBtn": false,
+        "hasNavRings": false,
+        "hasMeldenRings": false,
+        "hasPhotoPreview": false,
+        "hasQrGrid": false,
+        "hasTrustScreen": false,
+        "hasFinaleDim": false,
+        "hasTabOverlay": false,
+        "hasVoteRing": false,
+        "hasPostfachCardRing": true,
+        "hasVerifiedRing": true,
+        "hasStatusActionRing": true,
+        "hasLegacyBadge": false,
+        "hasEarlyPoints": false
+      },
+      "checks": [
+        {
+          "id": "postbox-title",
+          "pass": true
+        },
+        {
+          "id": "status-card",
+          "pass": true
+        },
+        {
+          "id": "verified-ring",
+          "pass": true
+        },
+        {
+          "id": "status-action-ring",
+          "pass": true
+        },
+        {
+          "id": "no-legacy-overlays",
+          "pass": true
+        },
+        {
+          "id": "footer-caption",
+          "pass": true
+        }
+      ],
+      "pass": true
+    },
+    {
       "stepId": "wegweiser-clara",
       "file": "04-wegweiser-clara.png",
       "step": 4,
@@ -126,6 +191,10 @@
         "hasFinaleDim": false,
         "hasTabOverlay": false,
         "hasVoteRing": false,
+        "hasPostfachCardRing": false,
+        "hasVerifiedRing": false,
+        "hasStatusActionRing": false,
+        "hasLegacyBadge": false,
         "hasEarlyPoints": false
       },
       "checks": [
@@ -167,6 +236,10 @@
         "hasFinaleDim": false,
         "hasTabOverlay": false,
         "hasVoteRing": true,
+        "hasPostfachCardRing": false,
+        "hasVerifiedRing": false,
+        "hasStatusActionRing": false,
+        "hasLegacyBadge": false,
         "hasEarlyPoints": false
       },
       "checks": [
@@ -216,6 +289,10 @@
         "hasFinaleDim": false,
         "hasTabOverlay": false,
         "hasVoteRing": false,
+        "hasPostfachCardRing": false,
+        "hasVerifiedRing": false,
+        "hasStatusActionRing": false,
+        "hasLegacyBadge": false,
         "hasEarlyPoints": false
       },
       "checks": [
@@ -257,6 +334,10 @@
         "hasFinaleDim": false,
         "hasTabOverlay": false,
         "hasVoteRing": false,
+        "hasPostfachCardRing": false,
+        "hasVerifiedRing": false,
+        "hasStatusActionRing": false,
+        "hasLegacyBadge": false,
         "hasEarlyPoints": false
       },
       "checks": [
@@ -302,6 +383,10 @@
         "hasFinaleDim": false,
         "hasTabOverlay": false,
         "hasVoteRing": false,
+        "hasPostfachCardRing": false,
+        "hasVerifiedRing": false,
+        "hasStatusActionRing": false,
+        "hasLegacyBadge": false,
         "hasEarlyPoints": false
       },
       "checks": [
@@ -347,6 +432,10 @@
         "hasFinaleDim": true,
         "hasTabOverlay": false,
         "hasVoteRing": false,
+        "hasPostfachCardRing": false,
+        "hasVerifiedRing": false,
+        "hasStatusActionRing": false,
+        "hasLegacyBadge": false,
         "hasEarlyPoints": false
       },
       "checks": [

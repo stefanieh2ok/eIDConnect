@@ -303,30 +303,36 @@ function MeldenFotoVisual() {
 
 function PostfachStatusVisual() {
   const reduced = useIntroV2ReducedMotion();
-  const phase = useIntroV2Phase(2, [800, 900], reduced);
+  const phase = useIntroV2Phase(3, [700, 800, 900], reduced);
 
   return (
     <IntroFilmScene
       src={INTRO_TRAILER_ASSETS.postfachDrachenspielplatz}
       className={'intro-v2-film-still--hero' + (phase >= 0 ? ' intro-v3-film-slide-in' : '')}
       filmClass="intro-v3-visual--postfach"
+      footer="Status und Rückfragen bleiben nachvollziehbar — ohne neue App-Silos."
     >
-      <span
-        className={
-          'intro-v3-in-scene-badge intro-v3-in-scene-badge--verified' +
-          (phase >= 1 ? ' intro-v3-in-scene-badge--pop' : '')
-        }
-      >
-        Verifiziert
-      </span>
-      <span
-        className={
-          'intro-v3-in-scene-btn intro-v3-in-scene-btn--status' +
-          (phase >= 2 ? ' intro-v3-in-scene-btn--focus' : '')
-        }
-      >
-        Status ansehen
-      </span>
+      <IntroTapRing
+        className="intro-v3-tap-ring--postfach-card"
+        active={phase >= 0}
+        pulse={phase === 0}
+        trail={phase > 0 && phase < 3}
+      />
+      <IntroTapRing
+        className="intro-v3-tap-ring--postfach-verified"
+        active={phase >= 1}
+        pulse={phase === 1}
+        trail={phase > 1 && phase < 3}
+      />
+      <IntroTapRing
+        className="intro-v3-tap-ring--postfach-status"
+        active={phase >= 2}
+        pressed={phase >= 3}
+        pulse={phase === 2}
+      />
+      {phase >= 3 ? (
+        <IntroResultChip className="intro-v3-result-chip--postfach">Status aktualisiert</IntroResultChip>
+      ) : null}
     </IntroFilmScene>
   );
 }

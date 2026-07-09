@@ -26,6 +26,7 @@ const STEP_IDS = [
 const CAPTURE = {
   'ruhiger-einstieg': { file: '01-ruhiger-einstieg.png', step: 1, waitMs: 3200 },
   'melden-foto': { file: '02-melden-foto.png', step: 2, waitMs: 11000 },
+  'postfach-status': { file: '03-postfach-status.png', step: 3, waitMs: 3800 },
   'wegweiser-clara': { file: '04-wegweiser-clara.png', step: 4, waitMs: 6500 },
   'beteiligen-punkte': { file: '05-beteiligen-punkte.png', step: 5, waitMs: 8000 },
   'praemien-auswahl': { file: '06-praemien-auswahl.png', step: 6, waitMs: 3800 },
@@ -72,6 +73,10 @@ async function probeScene(page, stepId) {
   const hasFinaleDim = (await step.locator('.intro-v3-film-still--dim').count()) > 0;
   const hasTabOverlay = (await step.locator('.intro-v3-beteiligen-tabs').count()) > 0;
   const hasVoteRing = (await step.locator('.intro-v3-tap-ring--vote-yes').count()) > 0;
+  const hasPostfachCardRing = (await step.locator('.intro-v3-tap-ring--postfach-card').count()) > 0;
+  const hasVerifiedRing = (await step.locator('.intro-v3-tap-ring--postfach-verified').count()) > 0;
+  const hasStatusActionRing = (await step.locator('.intro-v3-tap-ring--postfach-status').count()) > 0;
+  const hasLegacyBadge = (await step.locator('.intro-v3-in-scene-badge').count()) > 0;
   const hasEarlyPoints =
     stepId === 'beteiligen-punkte' &&
     (await step.locator('.intro-v3-points-counter:not(.intro-v3-points-counter--late)').count()) > 0;
@@ -94,6 +99,10 @@ async function probeScene(page, stepId) {
     hasFinaleDim,
     hasTabOverlay,
     hasVoteRing,
+    hasPostfachCardRing,
+    hasVerifiedRing,
+    hasStatusActionRing,
+    hasLegacyBadge,
     hasEarlyPoints,
   };
 }
@@ -118,6 +127,21 @@ function checksFor(stepId, probe) {
         { id: 'no-anrede', pass: !/Anrede/i.test(text) },
         { id: 'tap-rings', pass: probe.hasMeldenRings },
         { id: 'no-duplicate-btn', pass: !probe.hasDuplicateBtn },
+      ];
+    case 'postfach-status':
+      return [
+        { id: 'postbox-title', pass: /nachvollziehbar/i.test(probe.title) },
+        { id: 'status-card', pass: probe.hasPostfachCardRing },
+        { id: 'verified-ring', pass: probe.hasVerifiedRing },
+        { id: 'status-action-ring', pass: probe.hasStatusActionRing },
+        {
+          id: 'no-legacy-overlays',
+          pass: !probe.hasLegacyBadge && !probe.hasDuplicateBtn && !probe.hasPostfachOverlay,
+        },
+        {
+          id: 'footer-caption',
+          pass: /nachvollziehbar|App-Silos|Verlauf sichtbar/i.test(probe.footerSnippet || text),
+        },
       ];
     case 'wegweiser-clara':
       return [
@@ -177,6 +201,10 @@ async function main() {
     if (stepId === 'melden-foto') {
       await page.waitForSelector('.intro-v3-photo-preview img', { timeout: 20000 }).catch(() => {});
       await page.waitForSelector('.intro-v3-result-chip--melden', { timeout: 20000 }).catch(() => {});
+    }
+    if (stepId === 'postfach-status') {
+      await page.waitForSelector('.intro-v3-tap-ring--postfach-status', { timeout: 20000 }).catch(() => {});
+      await page.waitForSelector('.intro-v3-result-chip--postfach', { timeout: 20000 }).catch(() => {});
     }
     if (stepId === 'beteiligen-punkte') {
       await page.waitForSelector('.intro-v3-points-counter--late', { timeout: 20000 }).catch(() => {});

@@ -10702,6 +10702,41 @@ a:focus-visible {
   height: 9%;
 }
 
+.intro-v3-tap-ring--postfach-card {
+  left: 6%;
+  right: 6%;
+  top: 22%;
+  height: 34%;
+}
+
+.intro-v3-tap-ring--postfach-verified {
+  right: 8%;
+  top: 26%;
+  width: 30%;
+  height: 8%;
+}
+
+.intro-v3-tap-ring--postfach-status {
+  left: 50%;
+  bottom: 11%;
+  width: 42%;
+  height: 7%;
+  transform: translateX(-50%);
+}
+
+.intro-v3-tap-ring--postfach-status.intro-v3-tap-ring--pressed {
+  transform: translateX(-50%) scale(0.98);
+}
+
+.intro-v3-result-chip--postfach {
+  left: 50%;
+  bottom: 4%;
+  transform: translateX(-50%);
+  color: #047857;
+  background: rgba(209, 250, 229, 0.92);
+  border-color: #a7f3d0;
+}
+
 .intro-v3-tap-ring--melden-category {
   left: 7%;
   width: 28%;
