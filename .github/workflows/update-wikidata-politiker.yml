@@ -37,10 +37,19 @@ jobs:
             git diff --stat data/kommunalpolitiker-auto.ts
           fi
 
+      - name: No Wikidata changes
+        if: steps.diff.outputs.changed != 'true'
+        run: |
+          echo "Keine Änderungen in data/kommunalpolitiker-auto.ts."
+          {
+            echo "## Wikidata-Update"
+            echo ""
+            echo "Keine Datenänderungen – kein Pull Request nötig."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Create PR on changes
         if: steps.diff.outputs.changed == 'true'
         id: create_pr
-        continue-on-error: true
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -53,14 +62,19 @@ jobs:
             Bitte prüfen und mergen.
           labels: dependencies,automated
 
-      - name: Manual PR hint when auto-create blocked
-        if: steps.diff.outputs.changed == 'true' && steps.create_pr.outcome != 'success'
+      - name: Verify pull request outcome
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          PR_URL: ${{ steps.create_pr.outputs.pull-request-url }}
+          PR_NUMBER: ${{ steps.create_pr.outputs.pull-request-number }}
         run: |
-          echo "::warning::Automatische PR-Erstellung blockiert. In Settings → Actions → General → Workflow permissions aktivieren: Allow GitHub Actions to create and approve pull requests."
+          if [ -z "$PR_URL" ] || [ -z "$PR_NUMBER" ]; then
+            echo "::error::Wikidata-Änderungen vorhanden, aber kein Pull Request erstellt oder gefunden."
+            exit 1
+          fi
           {
-            echo "## Wikidata-Update: manuelle PR nötig"
+            echo "## Wikidata-Update"
             echo ""
-            echo "Der Branch \`wikidata-update\` wurde aktualisiert."
-            echo ""
-            echo "[PR manuell erstellen](https://github.com/${{ github.repository }}/compare/main...wikidata-update?expand=1)"
+            echo "Pull Request #$PR_NUMBER erstellt oder aktualisiert: $PR_URL"
           } >> "$GITHUB_STEP_SUMMARY"
+          echo "Pull request #$PR_NUMBER: $PR_URL"
