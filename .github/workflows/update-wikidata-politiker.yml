@@ -39,6 +39,8 @@ jobs:
 
       - name: Create PR on changes
         if: steps.diff.outputs.changed == 'true'
+        id: create_pr
+        continue-on-error: true
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -50,3 +52,15 @@ jobs:
             Automatische Aktualisierung der Bürgermeister/Landräte-Daten aus Wikidata.
             Bitte prüfen und mergen.
           labels: dependencies,automated
+
+      - name: Manual PR hint when auto-create blocked
+        if: steps.diff.outputs.changed == 'true' && steps.create_pr.outcome != 'success'
+        run: |
+          echo "::warning::Automatische PR-Erstellung blockiert. In Settings → Actions → General → Workflow permissions aktivieren: Allow GitHub Actions to create and approve pull requests."
+          {
+            echo "## Wikidata-Update: manuelle PR nötig"
+            echo ""
+            echo "Der Branch \`wikidata-update\` wurde aktualisiert."
+            echo ""
+            echo "[PR manuell erstellen](https://github.com/${{ github.repository }}/compare/main...wikidata-update?expand=1)"
+          } >> "$GITHUB_STEP_SUMMARY"
