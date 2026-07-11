@@ -6,6 +6,7 @@ import { useApp } from '@/context/AppContext';
 import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
 import { regionalPraemienForCity } from '@/data/demoVoting2026';
 import { getLocalBenefitState } from '@/lib/localBenefits';
+import { isNaturfreibadBenefit, rewardVisual, KIRKEL_DEMO_VOUCHER_CODE } from '@/lib/rewardVisual';
 
 type StatusRow = {
   label: string;
@@ -37,7 +38,7 @@ type VoucherSheetState = {
 type PremiumDemoState = 'list' | 'highlight' | 'qr' | 'walletPrepared';
 
 function isNaturfreibadWalkthroughBenefit(b: PraemieBenefit): boolean {
-  return /naturfreibad|freibad/i.test(b.name);
+  return isNaturfreibadBenefit(b.name);
 }
 
 function formatMockVoucherCode(cityName: string, benefitId: string): string {
@@ -54,7 +55,7 @@ function formatMockVoucherCode(cityName: string, benefitId: string): string {
 }
 
 /** Feste Demo-Anzeige im Walkthrough-QR-Sheet (GovTech-Vorschau, nicht dynamisch). */
-const WALKTHROUGH_SHEET_VOUCHER_CODE = 'HC-KIRKEL-2026-4821';
+const WALKTHROUGH_SHEET_VOUCHER_CODE = KIRKEL_DEMO_VOUCHER_CODE;
 
 function providerAndLocation(name: string, description: string, cityName: string): { provider: string; location: string } {
   const parts = name.split(/\s*[–-]\s*/);
@@ -133,43 +134,6 @@ function QrStylePlaceholder({
       ))}
     </div>
   );
-}
-
-function rewardVisual(name: string): {
-  label: string;
-  className: string;
-  imageSrc?: string;
-  imageAlt?: string;
-  db?: boolean;
-  cinestar?: boolean;
-} {
-  const n = name.toLowerCase();
-  if (n.includes('deutsche bahn')) {
-    return { label: 'DB', className: 'border-red-200 bg-white text-red-700', db: true };
-  }
-  if (n.includes('cinestar')) {
-    return { label: '', className: 'border-violet-200 bg-gradient-to-b from-violet-50 to-white text-violet-900', cinestar: true };
-  }
-  if (n.includes('kino')) {
-    return { label: 'KINO', className: 'border-violet-100 bg-violet-50 text-violet-700' };
-  }
-  if (n.includes('museum')) {
-    return {
-      label: 'RM',
-      className: 'border-amber-100 bg-amber-50 text-amber-800',
-      imageSrc: '/praemien/saarlandmuseum-moderne-galerie.jpg',
-      imageAlt: 'Innenraum Saarlandmuseum Moderne Galerie',
-    };
-  }
-  if (n.includes('freibad') || n.includes('bad')) {
-    return {
-      label: 'NF',
-      className: 'border-cyan-100 bg-cyan-50 text-cyan-800',
-      imageSrc: '/praemien/naturfreibad-kirkel.jpg',
-      imageAlt: 'Naturfreibad Kirkel',
-    };
-  }
-  return { label: 'PR', className: 'border-slate-200 bg-slate-50 text-slate-700' };
 }
 
 const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({

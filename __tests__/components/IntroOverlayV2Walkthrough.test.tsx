@@ -4,7 +4,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { AppProvider } from '@/context/AppContext';
 import IntroOverlayV2Walkthrough from '@/components/Intro/IntroOverlayV2Walkthrough';
-import { INTRO_V2_CLAIM_DU, INTRO_V2_LEITMOTIV } from '@/data/introOverlayV2';
+import { INTRO_V2_CLAIM_DU } from '@/data/introOverlayV2';
 
 function renderWalkthrough(du = true) {
   const onFinish = jest.fn();
@@ -17,19 +17,19 @@ function renderWalkthrough(du = true) {
 }
 
 describe('IntroOverlayV2Walkthrough', () => {
-  it('zeigt Cold Open mit Claim und Leitmotiv', () => {
+  it('zeigt ruhigen Einstieg mit Claim (Intro v3)', () => {
     renderWalkthrough();
     expect(screen.getByTestId('intro-v2-walkthrough')).toBeInTheDocument();
     expect(screen.getByTestId('intro-v2-claim')).toHaveTextContent(INTRO_V2_CLAIM_DU);
-    expect(screen.getByTestId('intro-v2-leitmotiv')).toHaveTextContent(INTRO_V2_LEITMOTIV);
     expect(screen.getByTestId('intro-v2-primary-cta')).toHaveTextContent('Zeig mir, wie');
+    expect(screen.getByTestId('intro-v2-step-ruhiger-einstieg')).toBeInTheDocument();
   });
 
-  it('navigiert mit Weiter durch alle Screens bis Direkt zur App', () => {
+  it('navigiert mit Weiter durch alle 9 Screens bis Direkt zur App', () => {
     const { onFinish } = renderWalkthrough();
     fireEvent.click(screen.getByTestId('intro-v2-primary-cta'));
 
-    for (let i = 0; i < 6; i += 1) {
+    for (let i = 0; i < 7; i += 1) {
       expect(screen.getByTestId('intro-v2-primary-cta')).toHaveTextContent('Weiter');
       fireEvent.click(screen.getByTestId('intro-v2-primary-cta'));
     }
@@ -39,12 +39,11 @@ describe('IntroOverlayV2Walkthrough', () => {
     expect(onFinish).toHaveBeenCalled();
   });
 
-  it('erlaubt Anrede-Umschaltung ab Screen 1', () => {
+  it('zeigt keine Anrede-Auswahl im Melden-Screen', () => {
     renderWalkthrough(true);
     fireEvent.click(screen.getByTestId('intro-v2-primary-cta'));
-    expect(screen.getByTestId('intro-v2-anrede')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Sie' }));
-    expect(screen.getByRole('button', { name: 'Sie' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('intro-v2-step-melden-foto')).toBeInTheDocument();
+    expect(screen.queryByTestId('intro-v2-anrede')).not.toBeInTheDocument();
   });
 
   it('bietet Überspringen vor dem letzten Screen', () => {
