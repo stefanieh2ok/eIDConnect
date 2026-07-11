@@ -8,6 +8,10 @@ on:
     - cron: '0 3 1 * *'  # 1. des Monats, 03:00 UTC
   workflow_dispatch:      # Manuell auslösbar
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
