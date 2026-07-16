@@ -3,6 +3,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Camera } from 'lucide-react';
 import { InfoHint } from '@/components/ui/InfoHint';
+import { ModuleScreenHeader } from '@/components/shell/ModuleScreenHeader';
+import { CivicAppPage } from '@/components/shell/CivicAppPage';
+import { CivicStepProgress } from '@/components/shell/CivicStepProgress';
+import { CIVIC_MODULE_SCREEN_TITLES } from '@/lib/civicScreenTitles';
 import { useApp } from '@/context/AppContext';
 import { activeLocationForLevel } from '@/lib/activeLocationForLevel';
 import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
@@ -34,41 +38,13 @@ type StatusFilter = 'alle' | MeldungsProcessStatus;
 const FLOW_STEPS: { key: Step; label: string }[] = [
   { key: 'kategorie', label: 'Kategorie' },
   { key: 'details', label: 'Details' },
-  { key: 'bestaetigt', label: 'Status' },
+  { key: 'bestaetigt', label: 'Prüfen' },
 ];
 
-function MeldungFlowCompact({ step }: { step: Step }) {
-  const stepNum = step === 'kategorie' ? 1 : step === 'details' ? 2 : 3;
-  const label =
-    step === 'kategorie' ? 'Kategorie wählen' : step === 'details' ? 'Details eingeben' : 'Status';
-  return (
-    <p className="meldung-flow-compact" aria-label="Meldungsablauf">
-      Schritt <strong>{stepNum} von 3</strong> · {label}
-    </p>
-  );
-}
-
-function MeldungFlowStepper({ step }: { step: Step }) {
-  const currentIdx = step === 'kategorie' ? 0 : step === 'details' ? 1 : 2;
-  return (
-    <div className="civic-flow-stepper hidden sm:flex" aria-label="Meldungsablauf">
-      {FLOW_STEPS.map((flowStep, idx) => (
-        <React.Fragment key={flowStep.key}>
-          <div
-            className={`civic-flow-stepper__step${
-              idx === currentIdx ? ' civic-flow-stepper__step--active' : ''
-            }${idx < currentIdx ? ' civic-flow-stepper__step--done' : ''}`}
-          >
-            <span className="civic-flow-stepper__dot" aria-hidden>
-              {idx < currentIdx ? '✓' : idx + 1}
-            </span>
-            <span className="civic-flow-stepper__label">{flowStep.label}</span>
-          </div>
-          {idx < FLOW_STEPS.length - 1 ? <span className="civic-flow-stepper__line" aria-hidden /> : null}
-        </React.Fragment>
-      ))}
-    </div>
-  );
+function flowStepIndex(step: Step): number {
+  if (step === 'kategorie') return 0;
+  if (step === 'details') return 1;
+  return 2;
 }
 
 function meldungStatusDotClass(status: MeldungsProcessStatus): string {
@@ -252,7 +228,9 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
     () => demoListe.filter((m) => statusFilter === 'alle' || m.status === statusFilter),
     [demoListe, statusFilter],
   );
-  const shellClass = embeddedInWalkthrough ? 'civic-module-shell civic-module-shell--compact' : 'civic-module-shell';
+  const shellClass = embeddedInWalkthrough
+    ? 'civic-module-shell--compact'
+    : '';
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -269,25 +247,34 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
   const isWalkthroughFilmMode = Boolean(walkthroughDemo?.enabled);
 
   return (
-    <div
+    <CivicAppPage
       className={`${embeddedInWalkthrough ? 'walkthrough-meldungen-embed' : ''} ${
         isWalkthroughFilmMode ? 'walkthrough-meldungen-film' : ''
       } ${shellClass}`}
+      id="meldungen-screen"
     >
       {!isWalkthroughFilmMode ? (
         <>
-          <MeldungFlowCompact step={step} />
-          <MeldungFlowStepper step={step} />
+          <ModuleScreenHeader
+            title={CIVIC_MODULE_SCREEN_TITLES.meldungen ?? 'Neue Meldung'}
+            id="meldungen-screen-title"
+          />
+          <CivicStepProgress
+            steps={FLOW_STEPS}
+            currentIndex={flowStepIndex(step)}
+            ariaLabel="Meldungsablauf"
+            onStepClick={(index) => {
+              if (index === 0) setStep('kategorie');
+              else if (index === 1 && flowStepIndex(step) > 0) setStep('details');
+            }}
+          />
         </>
       ) : null}
 
       {/* Step: Kategorie wählen */}
       {step === 'kategorie' && (
-        <div className="pb-20">
-          <p className="mb-2 text-[14px] font-semibold text-[#003366]">
-            {du ? 'Was möchtest du melden?' : 'Was möchten Sie melden?'}
-          </p>
-          <div className="mt-2 border-t border-[#E8EEF5]">
+        <div className="pb-16">
+          <div className="mt-1 border-t border-[#E8EEF5]">
             {KATEGORIEN.map((k) => (
               <div key={k.id} className="meldung-category-row group">
                 <button
@@ -306,55 +293,6 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
                 </InfoHint>
               </div>
             ))}
-          </div>
-
-          <div className="meldung-list-section">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <p className="meldung-list-section__title">Aktuelle Meldungen · {gemeinde}</p>
-            </div>
-            <div className="meldung-process-header mb-2">
-              <button
-                type="button"
-                onClick={() => setStatusFilter('alle')}
-                className={`meldung-filter-neutral${statusFilter === 'alle' ? ' meldung-filter-neutral--active' : ''}`}
-              >
-                Alle
-              </button>
-              <div className="process-strip" role="group" aria-label="Bearbeitungsstatus">
-                {PROCESS_STATUSES.map((status) => {
-                  const tone = meldungStatusTone(status);
-                  const active = statusFilter === status;
-                  return (
-                    <button
-                      key={status}
-                      type="button"
-                      onClick={() => setStatusFilter(status)}
-                      aria-pressed={active}
-                      className={processStripItemClass(tone, active)}
-                    >
-                      {meldungStatusLabel(status)}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            {filteredDemoListe.length === 0 ? (
-              <p className="rounded-lg border border-[#E8EEF5] bg-white p-3 text-xs text-gray-500">
-                Für diesen Status liegen aktuell keine Beispiel-Meldungen vor.
-              </p>
-            ) : null}
-            {filteredDemoListe.map((m) => (
-                <div key={m.id} className="meldung-issue-card">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className={meldungStatusDotClass(m.status)} aria-hidden />
-                      <span className="text-[10px] font-semibold text-[#5f6b7a]">{meldungStatusLabel(m.status)}</span>
-                    </div>
-                    <div className="mt-0.5 text-xs font-semibold text-gray-800 truncate">{m.titel}</div>
-                    <div className="text-[10px] text-gray-400 mt-0.5">{m.ort} · {m.datum}</div>
-                  </div>
-                </div>
-              ))}
           </div>
         </div>
       )}
@@ -648,6 +586,6 @@ export default function MeldungenSection({ embeddedInWalkthrough = false, walkth
           </button>
         </div>
       )}
-    </div>
+    </CivicAppPage>
   );
 }

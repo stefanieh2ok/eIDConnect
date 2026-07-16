@@ -3,6 +3,9 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
 import { CivicTrustBar } from '@/components/shell/CivicTrustBar';
+import { CivicAppPage } from '@/components/shell/CivicAppPage';
+import { ModuleScreenHeader } from '@/components/shell/ModuleScreenHeader';
+import { CIVIC_MODULE_SCREEN_TITLES } from '@/lib/civicScreenTitles';
 import { useApp } from '@/context/AppContext';
 import { ClaraWegweiser } from '@/components/civic/ClaraWegweiser';
 import { InstitutionalReliefPanel } from '@/components/civic/InstitutionalReliefPanel';
@@ -77,7 +80,12 @@ export default function FuerMichSection() {
   };
 
   return (
-    <div className="wegweiser-shell civic-module-shell">
+    <CivicAppPage className="wegweiser-shell" id="wegweiser-screen">
+      <ModuleScreenHeader
+        title={CIVIC_MODULE_SCREEN_TITLES.fuermich ?? 'Anliegen vorbereiten'}
+        id="wegweiser-screen-title"
+      />
+      <div className="civic-module-content">
       <ClaraWegweiser
         du={du}
         plz={profile.plz}
@@ -86,7 +94,7 @@ export default function FuerMichSection() {
         onPlanReady={() => setHasCasePlan(true)}
       />
 
-      <div className="my-4 wegweiser-legacy-picker">
+      <div className="wegweiser-legacy-picker">
         <button
           type="button"
           className="wegweiser-legacy-picker__toggle"
@@ -124,10 +132,11 @@ export default function FuerMichSection() {
       </div>
 
       {!hasCasePlan ? (
-        <div className="mt-4 wegweiser-institutional-secondary">
+        <div className="wegweiser-institutional-secondary">
           <InstitutionalReliefPanel du={du} />
         </div>
       ) : null}
+      </div>
 
       <CivicTrustBar
         onOpenSecurity={() => {
@@ -170,6 +179,6 @@ export default function FuerMichSection() {
           </button>
         </section>
       ) : null}
-    </div>
+    </CivicAppPage>
   );
 }

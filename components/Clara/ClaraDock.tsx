@@ -20,12 +20,16 @@ import {
   type CivicClaraContextPayload,
 } from '@/lib/civicClaraContext';
 import { useClaraCaseInputBridge } from '@/context/ClaraCaseInputContext';
+import type { Section } from '@/types';
 
 /**
  * Globaler "Clara-Dock": schlanke Pille am unteren Rand der App.
  * Wegweiser-Tab: Fokus auf Case-Input (ClaraCaseInputBridge), kein separater Fake-Chat.
  * Andere Tabs: Text-Chat (primär) + Voice (sekundär).
  */
+
+/** Listen-/Karten-Screens: kompaktes Lavendel-FAB statt zentrierter Pille (keine Kartenüberlagerung). */
+const CLARA_FAB_SECTIONS: Section[] = ['wahlen', 'live', 'meldungen', 'postfach', 'leaderboard', 'kalender'];
 
 const SECTION_LABEL: Record<string, string> = {
   live: 'Abstimmen',
@@ -111,6 +115,29 @@ export default function ClaraDock({
   const [autoSend, setAutoSend] = useState(false);
   const [civicContext, setCivicContext] = useState<CivicClaraContextPayload | null>(null);
   const [autoOpenedFromNda, setAutoOpenedFromNda] = useState(false);
+  const [pillExpanded, setPillExpanded] = useState(false);
+
+  const useFabDock =
+    state.isLoggedIn &&
+    !walkthroughActive &&
+    preLoginVoicePhase === null &&
+    CLARA_FAB_SECTIONS.includes(state.activeSection) &&
+    !wegweiserDockMode;
+
+  useEffect(() => {
+    setPillExpanded(false);
+  }, [state.activeSection]);
+
+  useEffect(() => {
+    if (chatOpen || voiceOpen) setPillExpanded(false);
+  }, [chatOpen, voiceOpen]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const mode = useFabDock && !pillExpanded ? 'fab' : 'pill';
+    document.documentElement.setAttribute('data-clara-dock-mode', mode);
+    return () => document.documentElement.removeAttribute('data-clara-dock-mode');
+  }, [useFabDock, pillExpanded]);
 
   /** Pre-Login oder Walkthrough: nur Mic oben rechts — volle Pille nur in der normalen App. */
   const showCompactMicOnly =
@@ -403,7 +430,29 @@ export default function ClaraDock({
       </div>
     ) : null;
 
-  const pillFloating = !showCompactMicOnly && !hideWegweiserFloatingDock ? (
+  const fabControl =
+    useFabDock && !pillExpanded && !showCompactMicOnly && !hideWegweiserFloatingDock ? (
+      <div
+        className={`pointer-events-none absolute inset-x-0 ${toolbarZClassName}`}
+        style={{ bottom: 0 }}
+        aria-hidden={chatOpen || voiceOpen}
+      >
+        <button
+          type="button"
+          className="clara-dock-fab"
+          onClick={() => setPillExpanded(true)}
+          aria-label="Clara öffnen"
+          title="Clara"
+        >
+          <MessageCircle size={20} strokeWidth={2.2} aria-hidden="true" />
+        </button>
+      </div>
+    ) : null;
+
+  const showCenterPill =
+    !showCompactMicOnly && !hideWegweiserFloatingDock && (!useFabDock || pillExpanded);
+
+  const pillFloating = showCenterPill ? (
       <div
         className={`pointer-events-none absolute inset-x-0 flex flex-col items-center gap-1 ${toolbarZClassName}`}
         style={{
@@ -418,6 +467,7 @@ export default function ClaraDock({
   return (
     <>
       {compactMicOnlyControl}
+      {fabControl}
       {pillFloating}
 
       {chatOpen && !showCompactMicOnly ? (

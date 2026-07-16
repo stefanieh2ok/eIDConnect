@@ -94,10 +94,8 @@ const verifiedCatalogPlan: CivicCasePlanResult = {
 describe('ClaraWegweiser Kirkel journey start screen', () => {
   it('renders start screen hierarchy in correct order', () => {
     setup();
-    expect(screen.getByText('Clara Wegweiser')).toHaveClass('clara-wegweiser__micro-label--lavender');
-    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(/Behördenweg strukturiert vorbereiten/i);
     expect(screen.getByTestId('wegweiser-context-row')).toBeInTheDocument();
-    expect(screen.getByText(/Demo-Kontext: Kirkel · Saarland · Profil/i)).toBeInTheDocument();
+    expect(screen.getByText('Kirkel')).toBeInTheDocument();
     const card = screen.getByTestId('wegweiser-input-card');
     expect(within(card).getByText('Deine Situation')).toBeInTheDocument();
     expect(within(card).getByRole('textbox')).toBeInTheDocument();

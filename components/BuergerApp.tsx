@@ -10,6 +10,7 @@ import LeaderboardSection from '@/components/Leaderboard/LeaderboardSection';
 import ElectionsSection from '@/components/Elections/ElectionsSection';
 import CalendarSection from '@/components/Calendar/CalendarSection';
 import MeldungenSection from '@/components/Meldungen/MeldungenSection';
+import SettingsSection, { rememberSettingsReturnSection } from '@/components/Settings/SettingsSection';
 import PostfachSection from '@/components/Postfach/PostfachSection';
 import FuerMichSection from '@/components/FuerMich/FuerMichSection';
 import StimmzettelModal from '@/components/Modals/StimmzettelModal';
@@ -121,6 +122,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     meldungen: ['kommune'],
     postfach: ['bund', 'land', 'kreis', 'kommune'],
     fuermich: ['bund', 'land', 'kreis', 'kommune'],
+    settings: [],
   };
   const locationLineForLaunch = useMemo(() => {
     const kommune = activeLocationForLevel(state.residenceLocation, 'kommune');
@@ -402,6 +404,23 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
     if (!walkthroughChrome) setWalkthroughStep(null);
   }, [walkthroughChrome]);
 
+  useEffect(() => {
+    const onOpenSettings = (e: Event) => {
+      rememberSettingsReturnSection(state.activeSection);
+      dispatch({ type: 'SET_ACTIVE_SECTION', payload: 'settings' });
+      const detail = (e as CustomEvent).detail as { scrollTo?: string } | undefined;
+      if (detail?.scrollTo) {
+        window.setTimeout(() => {
+          document
+            .getElementById(detail.scrollTo as string)
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 200);
+      }
+    };
+    window.addEventListener('app:open-settings', onOpenSettings as EventListener);
+    return () => window.removeEventListener('app:open-settings', onOpenSettings as EventListener);
+  }, [state.activeSection, dispatch]);
+
   // Wichtig (iOS Safari): im Non-Device-Modus `intro-safe-overlay` verwenden –
   // das bindet die Höhe an `100dvh`, damit der Walkthrough-Footer nicht hinter
   // der Safari-URL-Leiste verschwindet („Weiter"-Button sichtbar halten).
@@ -423,6 +442,7 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
         );
       case 'meldungen':   return <MeldungenSection />;
       case 'postfach':    return <PostfachSection />;
+      case 'settings':    return <SettingsSection />;
       case 'fuermich':    return <FuerMichSection />;
       default:            return <LiveSection />;
     }
@@ -555,12 +575,12 @@ export default function BuergerApp({ variant = 'fullscreen' }: BuergerAppProps) 
                 aria-label="Hauptinhalt"
                 tabIndex={-1}
                 className={
-                  'scrollbar-hide flex-1 min-h-0 overflow-y-auto scroll-smooth outline-none ' +
+                  'civic-main-scroll scrollbar-hide flex-1 min-h-0 overflow-y-auto scroll-smooth outline-none ' +
                   (walkthroughChrome ? 'hidden' : '')
                 }
                 style={{ WebkitOverflowScrolling: 'touch' }}
               >
-                <div className="app-main-content px-3 pb-app-shell-safe">
+                <div className="app-main-content civic-app-page-pad pb-app-shell-safe">
                   {renderSection()}
                   {state.activeSection !== 'fuermich' && state.activeSection !== 'live' ? (
                     <SecurityFaqFooter />

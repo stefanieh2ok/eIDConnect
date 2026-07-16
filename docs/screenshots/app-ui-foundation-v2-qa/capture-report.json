@@ -1,0 +1,134 @@
+{
+  "base": "http://localhost:3005",
+  "viewport": "390x844",
+  "capturedAt": "2026-07-15T13:26:33.642Z",
+  "checks": [
+    {
+      "screen": "wegweiser",
+      "h1": "Anliegen vorbereiten",
+      "pass": true
+    },
+    {
+      "screen": "melden-step1",
+      "h1": "Neue Meldung",
+      "hasPruefen": true,
+      "noSchritt13": true,
+      "noAktuelleMeldungen": true,
+      "pass": true
+    },
+    {
+      "screen": "beteiligen",
+      "h1": "Abstimmungen",
+      "hasTablist": true,
+      "hasScopeChip": true,
+      "noIsolatedFilter": true,
+      "noAuswahlKommune": true,
+      "axisAligned": true,
+      "pass": true
+    },
+    {
+      "screen": "wahlen",
+      "h1": "Wahlinformationen",
+      "noFilterForeign": true,
+      "hasAnpassenChip": true,
+      "pass": true
+    },
+    {
+      "screen": "kalender",
+      "h1": "Kalender",
+      "noRedundantJahrAuswahlRow": true,
+      "hasScopeInHeader": true,
+      "pass": true
+    },
+    {
+      "screen": "praemien",
+      "h1": "Prämien",
+      "titleBeforePoints": true,
+      "hasPointsBadge": false,
+      "pass": true
+    },
+    {
+      "screen": "postfach",
+      "h1": "Postfach",
+      "metaWrap": true,
+      "pass": true
+    },
+    {
+      "screen": "einstellungen",
+      "h1": "Einstellungen",
+      "mainViewNotModal": true,
+      "hasBackButton": true,
+      "pass": true
+    },
+    {
+      "screen": "beteiligen-clara",
+      "fabMode": true,
+      "overlap": false,
+      "pass": true
+    },
+    {
+      "screen": "wahlen-clara",
+      "fabMode": true,
+      "overlap": false,
+      "pass": true
+    },
+    {
+      "screen": "postfach-clara",
+      "fabMode": true,
+      "overlap": false,
+      "pass": true
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "01-wegweiser-foundation-v2.png",
+      "screen": "wegweiser"
+    },
+    {
+      "file": "02-melden-step1-foundation-v2.png",
+      "screen": "melden-step1"
+    },
+    {
+      "file": "03-melden-step2-foundation-v2.png",
+      "screen": "melden-step2"
+    },
+    {
+      "file": "04-beteiligen-foundation-v2.png",
+      "screen": "beteiligen"
+    },
+    {
+      "file": "05-wahlen-foundation-v2.png",
+      "screen": "wahlen"
+    },
+    {
+      "file": "06-kalender-foundation-v2.png",
+      "screen": "kalender"
+    },
+    {
+      "file": "07-praemien-foundation-v2.png",
+      "screen": "praemien"
+    },
+    {
+      "file": "08-postfach-foundation-v2.png",
+      "screen": "postfach"
+    },
+    {
+      "file": "09-einstellungen-foundation-v2.png",
+      "screen": "einstellungen"
+    },
+    {
+      "file": "10-beteiligen-clara-safe.png",
+      "screen": "beteiligen-clara"
+    },
+    {
+      "file": "11-wahlen-clara-safe.png",
+      "screen": "wahlen-clara"
+    },
+    {
+      "file": "12-postfach-clara-safe.png",
+      "screen": "postfach-clara"
+    }
+  ],
+  "watermarkOverContent": false,
+  "allPass": true
+}

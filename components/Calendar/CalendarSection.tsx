@@ -8,6 +8,9 @@ import { WAHLEN_DATA } from '@/data/constants';
 import { HESSEN_CALENDAR_LOCATION_IDS, HESSEN_KREIS_MENU_LABELS } from '@/data/hessenKreis';
 import { BW_CALENDAR_LOCATION_IDS, BW_KREIS_MENU_LABELS } from '@/data/badenWuerttembergKreis';
 import { CalendarScopeFilter, type CalendarGeoScope } from '@/components/Filter/CalendarScopeFilter';
+import { ModuleScreenHeader } from '@/components/shell/ModuleScreenHeader';
+import { CivicAppPage } from '@/components/shell/CivicAppPage';
+import { CIVIC_MODULE_SCREEN_TITLES } from '@/lib/civicScreenTitles';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
 import type { EbeneLevel, UserPreferences } from '@/types';
 import { calendarMarkerStyle } from '@/lib/civicStatus';
@@ -655,13 +658,11 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
   };
 
   return (
-    <div className="card-section p-2.5">
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <div className="t-meta">
-              Jahr: <span className="font-semibold text-neutral-700">{currentYear}</span> · <span>{selectionLabel}</span>
-            </div>
-          </div>
+    <CivicAppPage id="kalender-screen">
+      <ModuleScreenHeader
+        title={CIVIC_MODULE_SCREEN_TITLES.kalender ?? 'Kalender'}
+        id="kalender-screen-title"
+        metaAction={
           <CalendarScopeFilter
             value={geoScope}
             availableLevels={availableLevels}
@@ -672,8 +673,9 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
               dispatch({ type: 'SET_ACTIVE_LOCATION', payload: loc });
             }}
           />
-      </div>
-      <div className="card-content mb-3 p-2">
+        }
+      />
+      <div className="civic-surface-card civic-calendar-panel">
       <div className="flex items-center justify-between">
         <button
           onClick={() => {
@@ -729,8 +731,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
           <ChevronRight className="h-4 w-4" style={{ color: '#0F766E' }} aria-hidden />
         </button>
       </div>
-      </div>
-      
+
       <div className="card-content p-4">
         <div className="grid grid-cols-7 gap-2 mb-3">
           {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(day => (
@@ -994,6 +995,7 @@ const CalendarSection: React.FC<CalendarSectionProps> = ({ votingData: propVotin
         </div>
       </div>
     </div>
+    </CivicAppPage>
   );
 };
 

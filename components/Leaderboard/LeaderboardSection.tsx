@@ -3,6 +3,9 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle, Clock, ListChecks } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { ModuleScreenHeader } from '@/components/shell/ModuleScreenHeader';
+import { CivicAppPage } from '@/components/shell/CivicAppPage';
+import { CIVIC_MODULE_SCREEN_TITLES } from '@/lib/civicScreenTitles';
 import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
 import { regionalPraemienForCity } from '@/data/demoVoting2026';
 import { getLocalBenefitState } from '@/lib/localBenefits';
@@ -376,23 +379,36 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
   const cinemaActive = embeddedInWalkthrough && voucherSheet !== null;
 
   return (
-    <div
+    <CivicAppPage
       className={
         (compact
-          ? 'relative isolate z-0 min-w-0 max-w-full space-y-2 overflow-x-hidden pb-3 intro-wt-praemien-root'
-          : 'space-y-3 pb-28') +
-        (cinemaActive ? ' intro-wt-praemien-root--active' : '')
+          ? 'relative isolate z-0 min-w-0 max-w-full overflow-x-hidden pb-3 intro-wt-praemien-root'
+          : 'pb-28') + (cinemaActive ? ' intro-wt-praemien-root--active' : '')
       }
+      id="praemien-screen"
     >
       {!compact ? (
-        <div className="card-content py-1.5">
-          <h2 className="app-shell-page-heading">Prämien</h2>
-          <p className="mt-0.5 text-[11px] leading-snug text-neutral-600">
-            {du
-              ? 'Lokale Anerkennung fürs Mitmachen — unabhängig von deiner Entscheidung.'
-              : 'Lokale Anerkennung fürs Mitmachen — unabhängig von Ihrer Entscheidung.'}
-          </p>
-        </div>
+        <>
+          <ModuleScreenHeader
+            title={CIVIC_MODULE_SCREEN_TITLES.leaderboard ?? 'Prämien'}
+            id="praemien-screen-title"
+            metaAction={
+              state.consentLocalBenefits ? (
+                <span className="civic-points-badge" aria-label="Mitwirkungspunkte">
+                  {state.participationPoints.toLocaleString('de-DE')} Punkte
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  className="civic-points-activate"
+                  onClick={() => dispatch({ type: 'SET_CONSENT_LOCAL_BENEFITS', payload: true })}
+                >
+                  Punktekonto aktivieren
+                </button>
+              )
+            }
+          />
+        </>
       ) : null}
       <div className={compact ? '' : 'card-content py-1.5'}>
         <div
@@ -785,7 +801,7 @@ const LeaderboardSection: React.FC<LeaderboardSectionProps> = ({
         </div>
         )
       ) : null}
-    </div>
+    </CivicAppPage>
   );
 };
 

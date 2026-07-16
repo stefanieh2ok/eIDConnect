@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { ConfidentialDeviceWatermark } from '@/components/shell/ConfidentialDeviceWatermark';
 
 type IphoneFrameProps = {
   children: React.ReactNode;
@@ -9,6 +10,8 @@ type IphoneFrameProps = {
   outerStyle?: React.CSSProperties;
   /** Wenn true: füllt flex-Parent (z. B. Demo-Layout) statt voller Viewport */
   fillContainer?: boolean;
+  /** Demo-Rahmen: Confidential-Wasserzeichen (nicht Teil der App-Oberfläche). */
+  showConfidentialWatermark?: boolean;
 };
 
 /**
@@ -20,21 +23,18 @@ export function IphoneFrame({
   outerClassName = '',
   outerStyle,
   fillContainer = false,
+  showConfidentialWatermark = true,
 }: IphoneFrameProps) {
-  // Einheitliches Device mit Frame (Desktop + Mobile), mobile skaliert nur responsiv.
   const DEVICE_WIDTH_PX = 390;
 
   return (
     <div
       className={`app-device-shell flex w-full flex-col items-center justify-center shadow-none ring-0 [filter:none] ${
-        /* overflow: kein Inhalt (z. B. Walkthrough) darf optisch unter den Rahmen „auslaufen“. */
         fillContainer ? 'min-h-0 flex-1 overflow-visible' : 'h-full min-h-0'
       } ${outerClassName}`}
       style={
         outerStyle ?? {
-          background:
-            // Außen-Hintergrund: hell/neutral statt Blau (Kontrast für Inhalte).
-            'transparent',
+          background: 'transparent',
         }
       }
     >
@@ -44,25 +44,17 @@ export function IphoneFrame({
           width: `min(${DEVICE_WIDTH_PX}px, calc(100% - 0.75rem))`,
           aspectRatio: '393 / 852',
           maxHeight: 'min(852px, calc(100% - 0.75rem))',
-          // Ruhiger App-Flächen-Ton, kein heller Insel-Fleck in der Mitte
           background: '#F7F9FC',
           boxShadow: 'none',
         }}
       >
-        {/* Ehem. starker Glas-Overlay: wirkte als grauer/weißer Nebel; entfernt für sauberen Look. */}
-
-        {/* Dynamic Island */}
         <div className="app-device-notch pointer-events-none absolute left-1/2 top-3 z-20 h-7 w-[126px] -translate-x-1/2 rounded-full bg-black" />
         <div className="app-device-content relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden pt-10">
-          {/* Inhalt zuerst: zuverlässige Klicks/Tastatur. Watermark danach, nur optisch (pointer-events: none). */}
-          <div className="relative z-0 flex min-h-0 min-w-0 flex-1 flex-col">{children}</div>
-          <div className="app-confidential-watermark" aria-hidden>
-            <span className="app-confidential-watermark__line top-[16%] text-[18px]">HookAI · Confidential</span>
-            <span className="app-confidential-watermark__line top-[44%] text-[18px]">HookAI · Confidential</span>
-            <span className="app-confidential-watermark__line top-[72%] text-[18px]">HookAI · Confidential</span>
+          <div className="civic-device-app-surface relative z-0 flex min-h-0 min-w-0 flex-1 flex-col">
+            {children}
           </div>
         </div>
-        {/* Home-Indikator */}
+        {showConfidentialWatermark ? <ConfidentialDeviceWatermark /> : null}
         <div className="app-device-home relative z-10 flex flex-shrink-0 justify-center pb-2 pt-1">
           <div className="h-1 w-[134px] rounded-full bg-black/12" />
         </div>

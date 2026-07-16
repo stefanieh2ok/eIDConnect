@@ -5,6 +5,8 @@ import { createPortal } from 'react-dom';
 import { useApp } from '@/context/AppContext';
 import type { EbeneLevel, Location, Section } from '@/types';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
+import { ChevronDown } from 'lucide-react';
+import { civicPlaceScopeLabel, civicScopeLabelForSection } from '@/lib/civicScopeLabel';
 import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
 
 const LEVEL_CONFIG: Record<EbeneLevel, { label: string }> = {
@@ -25,6 +27,7 @@ const SECTION_LEVELS: Record<Section, EbeneLevel[]> = {
   meldungen: ['kommune'],
   postfach: ['bund', 'land', 'kreis', 'kommune'],
   fuermich: [],
+  settings: [],
 };
 
 export function levelForLocation(loc: Location): EbeneLevel {
@@ -68,11 +71,13 @@ function clamp(n: number, min: number, max: number) {
 
 type Props = {
   section: Section;
+  /** scope-chip: integrierte Ebene·Ort-Zeile; filter-button: isolierter „Filter“-Button (Legacy). */
+  variant?: 'scope-chip' | 'filter-button';
 };
 
 const FILTER_HEARTBEAT_SESSION_KEY = 'eidconnect_filter_heartbeat_shown';
 
-export function SectionLevelFilterIcon({ section }: Props) {
+export function SectionLevelFilterIcon({ section, variant = 'filter-button' }: Props) {
   const { state, dispatch } = useApp();
   const [open, setOpen] = useState(false);
   const [portalNode, setPortalNode] = useState<HTMLElement | null>(null);
@@ -176,12 +181,17 @@ export function SectionLevelFilterIcon({ section }: Props) {
     return () => window.clearTimeout(t);
   }, [heartbeat, markHeartbeatDone]);
 
+  const scopeLabel =
+    variant === 'scope-chip'
+      ? civicPlaceScopeLabel(state.activeLocation, state.residenceLocation)
+      : civicScopeLabelForSection(section, state.activeLocation, state.residenceLocation);
+
   return (
     <>
       <button
         ref={btnRef}
         type="button"
-        aria-label="Filter"
+        aria-label={variant === 'scope-chip' ? `Ebene und Ort: ${scopeLabel}` : 'Filter'}
         aria-haspopup="menu"
         aria-expanded={open}
         onAnimationEnd={(e) => {
@@ -195,11 +205,22 @@ export function SectionLevelFilterIcon({ section }: Props) {
           if (r) setAnchor({ left: r.left, top: r.bottom, width: r.width });
           setOpen((p) => !p);
         }}
-        className={`btn-filter-ebenen inline-flex h-8 items-center justify-center rounded-full px-3 text-[11px] backdrop-blur-sm ${
-          heartbeat ? 'btn-filter-ebenen--pulse' : ''
-        }`}
+        className={
+          variant === 'scope-chip'
+            ? `civic-scope-chip${heartbeat ? ' civic-scope-chip--pulse' : ''}`
+            : `btn-filter-ebenen inline-flex h-8 items-center justify-center rounded-full px-3 text-[11px] backdrop-blur-sm${
+                heartbeat ? ' btn-filter-ebenen--pulse' : ''
+              }`
+        }
       >
-        Filter
+        {variant === 'scope-chip' ? (
+          <>
+            <span className="civic-scope-chip__label">{scopeLabel}</span>
+            <ChevronDown className="civic-scope-chip__chevron" size={12} aria-hidden />
+          </>
+        ) : (
+          'Filter'
+        )}
       </button>
 
       {enabled && open && anchor && portalNode

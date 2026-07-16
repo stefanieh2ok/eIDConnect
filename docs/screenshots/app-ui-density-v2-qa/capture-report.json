@@ -1,0 +1,38 @@
+{
+  "base": "http://localhost:3005",
+  "viewport": "390x844",
+  "capturedAt": "2026-07-15T08:51:37.355Z",
+  "checks": [
+    {
+      "module": "wegweiser",
+      "h1Expected": "Anliegen vorbereiten",
+      "h1Found": "Anliegen vorbereiten",
+      "pass": true
+    },
+    {
+      "module": "melden",
+      "h1Expected": "Neue Meldung",
+      "h1Found": "Neue Meldung",
+      "pass": true
+    },
+    {
+      "module": "beteiligen",
+      "h1Expected": "Abstimmungen",
+      "h1Found": "Abstimmungen",
+      "pass": true
+    },
+    {
+      "module": "wahlen",
+      "h1Expected": "Wahlinformationen",
+      "h1Found": "Wahlinformationen",
+      "pass": true
+    }
+  ],
+  "screenshots": [
+    "01-wegweiser-anliegen-vorbereiten.png",
+    "02-melden-neue-meldung.png",
+    "03-beteiligen-abstimmungen.png",
+    "04-wahlen-wahlinformationen.png"
+  ],
+  "allPass": true
+}

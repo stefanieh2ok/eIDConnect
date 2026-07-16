@@ -238,7 +238,8 @@ export type Section =
   | 'kalender'
   | 'meldungen'
   | 'postfach'
-  | 'fuermich';
+  | 'fuermich'
+  | 'settings';
 export type AbstimmungTab = 'aktuell' | 'ergebnisse';
 export type EbeneLevel = 'bund' | 'land' | 'kreis' | 'kommune';
 export type Anrede = 'sie' | 'du';
