@@ -7,8 +7,11 @@ import { VoteType, AbstimmungTab } from '@/types';
 import VotingCard from '@/components/Voting/VotingCard';
 import VotingControls from '@/components/Voting/VotingControls';
 import { CheckCircle, X } from 'lucide-react';
-import { SectionLevelFilterIcon, selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
-import { InfoHint } from '@/components/ui/InfoHint';
+import { SectionLevelFilterIcon } from '@/components/Filter/SectionLevelFilterIcon';
+import { ModuleScreenHeader } from '@/components/shell/ModuleScreenHeader';
+import { CivicAppPage } from '@/components/shell/CivicAppPage';
+import { CivicSegmentedControl } from '@/components/shell/CivicSegmentedControl';
+import { CIVIC_MODULE_SCREEN_TITLES } from '@/lib/civicScreenTitles';
 import { getVotingStatsForYear } from '@/lib/getVotingStatsForYear';
 
 const VOTING_STATS_YEAR = 2026;
@@ -178,51 +181,30 @@ const LiveSection: React.FC = () => {
     [currentData, dispatch],
   );
 
+  const openCount = openCards.length;
+
   return (
-    <div className="civic-module-shell flex flex-col gap-2">
-      <div className="flex items-start justify-between">
-        <div className="t-meta mt-0.5">
-          {selectionLabelForSection('live', state.activeLocation)}
-        </div>
-        <SectionLevelFilterIcon section="live" />
-      </div>
+    <CivicAppPage className="flex flex-col gap-2">
+      <ModuleScreenHeader
+        title={CIVIC_MODULE_SCREEN_TITLES.live ?? 'Abstimmungen'}
+        id="beteiligen-screen-title"
+        metaLabel={<SectionLevelFilterIcon section="live" variant="scope-chip" />}
+        metaAction={
+          openCount > 0 ? (
+            <span className="civic-screen-meta__suffix">{openCount} offen</span>
+          ) : null
+        }
+      />
 
-      <div className="flex items-center justify-between gap-2 border-b border-[#E8EEF5] pb-2">
-        <button
-          type="button"
-          onClick={() => setBulkOpen(true)}
-          className="min-w-0 text-left"
-          aria-label="Liste der offenen Abstimmungen öffnen"
-        >
-          <p className="text-[11px] font-semibold text-[#1A2B45]">
-            Abstimmungen {VOTING_STATS_YEAR}
-            {totalCards > 1 ? ` · ${state.currentCardIndex + 1}/${totalCards}` : ''}
-          </p>
-          <p className="mt-0.5 text-[10px] text-[#6B7A99]">
-            {votingStats2026.total2026 > 0
-              ? `${votingStats2026.total2026} verfügbar${votingStats2026.open2026 > 0 ? ` · ${votingStats2026.open2026} offen` : ''}`
-              : 'Keine Daten in der Vorschau'}
-          </p>
-        </button>
-        <InfoHint label="Abstimmungs-Vorschau">
-          <p>Kartenansicht mit Demo-Stimmen — keine echte Abstimmung.</p>
-        </InfoHint>
-      </div>
-
-      <div className="app-segment flex gap-1">
-        {(['aktuell', 'ergebnisse'] as const).map((tab) => {
-          const isActive = abstimmungTab === tab;
-          return (
-            <button
-              key={tab}
-              onClick={() => setAbstimmungTab(tab)}
-              className={`app-segment-btn flex-1 py-2 transition-all ${isActive ? 'app-segment-btn--active' : ''}`}
-            >
-              {tab === 'aktuell' ? 'Abstimmungen' : 'Ergebnisse'}
-            </button>
-          );
-        })}
-      </div>
+      <CivicSegmentedControl
+        ariaLabel="Abstimmungen Ansicht"
+        value={abstimmungTab}
+        onChange={setAbstimmungTab}
+        options={[
+          { value: 'aktuell', label: `Offen (${openCount})` },
+          { value: 'ergebnisse', label: 'Ergebnisse' },
+        ]}
+      />
 
       {/* ── Aktuelle Abstimmung ── */}
       {abstimmungTab === 'aktuell' && currentCard && (
@@ -494,7 +476,7 @@ const LiveSection: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </CivicAppPage>
   );
 };
 

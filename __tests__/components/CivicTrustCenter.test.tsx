@@ -4,11 +4,19 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AppProvider, useApp } from '@/context/AppContext';
 import AppHeader from '@/components/Header/AppHeader';
+import SettingsSection from '@/components/Settings/SettingsSection';
+
+function AppWithSettings() {
+  const { state } = useApp();
+  return (
+    <>
+      <AppHeader />
+      {state.activeSection === 'settings' ? <SettingsSection /> : null}
+    </>
+  );
+}
 
 function setupHeader() {
-  const overlay = document.createElement('div');
-  overlay.id = 'app-overlay-root';
-  document.body.appendChild(overlay);
   if (typeof window !== 'undefined') {
     window.ResizeObserver =
       window.ResizeObserver ??
@@ -16,22 +24,26 @@ function setupHeader() {
         return { observe: () => {}, disconnect: () => {}, unobserve: () => {} };
       } as any);
     Element.prototype.scrollIntoView = Element.prototype.scrollIntoView ?? (() => {});
+    document.getElementById('main-content')?.remove();
+    const main = document.createElement('div');
+    main.id = 'main-content';
+    document.body.appendChild(main);
   }
   return render(
     <AppProvider>
-      <AppHeader />
+      <AppWithSettings />
     </AppProvider>,
   );
 }
 
 describe('Trust Center — Demo-Stammdaten', () => {
   beforeEach(() => {
-    document.getElementById('app-overlay-root')?.remove();
+    document.getElementById('main-content')?.remove();
   });
 
   it('zeigt Demo-Stammdaten-Hinweis', () => {
     setupHeader();
-    fireEvent.click(screen.getByLabelText('Trust Center öffnen'));
+    fireEvent.click(screen.getByLabelText('Einstellungen öffnen'));
     expect(screen.getByText('Demo-Stammdaten')).toBeInTheDocument();
     expect(screen.getByText('Max Mustermann · 66459 Kirkel')).toBeInTheDocument();
     expect(screen.getByText('Nur für Demo-Vorschau')).toBeInTheDocument();
@@ -39,18 +51,18 @@ describe('Trust Center — Demo-Stammdaten', () => {
 
   it('Toggle Demo-Stammdaten ist standardmäßig aktiv', () => {
     setupHeader();
-    fireEvent.click(screen.getByLabelText('Trust Center öffnen'));
+    fireEvent.click(screen.getByLabelText('Einstellungen öffnen'));
     const toggle = screen.getByLabelText('Demo-Stammdaten verwenden') as HTMLInputElement;
     expect(toggle.checked).toBe(true);
   });
 
   it('zeigt Demo-Modulstatus und Audit-Hinweis', () => {
     setupHeader();
-    fireEvent.click(screen.getByLabelText('Trust Center öffnen'));
+    fireEvent.click(screen.getByLabelText('Einstellungen öffnen'));
     expect(screen.getByText('Demo- & Modulstatus')).toBeInTheDocument();
     expect(screen.getByText(/keine echten Behördenintegrationen/i)).toBeInTheDocument();
     expect(screen.getByText(/Wahlvorschau — keine echte Stimmabgabe/i)).toBeInTheDocument();
-    expect(screen.getByText(/nicht persistent/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/nicht persistent/i).length).toBeGreaterThan(0);
   });
 });
 

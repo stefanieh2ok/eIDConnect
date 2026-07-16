@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { EbeneLevel } from '@/types';
 
+import { ChevronDown } from 'lucide-react';
+
 export type CalendarGeoScope = 'all' | EbeneLevel;
 
 function clamp(n: number, min: number, max: number) {
@@ -80,9 +82,10 @@ export function CalendarScopeFilter({ value, availableLevels, onChange }: Props)
           if (r) setAnchor({ left: r.left, top: r.bottom, width: r.width });
           setOpen((p) => !p);
         }}
-        className="inline-flex h-8 px-2.5 items-center justify-center rounded-full border border-neutral-200 bg-white/75 text-neutral-700 text-[11px] font-semibold shadow-sm backdrop-blur hover:bg-white"
+        className="civic-scope-chip"
       >
-        Filter
+        <span className="civic-scope-chip__label">{LABEL[value]}</span>
+        <ChevronDown className="civic-scope-chip__chevron" size={12} aria-hidden />
       </button>
 
       {open && anchor && portalNode

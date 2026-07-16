@@ -5,7 +5,11 @@ import { useApp } from '@/context/AppContext';
 import { WAHLEN_DATA } from '@/data/constants';
 import type { Location } from '@/types';
 import { Wahl } from '@/types';
-import { selectionLabelForSection } from '@/components/Filter/SectionLevelFilterIcon';
+import { ModuleScreenHeader } from '@/components/shell/ModuleScreenHeader';
+import { CivicAppPage } from '@/components/shell/CivicAppPage';
+import { CivicSegmentedControl } from '@/components/shell/CivicSegmentedControl';
+import { CIVIC_MODULE_SCREEN_TITLES } from '@/lib/civicScreenTitles';
+import { SectionLevelFilterIcon } from '@/components/Filter/SectionLevelFilterIcon';
 import { activeLocationForLevel, levelForResidenceLocation } from '@/lib/activeLocationForLevel';
 import { DEMO_LOCATION_LABEL } from '@/lib/locationLabels';
 import { candidateInitials, isCandidateImageVerified } from '@/lib/candidateImage';
@@ -552,93 +556,62 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
 
   const sectionCardClass = 'election-card';
 
-  const selectionLine = (() => {
-    const lvl = levelForResidenceLocation(state.activeLocation);
-    const lvlLabel = lvl === 'bund' ? 'Bund' : lvl === 'land' ? 'Land' : lvl === 'kreis' ? 'Kreis' : 'Kommune';
-    const region = DEMO_LOCATION_LABEL[state.activeLocation] ?? String(state.activeLocation);
-    return `${lvlLabel}${region && region !== 'Deutschland' ? ` · ${region}` : ''}`;
-  })();
-
-  const activeFilterLabels = [
-    state.activeLocation !== 'bundesweit'
-      ? `${selectedLevelUiLabel || 'Bund'}${selectedRegionLabel !== 'Deutschland' ? ` · ${selectedRegionLabel}` : ''}`
-      : null,
-    timeframeChipLabel,
-    statusChipLabel,
-  ].filter(Boolean) as string[];
+  const activeFilterLabels = [timeframeChipLabel, statusChipLabel].filter(
+    (label): label is string => Boolean(label && label !== 'Alle'),
+  );
 
   return (
-    <div className="civic-module-shell">
-      <div className="election-meta-bar">
-        <div className="election-meta-bar__row">
-          <div className="flex min-w-0 items-center gap-1">
-            <span className="election-meta-bar__selection">{selectionLine}</span>
-            <InfoHint label="Wahlvorschau Hinweise">
-              <p>
-                Wahlvorschau: Kandidierende, Programme und verifizierte Quellen — keine echte
-                Stimmabgabe, keine Empfehlung.
+    <CivicAppPage id="wahlen-screen">
+      <ModuleScreenHeader
+        title={CIVIC_MODULE_SCREEN_TITLES.wahlen ?? 'Wahlinformationen'}
+        id="wahlen-screen-title"
+        metaLabel={<SectionLevelFilterIcon section="wahlen" variant="scope-chip" />}
+        action={
+          <InfoHint label="Wahlvorschau Hinweise">
+            <p>
+              Wahlvorschau: Kandidierende, Programme und verifizierte Quellen — keine echte
+              Stimmabgabe, keine Empfehlung.
+            </p>
+            {showArchiv && currentLocation === 'saarland' ? (
+              <p className="mt-1">Letzte Landtagswahl Saarland: 27.03.2022</p>
+            ) : null}
+            {currentLocation === 'hessen' || currentLocation === 'viernheim' ? (
+              <p className="mt-1">
+                Hessen: letzte Landtagswahl 08.10.2023
+                {currentLocation === 'viernheim'
+                  ? ' · Kommunalwahl Viernheim in der Vorschau als aktuell geführt'
+                  : ' · nächster Termin vsl. 2028'}
               </p>
-              {showArchiv && currentLocation === 'saarland' ? (
-                <p className="mt-1">Letzte Landtagswahl Saarland: 27.03.2022</p>
-              ) : null}
-              {currentLocation === 'hessen' || currentLocation === 'viernheim' ? (
-                <p className="mt-1">
-                  Hessen: letzte Landtagswahl 08.10.2023
-                  {currentLocation === 'viernheim'
-                    ? ' · Kommunalwahl Viernheim in der Vorschau als aktuell geführt'
-                    : ' · nächster Termin vsl. 2028'}
-                </p>
-              ) : null}
-            </InfoHint>
-          </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <div className="election-meta-bar__segment">
-              <button
-                type="button"
-                onClick={() => setShowArchiv(false)}
-                className={`election-meta-bar__segment-btn${!showArchiv ? ' election-meta-bar__segment-btn--active' : ''}`}
-              >
-                Aktuell
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowArchiv(true)}
-                className={`election-meta-bar__segment-btn${showArchiv ? ' election-meta-bar__segment-btn--active' : ''}`}
-              >
-                Ergebnisse
-              </button>
-            </div>
+            ) : null}
+          </InfoHint>
+        }
+      />
+      <CivicSegmentedControl
+        ariaLabel="Wahlen Ansicht"
+        value={showArchiv ? 'ergebnisse' : 'aktuell'}
+        onChange={(tab) => setShowArchiv(tab === 'ergebnisse')}
+        options={[
+          { value: 'aktuell', label: 'Aktuell' },
+          { value: 'ergebnisse', label: 'Ergebnisse' },
+        ]}
+      />
+      {activeFilterLabels.length > 0 ? (
+        <div className="civic-active-filters">
+          {activeFilterLabels.map((label) => (
             <button
+              key={label}
               type="button"
-              onClick={() => setFilterSheetOpen(true)}
-              aria-label={`Filter öffnen${activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}`}
-              className="election-meta-filter-btn"
+              className="civic-active-filters__chip"
+              onClick={() => {
+                if (label === timeframeChipLabel) clearTimeframeFilter();
+                else if (label === statusChipLabel) setStatusUi('all');
+              }}
             >
-              Filter{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}
+              {label}
             </button>
-          </div>
+          ))}
         </div>
-        {activeFilterLabels.length > 0 ? (
-          <div className="election-meta-bar__filters">
-            {activeFilterLabels.map((label, idx) => (
-              <span key={label}>
-                {idx > 0 ? ' · ' : 'Filter: '}
-                <button
-                  type="button"
-                  className="underline decoration-dotted underline-offset-2"
-                  onClick={() => {
-                    if (label === timeframeChipLabel) clearTimeframeFilter();
-                    else if (label === statusChipLabel) setStatusUi('all');
-                    else clearRegionFilter();
-                  }}
-                >
-                  {label}
-                </button>
-              </span>
-            ))}
-          </div>
-        ) : null}
-      </div>
+      ) : null}
 
       {filterSheetOpen && (
         <div
@@ -1170,7 +1143,7 @@ const ElectionsSection: React.FC<ElectionsSectionProps> = ({ currentLocation: pr
         })
       )}
 
-    </div>
+    </CivicAppPage>
   );
 };
 

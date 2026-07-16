@@ -1,8 +1,10 @@
 'use client';
 
 import React from 'react';
-import { ShieldCheck } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { ModuleScreenHeader } from '@/components/shell/ModuleScreenHeader';
+import { CivicAppPage } from '@/components/shell/CivicAppPage';
+import { CIVIC_MODULE_SCREEN_TITLES } from '@/lib/civicScreenTitles';
 import {
   DEMO_POSTFACH_MESSAGES,
   POSTFACH_DEMO_DISCLAIMER,
@@ -82,22 +84,19 @@ export default function PostfachSection({ embeddedInWalkthrough = false }: Postf
   };
 
   return (
-    <section
-      className={`postfach-section${embeddedInWalkthrough ? ' postfach-section--walkthrough' : ''}`}
-      aria-label="Postfach"
+    <CivicAppPage
+      className={embeddedInWalkthrough ? ' postfach-section--walkthrough' : ''}
+      id="postfach-screen"
     >
-      <header className="postfach-section__header">
-        <div className="flex items-start gap-2">
-          <ShieldCheck className="postfach-section__icon" size={20} aria-hidden />
-          <div className="min-w-0 flex-1">
-            <h2 className="postfach-section__title">Postfach</h2>
-            <p className="postfach-section__caption">{POSTFACH_UI_CAPTION}</p>
-            {embeddedInWalkthrough ? (
-              <p className="postfach-section__disclaimer">{POSTFACH_DEMO_DISCLAIMER}</p>
-            ) : null}
-          </div>
-        </div>
-      </header>
+      <ModuleScreenHeader
+        title={CIVIC_MODULE_SCREEN_TITLES.postfach ?? 'Postfach'}
+        id="postfach-screen-title"
+        metaLabel={POSTFACH_UI_CAPTION}
+        metaLabelWrap
+      />
+      {embeddedInWalkthrough ? (
+        <p className="postfach-section__disclaimer">{POSTFACH_DEMO_DISCLAIMER}</p>
+      ) : null}
 
       <div className="postfach-section__list" role="list">
         {DEMO_POSTFACH_MESSAGES.map((message) => (
@@ -106,6 +105,6 @@ export default function PostfachSection({ embeddedInWalkthrough = false }: Postf
           </div>
         ))}
       </div>
-    </section>
+    </CivicAppPage>
   );
 }

@@ -30,6 +30,7 @@ const SECTION_LEVELS: Record<Section, EbeneLevel[]> = {
   meldungen:   ['kommune'],
   postfach:    ['bund', 'land', 'kreis', 'kommune'],
   fuermich:    [],
+  settings:    [],
 };
 
 /** Only return levels that actually have voting cards (for live) or wahlen entries */

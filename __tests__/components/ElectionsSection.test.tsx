@@ -16,7 +16,8 @@ describe('ElectionsSection', () => {
         <ElectionsSection currentLocation="deutschland" />
       </AppProvider>
     );
-    expect(screen.getByText('Bund', { selector: '.election-meta-bar__selection' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Wahlinformationen' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Ebene und Ort/i })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Wahlvorschau Hinweise' }));
     expect(screen.getByText(/Wahlvorschau: Kandidierende, Programme und verifizierte Quellen/)).toBeInTheDocument();
   });
@@ -40,7 +41,7 @@ describe('ElectionsSection', () => {
         <Inner />
       </AppProvider>
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Ergebnisse' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Ergebnisse' }));
     await waitFor(() => {
       expect(screen.getByText('Abgestimmt')).toBeInTheDocument();
     });
@@ -53,7 +54,7 @@ describe('ElectionsSection', () => {
         <ElectionsSection currentLocation="deutschland" />
       </AppProvider>
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Ergebnisse' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Ergebnisse' }));
     const buttons = screen.getAllByRole('button', { name: /Stimmzettel/ });
     expect(buttons.length).toBeGreaterThan(0);
     expect(
@@ -74,7 +75,7 @@ describe('ElectionsSection', () => {
         />
       </AppProvider>
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Ergebnisse' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Ergebnisse' }));
     expect(screen.getByText('Kreistag Saarpfalz-Kreis')).toBeInTheDocument();
     expect(screen.queryByText('Kreistag Landkreis Neunkirchen')).not.toBeInTheDocument();
   });
@@ -89,7 +90,7 @@ describe('ElectionsSection', () => {
         />
       </AppProvider>
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Ergebnisse' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Ergebnisse' }));
     expect(screen.getByText('Kreistag Bergstraße')).toBeInTheDocument();
     expect(screen.queryByText('Kreistag Pinneberg')).not.toBeInTheDocument();
   });
@@ -104,7 +105,7 @@ describe('ElectionsSection', () => {
         />
       </AppProvider>
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Ergebnisse' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Ergebnisse' }));
     expect(screen.getByText('Kreistag Rhein-Neckar-Kreis')).toBeInTheDocument();
     expect(screen.queryByText('Kreistag Esslingen')).not.toBeInTheDocument();
   });

@@ -40,11 +40,12 @@ describe('ClaraWegweiser compact input UX', () => {
     expect(screen.queryByText(/Demo-Daten/i)).not.toBeInTheDocument();
   });
 
-  it('renders compact context row instead of large chips', () => {
+  it('renders compact context chips instead of large chips', () => {
     setup();
     expect(screen.getByTestId('wegweiser-context-row')).toBeInTheDocument();
-    expect(screen.getByText(/Demo-Kontext: Kirkel · Saarland · Profil/i)).toBeInTheDocument();
-    expect(screen.queryByTestId('wegweiser-context-chips')).not.toBeInTheDocument();
+    expect(screen.getByText('Kirkel')).toBeInTheDocument();
+    expect(screen.getByText('Profil')).toBeInTheDocument();
+    expect(screen.queryByText(/Clara · Kirkel · Saarland · Profil/i)).not.toBeInTheDocument();
     expect(screen.queryByText('Demo-Profil')).not.toBeInTheDocument();
   });
 
@@ -71,10 +72,18 @@ describe('ClaraWegweiser compact input UX', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows field help above textarea, not below disabled CTA', () => {
+    setup();
+    const help = screen.getByTestId('wegweiser-field-help');
+    const textarea = screen.getByTestId('wegweiser-textarea');
+    expect(help.compareDocumentPosition(textarea) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByTestId('wegweiser-submit-hint')).not.toBeInTheDocument();
+  });
+
   it('shows concise disabled helper text', () => {
     setup();
-    expect(screen.getByTestId('wegweiser-submit-hint')).toHaveTextContent(
-      /Beschreibe kurz deine Situation oder wähle unten einen Startpunkt/i,
+    expect(screen.getByTestId('wegweiser-field-help')).toHaveTextContent(
+      /Beschreibe kurz deine Situation oder wähle einen häufigen Fall/i,
     );
   });
 
@@ -83,7 +92,7 @@ describe('ClaraWegweiser compact input UX', () => {
     fireEvent.change(screen.getByRole('textbox'), {
       target: { value: 'Ich wurde gekündigt, was nun?' },
     });
-    expect(screen.getByTestId('wegweiser-submit-hint')).toHaveTextContent(
+    expect(screen.getByTestId('wegweiser-field-help')).toHaveTextContent(
       /Bereit — Clara erstellt deinen Fahrplan für Kirkel/i,
     );
   });
@@ -97,10 +106,9 @@ describe('ClaraWegweiser compact input UX', () => {
     expect(screen.queryByText(/Dein Fahrplan/i)).not.toBeInTheDocument();
   });
 
-  it('renders Startpunkt wählen section with six common cases', () => {
+  it('renders häufige Fälle section with six common cases', () => {
     setup();
-    expect(screen.getByText('Startpunkt wählen')).toBeInTheDocument();
-    expect(screen.getByText(/Häufige Fälle — Clara füllt die Beschreibung vor/i)).toBeInTheDocument();
+    expect(screen.getByText('Häufige Fälle')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Kündigung & Arbeit' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Geburt & Kita' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Gewerbe anmelden' })).toBeInTheDocument();
